@@ -2939,6 +2939,7 @@ const Adm = {
       <div class="sa-act">
         <button class="btn btn-xs" data-act="adm.jenisEdit" data-kode="${esc(j.kode)}">${ico('edit')} Ubah</button>
         <button class="btn btn-xs" data-act="adm.seriBaru" data-jenis="${esc(j.kode)}">${ico('plus')} Seri</button>
+        ${c.seri ? `<button class="btn btn-xs" data-act="adm.kuotaJenis" data-kode="${esc(j.kode)}">${ico('layers')} Kuota</button>` : ''}
         <a class="btn btn-xs" href="#admin/seri">${ico('cal')} Jadwal</a>
         ${c.total === 0 ? `<button class="btn btn-xs btn-danger" data-act="adm.jenisHapus" data-kode="${esc(j.kode)}" aria-label="Hapus jenis ${esc(j.nama)}">${ico('trash')}</button>` : ''}
       </div>
@@ -2960,7 +2961,11 @@ const Adm = {
         <div class="field"><label class="label" for="jn-urut">Urutan tampil</label><input class="input" type="number" inputmode="numeric" min="0" max="999" id="jn-urut" name="urutan" value="${esc(v.urutan)}"></div>
       </div>
       <label class="switch"><input type="checkbox" name="aktif" ${v.aktif ? 'checked' : ''}><span class="sw"></span>Jenis ini dibuka untuk pendaftaran</label>
-      ${baru ? `<label class="switch" style="margin-top:10px"><input type="checkbox" name="buat_seri" checked><span class="sw"></span>Sekalian buat Seri 1 (kuota 60) — tanggal & jam diatur nanti</label>` : ''}
+      ${baru ? `<div class="g2" style="margin-top:12px">
+        <div class="field"><label class="label" for="jn-jml-seri">Jumlah seri</label><input class="input" type="number" inputmode="numeric" min="0" max="50" id="jn-jml-seri" name="jml_seri" value="1"><span class="hint">0 = buat seri nanti. Dibuat Seri 1, Seri 2, dst.</span></div>
+        <div class="field"><label class="label" for="jn-kuota">Kuota per seri</label><input class="input" type="number" inputmode="numeric" min="0" max="999" id="jn-kuota" name="kuota_seri" value="60"><span class="hint">Bisa diubah per seri nanti.</span></div>
+      </div>
+      <p class="hint" style="margin-top:4px">Tanggal & jam tiap seri diatur di Seri & Jadwal.</p>` : ''}
       <div class="actions end"><button type="button" class="btn" data-act="ovl.tutup">Batal</button><button type="submit" class="btn btn-primary">${baru ? 'Tambah jenis' : 'Simpan'}</button></div>
     </form>`);
   },
@@ -3375,7 +3380,11 @@ SUB['adm.simpanJenis'] = async (form) => {
     const lama = Adm.idx.jenis.get(kodeLama);
     if (lama.prefix !== isi.prefix && lama.nomor_terakhir > 0 && !(await konfirmasiDialog({ judul: 'Ganti awalan nomor?', isi: `Nomor yang sudah keluar (${esc(lama.prefix)}-…) tidak berubah. Nomor berikutnya memakai awalan <b>${esc(isi.prefix)}</b>.`, tombol: 'Ganti awalan' }))) return;
   }
-  const buatSeri = !kodeLama && form.buat_seri && form.buat_seri.checked;
+  const jmlSeri = !kodeLama && form.jml_seri ? (v('jml_seri') === '' ? 0 : Number(v('jml_seri'))) : 0;
+  const kuotaSeri = !kodeLama && form.kuota_seri ? Number(v('kuota_seri')) : 60;
+  if (!kodeLama && (!Number.isInteger(jmlSeri) || jmlSeri < 0 || jmlSeri > 50)) return toast('Jumlah seri harus angka 0–50.', 'bad');
+  if (!kodeLama && jmlSeri > 0 && (!Number.isInteger(kuotaSeri) || kuotaSeri < 0 || kuotaSeri > 999)) return toast('Kuota per seri harus angka 0–999.', 'bad');
+  const buatSeri = jmlSeri > 0;
   const btn = form.querySelector('[type=submit]');
   await sibuk(btn, async () => {
     try {
@@ -3386,14 +3395,14 @@ SUB['adm.simpanJenis'] = async (form) => {
       } else {
         const hasil = await api.tambahJenis({ kode, ...isi });
         d.jenis.push(hasil);
-        if (buatSeri) {
-          try { d.seri.push(await api.simpanSeri({ jenis: kode, nama: 'Seri 1', kuota: 60, aktif: true, urutan: 1, catatan: '' })); }
-          catch (e) { toast('Jenis ditambahkan, tapi Seri 1 gagal dibuat: ' + pesanError(e), 'bad', 7000); }
+        for (let i = 1; i <= jmlSeri; i++) {
+          try { d.seri.push(await api.simpanSeri({ jenis: kode, nama: `Seri ${i}`, kuota: kuotaSeri, aktif: true, urutan: i, catatan: '' })); }
+          catch (e) { toast(`Jenis ditambahkan, tapi Seri ${i} dst gagal dibuat: ` + pesanError(e), 'bad', 7000); break; }
         }
       }
       d.jenis.sort((a, b) => a.urutan - b.urutan || a.nama.localeCompare(b.nama));
       Adm.indeks(); Overlay.tutupYangBerisi(form); Adm.segarkanTampilan();
-      toast(kodeLama ? 'Jenis layangan diperbarui' : `${isi.nama} ditambahkan${buatSeri ? ' · atur jadwal Seri 1 di Seri & Jadwal' : ''}`, 'good', 5000);
+      toast(kodeLama ? 'Jenis layangan diperbarui' : `${isi.nama} ditambahkan${buatSeri ? ` dengan ${jmlSeri} seri · atur tanggal & jam di Seri & Jadwal` : ''}`, 'good', 5000);
     } catch (e) { toast(pesanError(e), 'bad', 6000); }
   });
 };
@@ -3412,6 +3421,40 @@ ACT['adm.jenisHapus'] = async (el) => {
     Adm.indeks(); Adm.segarkanTampilan();
     toast(`${j.nama} dihapus`, 'good');
   } catch (e) { toast(pesanError(e), 'bad', 6000); }
+};
+
+ACT['adm.kuotaJenis'] = (el) => {
+  const j = Adm.idx.jenis.get(el.dataset.kode);
+  const list = Adm.s.data.seri.filter((x) => x.jenis === j.kode);
+  if (!list.length) return toast('Jenis ini belum punya seri.', 'info');
+  const sama = list.every((x) => x.kuota === list[0].kuota);
+  Overlay.modal(`<form data-submit="adm.simpanKuotaJenis" data-kode="${esc(j.kode)}" novalidate>
+    <h3>Kuota semua seri ${esc(j.nama)}</h3>
+    <p class="lead">Kuota baru dipakai untuk ${list.length} seri ${esc(j.nama)}. Kuota tiap seri tetap bisa diubah satu per satu di Seri & Jadwal.</p>
+    <div class="field"><label class="label" for="kj-kuota">Kuota per seri</label><input class="input" type="number" inputmode="numeric" min="0" max="999" id="kj-kuota" name="kuota" value="${sama ? list[0].kuota : ''}" placeholder="mis. 60">
+      <span class="hint">Sekarang: ${list.map((x) => `${esc(x.nama)} ${x.kuota}`).join(' · ')}</span></div>
+    <div class="actions end"><button type="button" class="btn" data-act="ovl.tutup">Batal</button><button type="submit" class="btn btn-primary">Simpan kuota</button></div>
+  </form>`);
+};
+SUB['adm.simpanKuotaJenis'] = async (form) => {
+  const kode = form.dataset.kode, j = Adm.idx.jenis.get(kode), kuota = parseInt(String(form.kuota.value).trim(), 10);
+  if (!Number.isInteger(kuota) || kuota < 0 || kuota > 999) return toast('Kuota harus angka 0–999.', 'bad');
+  const list = Adm.s.data.seri.filter((x) => x.jenis === kode && x.kuota !== kuota);
+  if (!list.length) { Overlay.tutupYangBerisi(form); return toast('Kuota sudah sama, tidak ada yang diubah.', 'info'); }
+  const lebih = list.filter((x) => { const c = Adm.idx.perSeri.get(x.id) || { menunggu: 0, terkonfirmasi: 0 }; return c.menunggu + c.terkonfirmasi > kuota; });
+  if (lebih.length && !(await konfirmasiDialog({ judul: 'Kuota lebih kecil dari pendaftar?', isi: `${lebih.map((x) => esc(x.nama)).join(', ')} sudah punya pendaftar lebih dari ${kuota}. Pendaftar lama tetap tercatat, tetapi pendaftaran baru ditolak sampai ada slot kosong.`, tombol: 'Tetap simpan' }))) return;
+  const btn = form.querySelector('[type=submit]');
+  await sibuk(btn, async () => {
+    let n = 0;
+    try {
+      for (const x of list) { Object.assign(x, await api.simpanSeri({ id: x.id, kuota })); n++; }
+      Adm.tandaiUbah(); Adm.indeks(); Overlay.tutupYangBerisi(form); Adm.segarkanTampilan();
+      toast(`Kuota ${n} seri ${j.nama} jadi ${kuota}`, 'good');
+    } catch (e) {
+      if (n) { Adm.tandaiUbah(); Adm.indeks(); Adm.segarkanTampilan(); }
+      toast(`${n} seri berhasil diubah, sisanya gagal: ` + pesanError(e), 'bad', 7000);
+    }
+  });
 };
 
 /* seri */

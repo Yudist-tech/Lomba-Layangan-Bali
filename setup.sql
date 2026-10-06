@@ -788,18 +788,10 @@ Suksma 🙏
 )
 on conflict (id) do nothing;
 
--- Jenis layangan & harga (harga bisa diubah dari dashboard)
-insert into public.lomba_jenis (kode, nama, harga, prefix, urutan) values
-  ('bebean',  'Bebean',  100000, 'BB', 1),
-  ('janggan', 'Janggan', 150000, 'JG', 2),
-  ('cotek',   'Cotek',   120000, 'CT', 3)
-on conflict (kode) do nothing;
-
--- Seri awal: 1 seri per jenis (atur tanggal/jam & tambah seri dari dashboard)
-insert into public.lomba_seri (jenis, nama, kuota, urutan)
-select j.kode, 'Seri 1', 60, 1
-from public.lomba_jenis j
-where not exists (select 1 from public.lomba_seri);
+-- Jenis layangan, harga, seri & kuota TIDAK diisi otomatis:
+-- semuanya dibuat manual oleh admin di dashboard (menu Jenis Layangan
+-- dan Seri & Jadwal). Menjalankan ulang file ini tidak menambah atau
+-- memunculkan kembali jenis yang sudah dihapus admin.
 
 
 -- ---------------------------------------------------------------------
