@@ -3368,7 +3368,7 @@ SUB['adm.simpanJenis'] = async (form) => {
   };
   const kode = kodeLama || slugJenis(v('kode') || isi.nama);
   if (!isi.nama) return toast('Isi nama jenis layangan.', 'bad');
-  if (!Number.isInteger(isi.harga) || isi.harga < 0) return toast('Harga harus angka (Rp), mis. 100000.', 'bad');
+  if (!Number.isInteger(isi.harga) || isi.harga < 0) return toast('Harga harus berupa angka (Rp).', 'bad');
   if (!/^[A-Z0-9]{1,5}$/.test(isi.prefix)) return toast('Awalan nomor harus 1–5 huruf/angka.', 'bad');
   if (!Number.isInteger(isi.urutan) || isi.urutan < 0 || isi.urutan > 999) return toast('Urutan harus angka 0–999.', 'bad');
   if (!kode) return toast('Kode sistem tidak valid.', 'bad');
