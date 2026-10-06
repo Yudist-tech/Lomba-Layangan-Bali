@@ -64,11 +64,12 @@ Simpan, buka lagi di browser. Banner kuning **MODE DEMO** hilang = sudah tersamb
 
 ## 4. Sebelum pendaftaran dibuka
 
-1. Dashboard → **Pengaturan**: nama event, penyelenggara, lokasi, nomor WA panitia, info & ketentuan, **rekening pembayaran**, harga & awalan nomor tiap jenis, template pesan WA.
-2. **Seri & Jadwal**: isi tanggal & jam tiap seri, tambah seri sesuai kebutuhan (kuota default 60). Tombol **Duplikat** mempercepat membuat seri berikutnya.
-3. Uji coba: daftar 1–2 kali dari HP → verifikasi di dashboard → kirim WA ke nomor sendiri.
-4. Bersihkan data uji: Pengaturan → Zona berbahaya → **Hapus semua pendaftaran** (nomor layangan kembali mulai 001).
-5. Bagikan link: Pengaturan → Link & berbagi → **Bagikan via WA**.
+1. Dashboard → **Pengaturan**: nama event, penyelenggara, lokasi, nomor WA panitia, info & ketentuan, **rekening pembayaran**, template pesan WA.
+2. **Jenis Layangan**: tambah jenis baru dengan tombol **Tambah jenis** (nama, harga, awalan nomor), ubah harga, atau matikan sakelar untuk menutup jenis. Jenis baru bisa sekalian dibuatkan Seri 1. Jenis yang belum punya pendaftar bisa dihapus.
+3. **Seri & Jadwal**: isi tanggal & jam tiap seri, tambah seri sesuai kebutuhan (kuota default 60). Tombol **Duplikat** mempercepat membuat seri berikutnya.
+4. Uji coba: daftar 1–2 kali dari HP → verifikasi di dashboard → kirim WA ke nomor sendiri.
+5. Bersihkan data uji: Pengaturan → Zona berbahaya → **Hapus semua pendaftaran** (nomor layangan kembali mulai 001).
+6. Bagikan link: Pengaturan → Link & berbagi → **Bagikan via WA**.
 
 ---
 
