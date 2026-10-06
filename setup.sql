@@ -413,7 +413,9 @@ begin
     new.tutup := coalesce((select array_agg(distinct x order by x)
                              from unnest(new.tutup) x where x between 1 and new.kotak), '{}');
     new.kuota := greatest(0, new.kotak - cardinality(new.tutup));
-    if tg_op = 'UPDATE' and exists (
+    if tg_op = 'UPDATE'
+       and (new.kotak is distinct from old.kotak or new.tutup is distinct from old.tutup)
+       and exists (
          select 1 from public.lomba_pendaftaran p
           where p.seri_id = new.id and p.kotak is not null
             and p.status in ('menunggu', 'terkonfirmasi')
@@ -823,6 +825,31 @@ begin
 end;
 $$;
 
+-- Tutup / buka satu kotak di grup jadwal (atomik, aman bila 2 admin mengubah bersamaan)
+create or replace function public.lomba_atur_kotak(p_seri_id bigint, p_kotak int, p_tutup boolean)
+returns json
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  v public.lomba_seri%rowtype;
+begin
+  if not public.lomba_is_admin() then
+    raise exception 'BUKAN_ADMIN';
+  end if;
+  update public.lomba_seri
+     set tutup = case when p_tutup then array_append(array_remove(tutup, p_kotak), p_kotak)
+                      else array_remove(tutup, p_kotak) end
+   where id = p_seri_id
+  returning * into v;
+  if not found then
+    raise exception 'SERI_TIDAK_VALID';
+  end if;
+  return row_to_json(v);
+end;
+$$;
+
 -- Hapus semua pendaftaran & reset nomor urut (dipakai setelah uji coba).
 -- Mengembalikan daftar file bukti agar dashboard ikut menghapusnya dari Storage.
 create or replace function public.lomba_reset_data()
@@ -922,6 +949,7 @@ revoke all on function public.lomba_trg_sesi_sinkron() from public, anon, authen
 revoke all on function public.lomba_trg_sesi_setelah() from public, anon, authenticated;
 revoke all on function public.lomba_cek_setup() from public, anon;
 revoke all on function public.lomba_reset_data() from public, anon;
+revoke all on function public.lomba_atur_kotak(bigint, int, boolean) from public, anon;
 revoke all on function public.lomba_kode_baru() from public, anon;
 
 grant execute on function public.lomba_info_publik() to anon, authenticated;
@@ -934,6 +962,7 @@ grant execute on function public.lomba_normalisasi_wa(text) to anon, authenticat
 grant execute on function public.lomba_kode_baru() to authenticated;
 grant execute on function public.lomba_cek_setup() to authenticated;
 grant execute on function public.lomba_reset_data() to authenticated;
+grant execute on function public.lomba_atur_kotak(bigint, int, boolean) to authenticated;
 
 
 -- ---------------------------------------------------------------------

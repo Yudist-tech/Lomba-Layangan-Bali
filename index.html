@@ -1065,7 +1065,8 @@ const PESAN_ERROR = {
 function pesanError(e) {
   const msg = (e && (e.message || e.error_description || e.msg || e.error)) || String(e || '');
   for (const k of Object.keys(PESAN_ERROR)) if (msg.includes(k)) return PESAN_ERROR[k];
-  if (/nomor_layangan/i.test(msg) && /duplicate|unique/i.test(msg)) return PESAN_ERROR.NOMOR_DIPAKAI;
+  if (/nomor_layangan|nomor_uidx/i.test(msg) && /duplicate|unique/i.test(msg)) return PESAN_ERROR.NOMOR_DIPAKAI;
+  if (/kotak_uidx/i.test(msg)) return PESAN_ERROR.KUOTA_PENUH;
   if (/foreign key/i.test(msg)) return 'Data ini masih dipakai (masih ada grup atau pendaftar di dalamnya).';
   if (/lomba_seri_sesi_huruf/i.test(msg)) return 'Huruf grup itu sudah dipakai di seri ini.';
   if (/duplicate key|unique constraint/i.test(msg)) return 'Data yang sama sudah ada.';
@@ -1175,6 +1176,7 @@ class SupabaseAPI {
     return this._ok(await this.sb.from('lomba_seri').insert(isi).select().single());
   }
   async hapusSeri(id) { this._ok(await this.sb.from('lomba_seri').delete().eq('id', id)); }
+  aturKotak(seriId, kotak, tutup) { return this._rpc('lomba_atur_kotak', { p_seri_id: seriId, p_kotak: kotak, p_tutup: tutup }); }
   /* jadwal terbang: hari & seri (blok waktu); grup = lomba_seri */
   async simpanHari(h) {
     const { id, ...isi } = h;
@@ -1667,6 +1669,13 @@ class DemoAPI {
     this._sinkronGrup();
     this._simpan();
     return this._salin(row);
+  }
+  async aturKotak(seriId, kotak, tutup) {
+    const g = this._seri(seriId);
+    if (!g) throw new Error('SERI_TIDAK_VALID');
+    const set = new Set(g.tutup || []);
+    if (tutup) set.add(kotak); else set.delete(kotak);
+    return this.simpanSeri({ id: g.id, tutup: [...set] });
   }
   _sinkronGrup() { this.db.seri.forEach((g) => { if (g.sesi_id) this._hitungGrup(g); }); }
   async hapusSesi(id) {
@@ -3689,7 +3698,12 @@ CH['adm.fSeri'] = (el) => { Adm.s.f.seri = el.value; Adm.segarkanTampilan(); };
 CH['adm.fUrut'] = (el) => { Adm.s.f.urut = el.value; Adm.segarkanTampilan(); };
 IN['adm.q'] = debounce((el) => { Adm.s.f.q = el.value; Adm.s.batas = 150; const l = $('#adm-list'); if (l) l.innerHTML = Adm.vList(); }, 180);
 
-ACT['adm.konfirmasi'] = (el) => sibuk(el, async () => {
+ACT['adm.konfirmasi'] = (el) => {
+  const r = Adm.baris(el.dataset.id);
+  if (r && !r.nomor_layangan) { toast('Pendaftaran ini belum punya nomor layangan. Isi nomornya dulu, lalu konfirmasi.', 'info', 6000); Adm.formPendaftaran(r); return; }
+  return ACT['adm.konfirmasiLangsung'](el);
+};
+ACT['adm.konfirmasiLangsung'] = (el) => sibuk(el, async () => {
   try { await Adm.ubah(el.dataset.id, { status: 'terkonfirmasi' }, (r) => (r.nomor_layangan ? `Terkonfirmasi · nomor ${r.nomor_layangan}` : 'Terkonfirmasi')); }
   catch (e) { toast(pesanError(e), 'bad', 6000); }
 });
@@ -3866,7 +3880,7 @@ ACT['adm.hariHapus'] = async (el) => {
   if (grup.some((g) => { const c = Adm.idx.perSeri.get(g.id); return c.menunggu + c.terkonfirmasi + c.ditolak > 0; })) return toast('Hari ini masih punya pendaftar. Pindahkan atau hapus pendaftarnya dulu.', 'bad', 6000);
   if (!(await konfirmasiDialog({ judul: `Hapus ${h.nama}?`, isi: `${sesi.length} seri dan ${grup.length} grup di dalamnya ikut dihapus.`, tombol: 'Hapus hari', bahaya: true }))) return;
   try { await api.hapusHari(h.id); Adm.tandaiUbah(); Overlay.tutupSemua(); await Adm.muat({ diam: true }); toast(`${h.nama} dihapus`, 'good'); }
-  catch (e) { toast(pesanError(e), 'bad', 6000); }
+  catch (e) { toast(pesanError(e), 'bad', 6000); Adm.tandaiUbah(); Adm.muat({ diam: true }); }
 };
 
 /* jadwal terbang: seri (blok waktu) */
@@ -3946,19 +3960,22 @@ SUB['adm.simpanGrup'] = async (form) => {
     } catch (e) { toast(pesanError(e), 'bad', 6000); }
   });
 };
-ACT['adm.kotak'] = async (el) => {
-  const g = Adm.idx.seri.get(Number(el.dataset.id)), k = Number(el.dataset.k);
-  if (!g || el.dataset.sibuk) return;
-  const tutup = new Set(g.tutup || []);
-  const tutupBaru = !tutup.has(k);
-  if (tutupBaru) tutup.add(k); else tutup.delete(k);
-  el.dataset.sibuk = '1';
-  const td = el.parentElement; td.classList.toggle('tutup', tutupBaru);
-  try {
-    const hasil = await api.simpanSeri({ id: g.id, tutup: [...tutup].sort((a, b) => a - b) });
-    Adm.tandaiUbah(); Object.assign(g, hasil); Adm.indeks(); Adm.segarkanTampilan();
-    toast(`${g.nama} · kotak ${k} ${tutupBaru ? 'ditutup' : 'dibuka'}`, 'good', 1800);
-  } catch (e) { td.classList.toggle('tutup', !tutupBaru); delete el.dataset.sibuk; toast(pesanError(e), 'bad', 6000); }
+const antreKotak = new Map(); // satu antrean per grup agar klik beruntun tidak saling menimpa
+ACT['adm.kotak'] = (el) => {
+  const id = Number(el.dataset.id), k = Number(el.dataset.k), g = Adm.idx.seri.get(id);
+  if (!g) return;
+  const td = el.parentElement, tutupBaru = !td.classList.contains('tutup');
+  td.classList.toggle('tutup', tutupBaru);
+  const jalan = (antreKotak.get(id) || Promise.resolve()).then(async () => {
+    try {
+      const hasil = await api.aturKotak(id, k, tutupBaru);
+      const x = Adm.idx.seri.get(id); if (x) Object.assign(x, hasil);
+      Adm.tandaiUbah(); Adm.indeks();
+      toast(`${g.nama} · kotak ${k} ${tutupBaru ? 'ditutup' : 'dibuka'}`, 'good', 1800);
+    } catch (e) { toast(pesanError(e), 'bad', 6000); }
+  });
+  antreKotak.set(id, jalan);
+  jalan.then(() => { if (antreKotak.get(id) === jalan) { antreKotak.delete(id); Adm.segarkanTampilan(); } });
 };
 ACT['adm.bukaSemua'] = (el) => sibuk(el, async () => {
   const g = Adm.idx.seri.get(Number(el.dataset.id));
