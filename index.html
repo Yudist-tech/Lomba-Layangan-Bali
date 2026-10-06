@@ -2953,8 +2953,8 @@ const Adm = {
       <p class="lead">${baru ? 'Jenis baru langsung bisa dipilih peserta setelah punya seri yang dibuka.' : 'Harga baru berlaku untuk pendaftaran berikutnya; pendaftaran lama tetap memakai harga saat mendaftar.'}</p>
       <div class="field"><label class="label" for="jn-nama">Nama jenis</label><input class="input" id="jn-nama" name="nama" value="${esc(v.nama)}" maxlength="40" ${baru ? 'data-in="adm.jenisNama"' : ''} required></div>
       <div class="g2">
-        <div class="field"><label class="label" for="jn-harga">Harga (Rp)</label><input class="input" type="number" inputmode="numeric" min="0" step="1000" id="jn-harga" name="harga" value="${esc(v.harga)}" placeholder="mis. 100000"></div>
-        <div class="field"><label class="label" for="jn-prefix">Awalan nomor</label><input class="input" id="jn-prefix" name="prefix" value="${esc(v.prefix)}" maxlength="5" style="text-transform:uppercase" placeholder="mis. PC" data-in="adm.jenisManual"><span class="hint">Nomor layangan: <b id="jn-contoh">${esc(v.prefix || '??')}-001</b></span></div>
+        <div class="field"><label class="label" for="jn-harga">Harga (Rp)</label><input class="input" type="number" inputmode="numeric" min="0" step="1000" id="jn-harga" name="harga" value="${esc(v.harga)}"></div>
+        <div class="field"><label class="label" for="jn-prefix">Awalan nomor</label><input class="input" id="jn-prefix" name="prefix" value="${esc(v.prefix)}" maxlength="5" style="text-transform:uppercase" data-in="adm.jenisManual"><span class="hint">Nomor layangan: <b id="jn-contoh">${esc(v.prefix || '??')}-001</b></span></div>
       </div>
       <div class="g2">
         <div class="field"><label class="label" for="jn-kode">Kode sistem</label><input class="input" id="jn-kode" name="kode" value="${esc(v.kode)}" maxlength="30" ${baru ? 'data-in="adm.jenisManual"' : 'disabled'} placeholder="otomatis dari nama"><span class="hint">${baru ? 'Huruf kecil, angka, tanda minus. Tidak bisa diubah nanti.' : 'Tetap, tidak bisa diubah.'}</span></div>
@@ -3026,7 +3026,7 @@ const Adm = {
         <div class="field"><label class="label" for="s-mulai">Jam mulai (${CONFIG.ZONA_WAKTU})</label><input class="input" type="time" id="s-mulai" name="jam_mulai" value="${esc(String(v.jam_mulai || '').slice(0, 5))}"></div>
         <div class="field"><label class="label" for="s-selesai">Jam selesai</label><input class="input" type="time" id="s-selesai" name="jam_selesai" value="${esc(String(v.jam_selesai || '').slice(0, 5))}"></div>
       </div>
-      ${fieldInput({ id: 's-cat', name: 'catatan', label: 'Catatan untuk peserta', value: v.catatan || '', maxlength: 140, opsional: true, placeholder: 'mis. Kumpul di pos registrasi utara' })}
+      ${fieldInput({ id: 's-cat', name: 'catatan', label: 'Catatan untuk peserta', value: v.catatan || '', maxlength: 140, opsional: true })}
       <label class="switch"><input type="checkbox" name="aktif" ${v.aktif ? 'checked' : ''}><span class="sw"></span>Pendaftaran seri ini dibuka</label>
       <div class="actions end"><button type="button" class="btn" data-act="ovl.tutup">Batal</button><button type="submit" class="btn btn-primary">Simpan seri</button></div>
     </form>`);
@@ -3075,7 +3075,7 @@ ${rows.map((r, i) => `<tr><td class="n">${i + 1}</td><td class="no">${esc(r.nomo
         <label class="switch"><input type="checkbox" name="tampilkan_peserta" ${ev.tampilkan_peserta ? 'checked' : ''}><span class="sw"></span>Tampilkan daftar peserta terkonfirmasi (nomor + nama sekha) di halaman Jadwal</label>
         <div class="actions end"><button class="btn btn-primary btn-sm" type="submit">Simpan</button></div></form>
       <form class="panel" data-submit="adm.setBank" novalidate><div class="panel-h"><h3>Rekening pembayaran</h3></div>
-        ${fieldInput({ id: 'p-bank', name: 'bank_nama', label: 'Nama bank', value: ev.bank_nama, maxlength: 60, placeholder: 'mis. BPD Bali' })}
+        ${fieldInput({ id: 'p-bank', name: 'bank_nama', label: 'Nama bank', value: ev.bank_nama, maxlength: 60 })}
         ${fieldInput({ id: 'p-rek', name: 'bank_no_rek', label: 'Nomor rekening', value: ev.bank_no_rek, maxlength: 40, inputmode: 'numeric' })}
         ${fieldInput({ id: 'p-an', name: 'bank_atas_nama', label: 'Atas nama', value: ev.bank_atas_nama, maxlength: 120 })}
         <div class="actions end"><button class="btn btn-primary btn-sm" type="submit">Simpan</button></div></form>
@@ -3431,7 +3431,7 @@ ACT['adm.kuotaJenis'] = (el) => {
   Overlay.modal(`<form data-submit="adm.simpanKuotaJenis" data-kode="${esc(j.kode)}" novalidate>
     <h3>Kuota semua seri ${esc(j.nama)}</h3>
     <p class="lead">Kuota baru dipakai untuk ${list.length} seri ${esc(j.nama)}. Kuota tiap seri tetap bisa diubah satu per satu di Seri & Jadwal.</p>
-    <div class="field"><label class="label" for="kj-kuota">Kuota per seri</label><input class="input" type="number" inputmode="numeric" min="0" max="999" id="kj-kuota" name="kuota" value="${sama ? list[0].kuota : ''}" placeholder="mis. 60">
+    <div class="field"><label class="label" for="kj-kuota">Kuota per seri</label><input class="input" type="number" inputmode="numeric" min="0" max="999" id="kj-kuota" name="kuota" value="${sama ? list[0].kuota : ''}">
       <span class="hint">Sekarang: ${list.map((x) => `${esc(x.nama)} ${x.kuota}`).join(' · ')}</span></div>
     <div class="actions end"><button type="button" class="btn" data-act="ovl.tutup">Batal</button><button type="submit" class="btn btn-primary">Simpan kuota</button></div>
   </form>`);
