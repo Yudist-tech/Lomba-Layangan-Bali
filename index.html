@@ -307,6 +307,16 @@ textarea.input { min-height: 88px; resize: vertical; line-height: 1.45; }
 .chip { display: inline-flex; align-items: center; gap: 7px; padding: 6px 12px; border-radius: 99px; font-size: 13px; font-weight: 700; background: rgba(255,255,255,.14); border: 1px solid rgba(255,255,255,.25); }
 .chip .dot { width: 8px; height: 8px; border-radius: 50%; background: #7ee29a; box-shadow: 0 0 0 3px rgba(126,226,154,.25); }
 .chip.off .dot { background: #ffb3a8; box-shadow: 0 0 0 3px rgba(255,179,168,.25); }
+.hero.has-bg { background-color: #0a3a6d; background-size: cover; background-position: center; }
+.hero.has-bg h1, .hero.has-bg .org, .hero.has-bg .meta { text-shadow: 0 1px 12px rgba(0,0,0,.35); }
+.hero-logo { display: block; width: auto; height: 64px; max-width: 200px; object-fit: contain; margin: 0 0 12px; border-radius: 10px; }
+.media-row { display: flex; gap: 14px; align-items: center; margin-bottom: 16px; }
+.media-prev { flex: none; width: 112px; height: 72px; border-radius: 10px; border: 1px dashed var(--line); background: var(--surface-2) center / cover no-repeat; display: grid; place-items: center; color: var(--muted); font-size: 12px; overflow: hidden; }
+.media-prev.logo { background-size: contain; background-origin: content-box; padding: 6px; }
+.media-prev.isi { border-style: solid; }
+.media-info { min-width: 0; flex: 1; }
+.media-info b { display: block; margin-bottom: 2px; }
+.media-info .sa-act { margin-top: 8px; }
 .hero-art { position: absolute; right: max(12px, calc(50% - 420px)); top: 14px; width: 230px; height: auto; z-index: 0; pointer-events: none; }
 .hero-waves { position: absolute; left: 0; right: 0; bottom: -1px; width: 100%; height: 46px; color: var(--page); }
 .pub-main { max-width: 760px; margin: -44px auto 0; padding: 0 16px 40px; position: relative; z-index: 2; }
@@ -648,6 +658,7 @@ details.tbl-toggle summary { cursor: pointer; font-size: 13px; color: var(--bran
 @media (max-width: 600px) {
   .hero { padding: 22px 16px 70px; }
   .hero-art { width: 150px; right: -18px; top: 8px; opacity: .55; }
+  .hero-logo { height: 52px; }
   .card { padding: 18px 16px; border-radius: 15px; }
   .opt-grid.jenis { grid-template-columns: minmax(0, 1fr); }
   .opt-grid.jenis .opt-body { flex-direction: row; flex-wrap: wrap; align-items: baseline; column-gap: 10px; }
@@ -716,6 +727,7 @@ const CONFIG = {
   SUPABASE_URL: 'https://igxbxbfbakytxktybdck.supabase.co',   // contoh: ''
   SUPABASE_KEY: 'sb_publishable_wbSax22UaQKnv_X6hM-xYg_rElib4aM',   // Publishable key (- [ ] ) atau anon key
   BUCKET: 'lomba-bukti',
+  BUCKET_MEDIA: 'lomba-media',
   ZONA_WAKTU: 'WITA',
   ZONA_IANA: 'Asia/Makassar',
   ZONA_OFFSET: '+08:00',
@@ -855,7 +867,7 @@ async function sha256File(file) {
   } catch (e) { return null; }
 }
 /* Perkecil foto bukti transfer (hemat kuota & upload cepat). Hasil: Blob JPEG. */
-function kompresGambar(file, maxSisi = 2000, kualitas = 0.82) {
+function kompresGambar(file, maxSisi = 2000, kualitas = 0.82, tipe = 'image/jpeg') {
   return new Promise((resolve, reject) => {
     const url = URL.createObjectURL(file);
     const img = new Image();
@@ -868,15 +880,20 @@ function kompresGambar(file, maxSisi = 2000, kualitas = 0.82) {
         const c = document.createElement('canvas');
         c.width = w; c.height = h;
         const ctx = c.getContext('2d');
-        ctx.fillStyle = '#fff';
-        ctx.fillRect(0, 0, w, h);
+        if (tipe === 'image/jpeg') { ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, w, h); }
         ctx.drawImage(img, 0, 0, w, h);
-        c.toBlob((blob) => { URL.revokeObjectURL(url); blob ? resolve(blob) : reject(new Error('GAMBAR_GAGAL')); }, 'image/jpeg', kualitas);
+        c.toBlob((blob) => { URL.revokeObjectURL(url); blob ? resolve(blob) : reject(new Error('GAMBAR_GAGAL')); }, tipe, kualitas);
       } catch (e) { URL.revokeObjectURL(url); reject(new Error('GAMBAR_GAGAL')); }
     };
     img.onerror = () => { URL.revokeObjectURL(url); reject(new Error('GAMBAR_GAGAL')); };
     img.src = url;
   });
+}
+/* Hanya alamat gambar https:// atau data:image/… yang dipakai; tanda kutip/backslash dibuang agar aman di CSS url('…'). */
+function urlGambarAman(u) {
+  u = String(u || '').trim();
+  if (!/^https:\/\//i.test(u) && !/^data:image\/(png|jpe?g|webp);base64,/i.test(u)) return '';
+  return u.replace(/['"\\\s<>]/g, (c) => encodeURIComponent(c));
 }
 function blobKeDataURL(blob) {
   return new Promise((resolve, reject) => { const r = new FileReader(); r.onload = () => resolve(r.result); r.onerror = reject; r.readAsDataURL(blob); });
@@ -984,6 +1001,7 @@ const PESAN_ERROR = {
   BUKAN_ADMIN: 'Akun ini tidak terdaftar sebagai admin.',
   DEMO_PENUH: 'Penyimpanan mode demo penuh. Hapus data demo di menu Pengaturan.',
   GAMBAR_GAGAL: 'Foto tidak bisa dibaca. Gunakan format JPG/PNG atau screenshot.',
+  MEDIA_TIDAK_VALID: 'Gunakan gambar JPG, PNG, atau WebP.',
   FILE_BESAR: 'Ukuran file terlalu besar (maksimal 3 MB setelah dikompres).',
   HARGA_BERUBAH: 'Biaya pendaftaran baru saja diperbarui panitia. Periksa kembali jumlah yang harus dibayar.',
   DATA_BERUBAH: 'Data ini baru saja diubah (oleh admin lain atau tab lain). Data dimuat ulang — periksa lagi.',
@@ -1107,6 +1125,19 @@ class SupabaseAPI {
   }
   async simpanPengaturan(patch) {
     return this._ok(await this.sb.from('lomba_pengaturan').update({ ...patch, updated_at: new Date().toISOString() }).eq('id', 1).select().single());
+  }
+  /* logo & gambar latar halaman peserta (bucket publik) */
+  async uploadMedia(nama, blob, contentType) {
+    const ext = contentType === 'image/png' ? 'png' : contentType === 'image/webp' ? 'webp' : 'jpg';
+    const path = `${nama}/${uuid()}.${ext}`;
+    const { error } = await this.sb.storage.from(CONFIG.BUCKET_MEDIA).upload(path, blob, { contentType, upsert: false, cacheControl: '31536000' });
+    if (error) throw error;
+    return this.sb.storage.from(CONFIG.BUCKET_MEDIA).getPublicUrl(path).data.publicUrl;
+  }
+  async hapusMedia(url) {
+    const tanda = `/object/public/${CONFIG.BUCKET_MEDIA}/`, i = String(url || '').indexOf(tanda);
+    if (i < 0) return;
+    try { await this.sb.storage.from(CONFIG.BUCKET_MEDIA).remove([decodeURIComponent(url.slice(i + tanda.length).split('?')[0])]); } catch (e) { /* abaikan */ }
   }
   cekSetup() { return this._rpc('lomba_cek_setup'); }
   async resetData() {
@@ -1324,6 +1355,7 @@ class DemoAPI {
         nama_event: st.nama_event, penyelenggara: st.penyelenggara, lokasi: st.lokasi, info: st.info, wa_admin: st.wa_admin,
         bank_nama: st.bank_nama, bank_no_rek: st.bank_no_rek, bank_atas_nama: st.bank_atas_nama,
         pendaftaran_buka: buka, batas_daftar: st.batas_daftar, tampilkan_peserta: st.tampilkan_peserta,
+        logo_url: st.logo_url || '', bg_url: st.bg_url || '',
       },
       jenis: [...db.jenis].sort((a, b) => a.urutan - b.urutan).map(({ kode, nama, harga, prefix, aktif }) => ({ kode, nama, harga, prefix, aktif })),
       seri: seri.map((s) => ({
@@ -1511,7 +1543,15 @@ class DemoAPI {
     this._simpan();
     return this._salin(this.db.pengaturan);
   }
-  async cekSetup() { return { bucket: true, storage_policies: 3, realtime: true, admins: 1, versi: CONFIG.VERSI, demo: true }; }
+  async uploadMedia(nama, blob) {
+    await this._jeda(400);
+    let data = await blobKeDataURL(blob);
+    if (data.length > 700000) data = await blobKeDataURL(await kompresGambar(blob, nama === 'logo' ? 320 : 1280, 0.7, blob.type === 'image/png' ? 'image/png' : 'image/jpeg'));
+    if (data.length > 1200000) throw new Error('DEMO_PENUH');
+    return data;
+  }
+  async hapusMedia() { /* data URL ikut terhapus bersama pengaturan */ }
+  async cekSetup() { return { bucket: true, media: true, storage_policies: 3, realtime: true, admins: 1, versi: CONFIG.VERSI, demo: true }; }
   async resetData() {
     await this._jeda(300);
     const n = this.db.daftar.length;
@@ -1800,12 +1840,15 @@ const Pub = {
     const rentang = rentangTanggal(aktif.length ? aktif : info && info.seri);
     const buka = !!ev.pendaftaran_buka;
     const chip = info ? `<span class="chip ${buka ? '' : 'off'}"><i class="dot"></i>${buka ? 'Pendaftaran dibuka' : 'Pendaftaran ditutup'}${buka && ev.batas_daftar ? ` · s/d ${esc(fmtWaktu(ev.batas_daftar))} ${CONFIG.ZONA_WAKTU}` : ''}</span>` : '';
-    return `<header class="hero"><div class="hero-in">
+    const logo = urlGambarAman(ev.logo_url), bg = urlGambarAman(ev.bg_url);
+    const gayaBg = bg ? ` style="background-image:linear-gradient(170deg,rgba(6,28,56,.72) 0%,rgba(6,28,56,.45) 55%,rgba(6,28,56,.62) 100%),url('${esc(bg)}')"` : '';
+    return `<header class="hero${bg ? ' has-bg' : ''}"${gayaBg}><div class="hero-in">
+      ${logo ? `<img class="hero-logo" src="${esc(logo)}" alt="Logo ${esc(ev.nama_event || 'event')}">` : ''}
       <div class="org">${esc(ev.penyelenggara || 'Pendaftaran online')}</div>
       <h1>${esc(ev.nama_event || 'Lomba Layangan')}</h1>
       <div class="meta">${rentang ? `<span>${ico('cal')}${esc(rentang)}</span>` : ''}${ev.lokasi ? `<span>${ico('pin')}${esc(ev.lokasi)}</span>` : ''}</div>
       <div class="hero-chips">${chip}</div>
-    </div>${HERO_ART}${HERO_WAVES}</header>`;
+    </div>${bg ? '' : HERO_ART}${HERO_WAVES}</header>`;
   },
   vTabs() {
     const t = this.s.tab;
@@ -2399,6 +2442,7 @@ const Adm = {
     if (bnav) bnav.outerHTML = this.vBnav();
     if (this.s.tab === 'pengaturan' && this.s.data && $('#set-root')) {
       const h = $('#health'); if (h) h.innerHTML = this.vHealth();
+      const t = $('#set-tampilan'); if (t) t.outerHTML = this.vPanelTampilan();
     } else if (this.s.tab === 'pendaftaran' && this.s.data && $('#adm-search')) {
       $('#adm-filters').innerHTML = this.vFilter();
       $('#adm-list').innerHTML = this.vList();
@@ -3069,6 +3113,7 @@ ${rows.map((r, i) => `<tr><td class="n">${i + 1}</td><td class="no">${esc(r.nomo
         ${fieldInput({ id: 'p-wa', name: 'wa_admin', label: 'Nomor WA panitia', value: ev.wa_admin ? fmtWA(ev.wa_admin) : '', type: 'tel', inputmode: 'tel', maxlength: 20, hint: 'Dipakai tombol "Tanya panitia" di halaman peserta.' })}
         ${fieldInput({ id: 'p-info', name: 'info', label: 'Info & ketentuan lomba', value: ev.info, textarea: true, rows: 4, maxlength: 2000, opsional: true, hint: 'Tampil di atas formulir pendaftaran.' })}
         <div class="actions end"><button class="btn btn-primary btn-sm" type="submit">Simpan</button></div></form>
+      ${this.vPanelTampilan()}
       <form class="panel" data-submit="adm.setDaftar" novalidate><div class="panel-h"><h3>Status pendaftaran</h3></div>
         <label class="switch" style="margin-bottom:14px"><input type="checkbox" name="pendaftaran_buka" ${ev.pendaftaran_buka ? 'checked' : ''}><span class="sw"></span>Pendaftaran online dibuka</label>
         ${fieldInput({ id: 'p-batas', name: 'batas_daftar', label: 'Tutup otomatis pada', value: batas, type: 'datetime-local', opsional: true, hint: `Waktu ${CONFIG.ZONA_WAKTU}. Kosongkan jika tidak ada batas.` })}
@@ -3109,6 +3154,23 @@ ${rows.map((r, i) => `<tr><td class="n">${i + 1}</td><td class="no">${esc(r.nomo
       </div>
     </div></div>`;
   },
+  vPanelTampilan() {
+    const ev = this.s.data.pengaturan;
+    const baris = (k, judul, ket) => {
+      const u = urlGambarAman(ev[k + '_url']);
+      return `<div class="media-row">
+        <div class="media-prev ${k} ${u ? 'isi' : ''}" ${u ? `style="background-image:url('${esc(u)}')"` : ''}>${u ? '' : 'Belum ada'}</div>
+        <div class="media-info"><b>${judul}</b><span class="hint">${ket}</span>
+          <div class="sa-act">
+            <label class="btn btn-xs">${ico('upload')} ${u ? 'Ganti' : 'Unggah'}<input type="file" class="sr-only" accept="image/png,image/jpeg,image/webp" data-ch="adm.media" data-k="${k}"></label>
+            ${u ? `<button type="button" class="btn btn-xs btn-danger" data-act="adm.mediaHapus" data-k="${k}">${ico('trash')} Hapus</button>` : ''}
+          </div></div></div>`;
+    };
+    return `<div class="panel" id="set-tampilan"><div class="panel-h"><h3>Tampilan halaman peserta</h3><a class="btn btn-xs" href="#daftar" target="_blank" rel="noopener">${ico('globe')} Lihat</a></div>
+      ${baris('logo', 'Logo', 'Tampil di atas nama event. PNG transparan paling bagus.')}
+      ${baris('bg', 'Gambar latar', 'Latar bagian atas halaman. Gambar mendatar (landscape), dibuat sedikit gelap agar tulisan terbaca.')}
+      <p class="hint" style="margin:0">Kosongkan untuk memakai tampilan bawaan. Gambar otomatis diperkecil sebelum diunggah.</p></div>`;
+  },
   vHealth() {
     const h = this.s.health, ok = (v) => (v ? `<span class="badge b-good">${ico('check')}OK</span>` : `<span class="badge b-bad">${ico('x')}Belum</span>`);
     const mode = api.mode === 'demo' ? '<span class="badge b-warn">Demo (lokal)</span>' : `<span class="badge b-good">${ico('check')}Supabase</span>`;
@@ -3116,7 +3178,7 @@ ${rows.map((r, i) => `<tr><td class="n">${i + 1}</td><td class="no">${esc(r.nomo
     if (api.mode === 'supabase') isi += `<div><span>Project</span><span class="hint">${esc(String(CONFIG.SUPABASE_URL).replace(/^https?:\/\//, ''))}</span></div>`;
     isi += `<div><span>Update otomatis</span>${this.s.live === 'on' ? `<span class="badge b-good">${ico('check')}Realtime</span>` : '<span class="badge b-warn">Refresh 30 dtk</span>'}</div>`;
     if (h) {
-      isi += `<div><span>Bucket bukti transfer</span>${ok(h.bucket)}</div><div><span>Aturan akses Storage (3)</span>${ok(h.storage_policies >= 3)}</div><div><span>Realtime database</span>${ok(h.realtime)}</div><div><span>Jumlah admin</span><b>${h.admins}</b></div>`;
+      isi += `<div><span>Bucket bukti transfer</span>${ok(h.bucket)}</div><div><span>Bucket logo & latar</span>${ok(h.media)}</div><div><span>Aturan akses Storage (3)</span>${ok(h.storage_policies >= 3)}</div><div><span>Realtime database</span>${ok(h.realtime)}</div><div><span>Jumlah admin</span><b>${h.admins}</b></div>`;
     } else isi += '<div><span class="hint">Klik "Periksa" untuk mengecek setup database.</span></div>';
     return `<div class="health">${isi}<div><span>Versi aplikasi</span><span class="hint">${CONFIG.VERSI}</span></div></div>`;
   },
@@ -3506,6 +3568,40 @@ SUB['adm.simpanSeri'] = async (form) => {
       toast(id ? 'Seri diperbarui' : 'Seri ditambahkan', 'good');
     } catch (e) { toast(pesanError(e), 'bad', 6000); }
   });
+};
+
+/* logo & gambar latar */
+CH['adm.media'] = async (el) => {
+  const file = el.files && el.files[0], k = el.dataset.k;
+  el.value = '';
+  if (!file) return;
+  if (!/^image\/(png|jpeg|webp)$/.test(file.type)) return toast(pesanError(new Error('MEDIA_TIDAK_VALID')), 'bad');
+  const ev = Adm.s.data.pengaturan, lama = ev[k + '_url'] || '';
+  const tombol = el.closest('label');
+  if (tombol) { tombol.insertAdjacentHTML('afterbegin', '<span class="spinner"></span>'); tombol.style.pointerEvents = 'none'; tombol.setAttribute('aria-busy', 'true'); }
+  try {
+    const png = k === 'logo' && file.type !== 'image/jpeg';
+    const blob = await kompresGambar(file, k === 'logo' ? 512 : 1920, 0.82, png ? 'image/png' : 'image/jpeg');
+    const url = await api.uploadMedia(k, blob, blob.type || (png ? 'image/png' : 'image/jpeg'));
+    const hasil = await api.simpanPengaturan({ [k + '_url']: url });
+    Object.assign(ev, hasil); Adm.tandaiUbah();
+    if (lama && lama !== url) api.hapusMedia(lama);
+    Adm.segarkanTampilan();
+    toast(k === 'logo' ? 'Logo diperbarui' : 'Gambar latar diperbarui', 'good');
+  } catch (e) { toast(pesanError(e), 'bad', 6000); }
+  finally { if (tombol && tombol.isConnected) { const sp = tombol.querySelector('.spinner'); if (sp) sp.remove(); tombol.style.pointerEvents = ''; tombol.removeAttribute('aria-busy'); } }
+};
+ACT['adm.mediaHapus'] = async (el) => {
+  const k = el.dataset.k, ev = Adm.s.data.pengaturan, lama = ev[k + '_url'];
+  const nama = k === 'logo' ? 'logo' : 'gambar latar';
+  if (!(await konfirmasiDialog({ judul: `Hapus ${nama}?`, isi: `Halaman peserta kembali memakai tampilan bawaan.`, tombol: 'Hapus', bahaya: true }))) return;
+  try {
+    const hasil = await api.simpanPengaturan({ [k + '_url']: '' });
+    Object.assign(ev, hasil); Adm.tandaiUbah();
+    if (lama) api.hapusMedia(lama);
+    Adm.segarkanTampilan();
+    toast(`${nama[0].toUpperCase() + nama.slice(1)} dihapus`, 'good');
+  } catch (e) { toast(pesanError(e), 'bad', 6000); }
 };
 
 /* pengaturan */

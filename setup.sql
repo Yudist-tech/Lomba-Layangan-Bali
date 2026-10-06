@@ -124,6 +124,10 @@ create table if not exists public.lomba_seri (
 );
 create index if not exists lomba_seri_jenis_idx on public.lomba_seri (jenis);
 
+-- Tampilan halaman peserta: logo & gambar latar (diatur admin di Pengaturan)
+alter table public.lomba_pengaturan add column if not exists logo_url text not null default '';
+alter table public.lomba_pengaturan add column if not exists bg_url   text not null default '';
+
 -- Pendaftaran: 1 baris = 1 layangan
 create table if not exists public.lomba_pendaftaran (
   id               uuid primary key default gen_random_uuid(),
@@ -360,7 +364,9 @@ as $$
         'bank_atas_nama', bank_atas_nama,
         'pendaftaran_buka', pendaftaran_buka and (batas_daftar is null or now() <= batas_daftar),
         'batas_daftar', batas_daftar,
-        'tampilkan_peserta', tampilkan_peserta
+        'tampilkan_peserta', tampilkan_peserta,
+        'logo_url', logo_url,
+        'bg_url', bg_url
       ) from st
     ),
     'jenis', coalesce((
@@ -570,6 +576,7 @@ set search_path = public
 as $$
 declare
   v_bucket boolean;
+  v_media  boolean;
   v_pol    int;
   v_rt     boolean;
   v_admin  int;
@@ -582,13 +589,18 @@ begin
   exception when others then
     v_bucket := null;
   end;
+  begin
+    select exists (select 1 from storage.buckets where id = 'lomba-media') into v_media;
+  exception when others then
+    v_media := null;
+  end;
   select count(*) into v_pol from pg_policies
    where schemaname = 'storage' and tablename = 'objects' and policyname like 'lomba_bukti_%';
   select exists (select 1 from pg_publication_tables
                   where pubname = 'supabase_realtime' and schemaname = 'public'
                     and tablename = 'lomba_pendaftaran') into v_rt;
   select count(*) into v_admin from public.lomba_admin;
-  return json_build_object('bucket', v_bucket, 'storage_policies', v_pol,
+  return json_build_object('bucket', v_bucket, 'media', v_media, 'storage_policies', v_pol,
                            'realtime', v_rt, 'admins', v_admin, 'versi', '1.0');
 end;
 $$;
@@ -726,6 +738,43 @@ exception when others then
 end;
 $$;
 
+-- Logo & gambar latar halaman peserta: bucket PUBLIK (siapa saja bisa melihat),
+-- hanya admin yang bisa mengunggah, mengganti & menghapus. Maks 5 MB per file.
+do $$
+begin
+  insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
+  values ('lomba-media', 'lomba-media', true, 5242880,
+          array['image/jpeg', 'image/png', 'image/webp'])
+  on conflict (id) do update
+    set public = true,
+        file_size_limit = excluded.file_size_limit,
+        allowed_mime_types = excluded.allowed_mime_types;
+exception when others then
+  raise notice 'Bucket lomba-media tidak bisa dibuat lewat SQL (%). Buat manual di menu Storage (Public).', sqlerrm;
+end;
+$$;
+
+do $$
+begin
+  drop policy if exists "lomba_media_admin_baca" on storage.objects;
+  create policy "lomba_media_admin_baca" on storage.objects
+    for select to authenticated
+    using (bucket_id = 'lomba-media' and (select public.lomba_is_admin()));
+
+  drop policy if exists "lomba_media_admin_upload" on storage.objects;
+  create policy "lomba_media_admin_upload" on storage.objects
+    for insert to authenticated
+    with check (bucket_id = 'lomba-media' and (select public.lomba_is_admin()));
+
+  drop policy if exists "lomba_media_admin_hapus" on storage.objects;
+  create policy "lomba_media_admin_hapus" on storage.objects
+    for delete to authenticated
+    using (bucket_id = 'lomba-media' and (select public.lomba_is_admin()));
+exception when others then
+  raise notice 'Policy storage media tidak bisa dibuat lewat SQL (%).', sqlerrm;
+end;
+$$;
+
 
 -- ---------------------------------------------------------------------
 -- BAGIAN 10 · REALTIME, ADMIN & DATA AWAL
@@ -814,6 +863,9 @@ select no, cek, hasil from (values
                         where pubname = 'supabase_realtime' and schemaname = 'public'
                           and tablename = 'lomba_pendaftaran')
            then '✅ OK' else '⚠️ Tidak aktif — dashboard tetap jalan (refresh berkala)' end),
+  (6, 'Bucket logo & latar (Storage)',
+      case when exists (select 1 from storage.buckets where id = 'lomba-media' and public)
+           then '✅ OK' else '❌ Belum ada — buat bucket Public "lomba-media" (lihat panduan)' end),
   (5, 'Email admin',
       coalesce((select '✅ ' || string_agg(email, ', ') from public.lomba_admin), '❌ Belum ada'))
 ) as t(no, cek, hasil)

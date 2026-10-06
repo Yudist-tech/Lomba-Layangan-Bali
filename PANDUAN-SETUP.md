@@ -65,6 +65,7 @@ Simpan, buka lagi di browser. Banner kuning **MODE DEMO** hilang = sudah tersamb
 ## 4. Sebelum pendaftaran dibuka
 
 1. Dashboard → **Pengaturan**: nama event, penyelenggara, lokasi, nomor WA panitia, info & ketentuan, **rekening pembayaran**, template pesan WA.
+   Panel **Tampilan halaman peserta**: unggah/ganti/hapus **logo** dan **gambar latar** bagian atas halaman pendaftaran (JPG, PNG, atau WebP; otomatis diperkecil). Kosongkan untuk memakai tampilan bawaan.
 2. **Jenis Layangan**: database awalnya **kosong**. Semua jenis dibuat manual oleh admin dengan tombol **Tambah jenis** (nama, harga, awalan nomor, jumlah seri, kuota per seri). Tombol **Ubah** untuk mengganti nama/harga, tombol **Kuota** untuk mengubah kuota semua seri jenis itu sekaligus, dan sakelar untuk membuka/menutup jenis. Jenis yang belum punya pendaftar bisa dihapus.
 3. **Seri & Jadwal**: isi tanggal & jam tiap seri, tambah/hapus seri, dan ubah kuota tiap seri satu per satu. Tombol **Duplikat** mempercepat membuat seri berikutnya.
 4. Uji coba: daftar 1–2 kali dari HP → verifikasi di dashboard → kirim WA ke nomor sendiri.
@@ -112,6 +113,8 @@ Simpan, buka lagi di browser. Banner kuning **MODE DEMO** hilang = sudah tersamb
 | `lomba_bukti_admin_hapus` | DELETE | authenticated | `bucket_id = 'lomba-bukti' and (select public.lomba_is_admin())` |
 
 Nama harus berawalan `lomba_bukti_` agar terdeteksi di Dashboard → Pengaturan → **Status sistem → Periksa**.
+
+**Bucket logo & gambar latar** (kalau baris "Bucket logo & latar" ❌): Storage → New bucket → Name `lomba-media` · Public: **on** · batas 5 MB · tipe `image/jpeg, image/png, image/webp`. Lalu buat 3 policy untuk role authenticated dengan syarat `bucket_id = 'lomba-media' and (select public.lomba_is_admin())`: `lomba_media_admin_baca` (SELECT), `lomba_media_admin_upload` (INSERT), `lomba_media_admin_hapus` (DELETE).
 
 ## Lampiran B — Tanya jawab
 
