@@ -59,6 +59,10 @@
   --cat-4: #eda100;
   --cat-5: #e87ba4;
   --cat-6: #008300;
+  --cat-7: #8b5cf6;
+  --cat-8: #0891b2;
+  --cat-9: #b45309;
+  --cat-10: #64748b;
   --track: #e3ecf8;
   --meter-1: #2a78d6;
   --meter-2: #86b6ef;
@@ -101,6 +105,10 @@
     --cat-4: #c98500;
     --cat-5: #d55181;
     --cat-6: #008300;
+    --cat-7: #9d74f7;
+    --cat-8: #1aa3c4;
+    --cat-9: #c26a1c;
+    --cat-10: #7c8aa0;
     --track: #1b2838;
     --meter-1: #3987e5;
     --meter-2: #1c5cab;
@@ -117,7 +125,7 @@
   --accent-soft: #2b2311; --accent-line: #5a4717; --accent-ink: #f3c95c;
   --good-btn: #178a41; --good-soft: #13271a; --good-ink: #6bd98a;
   --warn-soft: #2c2411; --warn-ink: #f4c552; --bad-soft: #2e1616; --bad-ink: #f28b8b;
-  --cat-1: #3987e5; --cat-2: #d95926; --cat-3: #199e70; --cat-4: #c98500; --cat-5: #d55181; --cat-6: #008300;
+  --cat-1: #3987e5; --cat-2: #d95926; --cat-3: #199e70; --cat-4: #c98500; --cat-5: #d55181; --cat-6: #008300; --cat-7: #9d74f7; --cat-8: #1aa3c4; --cat-9: #c26a1c; --cat-10: #7c8aa0;
   --track: #1b2838; --meter-1: #3987e5; --meter-2: #1c5cab; --grid: #2a2b2e; --axis: #3a3b3e;
   --shadow: 0 1px 2px rgba(0, 0, 0, .3), 0 6px 20px rgba(0, 0, 0, .25);
 }
@@ -710,6 +718,51 @@ code { font-family: ui-monospace, Menlo, Consolas, monospace; font-size: .92em; 
 .massal-item:first-child { border-top: 0; }
 .massal-item input { width: 18px; height: 18px; margin-top: 2px; flex: none; accent-color: var(--bad); }
 .massal-item small { color: var(--muted); }
+
+/* ================================================================
+   JADWAL TERBANG — tabel Hari → Seri → Grup (25 kotak per baris)
+   ================================================================ */
+.jt-hari { margin: 0 0 26px; }
+.jt-hari-h { display: flex; align-items: center; gap: 8px 12px; flex-wrap: wrap; margin: 0 0 10px; }
+.jt-hari-h h3 { margin: 0; font-size: 19px; font-weight: 800; letter-spacing: .05em; text-transform: uppercase; }
+.jt-hari-h .muted { font-size: 14px; }
+.jt-hari-h .sa-act { margin-left: auto; }
+.jt-wrap { overflow-x: auto; border: 1px solid var(--line-strong); border-radius: 12px; background: var(--surface); -webkit-overflow-scrolling: touch; }
+.jt { border-collapse: collapse; font-size: 13px; font-variant-numeric: tabular-nums; width: 100%; }
+.jt th, .jt td { border: 1px solid var(--line); padding: 0; text-align: center; }
+.jt thead th { background: var(--surface-3); font-size: 11px; font-weight: 800; letter-spacing: .05em; text-transform: uppercase; color: var(--ink-2); padding: 7px 4px; white-space: nowrap; }
+.jt .jt-seri { min-width: 96px; padding: 8px 6px; vertical-align: middle; background: var(--surface-2); }
+.jt .jt-seri b { display: block; font-size: 17px; line-height: 1.2; }
+.jt .jt-seri span { display: block; font-size: 12px; color: var(--muted); white-space: nowrap; }
+.jt .jt-seri .sa-act { justify-content: center; margin-top: 8px; gap: 4px; flex-wrap: wrap; }
+.jt .jt-grup { width: 34px; min-width: 34px; font-weight: 800; font-size: 14px; background: var(--surface-2); }
+.jt .jt-jenis { min-width: 158px; font-weight: 700; text-transform: uppercase; font-size: 12px; letter-spacing: .03em; background: color-mix(in srgb, var(--jc, var(--surface-3)) 32%, var(--surface)); color: var(--ink); }
+.jt .jt-jenis > span, .jt .jt-jenis > button { display: block; padding: 6px 10px; }
+.jt .jt-jenis > button { all: unset; box-sizing: border-box; display: block; width: 100%; height: 100%; padding: 6px 10px; cursor: pointer; text-align: center; }
+.jt .jt-jenis > button:hover { text-decoration: underline; }
+.jt .jt-jenis > button:focus-visible { outline: 2px solid var(--brand); outline-offset: -3px; }
+.jt .jt-jenis small { display: block; font-size: 11px; font-weight: 600; text-transform: none; letter-spacing: 0; color: var(--ink-2); }
+.jt .jt-tot { min-width: 54px; font-weight: 800; font-size: 15px; background: var(--surface-2); }
+.jt .jt-tot small { display: block; font-weight: 600; font-size: 10.5px; color: var(--muted); }
+.jt .k { width: 38px; min-width: 38px; height: 30px; font-size: 12.5px; }
+.jt .k.isi { font-weight: 700; }
+.jt .k.tunggu { background: var(--warn-soft); color: var(--warn-ink); }
+.jt .k.tutup { background: var(--ink); }
+.jt .k.na { background: repeating-linear-gradient(135deg, transparent 0 5px, var(--line) 5px 6px); }
+.jt .k.anon { background: var(--surface-3); }
+.jt .k > button { all: unset; box-sizing: border-box; display: grid; place-items: center; width: 100%; height: 30px; cursor: pointer; }
+.jt .k > button:hover { box-shadow: inset 0 0 0 2px var(--brand); }
+.jt .k > button:focus-visible { box-shadow: inset 0 0 0 2px var(--brand); }
+.jt tr.off .k:not(.tutup), .jt tr.off .jt-jenis { opacity: .5; }
+.jt-legend { display: flex; gap: 6px 16px; flex-wrap: wrap; font-size: 12.5px; color: var(--muted); margin: 10px 2px 0; }
+.jt-legend span { display: inline-flex; align-items: center; gap: 6px; }
+.jt-legend i { display: inline-block; width: 16px; height: 16px; border: 1px solid var(--line-strong); border-radius: 3px; }
+.jt-kosong { padding: 18px; text-align: center; color: var(--muted); }
+.nomor-cek { display: inline-flex; align-items: center; gap: 6px; }
+.nomor-cek.ok { color: var(--good-ink); }
+.nomor-cek.bad { color: var(--bad-ink); }
+.grup-hari { margin: 14px 0 6px; font-size: 13px; font-weight: 800; letter-spacing: .04em; text-transform: uppercase; color: var(--ink-2); }
+.grup-hari:first-child { margin-top: 0; }
 </style>
 </head>
 <body>
@@ -989,7 +1042,9 @@ function toast(pesan, jenis = 'info', ms = 3200) {
 }
 const PESAN_ERROR = {
   PENDAFTARAN_DITUTUP: 'Pendaftaran sedang ditutup.',
-  KUOTA_PENUH: 'Kuota seri ini sudah penuh. Silakan pilih seri lain.',
+  KUOTA_PENUH: 'Grup ini sudah penuh. Silakan pilih seri atau grup lain.',
+  NOMOR_TIDAK_VALID: 'Nomor layangan harus berupa angka (maksimal 6 digit).',
+  KOTAK_TERISI: 'Kotak yang sudah terisi peserta tidak bisa ditutup atau dihapus. Pindahkan/tolak pesertanya dulu.',
   SERI_TIDAK_SESUAI_JENIS: 'Seri tidak sesuai dengan jenis layangan.',
   SERI_TIDAK_VALID: 'Seri yang dipilih tidak tersedia lagi. Silakan pilih seri lain.',
   JENIS_TIDAK_VALID: 'Jenis layangan tidak tersedia.',
@@ -1005,13 +1060,14 @@ const PESAN_ERROR = {
   FILE_BESAR: 'Ukuran file terlalu besar (maksimal 3 MB setelah dikompres).',
   HARGA_BERUBAH: 'Biaya pendaftaran baru saja diperbarui panitia. Periksa kembali jumlah yang harus dibayar.',
   DATA_BERUBAH: 'Data ini baru saja diubah (oleh admin lain atau tab lain). Data dimuat ulang — periksa lagi.',
-  NOMOR_DIPAKAI: 'Nomor layangan itu sudah dipakai peserta lain.',
+  NOMOR_DIPAKAI: 'Nomor layangan itu sudah dipakai peserta lain di jenis layangan yang sama.',
 };
 function pesanError(e) {
   const msg = (e && (e.message || e.error_description || e.msg || e.error)) || String(e || '');
   for (const k of Object.keys(PESAN_ERROR)) if (msg.includes(k)) return PESAN_ERROR[k];
   if (/nomor_layangan/i.test(msg) && /duplicate|unique/i.test(msg)) return PESAN_ERROR.NOMOR_DIPAKAI;
-  if (/foreign key/i.test(msg)) return 'Data ini masih dipakai (seri masih punya pendaftar).';
+  if (/foreign key/i.test(msg)) return 'Data ini masih dipakai (masih ada grup atau pendaftar di dalamnya).';
+  if (/lomba_seri_sesi_huruf/i.test(msg)) return 'Huruf grup itu sudah dipakai di seri ini.';
   if (/duplicate key|unique constraint/i.test(msg)) return 'Data yang sama sudah ada.';
   if (/Failed to fetch|NetworkError|Load failed|network|fetch/i.test(msg)) return 'Koneksi internet bermasalah. Periksa sinyal lalu coba lagi.';
   if (/Invalid login credentials/i.test(msg)) return 'Email atau password salah.';
@@ -1057,9 +1113,10 @@ class SupabaseAPI {
     return this._rpc('lomba_daftar', {
       p_jenis: p.jenis, p_seri_id: p.seri_id, p_nama_sekha: p.nama_sekha, p_alamat: p.alamat, p_no_wa: p.no_wa,
       p_nama_rekening: p.nama_rekening, p_bukti_path: p.bukti_path, p_bukti_hash: p.bukti_hash || null, p_client_ref: p.client_ref,
-      p_harga: p.harga == null ? null : Number(p.harga),
+      p_harga: p.harga == null ? null : Number(p.harga), p_nomor_layangan: p.nomor_layangan,
     });
   }
+  cekNomor(jenis, nomor) { return this._rpc('lomba_cek_nomor', { p_jenis: jenis, p_nomor: String(nomor || '') }); }
   cekStatus(wa) { return this._rpc('lomba_cek_status', { p_no_wa: wa }); }
 
   /* ---- login admin ---- */
@@ -1084,13 +1141,15 @@ class SupabaseAPI {
     return out;
   }
   async muatSemua() {
-    const [pengaturan, jenis, seri, daftar] = await Promise.all([
+    const [pengaturan, jenis, seri, daftar, hari, sesi] = await Promise.all([
       this.sb.from('lomba_pengaturan').select('*').eq('id', 1).maybeSingle().then((r) => this._ok(r)),
       this.sb.from('lomba_jenis').select('*').order('urutan').order('nama').then((r) => this._ok(r)),
       this.sb.from('lomba_seri').select('*').order('tanggal', { ascending: true, nullsFirst: false }).order('jam_mulai', { ascending: true, nullsFirst: false }).order('urutan').order('id').then((r) => this._ok(r)),
       this._semuaPendaftaran(),
+      this.sb.from('lomba_hari').select('*').order('tanggal', { ascending: true, nullsFirst: false }).order('urutan').order('id').then((r) => this._ok(r)),
+      this.sb.from('lomba_sesi').select('*').order('jam_mulai', { ascending: true, nullsFirst: false }).order('urutan').order('id').then((r) => this._ok(r)),
     ]);
-    return { pengaturan: pengaturan || {}, jenis, seri, daftar };
+    return { pengaturan: pengaturan || {}, jenis, seri, daftar, hari, sesi };
   }
   /* versi = updated_at yang dilihat admin; bila baris sudah berubah, update ditolak (DATA_BERUBAH) */
   async ubahPendaftaran(id, patch, versi) {
@@ -1116,6 +1175,27 @@ class SupabaseAPI {
     return this._ok(await this.sb.from('lomba_seri').insert(isi).select().single());
   }
   async hapusSeri(id) { this._ok(await this.sb.from('lomba_seri').delete().eq('id', id)); }
+  /* jadwal terbang: hari & seri (blok waktu); grup = lomba_seri */
+  async simpanHari(h) {
+    const { id, ...isi } = h;
+    if (id) return this._ok(await this.sb.from('lomba_hari').update(isi).eq('id', id).select().single());
+    return this._ok(await this.sb.from('lomba_hari').insert(isi).select().single());
+  }
+  async simpanSesi(x) {
+    const { id, ...isi } = x;
+    if (id) return this._ok(await this.sb.from('lomba_sesi').update(isi).eq('id', id).select().single());
+    return this._ok(await this.sb.from('lomba_sesi').insert(isi).select().single());
+  }
+  async hapusSesi(id) {
+    // grup kosong ikut dihapus; gagal (foreign key) bila masih ada pendaftar
+    this._ok(await this.sb.from('lomba_seri').delete().eq('sesi_id', id));
+    this._ok(await this.sb.from('lomba_sesi').delete().eq('id', id));
+  }
+  async hapusHari(id) {
+    const sesi = this._ok(await this.sb.from('lomba_sesi').select('id').eq('hari_id', id));
+    for (const x of sesi) await this.hapusSesi(x.id);
+    this._ok(await this.sb.from('lomba_hari').delete().eq('id', id));
+  }
   async simpanJenis(kode, patch) { return this._ok(await this.sb.from('lomba_jenis').update(patch).eq('kode', kode).select().single()); }
   async tambahJenis(row) { return this._ok(await this.sb.from('lomba_jenis').insert(row).select().single()); }
   async hapusJenis(kode) {
@@ -1185,7 +1265,7 @@ class DemoAPI {
   }
   _muat() {
     const db = bacaLokal(this.KEY);
-    if (db && db.versi === 1) return db;
+    if (db && db.versi === 2) return db;
     const baru = this._benih(true);
     this._tulis(baru);
     return baru;
@@ -1202,48 +1282,60 @@ class DemoAPI {
 
   _benih(denganContoh) {
     const hari = (plus) => { const d = new Date(); d.setDate(d.getDate() + plus); return d; };
-    const sabtu = hari(21); sabtu.setDate(sabtu.getDate() + ((6 - sabtu.getDay() + 7) % 7));
-    const tgl = (plus) => { const d = new Date(sabtu); d.setDate(d.getDate() + plus); return isoTanggal(d); };
+    const minggu = hari(21); minggu.setDate(minggu.getDate() + ((7 - minggu.getDay()) % 7));
     const db = {
-      versi: 1,
+      versi: 2,
       pengaturan: {
         id: 1,
         nama_event: 'Lomba Layangan Tradisional 2026',
         penyelenggara: 'Panitia Lomba Layangan',
         lokasi: 'Pantai Padang Galak, Sanur',
-        info: 'Satu formulir untuk satu layangan. Pendaftaran dianggap sah setelah pembayaran diverifikasi panitia.\nNomor layangan dikirim lewat WhatsApp dan wajib dipasang pada layangan saat lomba.\nPeserta hadir paling lambat 30 menit sebelum jadwal seri.',
+        info: 'Satu formulir untuk satu layangan. Pendaftaran dianggap sah setelah pembayaran diverifikasi panitia.\nNomor layangan diisi sendiri oleh peserta dan wajib dipasang pada layangan saat lomba.\nPeserta hadir paling lambat 30 menit sebelum jadwal seri.',
         wa_admin: '6281234567890',
         bank_nama: 'BPD Bali',
         bank_no_rek: '0123456789',
         bank_atas_nama: 'Panitia Lomba Layangan',
         pendaftaran_buka: true,
         batas_daftar: null,
-        tampilkan_peserta: false,
-        template_wa_konfirmasi: TEMPLATE_WA.konfirmasi,
-        template_wa_tolak: TEMPLATE_WA.tolak,
+        tampilkan_peserta: true,
+        template_wa_konfirmasi: '',
+        template_wa_tolak: '',
         updated_at: new Date().toISOString(),
       },
-      jenis: [
-        { kode: 'bebean', nama: 'Bebean', harga: 100000, prefix: 'BB', urutan: 1, aktif: true, nomor_terakhir: 0 },
-        { kode: 'janggan', nama: 'Janggan', harga: 150000, prefix: 'JG', urutan: 2, aktif: true, nomor_terakhir: 0 },
-        { kode: 'cotek', nama: 'Cotek', harga: 120000, prefix: 'CT', urutan: 3, aktif: true, nomor_terakhir: 0 },
-      ],
-      seri: [
-        { id: 1, jenis: 'bebean', nama: 'Seri 1', tanggal: tgl(0), jam_mulai: '08:00:00', jam_selesai: '11:00:00', kuota: 60, aktif: true, catatan: '', urutan: 1 },
-        { id: 2, jenis: 'bebean', nama: 'Seri 2', tanggal: tgl(0), jam_mulai: '13:00:00', jam_selesai: '16:00:00', kuota: 60, aktif: true, catatan: '', urutan: 2 },
-        { id: 3, jenis: 'janggan', nama: 'Seri 1', tanggal: tgl(1), jam_mulai: '08:00:00', jam_selesai: '11:00:00', kuota: 60, aktif: true, catatan: '', urutan: 1 },
-        { id: 4, jenis: 'janggan', nama: 'Seri 2', tanggal: tgl(1), jam_mulai: '13:00:00', jam_selesai: '16:00:00', kuota: 60, aktif: true, catatan: '', urutan: 2 },
-        { id: 5, jenis: 'cotek', nama: 'Seri 1', tanggal: tgl(7), jam_mulai: '08:00:00', jam_selesai: '11:00:00', kuota: 60, aktif: true, catatan: '', urutan: 1 },
-        { id: 6, jenis: 'cotek', nama: 'Seri 2', tanggal: tgl(7), jam_mulai: '13:00:00', jam_selesai: '16:00:00', kuota: 60, aktif: true, catatan: '', urutan: 2 },
-      ],
-      nextSeriId: 7,
+      jenis: [], seri: [], hari: [], sesi: [],
+      nextSeriId: 1, nextHariId: 1, nextSesiId: 1,
       daftar: [],
       files: {},
     };
-    if (denganContoh) this._isiContoh(db);
+    if (denganContoh) this._isiContoh(db, isoTanggal(minggu));
     return db;
   }
-  _isiContoh(db) {
+  /* Contoh jadwal mengikuti tabel "HARI MINGGU" panitia */
+  _isiContoh(db, tglMinggu) {
+    const J = [
+      ['bebean-plastik', 'Bebean Plastik', 50000], ['buntut-plastik', 'Buntut Plastik', 50000], ['janggan-plastik', 'Janggan Plastik', 60000],
+      ['bebean-big-plastik', 'Bebean Big Plastik', 75000], ['bebean-remaja', 'Bebean Remaja', 100000], ['pecukan-remaja', 'Pecukan Remaja', 100000],
+      ['buntut-remaja', 'Buntut Remaja', 100000], ['janggan-remaja', 'Janggan Remaja', 125000], ['bebean-dewasa', 'Bebean Dewasa', 150000],
+    ];
+    J.forEach(([kode, nama, harga], i) => db.jenis.push({ kode, nama, harga, prefix: kode.split('-').map((k) => k[0]).join('').toUpperCase().slice(0, 5) + (i + 1), urutan: i + 1, aktif: true, nomor_terakhir: 0 }));
+    const h = { id: db.nextHariId++, nama: 'Hari Minggu', tanggal: tglMinggu, urutan: 1 };
+    db.hari.push(h);
+    const tutupBig = [22, 23, 24, 25, 47, 48, 49, 50];
+    const rencana = [
+      ['I', '09:30:00', '10:30:00', [['bebean-plastik', 20], ['buntut-plastik', 42], ['janggan-plastik', 10], ['bebean-plastik', 50], ['janggan-plastik', 34]]],
+      ['II', '10:30:00', '11:45:00', [['bebean-big-plastik', 12, tutupBig], ['bebean-remaja', 46], ['pecukan-remaja', 20], ['buntut-remaja', 28], ['bebean-remaja', 50], ['bebean-remaja', 41]]],
+      ['III', '12:00:00', '13:40:00', [['janggan-remaja', 12], ['bebean-big-plastik', 42, tutupBig], ['bebean-dewasa', 14]]],
+    ];
+    const isi = new Map();
+    rencana.forEach(([nm, mulai, akhir, grup], si) => {
+      const x = { id: db.nextSesiId++, hari_id: h.id, nama: nm, jam_mulai: mulai, jam_selesai: akhir, urutan: si + 1 };
+      db.sesi.push(x);
+      grup.forEach(([jenis, n, tutup], gi) => {
+        const g = this._hitungGrup({ id: db.nextSeriId++, jenis, sesi_id: x.id, huruf: String.fromCharCode(65 + gi), kotak: 50, tutup: tutup || [], aktif: true, catatan: '', urutan: gi + 1 }, db);
+        db.seri.push(g);
+        isi.set(g.id, n);
+      });
+    });
     const nama = ['Putra Jaya', 'Dharma Kerti', 'Tunas Muda', 'Bayu Suci', 'Garuda Muda', 'Yowana Bhakti', 'Eka Sari', 'Kerta Buana', 'Sinar Segara',
       'Gita Semara', 'Werdi Guna', 'Merta Sari', 'Angin Barat', 'Sekar Jagat', 'Bima Sakti', 'Tirta Sari', 'Dewata Muda', 'Jaya Kusuma', 'Surya Kanta',
       'Widya Kumara', 'Satya Dharma', 'Mekar Sari', 'Wira Bhuana', 'Candra Metu'];
@@ -1251,40 +1343,48 @@ class DemoAPI {
     const alamat = ['Br. Batan Poh, Sanur Kaja', 'Br. Taman, Sanur', 'Br. Semawang, Sanur Kauh', 'Br. Blanjong, Sanur Kauh', 'Br. Pekandelan, Sanur',
       'Br. Tegal Asah, Sanur Kaja', 'Br. Kesiman, Denpasar Timur', 'Br. Penyaringan, Sanur', 'Br. Anggarkasih, Sanur Kauh', 'Br. Singgi, Sanur'];
     const rek = ['I Made Sudarma', 'I Wayan Artana', 'I Ketut Suardana', 'I Nyoman Budiasa', 'Ni Luh Putu Sari', 'I Gede Wirawan', 'Kadek Adi Putra', 'Komang Ayu Lestari'];
-    const rencana = { 1: 57, 2: 14, 3: 12, 4: 3, 5: 9, 6: 0 };
     const pilih = (a) => a[Math.floor(Math.random() * a.length)];
+    const nomorPakai = new Map();
+    const nomorBaru = (jenis) => {
+      if (!nomorPakai.has(jenis)) nomorPakai.set(jenis, new Set());
+      const set = nomorPakai.get(jenis), big = /big/.test(jenis);
+      let n;
+      do { n = big ? 1000 + Math.floor(Math.random() * 1200) : 1 + Math.floor(Math.random() * (Math.random() < 0.85 ? 200 : 900)); } while (set.has(String(n)));
+      set.add(String(n));
+      return String(n);
+    };
     const rows = [];
-    Object.entries(rencana).forEach(([sid, n]) => {
-      const seri = db.seri.find((s) => s.id === Number(sid));
-      const jenis = db.jenis.find((j) => j.kode === seri.jenis);
-      for (let i = 0; i < n; i++) {
-        const umurJam = Math.random() ** 1.3 * 13 * 24 + Math.random() * 2;
-        const created = new Date(Date.now() - umurJam * 3600000);
-        const r = Math.random();
-        let status = umurJam < 20 ? (r < 0.55 ? 'menunggu' : 'terkonfirmasi') : r < 0.08 ? 'ditolak' : r < 0.2 ? 'menunggu' : 'terkonfirmasi';
-        if (seri.id === 1 && status === 'ditolak') status = 'terkonfirmasi';
-        const sekha = `${pilih(pref)} ${pilih(nama)}`;
-        rows.push({
-          id: uuid(), kode: this._kode(rows), client_ref: null, jenis: jenis.kode, seri_id: seri.id,
-          nama_sekha: sekha, alamat: pilih(alamat), no_wa: '628' + String(1000000000 + Math.floor(Math.random() * 899999999)).slice(0, 10),
-          nama_rekening: pilih(rek), bukti_path: 'contoh/' + uuid() + '.jpg', bukti_hash: null, harga: jenis.harga, status,
-          nomor_urut: null, nomor_layangan: null, alasan_tolak: status === 'ditolak' ? pilih(['Nominal transfer kurang', 'Bukti transfer tidak jelas']) : null,
-          catatan_admin: '', wa_terkirim_at: null, dikonfirmasi_at: null,
-          created_at: created.toISOString(), updated_at: created.toISOString(),
-        });
+    const buatBaris = (g, kotak, status) => {
+      const jenis = db.jenis.find((j) => j.kode === g.jenis);
+      const umurJam = Math.random() ** 1.3 * 13 * 24 + Math.random() * 2;
+      const created = new Date(Date.now() - umurJam * 3600000);
+      const nomor = nomorBaru(g.jenis);
+      const r = {
+        id: uuid(), kode: this._kode(rows), client_ref: null, jenis: jenis.kode, seri_id: g.id, kotak,
+        nama_sekha: `${pilih(pref)} ${pilih(nama)}`, alamat: pilih(alamat), no_wa: '628' + String(1000000000 + Math.floor(Math.random() * 899999999)).slice(0, 10),
+        nama_rekening: pilih(rek), bukti_path: 'contoh/' + uuid() + '.jpg', bukti_hash: null, harga: jenis.harga, status,
+        nomor_urut: Number(nomor), nomor_layangan: nomor, alasan_tolak: status === 'ditolak' ? pilih(['Nominal transfer kurang', 'Bukti transfer tidak jelas']) : null,
+        catatan_admin: '', wa_terkirim_at: null, dikonfirmasi_at: null,
+        created_at: created.toISOString(), updated_at: created.toISOString(),
+      };
+      if (status === 'terkonfirmasi') {
+        const t = new Date(created.getTime() + (1 + Math.random() * 8) * 3600000);
+        r.dikonfirmasi_at = (t > new Date() ? new Date() : t).toISOString();
+        if (Math.random() < 0.82) r.wa_terkirim_at = r.dikonfirmasi_at;
+      }
+      if (status === 'ditolak') { r.kotak = null; r.nomor_layangan = null; r.nomor_urut = null; }
+      rows.push(r);
+    };
+    db.seri.forEach((g) => {
+      let n = isi.get(g.id) || 0;
+      for (let k = 1; k <= g.kotak && n > 0; k++) {
+        if (g.tutup.includes(k)) continue;
+        buatBaris(g, k, Math.random() < 0.12 ? 'menunggu' : 'terkonfirmasi');
+        n--;
       }
     });
+    for (let i = 0; i < 5; i++) buatBaris(pilih(db.seri), null, 'ditolak');
     rows.sort((a, b) => a.created_at.localeCompare(b.created_at));
-    rows.forEach((r) => {
-      if (r.status !== 'terkonfirmasi') return;
-      const j = db.jenis.find((x) => x.kode === r.jenis);
-      j.nomor_terakhir += 1;
-      r.nomor_urut = j.nomor_terakhir;
-      r.nomor_layangan = `${j.prefix}-${String(j.nomor_terakhir).padStart(3, '0')}`;
-      const t = new Date(new Date(r.created_at).getTime() + (1 + Math.random() * 8) * 3600000);
-      r.dikonfirmasi_at = (t > new Date() ? new Date() : t).toISOString();
-      if (Math.random() < 0.82) r.wa_terkirim_at = r.dikonfirmasi_at;
-    });
     // 2 pendaftaran memakai bukti transfer yang sama (contoh deteksi bukti dobel)
     const dua = rows.filter((r) => r.status === 'menunggu').slice(0, 2);
     if (dua.length === 2) { dua[1].nama_sekha = dua[0].nama_sekha; dua[1].no_wa = dua[0].no_wa; dua[1].alamat = dua[0].alamat; dua[0].bukti_hash = dua[1].bukti_hash = 'contoh-hash-sama'; }
@@ -1297,7 +1397,24 @@ class DemoAPI {
     while ((rows || this.db.daftar).some((r) => r.kode === k));
     return k;
   }
-  /* Tiruan trigger database: validasi, kuota, nomor, tanda WA */
+  /* Tiruan trigger grup (lomba_seri): nama, tanggal, jam & kuota dari hari/seri */
+  _hitungGrup(g, db = this.db) {
+    if (!g.sesi_id) return g;
+    const x = db.sesi.find((y) => y.id === Number(g.sesi_id));
+    const h = x && db.hari.find((y) => y.id === x.hari_id);
+    if (!x || !h) throw new Error('SERI_TIDAK_VALID');
+    g.sesi_id = x.id;
+    g.huruf = String(g.huruf || '').trim().toUpperCase();
+    if (!g.huruf) throw new Error('DATA_TIDAK_LENGKAP');
+    g.kotak = Number(g.kotak);
+    if (!Number.isInteger(g.kotak) || g.kotak < 1 || g.kotak > 200) throw new Error('DATA_TIDAK_LENGKAP');
+    g.nama = `Seri ${x.nama} · ${g.huruf}`;
+    g.tanggal = h.tanggal || null; g.jam_mulai = x.jam_mulai || null; g.jam_selesai = x.jam_selesai || null;
+    g.tutup = [...new Set((g.tutup || []).map(Number))].filter((k) => k >= 1 && k <= g.kotak).sort((a, b) => a - b);
+    g.kuota = Math.max(0, g.kotak - g.tutup.length);
+    return g;
+  }
+  /* Tiruan trigger database: validasi, kuota, kotak, nomor, tanda WA */
   _terapkan(baru, lama) {
     const r = { ...baru };
     r.nama_sekha = String(r.nama_sekha || '').trim();
@@ -1307,35 +1424,37 @@ class DemoAPI {
     r.seri_id = Number(r.seri_id);
     if (!r.no_wa) throw new Error('WA_TIDAK_VALID');
     if (!r.nama_sekha || !r.alamat || !r.nama_rekening) throw new Error('DATA_TIDAK_LENGKAP');
-    if (lama && r.jenis !== lama.jenis) { r.nomor_layangan = null; r.nomor_urut = null; r.harga = null; }
+    if (lama && r.jenis !== lama.jenis) r.harga = null;
+    if (lama && r.seri_id !== lama.seri_id && r.kotak === lama.kotak) r.kotak = null;
     if (r.harga == null) r.harga = this._jenis(r.jenis).harga;
-    const cek = AKTIF(r.status) && (!lama || r.seri_id !== lama.seri_id || lama.status === 'ditolak');
     const seri = this._seri(r.seri_id);
     if (!seri) throw new Error('SERI_TIDAK_VALID');
     if (seri.jenis !== r.jenis) throw new Error('SERI_TIDAK_SESUAI_JENIS');
-    if (cek) {
-      const terisi = this.db.daftar.filter((d) => d.seri_id === r.seri_id && AKTIF(d.status) && d.id !== r.id).length;
-      if (terisi >= seri.kuota) throw new Error('KUOTA_PENUH');
+    const lain = this.db.daftar.filter((d) => d.seri_id === r.seri_id && AKTIF(d.status) && d.id !== r.id);
+    if (AKTIF(r.status) && (!lama || r.seri_id !== lama.seri_id || lama.status === 'ditolak') && lain.length >= seri.kuota) throw new Error('KUOTA_PENUH');
+    if (!AKTIF(r.status) || !seri.sesi_id) r.kotak = null;
+    else if (!lama || r.seri_id !== lama.seri_id || lama.status === 'ditolak' || r.kotak == null || r.kotak !== lama.kotak) {
+      const pakai = new Set(lain.map((d) => d.kotak));
+      if (r.kotak != null && (r.kotak < 1 || r.kotak > seri.kotak || seri.tutup.includes(r.kotak) || pakai.has(r.kotak))) r.kotak = null;
+      if (r.kotak == null) {
+        for (let k = 1; k <= seri.kotak; k++) if (!seri.tutup.includes(k) && !pakai.has(k)) { r.kotak = k; break; }
+        if (r.kotak == null) throw new Error('KUOTA_PENUH');
+      }
     }
-    if (r.nomor_layangan != null) r.nomor_layangan = String(r.nomor_layangan).trim().toUpperCase() || null;
-    if (r.nomor_layangan && (!lama || r.nomor_layangan !== lama.nomor_layangan)) {
-      if (this.db.daftar.some((d) => d.id !== r.id && d.nomor_layangan === r.nomor_layangan)) throw new Error('NOMOR_DIPAKAI');
-      const dg = r.nomor_layangan.replace(/\D/g, '').slice(0, 9);
+    if (r.nomor_layangan != null) {
+      r.nomor_layangan = String(r.nomor_layangan).trim().toUpperCase() || null;
+      if (r.nomor_layangan && /^\d+$/.test(r.nomor_layangan)) r.nomor_layangan = r.nomor_layangan.replace(/^0+(?=\d)/, '');
+    }
+    if (!lama || r.nomor_layangan !== lama.nomor_layangan) {
+      const dg = String(r.nomor_layangan || '').replace(/\D/g, '').slice(0, 9);
       r.nomor_urut = dg ? parseInt(dg, 10) : null;
     }
-    if (r.status === 'terkonfirmasi' && !r.nomor_layangan) {
-      const j = this._jenis(r.jenis);
-      let nomor;
-      do { j.nomor_terakhir += 1; nomor = `${j.prefix}-${String(j.nomor_terakhir).padStart(3, '0')}`; }
-      while (this.db.daftar.some((d) => d.nomor_layangan === nomor));
-      r.nomor_layangan = nomor;
-      r.nomor_urut = j.nomor_terakhir;
-    }
+    if (r.nomor_layangan && AKTIF(r.status) && this.db.daftar.some((d) => d.id !== r.id && d.jenis === r.jenis && AKTIF(d.status) && d.nomor_layangan === r.nomor_layangan)) throw new Error('NOMOR_DIPAKAI');
     if (r.status === 'terkonfirmasi') { if (!lama || lama.status !== 'terkonfirmasi') r.dikonfirmasi_at = new Date().toISOString(); }
     else r.dikonfirmasi_at = null;
     if (r.status !== 'ditolak') r.alasan_tolak = null;
     if (lama && r.wa_terkirim_at === lama.wa_terkirim_at &&
-      (r.status !== lama.status || r.seri_id !== lama.seri_id || r.jenis !== lama.jenis || r.nomor_layangan !== lama.nomor_layangan || r.no_wa !== lama.no_wa)) {
+      (r.status !== lama.status || r.seri_id !== lama.seri_id || r.jenis !== lama.jenis || r.nomor_layangan !== lama.nomor_layangan || r.kotak !== lama.kotak || r.no_wa !== lama.no_wa)) {
       r.wa_terkirim_at = null;
     }
     const t = new Date();
@@ -1357,13 +1476,16 @@ class DemoAPI {
         pendaftaran_buka: buka, batas_daftar: st.batas_daftar, tampilkan_peserta: st.tampilkan_peserta,
         logo_url: st.logo_url || '', bg_url: st.bg_url || '',
       },
+      hari: [...db.hari].sort(urutHari),
+      sesi: [...db.sesi].sort(urutSesi),
       jenis: [...db.jenis].sort((a, b) => a.urutan - b.urutan).map(({ kode, nama, harga, prefix, aktif }) => ({ kode, nama, harga, prefix, aktif })),
       seri: seri.map((s) => ({
         ...s,
         terisi: db.daftar.filter((d) => d.seri_id === s.id && AKTIF(d.status)).length,
+        isi: db.daftar.filter((d) => d.seri_id === s.id && AKTIF(d.status) && d.kotak).map((d) => d.kotak).sort((a, b) => a - b),
         peserta: st.tampilkan_peserta
           ? db.daftar.filter((d) => d.seri_id === s.id && d.status === 'terkonfirmasi')
-            .sort((a, b) => (a.nomor_urut || 1e9) - (b.nomor_urut || 1e9)).map((d) => ({ nomor: d.nomor_layangan, sekha: d.nama_sekha }))
+            .sort((a, b) => (a.kotak || 1e9) - (b.kotak || 1e9)).map((d) => ({ nomor: d.nomor_layangan, sekha: d.nama_sekha, kotak: d.kotak }))
           : null,
       })),
       waktu_server: new Date().toISOString(),
@@ -1385,14 +1507,16 @@ class DemoAPI {
     const db = this.db, st = db.pengaturan;
     if (p.client_ref) {
       const ada = db.daftar.find((d) => d.client_ref === p.client_ref);
-      if (ada) return { kode: ada.kode, status: ada.status, harga: ada.harga, created_at: ada.created_at, no_wa: ada.no_wa, jenis: ada.jenis, seri_id: ada.seri_id, nama_sekha: ada.nama_sekha };
+      if (ada) return { kode: ada.kode, status: ada.status, harga: ada.harga, created_at: ada.created_at, no_wa: ada.no_wa, jenis: ada.jenis, seri_id: ada.seri_id, nama_sekha: ada.nama_sekha, nomor_layangan: ada.nomor_layangan, kotak: ada.kotak };
     }
     if (!st.pendaftaran_buka || (st.batas_daftar && new Date() > new Date(st.batas_daftar))) throw new Error('PENDAFTARAN_DITUTUP');
     const j = this._jenis(p.jenis);
     if (!j || !j.aktif) throw new Error('JENIS_TIDAK_VALID');
     const s = this._seri(p.seri_id);
     if (p.harga != null && Number(p.harga) !== j.harga) throw new Error('HARGA_BERUBAH');
-    if (!s || s.jenis !== p.jenis || !s.aktif) throw new Error('SERI_TIDAK_VALID');
+    if (!s || s.jenis !== p.jenis || !s.aktif || !s.sesi_id) throw new Error('SERI_TIDAK_VALID');
+    const nomor = String(p.nomor_layangan || '').trim();
+    if (!/^\d{1,6}$/.test(nomor)) throw new Error('NOMOR_TIDAK_VALID');
     const len = (x) => String(x || '').trim().length;
     if (len(p.nama_sekha) < 2 || len(p.nama_sekha) > 120 || len(p.alamat) < 3 || len(p.alamat) > 300 || len(p.nama_rekening) < 2 || len(p.nama_rekening) > 120) throw new Error('DATA_TIDAK_LENGKAP');
     const wa = normWA(p.no_wa);
@@ -1402,12 +1526,19 @@ class DemoAPI {
     const row = this._terapkan({
       id: uuid(), kode: this._kode(), client_ref: p.client_ref || null, jenis: p.jenis, seri_id: Number(p.seri_id),
       nama_sekha: p.nama_sekha, alamat: p.alamat, no_wa: wa, nama_rekening: p.nama_rekening, bukti_path: p.bukti_path,
-      bukti_hash: p.bukti_hash || null, harga: j.harga, status: 'menunggu', nomor_urut: null, nomor_layangan: null,
+      bukti_hash: p.bukti_hash || null, harga: j.harga, status: 'menunggu', nomor_urut: null, nomor_layangan: nomor, kotak: null,
       alasan_tolak: null, catatan_admin: '', wa_terkirim_at: null, dikonfirmasi_at: null, created_at: now, updated_at: now,
     }, null);
     db.daftar.unshift(row);
     this._simpan();
-    return { kode: row.kode, status: row.status, harga: row.harga, created_at: row.created_at, no_wa: row.no_wa, jenis: row.jenis, seri_id: row.seri_id, nama_sekha: row.nama_sekha };
+    return { kode: row.kode, status: row.status, harga: row.harga, created_at: row.created_at, no_wa: row.no_wa, jenis: row.jenis, seri_id: row.seri_id, nama_sekha: row.nama_sekha, nomor_layangan: row.nomor_layangan, kotak: row.kotak };
+  }
+  async cekNomor(jenis, nomor) {
+    await this._jeda(120);
+    let v = String(nomor || '').trim();
+    if (!/^\d{1,6}$/.test(v)) return false;
+    v = v.replace(/^0+(?=\d)/, '');
+    return !this.db.daftar.some((d) => d.jenis === jenis && AKTIF(d.status) && d.nomor_layangan === v);
   }
   async cekStatus(wa) {
     await this._jeda(250);
@@ -1415,7 +1546,7 @@ class DemoAPI {
     if (!n) throw new Error('WA_TIDAK_VALID');
     return this._salin(this.db.daftar.filter((d) => d.no_wa === n).slice(0, 50).map((d) => {
       const s = this._seri(d.seri_id) || {}, j = this._jenis(d.jenis) || {};
-      return { kode: d.kode, jenis: d.jenis, jenis_nama: j.nama, nama_sekha: d.nama_sekha, status: d.status, nomor_layangan: d.nomor_layangan,
+      return { kode: d.kode, jenis: d.jenis, jenis_nama: j.nama, nama_sekha: d.nama_sekha, status: d.status, nomor_layangan: d.nomor_layangan, kotak: d.kotak,
         alasan_tolak: d.alasan_tolak, harga: d.harga, created_at: d.created_at, seri_nama: s.nama, tanggal: s.tanggal, jam_mulai: s.jam_mulai, jam_selesai: s.jam_selesai };
     }));
   }
@@ -1436,7 +1567,7 @@ class DemoAPI {
   /* ---- data admin ---- */
   async muatSemua() {
     await this._jeda(250);
-    return this._salin({ pengaturan: this.db.pengaturan, jenis: this.db.jenis, seri: this.db.seri, daftar: this.db.daftar });
+    return this._salin({ pengaturan: this.db.pengaturan, jenis: this.db.jenis, seri: this.db.seri, daftar: this.db.daftar, hari: [...this.db.hari].sort(urutHari), sesi: [...this.db.sesi].sort(urutSesi) });
   }
   async ubahPendaftaran(id, patch, versi) {
     await this._jeda(200);
@@ -1457,7 +1588,7 @@ class DemoAPI {
       const now = new Date().toISOString();
       const row = this._terapkan({
         id: uuid(), kode: this._kode(), client_ref: null, bukti_path: null, bukti_hash: null, harga: null, status: 'menunggu',
-        nomor_urut: null, nomor_layangan: null, alasan_tolak: null, catatan_admin: '', wa_terkirim_at: null, dikonfirmasi_at: null,
+        nomor_urut: null, nomor_layangan: null, kotak: null, alasan_tolak: null, catatan_admin: '', wa_terkirim_at: null, dikonfirmasi_at: null,
         created_at: now, updated_at: now, ...data,
       }, null);
       this.db.daftar.unshift(row);
@@ -1492,21 +1623,67 @@ class DemoAPI {
   }
   async simpanSeri(s) {
     await this._jeda(200);
-    const rapikan = (x) => { x.nama = String(x.nama || '').trim(); x.kuota = Number(x.kuota); if (!x.nama || !Number.isInteger(x.kuota) || x.kuota < 0) throw new Error('DATA_TIDAK_LENGKAP'); return x; };
+    const rapikan = (x) => {
+      this._hitungGrup(x);
+      x.nama = String(x.nama || '').trim(); x.kuota = Number(x.kuota);
+      if (!x.nama || !Number.isInteger(x.kuota) || x.kuota < 0) throw new Error('DATA_TIDAK_LENGKAP');
+      if (x.sesi_id && this.db.seri.some((y) => y.id !== x.id && y.sesi_id === x.sesi_id && y.huruf === x.huruf)) throw new Error('duplicate key lomba_seri_sesi_huruf_uidx');
+      return x;
+    };
     if (s.id) {
       const i = this.db.seri.findIndex((x) => x.id === Number(s.id));
-      if (i < 0) throw new Error('Seri tidak ditemukan.');
+      if (i < 0) throw new Error('Grup tidak ditemukan.');
       const lama = this.db.seri[i];
       const baru = rapikan({ ...lama, ...s, id: lama.id });
       if (lama.jenis !== baru.jenis && this.db.daftar.some((d) => d.seri_id === lama.id)) throw new Error('SERI_ADA_PESERTA');
+      if (baru.sesi_id && this.db.daftar.some((d) => d.seri_id === lama.id && AKTIF(d.status) && d.kotak && (d.kotak > baru.kotak || baru.tutup.includes(d.kotak)))) throw new Error('KOTAK_TERISI');
       this.db.seri[i] = baru;
       this._simpan();
       return this._salin(baru);
     }
-    const baru = rapikan({ catatan: '', urutan: 0, aktif: true, tanggal: null, jam_mulai: null, jam_selesai: null, kuota: 60, ...s, id: this.db.nextSeriId++ });
+    const baru = rapikan({ catatan: '', urutan: 0, aktif: true, tanggal: null, jam_mulai: null, jam_selesai: null, kuota: 60, kotak: 50, tutup: [], sesi_id: null, huruf: null, ...s, id: this.db.nextSeriId++ });
     this.db.seri.push(baru);
     this._simpan();
     return this._salin(baru);
+  }
+  async simpanHari(h) {
+    await this._jeda(150);
+    const nama = String(h.nama || '').trim();
+    if (h.nama !== undefined && !nama) throw new Error('DATA_TIDAK_LENGKAP');
+    let row;
+    if (h.id) { row = this.db.hari.find((x) => x.id === Number(h.id)); Object.assign(row, h, nama ? { nama } : {}); }
+    else { row = { urutan: 0, tanggal: null, ...h, nama, id: this.db.nextHariId++ }; this.db.hari.push(row); }
+    this._sinkronGrup();
+    this._simpan();
+    return this._salin(row);
+  }
+  async simpanSesi(x) {
+    await this._jeda(150);
+    const nama = String(x.nama || '').trim();
+    if (x.nama !== undefined && !nama) throw new Error('DATA_TIDAK_LENGKAP');
+    let row;
+    if (x.id) { row = this.db.sesi.find((y) => y.id === Number(x.id)); Object.assign(row, x, nama ? { nama } : {}); }
+    else { row = { urutan: 0, jam_mulai: null, jam_selesai: null, ...x, nama, id: this.db.nextSesiId++ }; this.db.sesi.push(row); }
+    this._sinkronGrup();
+    this._simpan();
+    return this._salin(row);
+  }
+  _sinkronGrup() { this.db.seri.forEach((g) => { if (g.sesi_id) this._hitungGrup(g); }); }
+  async hapusSesi(id) {
+    await this._jeda(150);
+    const grup = this.db.seri.filter((g) => g.sesi_id === Number(id)).map((g) => g.id);
+    if (this.db.daftar.some((d) => grup.includes(d.seri_id))) throw new Error('violates foreign key constraint');
+    this.db.seri = this.db.seri.filter((g) => !grup.includes(g.id));
+    this.db.sesi = this.db.sesi.filter((x) => x.id !== Number(id));
+    this._simpan();
+  }
+  async hapusHari(id) {
+    const sesi = this.db.sesi.filter((x) => x.hari_id === Number(id)).map((x) => x.id);
+    const grup = this.db.seri.filter((g) => sesi.includes(g.sesi_id)).map((g) => g.id);
+    if (this.db.daftar.some((d) => grup.includes(d.seri_id))) throw new Error('violates foreign key constraint');
+    for (const x of sesi) await this.hapusSesi(x);
+    this.db.hari = this.db.hari.filter((h) => h.id !== Number(id));
+    this._simpan();
   }
   async hapusSeri(id) {
     await this._jeda(200);
@@ -1590,7 +1767,7 @@ Pembayaran sudah kami terima. Layangan Anda resmi *TERDAFTAR*.
 • Alamat: {alamat}
 • Nomor WA: {no_wa}
 • Nomor layangan: *{nomor_layangan}*
-• Seri layangan: {seri}
+• Seri & grup: {seri}
 • Jadwal terbang: {jadwal}
 
 Kode pendaftaran: {kode}
@@ -1631,9 +1808,100 @@ const STATUS = {
 const badgeStatus = (st, teks) => `<span class="badge b-${esc(st)}">${ico((STATUS[st] || {}).ikon || 'info')}${esc(teks || (STATUS[st] || {}).label || st)}</span>`;
 function warnaJenis(kode, daftarJenis) {
   const i = Math.max(0, (daftarJenis || []).findIndex((j) => j.kode === kode));
-  return `var(--cat-${(i % 6) + 1})`;
+  return `var(--cat-${(i % 10) + 1})`;
 }
 const jdot = (kode, list) => `<i class="jdot" style="background:${warnaJenis(kode, list)}" aria-hidden="true"></i>`;
+
+/* ---------- Jadwal terbang: Hari → Seri (blok waktu) → Grup (lomba_seri) ---------- */
+const KOLOM_JADWAL = 25;
+const ROMAWI = ['I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX', 'X', 'XI', 'XII', 'XIII', 'XIV', 'XV', 'XVI', 'XVII', 'XVIII', 'XIX', 'XX'];
+const urutHari = (a, b) => (a.tanggal || '9999').localeCompare(b.tanggal || '9999') || (a.urutan || 0) - (b.urutan || 0) || a.id - b.id;
+const urutSesi = (a, b) => String(a.jam_mulai || '99').localeCompare(String(b.jam_mulai || '99')) || (a.urutan || 0) - (b.urutan || 0) || a.id - b.id;
+const urutGrup = (a, b) => String(a.huruf || '').localeCompare(String(b.huruf || '')) || (a.urutan || 0) - (b.urutan || 0) || a.id - b.id;
+function romawiBerikut(list) {
+  const pakai = new Set(list.map((n) => String(n).trim().toUpperCase()));
+  return ROMAWI.find((r) => !pakai.has(r)) || String(list.length + 1);
+}
+function hurufBerikut(list) {
+  const pakai = new Set(list.map((h) => String(h || '').trim().toUpperCase()));
+  for (let i = 0; i < 26; i++) { const h = String.fromCharCode(65 + i); if (!pakai.has(h)) return h; }
+  return 'Z' + (list.length + 1);
+}
+const jamSesi = (x) => (x && x.jam_mulai ? fmtJam(x.jam_mulai) + (x.jam_selesai ? '–' + fmtJam(x.jam_selesai) : '') : 'Jam menyusul');
+/* Nomor layangan milik peserta: angka 1–6 digit, nol di depan dibuang */
+function normNomor(v) {
+  const t = String(v || '').trim();
+  return /^\d{1,6}$/.test(t) ? t.replace(/^0+(?=\d)/, '') : null;
+}
+/* Tabel jadwal 1 hari, mirip lembar jadwal panitia.
+   o = { hari, sesi[], grup[], jenis[], kotakIsi(g) → Map(kotak → {nomor, status, id}), admin, tampilNomor } */
+function tabelJadwal(o) {
+  const { hari, jenis, admin } = o;
+  const sesi = o.sesi.filter((x) => x.hari_id === hari.id).sort(urutSesi);
+  const kol = Array.from({ length: KOLOM_JADWAL }, (_, i) => i + 1);
+  let body = '';
+  sesi.forEach((x, si) => {
+    const grup = o.grup.filter((g) => g.sesi_id === x.id).sort(urutGrup);
+    const barisGrup = grup.map((g) => Math.max(1, Math.ceil(g.kotak / KOLOM_JADWAL)));
+    const totalBaris = Math.max(1, barisGrup.reduce((a, n) => a + n, 0));
+    if (si > 0) body += `<tr class="jt-pemisah" aria-hidden="true"><td colspan="${KOLOM_JADWAL + 4}" style="height:8px;background:var(--surface-3)"></td></tr>`;
+    const selSeri = `<th scope="rowgroup" class="jt-seri" rowspan="${totalBaris}"><b>Seri ${esc(x.nama)}</b><span>${esc(jamSesi(x))}</span>
+      ${admin ? `<div class="sa-act"><button class="btn btn-xs" data-act="adm.grupBaru" data-sesi="${x.id}">${ico('plus')} Grup</button><button class="btn btn-xs btn-icon" data-act="adm.sesiEdit" data-id="${x.id}" aria-label="Ubah Seri ${esc(x.nama)}">${ico('edit')}</button></div>` : ''}</th>`;
+    if (!grup.length) {
+      body += `<tr>${selSeri}<td colspan="${KOLOM_JADWAL + 3}" class="jt-kosong">${admin ? `Belum ada grup. <button class="btn btn-xs" data-act="adm.grupBaru" data-sesi="${x.id}">${ico('plus')} Tambah grup A</button>` : 'Grup menyusul.'}</td></tr>`;
+      return;
+    }
+    grup.forEach((g, gi) => {
+      const j = jenis.find((y) => y.kode === g.jenis);
+      const isi = o.kotakIsi(g);
+      const nIsi = [...isi.values()].length;
+      const tutup = new Set(g.tutup || []);
+      for (let b = 0; b < barisGrup[gi]; b++) {
+        let tr = `<tr class="${g.aktif ? '' : 'off'}">`;
+        if (gi === 0 && b === 0) tr += selSeri;
+        if (b === 0) {
+          const namaJ = esc((j && j.nama) || g.jenis);
+          const ket = g.aktif ? '' : '<small>ditutup</small>';
+          tr += `<th scope="row" class="jt-grup" rowspan="${barisGrup[gi]}">${esc(g.huruf)}</th>`;
+          tr += `<td class="jt-jenis" rowspan="${barisGrup[gi]}" style="--jc:${warnaJenis(g.jenis, jenis)}">${admin
+            ? `<button type="button" data-act="adm.grupEdit" data-id="${g.id}" title="Ubah grup ${esc(g.huruf)}">${namaJ}${ket}</button>`
+            : `<span>${namaJ}${ket}</span>`}</td>`;
+        }
+        kol.forEach((c) => {
+          const k = b * KOLOM_JADWAL + c;
+          if (k > g.kotak) { tr += '<td class="k na"></td>'; return; }
+          if (tutup.has(k)) {
+            tr += admin ? `<td class="k tutup"><button type="button" data-act="adm.kotak" data-id="${g.id}" data-k="${k}" aria-label="Kotak ${k} ditutup — klik untuk membuka"></button></td>` : '<td class="k tutup"></td>';
+            return;
+          }
+          const p = isi.get(k);
+          if (!p) {
+            tr += admin ? `<td class="k"><button type="button" data-act="adm.kotak" data-id="${g.id}" data-k="${k}" aria-label="Kotak ${k} kosong — klik untuk menutup"></button></td>` : '<td class="k"></td>';
+            return;
+          }
+          const tunggu = p.status === 'menunggu';
+          const teks = p.nomor != null ? esc(p.nomor) : '';
+          if (admin) tr += `<td class="k isi ${tunggu ? 'tunggu' : ''}"><button type="button" data-act="adm.buka" data-id="${esc(p.id)}" aria-label="Kotak ${k}: nomor ${teks || '-'}${tunggu ? ' (menunggu verifikasi)' : ''}">${teks || '•'}</button></td>`;
+          else tr += `<td class="k isi ${p.status === 'terisi' ? 'anon' : tunggu ? 'tunggu' : ''}">${teks}</td>`;
+        });
+        if (b === 0) tr += `<td class="jt-tot" rowspan="${barisGrup[gi]}">${nIsi}<small>/ ${g.kuota}</small></td>`;
+        body += tr + '</tr>';
+      }
+    });
+  });
+  if (!sesi.length) body = `<tr><td colspan="${KOLOM_JADWAL + 4}" class="jt-kosong">${admin ? `Belum ada seri. <button class="btn btn-xs" data-act="adm.sesiBaru" data-hari="${hari.id}">${ico('plus')} Tambah Seri I</button>` : 'Jadwal menyusul.'}</td></tr>`;
+  return `<div class="jt-wrap"><table class="jt">
+    <thead><tr><th>Seri</th><th>Grup</th><th>Jenis layangan</th>${kol.map((c) => `<th>${c}</th>`).join('')}<th>Total</th></tr></thead>
+    <tbody>${body}</tbody></table></div>`;
+}
+function legendaJadwal(admin, tampilNomor = true) {
+  return `<div class="jt-legend">
+    <span><i></i>Kosong${admin ? ' (klik untuk menutup)' : ''}</span>
+    ${tampilNomor ? `<span><i style="background:var(--warn-soft)"></i>Menunggu verifikasi</span>
+    <span><b style="color:var(--ink)">12</b> Nomor layangan terkonfirmasi</span>` : '<span><i style="background:var(--surface-3)"></i>Sudah terisi</span>'}
+    <span><i style="background:var(--ink)"></i>Ditutup panitia</span>
+  </div>`;
+}
 const errMsg = (m) => (m ? `<span class="err-msg" role="alert">${ico('alert')}${esc(m)}</span>` : '');
 const demoBar = () => (api && api.mode === 'demo'
   ? '<div class="demo-bar"><b>MODE DEMO</b> · data hanya tersimpan di browser ini. Isi SUPABASE_URL &amp; SUPABASE_KEY di file agar online.</div>'
@@ -1734,7 +2002,7 @@ function dataTemplate(r, seri, jenis, ev) {
   return {
     nama_event: ev.nama_event || '', penyelenggara: ev.penyelenggara || '', lokasi: ev.lokasi || '',
     kode: r.kode, jenis: (jenis && jenis.nama) || r.jenis, nama_sekha: r.nama_sekha, alamat: r.alamat,
-    no_wa: fmtWA(r.no_wa), nomor_layangan: r.nomor_layangan || '-', seri: (seri && seri.nama) || '-',
+    no_wa: fmtWA(r.no_wa), nomor_layangan: r.nomor_layangan || '-', seri: (seri && seri.nama) || '-', kotak: r.kotak || '-',
     jadwal: jadwalText(seri), tanggal: fmtTanggal(seri && seri.tanggal) || '-', jam: jamText(seri) || '-',
     harga: rupiah(r.harga), alasan: r.alasan_tolak || '-', wa_panitia: fmtWA(ev.wa_admin),
   };
@@ -1748,7 +2016,8 @@ const DRAFT_KEY = 'lomba_layangan_draft_v1';
 const Pub = {
   s: {
     info: null, err: null, loading: false, tab: 'daftar', step: 1,
-    form: { jenis: '', seri_id: null, nama_sekha: '', alamat: '', no_wa: '', nama_rekening: '', setuju: false },
+    form: { jenis: '', seri_id: null, nomor_layangan: '', nama_sekha: '', alamat: '', no_wa: '', nama_rekening: '', setuju: false },
+    nomorCek: null,
     errors: {}, file: null, fileUrl: null,
     sending: false, sendMsg: '', sendErr: null, hasil: null, ref: null, lastSekha: null,
     cekWa: '', cekHasil: null, cekLoading: false, cekErr: null,
@@ -1761,7 +2030,7 @@ const Pub = {
   },
   simpanDraft: debounce(() => {
     const f = Pub.s.form;
-    simpanLokal(DRAFT_KEY, { form: { jenis: f.jenis, seri_id: f.seri_id, nama_sekha: f.nama_sekha, alamat: f.alamat, no_wa: f.no_wa, nama_rekening: f.nama_rekening }, cekWa: Pub.s.cekWa });
+    simpanLokal(DRAFT_KEY, { form: { jenis: f.jenis, seri_id: f.seri_id, nomor_layangan: f.nomor_layangan, nama_sekha: f.nama_sekha, alamat: f.alamat, no_wa: f.no_wa, nama_rekening: f.nama_rekening }, cekWa: Pub.s.cekWa });
   }, 400),
   async segarkan() {
     try { this.s.info = await api.infoPublik(); this.s.err = null; this.rapikanPilihan(); } catch (e) { /* biarkan data lama */ }
@@ -1780,8 +2049,8 @@ const Pub = {
   rapikanPilihan() {
     const f = this.s.form, info = this.s.info;
     if (!info) return;
-    if (f.jenis && !info.jenis.some((j) => j.kode === f.jenis && j.aktif)) { f.jenis = ''; f.seri_id = null; }
-    if (f.seri_id && !info.seri.some((x) => x.id === f.seri_id && x.jenis === f.jenis && x.aktif)) f.seri_id = null;
+    if (f.jenis && !this.jenisTerjadwal().some((j) => j.kode === f.jenis)) { f.jenis = ''; f.seri_id = null; }
+    if (f.seri_id && !this.grupJadwal().some((x) => x.id === f.seri_id && x.jenis === f.jenis && x.aktif)) f.seri_id = null;
   },
   mount(tab) {
     const lama = this.s.tab;
@@ -1820,7 +2089,15 @@ const Pub = {
   },
   jenisDipilih() { return this.s.info && this.s.info.jenis.find((j) => j.kode === this.s.form.jenis); },
   seriDipilih() { return this.s.info && this.s.info.seri.find((x) => x.id === this.s.form.seri_id); },
-  sisaJenis(kode) { return this.s.info.seri.filter((x) => x.jenis === kode && x.aktif).reduce((a, x) => a + Math.max(0, x.kuota - x.terisi), 0); },
+  /* hanya grup yang ada di jadwal terbang (punya seri/hari) yang bisa dipilih peserta */
+  grupJadwal() { const info = this.s.info, sesi = new Set(((info && info.sesi) || []).map((x) => x.id)); return ((info && info.seri) || []).filter((x) => x.sesi_id && sesi.has(x.sesi_id)); },
+  jenisTerjadwal() { const ada = new Set(this.grupJadwal().filter((x) => x.aktif).map((x) => x.jenis)); return this.s.info.jenis.filter((j) => j.aktif && ada.has(j.kode)); },
+  sisaJenis(kode) { return this.grupJadwal().filter((x) => x.jenis === kode && x.aktif).reduce((a, x) => a + Math.max(0, x.kuota - x.terisi), 0); },
+  labelGrup(x) {
+    if (!x) return '-';
+    const info = this.s.info, sesi = (info.sesi || []).find((y) => y.id === x.sesi_id), hari = sesi && (info.hari || []).find((h) => h.id === sesi.hari_id);
+    return sesi ? `Seri ${sesi.nama} · Grup ${x.huruf}${hari ? ` · ${hari.nama}` : ''}` : x.nama;
+  },
   hapusFile() { if (this.s.fileUrl) URL.revokeObjectURL(this.s.fileUrl); this.s.file = null; this.s.fileUrl = null; },
 
   /* ---------------- tampilan ---------------- */
@@ -1890,11 +2167,19 @@ const Pub = {
   },
   hintWA() {
     const n = normWA(this.s.form.no_wa);
-    return n ? `<span class="ok-msg">${ico('check')} Konfirmasi & nomor layangan dikirim ke ${esc(fmtWA(n))}</span>` : 'Konfirmasi dan nomor layangan akan dikirim ke nomor ini.';
+    return n ? `<span class="ok-msg">${ico('check')} Konfirmasi dikirim ke ${esc(fmtWA(n))}</span>` : 'Konfirmasi pendaftaran akan dikirim ke nomor ini lewat WhatsApp.';
+  },
+  hintNomor() {
+    const c = this.s.nomorCek, f = this.s.form;
+    if (!f.jenis) return 'Pilih jenis layangan dulu. Nomor tidak boleh sama dengan peserta lain di jenis yang sama.';
+    if (this.s.errors.nomor_layangan) return 'Angka saja, maksimal 6 digit.';
+    if (!c || c.nomor !== normNomor(f.nomor_layangan) || c.jenis !== f.jenis) return 'Angka saja, maksimal 6 digit. Nomor ini dipasang pada layangan saat lomba.';
+    if (c.memeriksa) return '<span class="nomor-cek"><span class="spinner"></span> Memeriksa nomor…</span>';
+    return c.ok ? `<span class="nomor-cek ok">${ico('check')} Nomor ${esc(c.nomor)} masih tersedia</span>` : `<span class="nomor-cek bad">${ico('x')} Nomor ${esc(c.nomor)} sudah dipakai peserta lain</span>`;
   },
   vData() {
     const s = this.s, f = s.form, e = s.errors, info = s.info, ev = info.event;
-    const jenis = info.jenis.filter((j) => j.aktif);
+    const jenis = this.jenisTerjadwal();
     return `<section class="card" aria-labelledby="judul-step">
       ${this.vStepper(1)}
       <h2 class="h2" id="judul-step" tabindex="-1">Data layangan & sekha</h2>
@@ -1903,14 +2188,15 @@ const Pub = {
       <form data-submit="pub.data" novalidate>
         <fieldset class="field ${e.jenis ? 'err' : ''}" id="wrap-jenis">
           <legend class="label">Jenis layangan</legend>
-          <div class="opt-grid jenis">${jenis.map((j) => this.vOptJenis(j)).join('') || '<div class="empty-sm">Belum ada jenis layangan yang dibuka.</div>'}</div>
+          <div class="opt-grid jenis">${jenis.map((j) => this.vOptJenis(j)).join('') || '<div class="empty-sm">Jadwal terbang belum dibuat panitia. Silakan cek lagi nanti.</div>'}</div>
           ${errMsg(e.jenis)}
         </fieldset>
         <fieldset class="field ${e.seri_id ? 'err' : ''}" id="wrap-seri_id">
-          <legend class="label">Seri layangan <span class="opt-lbl">· menentukan jadwal terbang</span></legend>
-          ${f.jenis ? this.vListSeri() : '<div class="empty-sm">Pilih jenis layangan dulu untuk melihat seri dan jadwalnya.</div>'}
+          <legend class="label">Seri & grup <span class="opt-lbl">· menentukan jadwal terbang</span></legend>
+          ${f.jenis ? this.vListSeri() : '<div class="empty-sm">Pilih jenis layangan dulu untuk melihat seri, grup, dan jadwalnya.</div>'}
           ${errMsg(e.seri_id)}
         </fieldset>
+        ${fieldInput({ name: 'nomor_layangan', label: 'Nomor layangan', value: f.nomor_layangan, type: 'text', inputmode: 'numeric', maxlength: 6, autocomplete: 'off', err: e.nomor_layangan, data: 'data-in="pub.nomor"', hint: this.hintNomor() })}
         ${fieldInput({ name: 'nama_sekha', label: 'Nama sekha', value: f.nama_sekha, maxlength: 120, autocomplete: 'organization', err: e.nama_sekha, data: 'data-in="pub.f"' })}
         ${fieldInput({ name: 'alamat', label: 'Alamat', value: f.alamat, placeholder: 'Banjar, desa/kelurahan, kecamatan', maxlength: 300, textarea: true, rows: 2, autocomplete: 'street-address', err: e.alamat, data: 'data-in="pub.f"' })}
         ${fieldInput({ name: 'no_wa', label: 'Nomor WhatsApp', value: f.no_wa, type: 'tel', inputmode: 'tel', placeholder: '08xx-xxxx-xxxx', maxlength: 20, autocomplete: 'tel', err: e.no_wa, data: 'data-in="pub.f"', hint: this.hintWA() })}
@@ -1930,17 +2216,29 @@ const Pub = {
     </label>`;
   },
   vListSeri() {
+    const f = this.s.form, info = this.s.info;
+    const list = this.grupJadwal().filter((x) => x.jenis === f.jenis && x.aktif);
+    if (!list.length) return '<div class="empty-sm">Belum ada grup yang dibuka untuk jenis ini. Hubungi panitia.</div>';
+    const sesiMap = new Map((info.sesi || []).map((x) => [x.id, x]));
+    const hariList = [...(info.hari || [])].sort(urutHari);
+    return hariList.map((h) => {
+      const grup = list.filter((x) => (sesiMap.get(x.sesi_id) || {}).hari_id === h.id)
+        .sort((a, b) => urutSesi(sesiMap.get(a.sesi_id), sesiMap.get(b.sesi_id)) || urutGrup(a, b));
+      if (!grup.length) return '';
+      return `<div class="grup-hari">${esc(h.nama)}${h.tanggal ? ` · ${esc(fmtTanggal(h.tanggal, true))}` : ''}</div>${this.vOptGrup(grup, sesiMap)}`;
+    }).join('');
+  },
+  vOptGrup(list, sesiMap) {
     const f = this.s.form;
-    const list = this.s.info.seri.filter((x) => x.jenis === f.jenis && x.aktif);
-    if (!list.length) return '<div class="empty-sm">Belum ada seri yang dibuka untuk jenis ini. Hubungi panitia.</div>';
     return `<div class="opt-grid">${list.map((x) => {
+      const sesi = sesiMap.get(x.sesi_id) || {};
       const sisa = Math.max(0, x.kuota - x.terisi), off = sisa <= 0, on = f.seri_id === x.id;
       const pct = x.kuota ? Math.min(100, (x.terisi / x.kuota) * 100) : 100;
       return `<label class="opt ${on ? 'on' : ''} ${off ? 'off' : ''}">
         <input type="radio" name="seri" value="${x.id}" ${on ? 'checked' : ''} ${off ? 'disabled' : ''} data-ch="pub.seri">
         <span class="radio" aria-hidden="true"></span>
-        <span class="opt-body"><span class="opt-t">${esc(x.nama)}</span>
-          <span class="opt-s">${ico('cal')}${esc(jadwalText(x))}</span>
+        <span class="opt-body"><span class="opt-t">Seri ${esc(sesi.nama || '')} · Grup ${esc(x.huruf || '')}</span>
+          <span class="opt-s">${ico('clock')}${esc(jamSesi(sesi))} ${CONFIG.ZONA_WAKTU}</span>
           <span class="meter" aria-hidden="true">${pct > 0 ? `<i class="m1" style="width:${pct.toFixed(1)}%"></i>` : ''}</span>
           <span class="opt-s"><span>${off ? '<b class="full">Penuh</b>' : `Sisa <b>${sisa}</b> dari ${x.kuota} slot`}</span></span>
           ${x.catatan ? `<span class="opt-s">${esc(x.catatan)}</span>` : ''}</span>
@@ -1969,7 +2267,8 @@ const Pub = {
       ${s.catatanHarga ? `<div class="note warn" role="alert">${ico('alert')}<span>${esc(s.catatanHarga)}</span></div>` : ''}
       <dl class="kv">
         <dt>Jenis layangan</dt><dd><span class="jtag">${jdot(j.kode, s.info.jenis)}${esc(j.nama)}</span></dd>
-        <dt>Seri layangan</dt><dd>${esc(x.nama)}<div class="sub">${esc(jadwalText(x))}</div></dd>
+        <dt>Nomor layangan</dt><dd><b>${esc(normNomor(f.nomor_layangan) || '-')}</b></dd>
+        <dt>Seri & grup</dt><dd>${esc(this.labelGrup(x))}<div class="sub">${esc(jadwalText(x))}</div></dd>
         <dt>Nama sekha</dt><dd>${esc(f.nama_sekha.trim())}</dd>
         <dt>Alamat</dt><dd>${nl2br(f.alamat.trim())}</dd>
         <dt>Nomor WhatsApp</dt><dd>${esc(fmtWA(f.no_wa))}</dd>
@@ -1996,7 +2295,7 @@ const Pub = {
     return `<section class="card" aria-labelledby="judul-step">
       ${this.vStepper(3)}
       <h2 class="h2" id="judul-step" tabindex="-1">Pembayaran</h2>
-      <p class="lead">Transfer <b>${rupiah(j.harga)}</b> untuk layangan ${esc(j.nama)} · ${esc(x.nama)}, lalu unggah bukti transfernya.</p>
+      <p class="lead">Transfer <b>${rupiah(j.harga)}</b> untuk layangan ${esc(j.nama)} nomor <b>${esc(normNomor(f.nomor_layangan) || '-')}</b> · ${esc(this.labelGrup(x))}, lalu unggah bukti transfernya.</p>
       ${this.vKotakBank(j.harga)}
       <form data-submit="pub.kirim" novalidate style="margin-top:20px">
         ${fieldInput({ name: 'nama_rekening', label: 'Nama pemilik rekening (pengirim)', value: f.nama_rekening, placeholder: 'Nama sesuai rekening yang dipakai transfer', maxlength: 120, autocomplete: 'name', err: e.nama_rekening, data: 'data-in="pub.f"' })}
@@ -2025,12 +2324,13 @@ const Pub = {
       <div>${badgeStatus('menunggu', 'Menunggu verifikasi panitia')}</div>
       <dl class="kv">
         <dt>Jenis layangan</dt><dd>${esc((j && j.nama) || h.jenis)}</dd>
-        <dt>Seri layangan</dt><dd>${esc((x && x.nama) || '-')}<div class="sub">${esc(jadwalText(x))}</div></dd>
+        <dt>Nomor layangan</dt><dd><b>${esc(h.nomor_layangan || '-')}</b></dd>
+        <dt>Seri & grup</dt><dd>${esc(this.labelGrup(x))}<div class="sub">${esc(jadwalText(x))}</div></dd>
         <dt>Nama sekha</dt><dd>${esc(h.nama_sekha)}</dd>
         <dt>Nomor WhatsApp</dt><dd>${esc(fmtWA(h.no_wa))}</dd>
         <dt>Biaya</dt><dd>${rupiah(h.harga)}</dd>
       </dl>
-      <div class="note">${ico('info')}<span>Setelah pembayaran diverifikasi, panitia mengirim konfirmasi beserta <b>nomor layangan</b> ke WhatsApp <b>${esc(fmtWA(h.no_wa))}</b>. Status juga bisa dicek di menu <a href="#cek">Cek Status</a>.</span></div>
+      <div class="note">${ico('info')}<span>Setelah pembayaran diverifikasi, panitia mengirim konfirmasi ke WhatsApp <b>${esc(fmtWA(h.no_wa))}</b>. Status juga bisa dicek di menu <a href="#cek">Cek Status</a> atau di tab <a href="#jadwal">Jadwal</a>.</span></div>
       <div class="actions col">
         <button type="button" class="btn btn-primary" data-act="pub.lagi">${ico('plus')} Daftar layangan lain (sekha sama)</button>
         ${ev.wa_admin ? `<a class="btn" target="_blank" rel="noopener" href="${esc(waLink(ev.wa_admin, `Halo panitia ${ev.nama_event}, saya sudah mendaftar dengan kode ${h.kode} (${h.nama_sekha}).`))}">${ico('chat')} Chat panitia via WhatsApp</a>` : ''}
@@ -2038,30 +2338,22 @@ const Pub = {
     </section>`;
   },
   vJadwal() {
-    const info = this.s.info, ev = info.event;
-    const jenis = info.jenis.filter((j) => j.aktif);
+    const info = this.s.info, ev = info.event, hari = [...(info.hari || [])].sort(urutHari);
+    const grup = this.grupJadwal();
+    const isi = (g) => {
+      const m = new Map();
+      (g.isi || []).forEach((k) => m.set(k, { status: ev.tampilkan_peserta ? 'menunggu' : 'terisi', nomor: null }));
+      if (ev.tampilkan_peserta) (g.peserta || []).forEach((p) => { if (p.kotak) m.set(p.kotak, { status: 'terkonfirmasi', nomor: p.nomor }); });
+      return m;
+    };
     return `<section class="card">
-      <h2 class="h2">Jadwal terbang & kuota</h2>
-      <p class="lead">Jadwal terbang mengikuti seri. Slot terhitung sejak formulir dikirim, termasuk yang masih menunggu verifikasi.</p>
-      ${jenis.map((j) => {
-        const list = info.seri.filter((x) => x.jenis === j.kode);
-        return `<div class="j-sec"><h3 class="j-h">${jdot(j.kode, info.jenis)}${esc(j.nama)} <span class="muted">· ${rupiah(j.harga)}</span></h3>
-          ${list.length ? `<div class="seri-list">${list.map((x) => this.vKartuSeri(x, ev.tampilkan_peserta)).join('')}</div>` : '<div class="empty-sm">Jadwal menyusul.</div>'}</div>`;
-      }).join('') || '<div class="empty">Jadwal belum tersedia.</div>'}
+      <h2 class="h2">Jadwal terbang</h2>
+      <p class="lead">Kotak terisi sejak formulir dikirim, termasuk yang masih menunggu verifikasi.${ev.tampilkan_peserta ? ' Angka di kotak adalah nomor layangan yang sudah terkonfirmasi.' : ''} Geser tabel ke samping untuk melihat semua kotak.</p>
+      ${hari.length ? hari.map((h) => `<div class="jt-hari"><div class="jt-hari-h"><h3>${esc(h.nama)}</h3>${h.tanggal ? `<span class="muted">${esc(fmtTanggal(h.tanggal))}</span>` : ''}</div>
+        ${tabelJadwal({ hari: h, sesi: info.sesi || [], grup, jenis: info.jenis, kotakIsi: isi, admin: false })}</div>`).join('') + legendaJadwal(false, !!ev.tampilkan_peserta)
+        : '<div class="empty">Jadwal terbang belum tersedia.</div>'}
       ${ev.pendaftaran_buka ? `<div class="actions"><a class="btn btn-primary" href="#daftar">${ico('edit')} Daftar sekarang</a></div>` : ''}
     </section>`;
-  },
-  vKartuSeri(x, tampil) {
-    const sisa = Math.max(0, x.kuota - x.terisi), pct = x.kuota ? Math.min(100, (x.terisi / x.kuota) * 100) : 100;
-    const st = !x.aktif ? ['off', 'Ditutup', 'lock'] : sisa <= 0 ? ['bad', 'Penuh', 'x'] : sisa <= Math.max(3, Math.ceil(x.kuota * 0.1)) ? ['warn', 'Hampir penuh', 'alert'] : ['good', 'Tersedia', 'check'];
-    return `<div class="seri-card">
-      <div class="sc-top"><b>${esc(x.nama)}</b><span class="badge b-${st[0]}">${ico(st[2])}${st[1]}</span></div>
-      <div class="sc-when">${ico('cal')}<span>${esc(jadwalText(x))}</span></div>
-      <div class="meter" role="img" aria-label="${x.terisi} dari ${x.kuota} slot terisi">${pct > 0 ? `<i class="m1" style="width:${pct.toFixed(1)}%"></i>` : ''}</div>
-      <div class="sc-num"><b>${x.terisi}</b>/${x.kuota} terisi · sisa <b>${sisa}</b></div>
-      ${x.catatan ? `<div class="hint">${esc(x.catatan)}</div>` : ''}
-      ${tampil && x.peserta && x.peserta.length ? `<details><summary>Peserta terkonfirmasi (${x.peserta.length})</summary><ol class="peserta">${x.peserta.map((p) => `<li><b>${esc(p.nomor || '-')}</b><span>${esc(p.sekha)}</span></li>`).join('')}</ol></details>` : ''}
-    </div>`;
   },
   vCek() {
     const s = this.s;
@@ -2087,7 +2379,7 @@ const Pub = {
     const ev = this.s.info.event, seri = { tanggal: r.tanggal, jam_mulai: r.jam_mulai, jam_selesai: r.jam_selesai };
     return `<article class="cek-item">
       <div class="cek-top"><span class="jtag">${jdot(r.jenis, this.s.info.jenis)}${esc(r.jenis_nama)} · ${esc(r.seri_nama)}</span>${badgeStatus(r.status)}</div>
-      ${r.status === 'terkonfirmasi' && r.nomor_layangan ? `<div class="cek-nomor"><span class="hint">Nomor layangan</span><b>${esc(r.nomor_layangan)}</b></div>` : ''}
+      ${r.status !== 'ditolak' && r.nomor_layangan ? `<div class="cek-nomor"><span class="hint">Nomor layangan</span><b>${esc(r.nomor_layangan)}</b></div>` : ''}
       <div class="sc-when" style="margin-top:8px">${ico('cal')}<span>${esc(jadwalText(seri))}</span></div>
       <dl class="kv"><dt>Nama sekha</dt><dd>${esc(r.nama_sekha)}</dd><dt>Kode</dt><dd class="mono">${esc(r.kode)}</dd><dt>Didaftarkan</dt><dd>${esc(fmtWaktu(r.created_at))}</dd></dl>
       ${r.status === 'menunggu' ? `<div class="note">${ico('clock')}<span>Pembayaran sedang diverifikasi panitia.</span></div>` : ''}
@@ -2099,7 +2391,9 @@ const Pub = {
   validasiData() {
     const f = this.s.form, e = {};
     if (!f.jenis) e.jenis = 'Pilih jenis layangan.';
-    if (!f.seri_id) e.seri_id = f.jenis ? 'Pilih seri layangan.' : 'Pilih jenis layangan dulu, lalu pilih seri.';
+    if (!f.seri_id) e.seri_id = f.jenis ? 'Pilih seri dan grup.' : 'Pilih jenis layangan dulu, lalu pilih seri dan grup.';
+    if (!String(f.nomor_layangan || '').trim()) e.nomor_layangan = 'Isi nomor layangan.';
+    else if (!normNomor(f.nomor_layangan)) e.nomor_layangan = 'Nomor layangan harus angka, maksimal 6 digit.';
     if (f.nama_sekha.trim().length < 2) e.nama_sekha = 'Isi nama sekha.';
     if (f.alamat.trim().length < 3) e.alamat = 'Isi alamat sekha.';
     if (!f.no_wa.trim()) e.no_wa = 'Isi nomor WhatsApp.';
@@ -2112,12 +2406,20 @@ const Pub = {
     s.errors = this.validasiData();
     if (Object.keys(s.errors).length) { this.render(); this.fokusError(); return; }
     const btn = form.querySelector('button[type=submit]');
-    if (btn) { btn.disabled = true; btn.innerHTML = '<span class="spinner"></span> Memeriksa kuota…'; }
+    if (btn) { btn.disabled = true; btn.innerHTML = '<span class="spinner"></span> Memeriksa kuota & nomor…'; }
     await this.segarkan();
     const x = this.seriDipilih();
     if (!x || !x.aktif || x.kuota - x.terisi <= 0) {
       s.form.seri_id = null;
-      s.errors = { seri_id: 'Seri ini baru saja penuh atau ditutup. Silakan pilih seri lain.' };
+      s.errors = { seri_id: 'Grup ini baru saja penuh atau ditutup. Silakan pilih grup lain.' };
+      this.render(); this.fokusError(); return;
+    }
+    const nomor = normNomor(s.form.nomor_layangan);
+    let tersedia = true;
+    try { tersedia = await api.cekNomor(s.form.jenis, nomor); } catch (err) { /* dicek ulang saat menyimpan */ }
+    s.nomorCek = { jenis: s.form.jenis, nomor, ok: tersedia };
+    if (!tersedia) {
+      s.errors = { nomor_layangan: `Nomor ${nomor} sudah dipakai peserta lain di jenis ini. Gunakan nomor lain.` };
       this.render(); this.fokusError(); return;
     }
     s.step = 2; s.errors = {};
@@ -2157,13 +2459,15 @@ const Pub = {
       const hasil = await api.daftar({
         jenis: f.jenis, seri_id: f.seri_id, nama_sekha: f.nama_sekha.trim(), alamat: f.alamat.trim(), no_wa: f.no_wa,
         nama_rekening: f.nama_rekening.trim(), bukti_path: path, bukti_hash: hash, client_ref: s.ref, harga: hargaDilihat,
+        nomor_layangan: normNomor(f.nomor_layangan),
       });
       s.catatanHarga = null;
-      s.hasil = { ...hasil, jenis: hasil.jenis || f.jenis, seri_id: hasil.seri_id || f.seri_id, nama_sekha: hasil.nama_sekha || f.nama_sekha.trim(), no_wa: hasil.no_wa || normWA(f.no_wa) };
+      s.hasil = { ...hasil, jenis: hasil.jenis || f.jenis, seri_id: hasil.seri_id || f.seri_id, nama_sekha: hasil.nama_sekha || f.nama_sekha.trim(), no_wa: hasil.no_wa || normWA(f.no_wa), nomor_layangan: hasil.nomor_layangan || normNomor(f.nomor_layangan) };
       s.lastSekha = { nama_sekha: f.nama_sekha, alamat: f.alamat, no_wa: f.no_wa, nama_rekening: f.nama_rekening };
       s.cekWa = f.no_wa;
       s.step = 4; s.sending = false; s.ref = null; s.errors = {};
-      Object.assign(f, { jenis: '', seri_id: null, setuju: false });
+      Object.assign(f, { jenis: '', seri_id: null, nomor_layangan: '', setuju: false });
+      s.nomorCek = null;
       this.simpanDraft();
       this.hapusFile();
       this.render();
@@ -2177,7 +2481,12 @@ const Pub = {
       if (/KUOTA_PENUH|SERI_TIDAK_VALID|JENIS_TIDAK_VALID/.test(kode)) {
         await this.segarkan();
         s.form.seri_id = null; s.step = 1; s.ref = null;
-        s.errors = { seri_id: pesan + ' Bukti transfer yang sudah dipilih tetap tersimpan — cukup pilih seri lain lalu lanjutkan.' };
+        s.errors = { seri_id: pesan + ' Bukti transfer yang sudah dipilih tetap tersimpan. Cukup pilih grup lain lalu lanjutkan.' };
+        this.render(); this.fokusError(); return;
+      }
+      if (/NOMOR_DIPAKAI|NOMOR_TIDAK_VALID/.test(kode)) {
+        s.step = 1; s.ref = null;
+        s.errors = { nomor_layangan: pesan + ' Bukti transfer yang sudah dipilih tetap tersimpan. Ganti nomor lalu lanjutkan.' };
         this.render(); this.fokusError(); return;
       }
       if (/HARGA_BERUBAH/.test(kode)) {
@@ -2207,7 +2516,7 @@ const Pub = {
 ACT['pub.muat'] = () => Pub.muat();
 CH['pub.jenis'] = (el) => {
   const f = Pub.s.form;
-  if (f.jenis !== el.value) { f.jenis = el.value; f.seri_id = null; }
+  if (f.jenis !== el.value) { f.jenis = el.value; f.seri_id = null; Pub.s.nomorCek = null; if (normNomor(f.nomor_layangan)) Pub.periksaNomor(); }
   delete Pub.s.errors.jenis; Pub.s.ref = null;
   Pub.simpanDraft(); Pub.render();
   const r = $(`input[name="jenis"][value="${CSS.escape(el.value)}"]`);
@@ -2231,6 +2540,28 @@ IN['pub.f'] = (el) => {
   Pub.simpanDraft();
 };
 IN['pub.cekWa'] = (el) => { Pub.s.cekWa = el.value; };
+IN['pub.nomor'] = (el) => {
+  Pub.s.form.nomor_layangan = el.value; Pub.s.ref = null;
+  if (Pub.s.errors.nomor_layangan && normNomor(el.value)) {
+    delete Pub.s.errors.nomor_layangan;
+    const w = $('#wrap-nomor_layangan'); if (w) { w.classList.remove('err'); const m = w.querySelector('.err-msg'); if (m) m.remove(); }
+    el.setAttribute('aria-invalid', 'false');
+  }
+  Pub.simpanDraft();
+  Pub.periksaNomor();
+};
+Pub.tampilHintNomor = () => { const h = $('#f-nomor_layangan-hint'); if (h) h.innerHTML = Pub.hintNomor(); };
+Pub.periksaNomor = debounce(async () => {
+  const s = Pub.s, f = s.form, nomor = normNomor(f.nomor_layangan);
+  if (!nomor || !f.jenis) { s.nomorCek = null; Pub.tampilHintNomor(); return; }
+  s.nomorCek = { jenis: f.jenis, nomor, memeriksa: true };
+  Pub.tampilHintNomor();
+  try {
+    const ok = await api.cekNomor(f.jenis, nomor);
+    if (normNomor(f.nomor_layangan) === nomor && f.jenis === s.nomorCek.jenis) s.nomorCek = { jenis: f.jenis, nomor, ok };
+  } catch (e) { s.nomorCek = null; }
+  Pub.tampilHintNomor();
+}, 450);
 CH['pub.setuju'] = (el) => {
   Pub.s.form.setuju = el.checked;
   if (el.checked && Pub.s.errors.setuju) { delete Pub.s.errors.setuju; const c = el.closest('.check'); c.classList.remove('err'); const m = c.parentNode.querySelector('.err-msg'); if (m) m.remove(); }
@@ -2265,7 +2596,8 @@ ACT['pub.lanjutBayar'] = () => {
 };
 ACT['pub.lagi'] = () => {
   const s = Pub.s, l = s.lastSekha || {};
-  Object.assign(s.form, { jenis: '', seri_id: null, setuju: false }, l);
+  Object.assign(s.form, { jenis: '', seri_id: null, nomor_layangan: '', setuju: false }, l);
+  s.nomorCek = null;
   s.hasil = null; s.step = 1; s.errors = {}; s.sendErr = null; s.ref = null;
   Pub.simpanDraft(); Pub.render(); Pub.fokusJudul();
 };
@@ -2376,7 +2708,15 @@ const Adm = {
     const dupIds = new Set();
     for (const rows of hash.values()) if (rows.length > 1) rows.forEach((r) => dupIds.add(r.id));
     st.dupMenunggu = d.daftar.filter((r) => r.status === 'menunggu' && dupIds.has(r.id)).length;
-    this.idx = { jenis, seri, perSeri, hash, perWA, st, dupIds };
+    d.hari = (d.hari || []).sort(urutHari); d.sesi = (d.sesi || []).sort(urutSesi);
+    const hari = new Map(d.hari.map((h) => [h.id, h])), sesi = new Map(d.sesi.map((x) => [x.id, x]));
+    const kotak = new Map();
+    for (const r of d.daftar) {
+      if (!r.kotak || !AKTIF(r.status)) continue;
+      if (!kotak.has(r.seri_id)) kotak.set(r.seri_id, new Map());
+      kotak.get(r.seri_id).set(r.kotak, { id: r.id, nomor: r.nomor_layangan, status: r.status });
+    }
+    this.idx = { jenis, seri, perSeri, hash, perWA, st, dupIds, hari, sesi, kotak };
   },
   baris(id) { return this.s.data && this.s.data.daftar.find((r) => r.id === id); },
   namaJenis(kode) { const j = this.idx && this.idx.jenis.get(kode); return j ? j.nama : kode; },
@@ -2515,7 +2855,7 @@ const Adm = {
   },
   vSide() {
     const st = (this.idx && this.idx.st) || {}, ev = (this.s.data && this.s.data.pengaturan) || {};
-    const nav = [['ringkasan', 'Ringkasan', 'home', 0], ['pendaftaran', 'Pendaftaran', 'list', st.menunggu], ['jenis', 'Jenis Layangan', 'kite', 0], ['seri', 'Seri & Jadwal', 'cal', 0], ['pengaturan', 'Pengaturan', 'sliders', 0]];
+    const nav = [['ringkasan', 'Ringkasan', 'home', 0], ['pendaftaran', 'Pendaftaran', 'list', st.menunggu], ['seri', 'Jadwal Terbang', 'cal', 0], ['jenis', 'Jenis Layangan', 'kite', 0], ['pengaturan', 'Pengaturan', 'sliders', 0]];
     return `<aside class="side" id="adm-side">
       <div class="brand"><div class="brand-logo">${KITE_LOGO}</div><div style="min-width:0"><b>${esc(ev.nama_event || 'Lomba Layangan')}</b><span>Dashboard panitia</span></div></div>
       <nav class="nav" aria-label="Menu admin">${nav.map(([id, l, i, c]) => `<a href="#admin/${id}" class="${this.s.tab === id ? 'on' : ''}" ${this.s.tab === id ? 'aria-current="page"' : ''}>${ico(i)}${l}${c ? `<span class="count" aria-label="${c} menunggu">${c}</span>` : ''}</a>`).join('')}</nav>
@@ -2529,7 +2869,7 @@ const Adm = {
   },
   vBnav() {
     const st = (this.idx && this.idx.st) || {};
-    const nav = [['ringkasan', 'Ringkasan', 'home', 0], ['pendaftaran', 'Daftar', 'list', st.menunggu], ['jenis', 'Jenis', 'kite', 0], ['seri', 'Seri', 'cal', 0], ['pengaturan', 'Setelan', 'sliders', 0]];
+    const nav = [['ringkasan', 'Ringkasan', 'home', 0], ['pendaftaran', 'Daftar', 'list', st.menunggu], ['seri', 'Jadwal', 'cal', 0], ['jenis', 'Jenis', 'kite', 0], ['pengaturan', 'Setelan', 'sliders', 0]];
     return `<nav class="bnav" id="adm-bnav" aria-label="Menu admin">${nav.map(([id, l, i, c]) => `<a href="#admin/${id}" class="${this.s.tab === id ? 'on' : ''}">${ico(i)}${l}${c ? `<span class="count">${c}</span>` : ''}</a>`).join('')}</nav>`;
   },
   vMtop() {
@@ -2549,7 +2889,7 @@ const Adm = {
         ? `<div class="note bad">${ico('alert')}<span>${esc(s.err)}</span></div><button class="btn" data-act="adm.muat">${ico('refresh')} Coba lagi</button>`
         : `<div class="panel" style="margin-top:20px"><div class="skel" style="height:24px;width:40%;margin-bottom:16px"></div><div class="skel" style="height:90px"></div></div>`);
     }
-    const peta = { ringkasan: () => this.vRingkasan(), pendaftaran: () => this.vPendaftaran(), jenis: () => this.vJenis(), seri: () => this.vSeri(), pengaturan: () => this.vPengaturan() };
+    const peta = { ringkasan: () => this.vRingkasan(), pendaftaran: () => this.vPendaftaran(), jenis: () => this.vJenis(), seri: () => this.vJadwalAdm(), pengaturan: () => this.vPengaturan() };
     const galat = s.err ? `<div class="note bad">${ico('alert')}<span>${esc(s.err)}</span></div>` : '';
     return this.vMtop() + galat + peta[s.tab]();
   },
@@ -2566,8 +2906,9 @@ const Adm = {
     if (st.waBelum) todo.push(item('info', 'chat', `${st.waBelum} konfirmasi WhatsApp belum dikirim`, 'Sudah terkonfirmasi tapi peserta belum menerima pesan WA.', `<button class="btn btn-sm" data-act="adm.filterWa">Kirim</button>`));
     if (st.dupMenunggu) todo.push(item('bad', 'layers', `${st.dupMenunggu} pendaftaran memakai bukti transfer yang sama`, 'Pastikan nominal transfer cukup untuk semua layangan.', `<button class="btn btn-sm" data-act="adm.filterDup">Periksa</button>`));
     if (!ev.bank_no_rek) todo.push(item('bad', 'bank', 'Rekening panitia belum diisi', 'Peserta belum bisa melihat tujuan transfer.', `<a class="btn btn-sm" href="#admin/pengaturan">Isi</a>`));
-    const tanpaJadwal = d.seri.filter((x) => x.aktif && !x.tanggal).length;
-    if (tanpaJadwal) todo.push(item('info', 'cal', `${tanpaJadwal} seri belum punya tanggal terbang`, 'Tanggal & jam tampil di formulir dan pesan WA.', `<a class="btn btn-sm" href="#admin/seri">Atur</a>`));
+    if (!d.hari.length) todo.push(item('bad', 'cal', 'Jadwal terbang belum dibuat', 'Peserta baru bisa mendaftar setelah ada hari, seri, dan grup di jadwal terbang.', `<a class="btn btn-sm" href="#admin/seri">Buat</a>`));
+    const tanpaTgl = d.hari.filter((h) => !h.tanggal).length;
+    if (tanpaTgl) todo.push(item('info', 'cal', `${tanpaTgl} hari belum punya tanggal`, 'Tanggal tampil di formulir dan pesan WA.', `<a class="btn btn-sm" href="#admin/seri">Atur</a>`));
     const kpi = (label, nilai, sub, opsi = {}) => {
       const tag = opsi.act ? 'button' : 'div';
       return `<${tag} class="kpi ${opsi.hi ? 'hi' : ''}" ${opsi.act ? `type="button" data-act="${opsi.act}"` : ''}><div class="l">${label}</div><div class="v">${nilai}</div><div class="s">${sub}</div></${tag}>`;
@@ -2578,7 +2919,7 @@ const Adm = {
         ${kpi('Menunggu verifikasi', angka(st.menunggu), st.menunggu ? 'Klik untuk mulai verifikasi' : 'Tidak ada antrean', { hi: st.menunggu > 0, act: st.menunggu ? 'adm.verifikasi' : '' })}
         ${kpi('Terkonfirmasi', angka(st.terkonfirmasi), `dari ${angka(st.menunggu + st.terkonfirmasi)} layangan terdaftar`)}
         ${kpi('Pemasukan terkonfirmasi', rupiahSingkat(st.uangOk), `${rupiah(st.uangTunggu)} masih menunggu verifikasi`)}
-        ${kpi('Sisa kuota', angka(sisa), `dari ${angka(kuotaTotal)} slot di ${d.seri.filter((x) => x.aktif).length} seri dibuka`)}
+        ${kpi('Sisa kuota', angka(sisa), `dari ${angka(kuotaTotal)} kotak di ${d.seri.filter((x) => x.aktif).length} grup dibuka`)}
       </div>
       <div class="grid2">
         <div>${this.vKuota()}</div>
@@ -2596,7 +2937,7 @@ const Adm = {
   },
   vKuota() {
     const d = this.s.data;
-    return `<div class="panel"><div class="panel-h"><h3>Kuota per seri</h3><div class="legend"><span><i style="background:var(--meter-1)"></i>Terkonfirmasi</span><span><i style="background:var(--meter-2)"></i>Menunggu</span></div></div>
+    return `<div class="panel"><div class="panel-h"><h3>Kuota per grup</h3><div class="legend"><span><i style="background:var(--meter-1)"></i>Terkonfirmasi</span><span><i style="background:var(--meter-2)"></i>Menunggu</span></div></div>
       ${d.jenis.map((j) => {
         const list = d.seri.filter((x) => x.jenis === j.kode);
         if (!list.length) return '';
@@ -2792,7 +3133,7 @@ const Adm = {
       </div>
       <div class="drawer-b">
         <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:14px">${badgeStatus(r.status)}<span class="badge b-off"><span class="jtag">${jdot(r.jenis, dj)}${esc((j && j.nama) || r.jenis)}</span></span><span class="badge b-off">${esc((x && x.nama) || '-')}</span>${!r.bukti_path ? '<span class="badge b-info">Manual</span>' : ''}</div>
-        ${r.status === 'terkonfirmasi' ? `<div class="big-no">${ico('kite')}<div><span>Nomor layangan</span><br><b>${esc(r.nomor_layangan || '-')}</b></div></div>` : ''}
+        ${r.status !== 'ditolak' && r.nomor_layangan ? `<div class="big-no">${ico('kite')}<div><span>Nomor layangan${r.status === 'menunggu' ? ' (belum dikonfirmasi)' : ''}</span><br><b>${esc(r.nomor_layangan)}</b></div></div>` : ''}
         ${r.status === 'ditolak' ? `<div class="note bad">${ico('x')}<span><b>Ditolak:</b> ${esc(r.alasan_tolak || '-')}</span></div>` : ''}
         <div class="sect"><h4>Pembayaran</h4>
           <div class="total" style="margin:0 0 10px"><div><div class="t-l">Tagihan ${esc((j && j.nama) || '')}</div><div class="t-s">Pengirim: <b>${esc(r.nama_rekening)}</b></div></div><div class="amt">${rupiah(r.harga)}</div></div>
@@ -2805,8 +3146,8 @@ const Adm = {
             <dt>Nama sekha</dt><dd>${esc(r.nama_sekha)}</dd>
             <dt>Alamat</dt><dd>${nl2br(r.alamat)}</dd>
             <dt>Nomor WA</dt><dd><a href="${esc(waLink(r.no_wa))}" target="_blank" rel="noopener">${esc(fmtWA(r.no_wa))}</a>${nWA > 0 ? ` <a href="#" class="hint" data-act="adm.cariWA" data-wa="${esc(r.no_wa)}">· ${nWA} pendaftaran lain</a>` : ''}</dd>
-            <dt>Nomor layangan</dt><dd>${r.nomor_layangan ? esc(r.nomor_layangan) : '<span class="muted">Keluar otomatis saat dikonfirmasi</span>'}</dd>
-            <dt>Seri layangan</dt><dd>${esc((x && x.nama) || '-')}<div class="sub">${esc(jadwalText(x))}</div></dd>
+            <dt>Nomor layangan</dt><dd>${r.nomor_layangan ? `<b>${esc(r.nomor_layangan)}</b>` : '<span class="muted">Belum ada</span>'}</dd>
+            <dt>Seri & grup</dt><dd>${esc(this.labelGrupAdm(x))}${r.kotak ? ` · kotak ${r.kotak}` : ''}<div class="sub">${esc(jadwalText(x))}</div></dd>
             <dt>Kode</dt><dd class="mono">${esc(r.kode)}</dd>
           </dl>
         </div>
@@ -2889,7 +3230,7 @@ const Adm = {
   formTolak(r) {
     Overlay.modal(`<form data-submit="adm.tolak" data-id="${esc(r.id)}" novalidate>
       <h3>Tolak pendaftaran?</h3>
-      <p class="lead">${esc(r.nama_sekha)} · ${esc(r.kode)}. Slot di ${esc((this.idx.seri.get(r.seri_id) || {}).nama || 'seri')} akan dilepas untuk peserta lain.</p>
+      <p class="lead">${esc(r.nama_sekha)} · ${esc(r.kode)}. Kotak di ${esc((this.idx.seri.get(r.seri_id) || {}).nama || 'grup')} dan nomor layangannya dilepas untuk peserta lain.</p>
       <div class="chips">${ALASAN_TOLAK.map((a) => `<button type="button" data-act="adm.pilihAlasan" data-v="${esc(a)}">${esc(a)}</button>`).join('')}</div>
       <div class="field"><label class="label" for="alasan">Alasan (ikut dikirim ke peserta)</label><textarea class="input" id="alasan" name="alasan" rows="3" maxlength="300">${esc(r.alasan_tolak || '')}</textarea></div>
       <div class="actions end"><button type="button" class="btn" data-act="ovl.tutup">Batal</button><button type="submit" class="btn btn-danger-solid">${ico('x')} Tolak pendaftaran</button></div>
@@ -2897,33 +3238,33 @@ const Adm = {
   },
   opsiSeri(jenis, pilih, idAbaikan) {
     const d = this.s.data;
-    return d.seri.filter((x) => x.jenis === jenis).map((x) => {
+    return d.seri.filter((x) => x.jenis === jenis && (x.sesi_id || String(x.id) === String(pilih) || this.idx.perSeri.get(x.id).menunggu + this.idx.perSeri.get(x.id).terkonfirmasi > 0)).map((x) => {
       const c = this.idx.perSeri.get(x.id), terisi = c.menunggu + c.terkonfirmasi, sisa = x.kuota - terisi;
       const saatIni = String(x.id) === String(pilih);
       const penuh = sisa <= 0 && !saatIni;
-      return `<option value="${x.id}" ${saatIni ? 'selected' : ''} ${penuh ? 'disabled' : ''}>${esc(x.nama)} — ${esc(jadwalText(x, true))} (${saatIni ? 'saat ini' : penuh ? 'penuh' : `sisa ${sisa}`})${x.aktif ? '' : ' · ditutup'}</option>`;
-    }).join('') || '<option value="">Belum ada seri untuk jenis ini</option>';
+      return `<option value="${x.id}" ${saatIni ? 'selected' : ''} ${penuh ? 'disabled' : ''}>${esc(this.labelGrupAdm(x))} — ${esc(jadwalText(x, true))} (${saatIni ? 'saat ini' : penuh ? 'penuh' : `sisa ${sisa}`})${x.aktif ? '' : ' · ditutup'}${x.sesi_id ? '' : ' · seri lama'}</option>`;
+    }).join('') || '<option value="">Belum ada grup untuk jenis ini di jadwal terbang</option>';
   },
   formPendaftaran(r) {
     const d = this.s.data, edit = !!r;
     const v = r || { jenis: (d.jenis.find((j) => j.aktif) || d.jenis[0] || {}).kode, seri_id: '', nama_sekha: '', alamat: '', no_wa: '', nama_rekening: 'Tunai (bayar langsung)', status: 'terkonfirmasi', catatan_admin: '' };
     Overlay.modal(`<form data-submit="adm.simpanPendaftaran" data-id="${esc((r && r.id) || '')}" novalidate>
       <h3>${edit ? 'Ubah data pendaftaran' : 'Tambah pendaftaran manual'}</h3>
-      <p class="lead">${edit ? `${esc(r.kode)} · ${badgeStatus(r.status)}` : 'Untuk peserta yang mendaftar & membayar langsung ke panitia. Kuota seri tetap dicek.'}</p>
+      <p class="lead">${edit ? `${esc(r.kode)} · ${badgeStatus(r.status)}` : 'Untuk peserta yang mendaftar & membayar langsung ke panitia. Kuota grup dan nomor layangan tetap dicek.'}</p>
       <div class="g2">
         <div class="field"><label class="label" for="m-jenis">Jenis layangan</label><select class="input" id="m-jenis" name="jenis" data-ch="adm.mJenis">${d.jenis.map((j) => `<option value="${esc(j.kode)}" ${v.jenis === j.kode ? 'selected' : ''}>${esc(j.nama)} (${rupiah(j.harga)})</option>`).join('')}</select></div>
-        <div class="field"><label class="label" for="m-seri">Seri layangan</label><select class="input" id="m-seri" name="seri_id">${this.opsiSeri(v.jenis, v.seri_id)}</select></div>
+        <div class="field"><label class="label" for="m-seri">Seri & grup</label><select class="input" id="m-seri" name="seri_id">${this.opsiSeri(v.jenis, v.seri_id)}</select></div>
       </div>
-      ${edit && r.status === 'terkonfirmasi' ? '<div class="note warn" id="m-jenis-warn" hidden>' + ico('alert') + '<span>Mengganti jenis akan memberi nomor layangan baru & mengubah tagihan sesuai harga jenis baru.</span></div>' : ''}
+      ${edit ? '<div class="note warn" id="m-jenis-warn" hidden>' + ico('alert') + '<span>Mengganti jenis akan mengubah tagihan sesuai harga jenis baru. Nomor layangan harus tetap unik di jenis baru.</span></div>' : ''}
+      ${fieldInput({ id: 'm-nomor', name: 'nomor_layangan', label: 'Nomor layangan', value: v.nomor_layangan || '', maxlength: 6, inputmode: 'numeric', hint: 'Angka saja. Tidak boleh sama dengan peserta lain di jenis yang sama.' })}
       ${fieldInput({ id: 'm-sekha', name: 'nama_sekha', label: 'Nama sekha', value: v.nama_sekha, maxlength: 120 })}
       ${fieldInput({ id: 'm-alamat', name: 'alamat', label: 'Alamat', value: v.alamat, maxlength: 300, textarea: true, rows: 2 })}
       <div class="g2">
         ${fieldInput({ id: 'm-wa', name: 'no_wa', label: 'Nomor WhatsApp', value: v.no_wa ? fmtWA(v.no_wa) : '', type: 'tel', inputmode: 'tel', maxlength: 20, placeholder: '08xx-xxxx-xxxx' })}
         ${fieldInput({ id: 'm-rek', name: 'nama_rekening', label: 'Nama pemilik rekening', value: v.nama_rekening, maxlength: 120 })}
       </div>
-      ${edit && r.status === 'terkonfirmasi' ? fieldInput({ id: 'm-nomor', name: 'nomor_layangan', label: 'Nomor layangan', value: r.nomor_layangan || '', maxlength: 20, hint: 'Biasanya tidak perlu diubah. Harus unik.' }) : ''}
       ${!edit ? `<div class="field"><span class="label">Status</span>
-        <label class="check" style="margin:0"><input type="radio" name="status" value="terkonfirmasi" checked><span><b>Sudah bayar</b> — langsung terkonfirmasi & dapat nomor layangan</span></label>
+        <label class="check" style="margin:0"><input type="radio" name="status" value="terkonfirmasi" checked><span><b>Sudah bayar</b> — langsung terkonfirmasi</span></label>
         <label class="check" style="margin:0"><input type="radio" name="status" value="menunggu"><span><b>Belum bayar / perlu dicek</b> — masuk antrean verifikasi</span></label></div>` : ''}
       ${fieldInput({ id: 'm-catatan', name: 'catatan_admin', label: 'Catatan admin', value: v.catatan_admin || '', maxlength: 300, opsional: true })}
       <div class="actions end"><button type="button" class="btn" data-act="ovl.tutup">Batal</button><button type="submit" class="btn btn-primary">${edit ? 'Simpan perubahan' : `${ico('plus')} Tambahkan`}</button></div>
@@ -2959,121 +3300,166 @@ const Adm = {
   /* ---------------- JENIS LAYANGAN ---------------- */
   statJenis(kode) {
     const d = this.s.data, c = { seri: 0, seriAktif: 0, kuota: 0, menunggu: 0, terkonfirmasi: 0, ditolak: 0 };
-    for (const x of d.seri) if (x.jenis === kode) { c.seri++; if (x.aktif) { c.seriAktif++; c.kuota += x.kuota; } }
+    for (const x of d.seri) if (x.jenis === kode && x.sesi_id) { c.seri++; if (x.aktif) { c.seriAktif++; c.kuota += x.kuota; } }
     for (const r of d.daftar) if (r.jenis === kode) c[r.status] = (c[r.status] || 0) + 1;
     c.total = c.menunggu + c.terkonfirmasi + c.ditolak;
     return c;
   },
   vJenis() {
     const d = this.s.data;
-    return `${this.vTopbar('Jenis Layangan', `${d.jenis.length} jenis · harga & awalan nomor`, `<button class="btn btn-sm btn-primary" data-act="adm.jenisBaru">${ico('plus')}<span>Tambah jenis</span></button>`)}
-      <div class="note">${ico('info')}<span>Jenis yang <b>aktif</b> dan punya seri terbuka tampil sebagai pilihan di formulir pendaftaran. Setelah menambah jenis baru, atur jadwalnya di <a href="#admin/seri">Seri & Jadwal</a>. Jenis yang sudah punya pendaftar tidak bisa dihapus — nonaktifkan saja.</span></div>
+    return `${this.vTopbar('Jenis Layangan', `${d.jenis.length} jenis · nama & harga`, `<a class="btn btn-sm btn-primary" href="#admin/seri">${ico('cal')}<span>Jadwal Terbang</span></a>`)}
+      <div class="note">${ico('info')}<span>Jenis layangan dibuat dari <a href="#admin/seri">Jadwal Terbang</a>: saat menambah grup dengan jenis baru, sistem menanyakan harganya. Di sini Anda bisa mengubah nama & harga, atau menutup jenis. Jenis tampil di formulir pendaftaran bila <b>aktif</b> dan punya grup yang dibuka di jadwal.</span></div>
       ${d.jenis.length ? `<div class="seri-adm">${d.jenis.map((j) => this.vKartuJenis(j)).join('')}</div>`
-        : `<div class="empty-sm">Belum ada jenis layangan. <button class="btn btn-xs" data-act="adm.jenisBaru">${ico('plus')} Tambah jenis pertama</button></div>`}`;
+        : `<div class="empty-sm">Belum ada jenis layangan. <a class="btn btn-xs" href="#admin/seri">${ico('cal')} Buat jadwal terbang</a></div>`}`;
   },
   vKartuJenis(j) {
     const d = this.s.data, c = this.statJenis(j.kode);
     const siapTampil = j.aktif && c.seriAktif > 0;
     return `<div class="sa-card ${j.aktif ? '' : 'nonaktif'}">
       <div class="sa-top"><div style="min-width:0"><b class="jk-nama">${jdot(j.kode, d.jenis)}${esc(j.nama)}</b>
-          <div class="sc-when"><span>${rupiah(j.harga)} · nomor ${esc(j.prefix)}-001 dst</span></div></div>
+          <div class="sc-when"><span>${rupiah(j.harga)}</span></div></div>
         <label class="switch" title="${j.aktif ? 'Jenis dibuka' : 'Jenis ditutup'}"><input type="checkbox" ${j.aktif ? 'checked' : ''} data-ch="adm.jenisAktif" data-kode="${esc(j.kode)}"><span class="sw"></span><span class="sr-only">Jenis ${esc(j.nama)} dibuka</span></label></div>
-      <div class="sa-stat"><div><b>${c.terkonfirmasi}</b><span>Konfirmasi</span></div><div><b>${c.menunggu}</b><span>Menunggu</span></div><div><b>${c.seriAktif}/${c.seri}</b><span>Seri dibuka</span></div></div>
-      <div class="hint">Nomor terakhir: <b>${esc(j.prefix)}-${String(j.nomor_terakhir || 0).padStart(3, '0')}</b> · kode <code>${esc(j.kode)}</code>${siapTampil ? '' : ` · <span class="jk-warn">${j.aktif ? 'belum ada seri dibuka — belum tampil di formulir' : 'tidak tampil di formulir'}</span>`}</div>
+      <div class="sa-stat"><div><b>${c.terkonfirmasi}</b><span>Konfirmasi</span></div><div><b>${c.menunggu}</b><span>Menunggu</span></div><div><b>${c.seriAktif}/${c.seri}</b><span>Grup dibuka</span></div></div>
+      <div class="hint">Kuota ${c.kuota} kotak${siapTampil ? '' : ` · <span class="jk-warn">${j.aktif ? 'belum ada grup dibuka di jadwal — belum tampil di formulir' : 'ditutup, tidak tampil di formulir'}</span>`}</div>
       <div class="sa-act">
         <button class="btn btn-xs" data-act="adm.jenisEdit" data-kode="${esc(j.kode)}">${ico('edit')} Ubah</button>
-        <button class="btn btn-xs" data-act="adm.seriBaru" data-jenis="${esc(j.kode)}">${ico('plus')} Seri</button>
-        ${c.seri ? `<button class="btn btn-xs" data-act="adm.kuotaJenis" data-kode="${esc(j.kode)}">${ico('layers')} Kuota</button>` : ''}
         <a class="btn btn-xs" href="#admin/seri">${ico('cal')} Jadwal</a>
         ${c.total === 0 ? `<button class="btn btn-xs btn-danger" data-act="adm.jenisHapus" data-kode="${esc(j.kode)}" aria-label="Hapus jenis ${esc(j.nama)}">${ico('trash')}</button>` : ''}
       </div>
     </div>`;
   },
   formJenis(j) {
-    const d = this.s.data, baru = !j;
-    const v = j ? { ...j } : { kode: '', nama: '', harga: '', prefix: '', urutan: (d.jenis.reduce((m, x) => Math.max(m, x.urutan || 0), 0) + 1), aktif: true };
-    Overlay.modal(`<form data-submit="adm.simpanJenis" data-kode="${baru ? '' : esc(j.kode)}" novalidate>
-      <h3>${baru ? 'Tambah jenis layangan' : `Ubah ${esc(j.nama)}`}</h3>
-      <p class="lead">${baru ? 'Jenis baru langsung bisa dipilih peserta setelah punya seri yang dibuka.' : 'Harga baru berlaku untuk pendaftaran berikutnya; pendaftaran lama tetap memakai harga saat mendaftar.'}</p>
-      <div class="field"><label class="label" for="jn-nama">Nama jenis</label><input class="input" id="jn-nama" name="nama" value="${esc(v.nama)}" maxlength="40" ${baru ? 'data-in="adm.jenisNama"' : ''} required></div>
+    Overlay.modal(`<form data-submit="adm.simpanJenis" data-kode="${esc(j.kode)}" novalidate>
+      <h3>Ubah ${esc(j.nama)}</h3>
+      <p class="lead">Harga baru berlaku untuk pendaftaran berikutnya; pendaftaran lama tetap memakai harga saat mendaftar.</p>
+      <div class="field"><label class="label" for="jn-nama">Nama jenis</label><input class="input" id="jn-nama" name="nama" value="${esc(j.nama)}" maxlength="40" required></div>
       <div class="g2">
-        <div class="field"><label class="label" for="jn-harga">Harga (Rp)</label><input class="input" type="number" inputmode="numeric" min="0" step="1000" id="jn-harga" name="harga" value="${esc(v.harga)}"></div>
-        <div class="field"><label class="label" for="jn-prefix">Awalan nomor</label><input class="input" id="jn-prefix" name="prefix" value="${esc(v.prefix)}" maxlength="5" style="text-transform:uppercase" data-in="adm.jenisManual"><span class="hint">Nomor layangan: <b id="jn-contoh">${esc(v.prefix || '??')}-001</b></span></div>
+        <div class="field"><label class="label" for="jn-harga">Harga (Rp)</label><input class="input" type="number" inputmode="numeric" min="0" step="1000" id="jn-harga" name="harga" value="${esc(j.harga)}"></div>
+        <div class="field"><label class="label" for="jn-urut">Urutan tampil</label><input class="input" type="number" inputmode="numeric" min="0" max="999" id="jn-urut" name="urutan" value="${esc(j.urutan)}"></div>
       </div>
-      <div class="g2">
-        <div class="field"><label class="label" for="jn-kode">Kode sistem</label><input class="input" id="jn-kode" name="kode" value="${esc(v.kode)}" maxlength="30" ${baru ? 'data-in="adm.jenisManual"' : 'disabled'} placeholder="otomatis dari nama"><span class="hint">${baru ? 'Huruf kecil, angka, tanda minus. Tidak bisa diubah nanti.' : 'Tetap, tidak bisa diubah.'}</span></div>
-        <div class="field"><label class="label" for="jn-urut">Urutan tampil</label><input class="input" type="number" inputmode="numeric" min="0" max="999" id="jn-urut" name="urutan" value="${esc(v.urutan)}"></div>
-      </div>
-      <label class="switch"><input type="checkbox" name="aktif" ${v.aktif ? 'checked' : ''}><span class="sw"></span>Jenis ini dibuka untuk pendaftaran</label>
-      ${baru ? `<div class="g2" style="margin-top:12px">
-        <div class="field"><label class="label" for="jn-jml-seri">Jumlah seri</label><input class="input" type="number" inputmode="numeric" min="0" max="50" id="jn-jml-seri" name="jml_seri" value="1"><span class="hint">0 = buat seri nanti. Dibuat Seri 1, Seri 2, dst.</span></div>
-        <div class="field"><label class="label" for="jn-kuota">Kuota per seri</label><input class="input" type="number" inputmode="numeric" min="0" max="999" id="jn-kuota" name="kuota_seri" value="60"><span class="hint">Bisa diubah per seri nanti.</span></div>
-      </div>
-      <p class="hint" style="margin-top:4px">Tanggal & jam tiap seri diatur di Seri & Jadwal.</p>` : ''}
-      <div class="actions end"><button type="button" class="btn" data-act="ovl.tutup">Batal</button><button type="submit" class="btn btn-primary">${baru ? 'Tambah jenis' : 'Simpan'}</button></div>
+      <label class="switch"><input type="checkbox" name="aktif" ${j.aktif ? 'checked' : ''}><span class="sw"></span>Jenis ini dibuka untuk pendaftaran</label>
+      <div class="actions end"><button type="button" class="btn" data-act="ovl.tutup">Batal</button><button type="submit" class="btn btn-primary">Simpan</button></div>
     </form>`);
   },
 
-  /* ---------------- SERI & JADWAL ---------------- */
-  vSeri() {
+  /* ---------------- JADWAL TERBANG ---------------- */
+  labelGrupAdm(x) {
+    if (!x) return '-';
+    const sesi = x.sesi_id && this.idx.sesi.get(x.sesi_id), hari = sesi && this.idx.hari.get(sesi.hari_id);
+    return sesi ? `Seri ${sesi.nama} · Grup ${x.huruf}${hari ? ` · ${hari.nama}` : ''}` : `${x.nama} (seri lama)`;
+  },
+  vJadwalAdm() {
     const d = this.s.data;
-    return `${this.vTopbar('Seri & Jadwal', 'Jadwal terbang & kuota tiap seri', `<button class="btn btn-sm btn-primary" data-act="adm.seriBaru">${ico('plus')}<span>Tambah seri</span></button>`)}
-      ${d.jenis.length ? '' : `<div class="note bad">${ico('alert')}<span>Belum ada jenis layangan. <a href="#admin/jenis">Tambahkan jenis</a> dulu sebelum membuat seri.</span></div>`}
-      <div class="note">${ico('info')}<span>Seri khusus per jenis layangan (kelola jenis & harga di <a href="#admin/jenis">Jenis Layangan</a>). Kuota dihitung dari pendaftaran <b>menunggu + terkonfirmasi</b>; yang ditolak otomatis melepas slot. Matikan sakelar untuk menutup pendaftaran seri tertentu.</span></div>
-      ${d.jenis.map((j) => {
-        const list = d.seri.filter((x) => x.jenis === j.kode);
-        return `<section class="j-block"><div class="j-block-h"><h3>${jdot(j.kode, d.jenis)}${esc(j.nama)}</h3><span class="muted">${rupiah(j.harga)} · nomor ${esc(j.prefix)}-001 dst${j.aktif ? '' : ' · <b>jenis nonaktif</b>'}</span>
-          <button class="btn btn-sm" data-act="adm.seriBaru" data-jenis="${esc(j.kode)}">${ico('plus')} Seri ${esc(j.nama)}</button></div>
-          ${list.length ? `<div class="seri-adm">${list.map((x) => this.vKartuSeri(x)).join('')}</div>` : '<div class="empty-sm">Belum ada seri untuk jenis ini.</div>'}</section>`;
-      }).join('')}`;
+    const lama = d.seri.filter((x) => !x.sesi_id);
+    const isi = (g) => this.idx.kotak.get(g.id) || new Map();
+    return `${this.vTopbar('Jadwal Terbang', `${d.hari.length} hari · ${d.sesi.length} seri · ${d.seri.filter((x) => x.sesi_id).length} grup`, `<button class="btn btn-sm btn-primary" data-act="adm.hariBaru">${ico('plus')}<span>Tambah hari</span></button>`)}
+      <div class="note">${ico('info')}<span>Susun jadwal: <b>Hari</b> → <b>Seri</b> (jam terbang) → <b>Grup</b> A, B, C (satu jenis layangan per grup). Jenis & grup yang ada di sini otomatis menjadi pilihan di formulir pendaftaran. Klik <b>nama jenis</b> untuk mengubah grup; klik <b>kotak kosong</b> untuk menutup/membuka kotak; klik <b>nomor</b> untuk membuka data peserta.</span></div>
+      ${d.hari.length ? d.hari.map((h) => `<section class="jt-hari"><div class="jt-hari-h"><h3>${esc(h.nama)}</h3>
+          <span class="muted">${h.tanggal ? esc(fmtTanggal(h.tanggal)) : '<span class="jk-warn">tanggal belum diisi</span>'}</span>
+          <div class="sa-act">
+            <button class="btn btn-xs" data-act="adm.sesiBaru" data-hari="${h.id}">${ico('plus')} Seri</button>
+            <button class="btn btn-xs" data-act="adm.hariEdit" data-id="${h.id}">${ico('edit')} Ubah</button>
+            <button class="btn btn-xs" data-act="adm.cetakHari" data-id="${h.id}">${ico('print')} Cetak</button>
+          </div></div>
+          ${tabelJadwal({ hari: h, sesi: d.sesi, grup: d.seri.filter((x) => x.sesi_id), jenis: d.jenis, kotakIsi: isi, admin: true })}
+        </section>`).join('') + legendaJadwal(true)
+        : `<div class="panel"><div class="empty">Belum ada jadwal terbang.<div style="margin-top:12px"><button class="btn btn-primary" data-act="adm.hariBaru">${ico('plus')} Buat hari pertama</button></div></div></div>`}
+      ${lama.length ? `<div class="panel" style="margin-top:20px"><div class="panel-h"><h3>Seri lama (sebelum jadwal terbang)</h3></div>
+        <p class="hint" style="margin:0 0 12px">Seri dari sistem sebelumnya. Tidak tampil di formulir. Pendaftarnya tetap tercatat; pindahkan ke grup baru lewat <b>Ubah data</b> pada tiap pendaftaran, lalu hapus seri yang sudah kosong.</p>
+        <div class="rows">${lama.map((x) => {
+          const c = this.idx.perSeri.get(x.id), n = c.menunggu + c.terkonfirmasi + c.ditolak;
+          return `<div class="row" style="cursor:default"><span><b>${esc(this.namaJenis(x.jenis))} · ${esc(x.nama)}</b><span class="hint"> ${n} pendaftar</span></span>
+            <span class="sa-act" style="margin-left:auto">${n ? `<button class="btn btn-xs" data-act="adm.lihatSeri" data-id="${x.id}">${ico('list')} Peserta</button>` : `<button class="btn btn-xs btn-danger" data-act="adm.seriHapus" data-id="${x.id}">${ico('trash')} Hapus</button>`}</span></div>`;
+        }).join('')}</div></div>` : ''}`;
   },
-  vKartuSeri(x) {
-    const c = this.idx.perSeri.get(x.id) || { menunggu: 0, terkonfirmasi: 0, ditolak: 0 };
-    const terisi = c.menunggu + c.terkonfirmasi, sisa = Math.max(0, x.kuota - terisi), kosong = terisi + c.ditolak === 0;
-    return `<div class="sa-card ${x.aktif ? '' : 'nonaktif'}">
-      <div class="sa-top"><div style="min-width:0"><b>${esc(x.nama)}</b><div class="sc-when">${ico('cal')}<span>${esc(jadwalText(x))}</span></div></div>
-        <label class="switch" title="${x.aktif ? 'Seri dibuka' : 'Seri ditutup'}"><input type="checkbox" ${x.aktif ? 'checked' : ''} data-ch="adm.seriAktif" data-id="${x.id}"><span class="sw"></span><span class="sr-only">Pendaftaran ${esc(x.nama)} dibuka</span></label></div>
-      ${this.vMeter(c, x.kuota, true)}
-      <div class="sa-stat"><div><b>${c.terkonfirmasi}</b><span>Konfirmasi</span></div><div><b>${c.menunggu}</b><span>Menunggu</span></div><div><b>${sisa}</b><span>Sisa dari ${x.kuota}</span></div></div>
-      ${x.catatan ? `<div class="hint">${esc(x.catatan)}</div>` : ''}
-      <div class="sa-act">
-        <button class="btn btn-xs" data-act="adm.seriEdit" data-id="${x.id}">${ico('edit')} Ubah</button>
-        <button class="btn btn-xs" data-act="adm.lihatSeri" data-id="${x.id}">${ico('list')} Peserta</button>
-        <button class="btn btn-xs" data-act="adm.cetakSeri" data-id="${x.id}">${ico('print')} Cetak</button>
-        <button class="btn btn-xs" data-act="adm.seriDuplikat" data-id="${x.id}">${ico('copy')} Duplikat</button>
-        ${kosong ? `<button class="btn btn-xs btn-danger" data-act="adm.seriHapus" data-id="${x.id}" aria-label="Hapus seri">${ico('trash')}</button>` : ''}
-      </div>
-    </div>`;
-  },
-  namaSeriBerikut(jenis) {
-    const n = this.s.data.seri.filter((x) => x.jenis === jenis).map((x) => parseInt(String(x.nama).replace(/\D/g, ''), 10) || 0);
-    return 'Seri ' + ((n.length ? Math.max(...n) : 0) + 1);
-  },
-  formSeri(x, opsi = {}) {
-    const d = this.s.data, baru = !x || opsi.duplikat;
-    const jenisAwal = opsi.jenis || (x && x.jenis) || (d.jenis[0] || {}).kode;
-    const v = x ? { ...x } : { jenis: jenisAwal, tanggal: '', jam_mulai: '', jam_selesai: '', kuota: 60, aktif: true, catatan: '' };
-    if (baru) v.nama = this.namaSeriBerikut(v.jenis);
-    const adaPeserta = !baru && d.daftar.some((r) => r.seri_id === x.id);
-    Overlay.modal(`<form data-submit="adm.simpanSeri" data-id="${baru ? '' : x.id}" novalidate>
-      <h3>${baru ? (opsi.duplikat ? 'Duplikat seri' : 'Tambah seri') : 'Ubah seri'}</h3>
-      <p class="lead">Seri menentukan jadwal terbang. Kuota default 60 layangan per seri.</p>
+  formHari(h) {
+    const baru = !h, d = this.s.data;
+    const v = h || { nama: '', tanggal: '' };
+    Overlay.modal(`<form data-submit="adm.simpanHari" data-id="${baru ? '' : h.id}" novalidate>
+      <h3>${baru ? 'Tambah hari' : `Ubah ${esc(h.nama)}`}</h3>
+      <p class="lead">Satu hari berisi beberapa seri (jam terbang).</p>
       <div class="g2">
-        <div class="field"><label class="label" for="s-jenis">Jenis layangan</label><select class="input" id="s-jenis" name="jenis" ${adaPeserta ? 'disabled' : ''}>${d.jenis.map((j) => `<option value="${esc(j.kode)}" ${v.jenis === j.kode ? 'selected' : ''}>${esc(j.nama)}</option>`).join('')}</select>${adaPeserta ? '<span class="hint">Terkunci: sudah ada pendaftar.</span>' : ''}</div>
-        <div class="field"><label class="label" for="s-nama">Nama seri</label><input class="input" id="s-nama" name="nama" value="${esc(v.nama)}" maxlength="60"></div>
+        <div class="field"><label class="label" for="h-nama">Nama hari</label><input class="input" id="h-nama" name="nama" value="${esc(v.nama)}" maxlength="40" data-in="adm.hariNama" ${baru ? '' : 'data-manual="1"'}></div>
+        <div class="field"><label class="label" for="h-tgl">Tanggal</label><input class="input" type="date" id="h-tgl" name="tanggal" value="${esc(v.tanggal || '')}" data-ch="adm.hariTgl"></div>
       </div>
-      <div class="g2">
-        <div class="field"><label class="label" for="s-tgl">Tanggal terbang</label><input class="input" type="date" id="s-tgl" name="tanggal" value="${esc(v.tanggal || '')}"></div>
-        <div class="field"><label class="label" for="s-kuota">Kuota</label><input class="input" type="number" inputmode="numeric" min="0" max="999" id="s-kuota" name="kuota" value="${esc(v.kuota)}"></div>
-      </div>
-      <div class="g2">
-        <div class="field"><label class="label" for="s-mulai">Jam mulai (${CONFIG.ZONA_WAKTU})</label><input class="input" type="time" id="s-mulai" name="jam_mulai" value="${esc(String(v.jam_mulai || '').slice(0, 5))}"></div>
-        <div class="field"><label class="label" for="s-selesai">Jam selesai</label><input class="input" type="time" id="s-selesai" name="jam_selesai" value="${esc(String(v.jam_selesai || '').slice(0, 5))}"></div>
-      </div>
-      ${fieldInput({ id: 's-cat', name: 'catatan', label: 'Catatan untuk peserta', value: v.catatan || '', maxlength: 140, opsional: true })}
-      <label class="switch"><input type="checkbox" name="aktif" ${v.aktif ? 'checked' : ''}><span class="sw"></span>Pendaftaran seri ini dibuka</label>
-      <div class="actions end"><button type="button" class="btn" data-act="ovl.tutup">Batal</button><button type="submit" class="btn btn-primary">Simpan seri</button></div>
+      ${baru ? `<label class="switch"><input type="checkbox" name="buat_sesi" checked><span class="sw"></span>Sekalian buat Seri I</label>` : ''}
+      <div class="actions ${baru ? 'end' : ''}">
+        ${baru ? '' : `<button type="button" class="btn btn-danger" data-act="adm.hariHapus" data-id="${h.id}">${ico('trash')} Hapus hari</button><span style="flex:1"></span>`}
+        <button type="button" class="btn" data-act="ovl.tutup">Batal</button><button type="submit" class="btn btn-primary">${baru ? 'Tambah hari' : 'Simpan'}</button></div>
     </form>`);
+  },
+  formSesi(x, hariId) {
+    const baru = !x, d = this.s.data, h = this.idx.hari.get(x ? x.hari_id : hariId);
+    const v = x || { nama: romawiBerikut(d.sesi.filter((y) => y.hari_id === h.id).map((y) => y.nama)), jam_mulai: '', jam_selesai: '' };
+    const nGrup = x ? d.seri.filter((g) => g.sesi_id === x.id).length : 0;
+    Overlay.modal(`<form data-submit="adm.simpanSesi" data-id="${baru ? '' : x.id}" data-hari="${h.id}" novalidate>
+      <h3>${baru ? `Tambah seri · ${esc(h.nama)}` : `Ubah Seri ${esc(x.nama)}`}</h3>
+      <p class="lead">Seri = blok jam terbang. Di dalamnya ada grup A, B, C untuk tiap jenis layangan.</p>
+      <div class="g2">
+        <div class="field"><label class="label" for="ss-nama">Nama seri</label><input class="input" id="ss-nama" name="nama" value="${esc(v.nama)}" maxlength="12"><span class="hint">Biasanya angka romawi: I, II, III</span></div>
+        <div class="field"><span class="label">Jam terbang (${CONFIG.ZONA_WAKTU})</span><div class="g2" style="gap:8px"><input class="input" type="time" id="ss-mulai" name="jam_mulai" value="${esc(String(v.jam_mulai || '').slice(0, 5))}" aria-label="Jam mulai"><input class="input" type="time" id="ss-selesai" name="jam_selesai" value="${esc(String(v.jam_selesai || '').slice(0, 5))}" aria-label="Jam selesai"></div></div>
+      </div>
+      <div class="actions ${baru ? 'end' : ''}">
+        ${baru ? '' : `<button type="button" class="btn btn-danger" data-act="adm.sesiHapus" data-id="${x.id}">${ico('trash')} Hapus seri${nGrup ? ` & ${nGrup} grup` : ''}</button><span style="flex:1"></span>`}
+        <button type="button" class="btn" data-act="ovl.tutup">Batal</button><button type="submit" class="btn btn-primary">${baru ? 'Tambah seri' : 'Simpan'}</button></div>
+    </form>`);
+  },
+  formGrup(g, sesiId) {
+    const baru = !g, d = this.s.data, x = this.idx.sesi.get(g ? g.sesi_id : sesiId), h = this.idx.hari.get(x.hari_id);
+    const j = g && this.idx.jenis.get(g.jenis);
+    const c = g ? this.idx.perSeri.get(g.id) : { menunggu: 0, terkonfirmasi: 0, ditolak: 0 };
+    const adaPeserta = !!g && c.menunggu + c.terkonfirmasi + c.ditolak > 0;
+    const v = g ? { jenis: j ? j.nama : g.jenis, huruf: g.huruf, kotak: g.kotak, aktif: g.aktif, catatan: g.catatan || '' }
+      : { jenis: '', huruf: hurufBerikut(d.seri.filter((y) => y.sesi_id === x.id).map((y) => y.huruf)), kotak: 50, aktif: true, catatan: '' };
+    Overlay.modal(`<form data-submit="adm.simpanGrup" data-id="${baru ? '' : g.id}" data-sesi="${x.id}" novalidate>
+      <h3>${baru ? `Tambah grup · Seri ${esc(x.nama)}` : `Grup ${esc(g.huruf)} · Seri ${esc(x.nama)}`}</h3>
+      <p class="lead">${esc(h.nama)} · ${esc(jamSesi(x))}${g ? ` · ${c.menunggu + c.terkonfirmasi} dari ${g.kuota} kotak terisi` : ''}</p>
+      <div class="field"><label class="label" for="g-jenis">Jenis layangan</label>
+        <input class="input" id="g-jenis" name="jenis" list="g-jenis-list" value="${esc(v.jenis)}" maxlength="40" autocomplete="off" data-in="adm.grupJenis" ${adaPeserta ? 'disabled' : ''}>
+        <datalist id="g-jenis-list">${d.jenis.map((y) => `<option value="${esc(y.nama)}">`).join('')}</datalist>
+        <span class="hint" id="g-jenis-hint">${adaPeserta ? 'Terkunci: grup ini sudah punya pendaftar.' : 'Pilih dari daftar atau ketik jenis baru.'}</span></div>
+      <div class="field" id="g-harga-wrap" hidden><label class="label" for="g-harga">Harga jenis baru (Rp)</label><input class="input" type="number" inputmode="numeric" min="0" step="1000" id="g-harga" name="harga"><span class="hint">Jenis baru akan dibuat. Harga bisa diubah nanti di menu Jenis Layangan.</span></div>
+      <div class="g2">
+        <div class="field"><label class="label" for="g-huruf">Grup</label><input class="input" id="g-huruf" name="huruf" value="${esc(v.huruf)}" maxlength="3" style="text-transform:uppercase"></div>
+        <div class="field"><label class="label" for="g-kotak">Jumlah kotak</label><input class="input" type="number" inputmode="numeric" min="1" max="200" id="g-kotak" name="kotak" value="${esc(v.kotak)}"><span class="hint">${KOLOM_JADWAL} kotak per baris. Kotak ditutup: ${g && g.tutup.length ? g.tutup.join(', ') : 'tidak ada'}</span></div>
+      </div>
+      ${fieldInput({ id: 'g-cat', name: 'catatan', label: 'Catatan untuk peserta', value: v.catatan, maxlength: 140, opsional: true })}
+      <label class="switch"><input type="checkbox" name="aktif" ${v.aktif ? 'checked' : ''}><span class="sw"></span>Grup ini dibuka untuk pendaftaran</label>
+      ${g ? `<div class="sa-act" style="margin-top:14px">
+        <button type="button" class="btn btn-xs" data-act="adm.lihatSeri" data-id="${g.id}">${ico('list')} Peserta</button>
+        <button type="button" class="btn btn-xs" data-act="adm.cetakSeri" data-id="${g.id}">${ico('print')} Cetak daftar</button>
+        ${g.tutup.length ? `<button type="button" class="btn btn-xs" data-act="adm.bukaSemua" data-id="${g.id}">${ico('undo')} Buka semua kotak</button>` : ''}
+        ${adaPeserta ? '' : `<button type="button" class="btn btn-xs btn-danger" data-act="adm.seriHapus" data-id="${g.id}">${ico('trash')} Hapus grup</button>`}
+      </div>` : ''}
+      <div class="actions end"><button type="button" class="btn" data-act="ovl.tutup">Batal</button><button type="submit" class="btn btn-primary">${baru ? 'Tambah grup' : 'Simpan'}</button></div>
+    </form>`);
+    if (baru) setTimeout(() => { const i = $('#g-jenis'); if (i) i.focus(); }, 60);
+  },
+  cetakHari(id) {
+    const d = this.s.data, h = this.idx.hari.get(id), ev = d.pengaturan;
+    const isi = (g) => {
+      const m = new Map(), src = this.idx.kotak.get(g.id) || new Map();
+      src.forEach((p, k) => { if (p.status === 'terkonfirmasi') m.set(k, p); });
+      return m;
+    };
+    const tabel = tabelJadwal({ hari: h, sesi: d.sesi, grup: d.seri.filter((x) => x.sesi_id), jenis: d.jenis, kotakIsi: isi, admin: false });
+    const warna = getComputedStyle(document.documentElement);
+    const cat = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((i) => `--cat-${i}:${warna.getPropertyValue('--cat-' + i)}`).join(';');
+    const html = `<!doctype html><html lang="id"><head><meta charset="utf-8"><title>Jadwal ${esc(h.nama)}</title>
+<style>:root{${cat};--surface:#fff;--surface-2:#f6f6f6;--surface-3:#e8e8e8;--ink:#111;--ink-2:#333;--muted:#555;--line:#999;--line-strong:#666;--warn-soft:#fff;--warn-ink:#111}
+body{font:11px/1.3 system-ui,-apple-system,'Segoe UI',sans-serif;margin:16px;color:#111}h1{font-size:22px;margin:0;text-align:center;letter-spacing:.06em}.meta{text-align:center;color:#444;margin:2px 0 10px}
+.jt{border-collapse:collapse;width:100%}.jt th,.jt td{border:1px solid #888;padding:0;text-align:center}.jt thead th{background:#e8e8e8;font-size:9.5px;padding:4px 2px}
+.jt .jt-seri{padding:4px}.jt .jt-seri b{display:block;font-size:14px}.jt .jt-seri span{display:block;font-size:10px}.jt .jt-grup{font-weight:800;width:22px}
+.jt .jt-jenis{font-weight:700;text-transform:uppercase;font-size:10px;background:color-mix(in srgb,var(--jc) 35%,#fff);min-width:110px}.jt .jt-jenis span{display:block;padding:3px 6px}.jt .jt-jenis small{display:block;font-weight:400;text-transform:none}
+.jt .k{width:26px;height:20px;font-size:10.5px;font-weight:600}.jt .k.tutup{background:#111}.jt .k.na{background:#eee}.jt .jt-tot{font-weight:800;font-size:12px}.jt .jt-tot small{display:block;font-weight:400;font-size:9px}
+.jt-wrap{overflow:visible}@page{size:A4 landscape;margin:8mm}@media print{body{margin:0}}</style></head><body>
+<h1>${esc(String(h.nama).toUpperCase())}</h1><div class="meta">${esc(ev.nama_event || '')}${h.tanggal ? ' · ' + esc(fmtTanggal(h.tanggal)) : ''}${ev.lokasi ? ' · ' + esc(ev.lokasi) : ''}</div>
+${tabel}<div class="meta" style="text-align:left;margin-top:8px">Hanya nomor layangan yang sudah terkonfirmasi yang dicetak. Kotak hitam = ditutup panitia. Dicetak ${esc(fmtWaktu(new Date().toISOString()))}.</div>
+<script>window.onload=function(){setTimeout(function(){window.print()},300)}<\/script></body></html>`;
+    const url = URL.createObjectURL(new Blob([html], { type: 'text/html' }));
+    const w = window.open(url, '_blank');
+    if (!w) toast('Popup diblokir browser. Izinkan popup untuk mencetak.', 'bad', 5000);
+    setTimeout(() => URL.revokeObjectURL(url), 120000);
   },
   cetakSeri(id) {
     const x = this.idx.seri.get(id), j = this.idx.jenis.get(x.jenis), ev = this.s.data.pengaturan;
@@ -3102,7 +3488,7 @@ ${rows.map((r, i) => `<tr><td class="n">${i + 1}</td><td class="no">${esc(r.nomo
     const ev = this.s.data.pengaturan, d = this.s.data;
     const linkPublik = location.href.split('#')[0];
     const batas = lokalDariIso(ev.batas_daftar);
-    const phKonf = ['nama_event', 'jenis', 'nama_sekha', 'alamat', 'no_wa', 'nomor_layangan', 'seri', 'jadwal', 'tanggal', 'jam', 'kode', 'harga', 'penyelenggara', 'lokasi'];
+    const phKonf = ['nama_event', 'jenis', 'nama_sekha', 'alamat', 'no_wa', 'nomor_layangan', 'seri', 'kotak', 'jadwal', 'tanggal', 'jam', 'kode', 'harga', 'penyelenggara', 'lokasi'];
     const phTolak = ['nama_event', 'jenis', 'nama_sekha', 'kode', 'alasan', 'seri', 'harga', 'penyelenggara', 'wa_panitia'];
     return `${this.vTopbar('Pengaturan', 'Event, pembayaran, harga & pesan WhatsApp')}
     <div class="set-grid" id="set-root"><div class="set-col">
@@ -3203,7 +3589,7 @@ ${rows.map((r, i) => `<tr><td class="n">${i + 1}</td><td class="no">${esc(r.nomo
       const x = this.idx.seri.get(r.seri_id), j = this.idx.jenis.get(r.jenis);
       return {
         'Kode': r.kode, 'Tanggal daftar': fmtWaktu(r.created_at), 'Status': STATUS[r.status].label, 'Nomor layangan': r.nomor_layangan || '',
-        'Jenis layangan': (j && j.nama) || r.jenis, 'Seri': (x && x.nama) || '', 'Tanggal terbang': fmtTanggal(x && x.tanggal), 'Jam terbang': jamText(x),
+        'Jenis layangan': (j && j.nama) || r.jenis, 'Seri & grup': (x && x.nama) || '', 'Kotak': r.kotak || '', 'Tanggal terbang': fmtTanggal(x && x.tanggal), 'Jam terbang': jamText(x),
         'Nama sekha': r.nama_sekha, 'Alamat': r.alamat, 'Nomor WA': fmtWA(r.no_wa), 'Nama pemilik rekening': r.nama_rekening, 'Biaya (Rp)': r.harga,
         'WA terkirim': r.wa_terkirim_at ? fmtWaktu(r.wa_terkirim_at) : '', 'Dikonfirmasi': r.dikonfirmasi_at ? fmtWaktu(r.dikonfirmasi_at) : '',
         'Alasan ditolak': r.alasan_tolak || '', 'Catatan admin': r.catatan_admin || '',
@@ -3211,7 +3597,7 @@ ${rows.map((r, i) => `<tr><td class="n">${i + 1}</td><td class="no">${esc(r.nomo
     });
     const rekap = d.seri.map((x) => {
       const c = this.idx.perSeri.get(x.id);
-      return { 'Jenis': this.namaJenis(x.jenis), 'Seri': x.nama, 'Tanggal': fmtTanggal(x.tanggal), 'Jam': jamText(x), 'Kuota': x.kuota, 'Terkonfirmasi': c.terkonfirmasi, 'Menunggu': c.menunggu, 'Ditolak': c.ditolak, 'Sisa': Math.max(0, x.kuota - c.terkonfirmasi - c.menunggu), 'Dibuka': x.aktif ? 'Ya' : 'Tidak' };
+      return { 'Jenis': this.namaJenis(x.jenis), 'Seri & grup': x.nama, 'Tanggal': fmtTanggal(x.tanggal), 'Jam': jamText(x), 'Kotak': x.kotak || '', 'Kuota': x.kuota, 'Terkonfirmasi': c.terkonfirmasi, 'Menunggu': c.menunggu, 'Ditolak': c.ditolak, 'Sisa': Math.max(0, x.kuota - c.terkonfirmasi - c.menunggu), 'Dibuka': x.aktif ? 'Ya' : 'Tidak' };
     });
     const nama = `pendaftaran-layangan-${isoTanggal(new Date())}`;
     if (!data.length) { toast('Tidak ada data untuk diekspor (cek filter).', 'bad'); return; }
@@ -3223,7 +3609,7 @@ ${rows.map((r, i) => `<tr><td class="n">${i + 1}</td><td class="no">${esc(r.nomo
       XLSX.utils.book_append_sheet(wb, ws, 'Pendaftaran');
       const ws2 = XLSX.utils.json_to_sheet(rekap);
       ws2['!cols'] = Object.keys(rekap[0] || { a: 1 }).map(() => ({ wch: 16 }));
-      XLSX.utils.book_append_sheet(wb, ws2, 'Rekap seri');
+      XLSX.utils.book_append_sheet(wb, ws2, 'Rekap grup');
       XLSX.writeFile(wb, nama + '.xlsx');
       toast(`${data.length} baris diekspor ke Excel`, 'good');
     } catch (e) {
@@ -3304,7 +3690,7 @@ CH['adm.fUrut'] = (el) => { Adm.s.f.urut = el.value; Adm.segarkanTampilan(); };
 IN['adm.q'] = debounce((el) => { Adm.s.f.q = el.value; Adm.s.batas = 150; const l = $('#adm-list'); if (l) l.innerHTML = Adm.vList(); }, 180);
 
 ACT['adm.konfirmasi'] = (el) => sibuk(el, async () => {
-  try { await Adm.ubah(el.dataset.id, { status: 'terkonfirmasi' }, (r) => `Terkonfirmasi · nomor ${r.nomor_layangan}`); }
+  try { await Adm.ubah(el.dataset.id, { status: 'terkonfirmasi' }, (r) => (r.nomor_layangan ? `Terkonfirmasi · nomor ${r.nomor_layangan}` : 'Terkonfirmasi')); }
   catch (e) { toast(pesanError(e), 'bad', 6000); }
 });
 ACT['adm.tolak'] = (el) => { const r = Adm.baris(el.dataset.id); if (r) Adm.formTolak(r); };
@@ -3320,7 +3706,7 @@ SUB['adm.tolak'] = async (form) => {
 };
 ACT['adm.batalKonfirmasi'] = async (el) => {
   const r = Adm.baris(el.dataset.id);
-  if (!r || !(await konfirmasiDialog({ judul: 'Batalkan konfirmasi?', isi: `Status ${esc(r.nama_sekha)} kembali ke <b>Menunggu</b>. Nomor layangan ${esc(r.nomor_layangan || '')} tetap disimpan untuk pendaftaran ini.`, tombol: 'Batalkan konfirmasi' }))) return;
+  if (!r || !(await konfirmasiDialog({ judul: 'Batalkan konfirmasi?', isi: `Status ${esc(r.nama_sekha)} kembali ke <b>Menunggu</b>. Nomor layangan dan kotaknya di jadwal tetap disimpan.`, tombol: 'Batalkan konfirmasi' }))) return;
   try { await Adm.ubah(r.id, { status: 'menunggu' }, 'Konfirmasi dibatalkan'); } catch (e) { toast(pesanError(e), 'bad', 6000); }
 };
 ACT['adm.pulihkan'] = (el) => sibuk(el, async () => {
@@ -3362,14 +3748,16 @@ CH['adm.mJenis'] = (el) => {
 SUB['adm.simpanPendaftaran'] = async (form) => {
   const id = form.dataset.id, r = id ? Adm.baris(id) : null, v = (n) => (form[n] ? String(form[n].value).trim() : '');
   const data = { jenis: v('jenis'), seri_id: Number(v('seri_id')), nama_sekha: v('nama_sekha'), alamat: v('alamat'), no_wa: normWA(v('no_wa')), nama_rekening: v('nama_rekening'), catatan_admin: v('catatan_admin') };
-  if (!data.seri_id) return toast('Pilih seri layangan.', 'bad');
+  if (!data.seri_id) return toast('Pilih seri & grup.', 'bad');
   if (data.nama_sekha.length < 2 || data.alamat.length < 3) return toast('Nama sekha dan alamat wajib diisi.', 'bad');
   if (!data.no_wa) return toast('Nomor WhatsApp tidak valid.', 'bad');
   if (data.nama_rekening.length < 2) return toast('Isi nama pemilik rekening.', 'bad');
-  if (r && r.status === 'terkonfirmasi' && form.nomor_layangan) {
-    const no = v('nomor_layangan').toUpperCase();
-    if (!no) return toast('Nomor layangan tidak boleh kosong.', 'bad');
-    if (no !== r.nomor_layangan) data.nomor_layangan = no;
+  const no = v('nomor_layangan');
+  if (!no) { if (!r || r.nomor_layangan) return toast('Isi nomor layangan.', 'bad'); }
+  else {
+    const n = normNomor(no) || (r && no.toUpperCase() === r.nomor_layangan ? r.nomor_layangan : null);
+    if (!n) return toast('Nomor layangan harus angka, maksimal 6 digit.', 'bad');
+    if (!r || n !== r.nomor_layangan) data.nomor_layangan = n;
   }
   if (!r) data.status = form.querySelector('input[name=status]:checked').value;
   const btn = form.querySelector('[type=submit]');
@@ -3380,7 +3768,7 @@ SUB['adm.simpanPendaftaran'] = async (form) => {
         const baru = await api.tambahPendaftaran(data);
         Overlay.tutupYangBerisi(form);
         Adm.gantiBaris(baru);
-        toast(baru.nomor_layangan ? `Ditambahkan · nomor ${baru.nomor_layangan}` : 'Ditambahkan ke antrean verifikasi', 'good');
+        toast(baru.status === 'terkonfirmasi' ? `Ditambahkan · nomor ${baru.nomor_layangan}${baru.kotak ? ` · kotak ${baru.kotak}` : ''}` : 'Ditambahkan ke antrean verifikasi', 'good');
         Adm.s.nav = [baru.id];
         Adm.buka(baru.id);
       }
@@ -3392,7 +3780,7 @@ SUB['adm.simpanPendaftaran'] = async (form) => {
 const slugJenis = (s) => String(s || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 30);
 function awalanJenis(nama, terpakai) {
   const huruf = String(nama || '').toUpperCase().replace(/[^A-Z0-9 ]/g, '').trim();
-  if (!huruf) return '';
+  if (!huruf) return 'J';
   const kata = huruf.split(/\s+/);
   const kandidat = [kata.length > 1 ? kata.map((k) => k[0]).join('').slice(0, 3) : '', (huruf.replace(/\s+/g, '')[0] || '') + (huruf.replace(/[\sAIUEO]/g, '').slice(1, 2) || huruf.replace(/\s+/g, '')[1] || ''), huruf.replace(/\s+/g, '').slice(0, 3)].filter(Boolean);
   for (const k of kandidat) if (!terpakai.has(k)) return k;
@@ -3400,20 +3788,8 @@ function awalanJenis(nama, terpakai) {
   for (let i = 2; i < 100; i++) if (!terpakai.has(dasar + i)) return (dasar + i).slice(0, 5);
   return dasar;
 }
-ACT['adm.jenisBaru'] = () => Adm.formJenis(null);
+const cariJenisNama = (nama) => Adm.s.data.jenis.find((j) => j.nama.trim().toLowerCase() === String(nama || '').trim().toLowerCase());
 ACT['adm.jenisEdit'] = (el) => Adm.formJenis(Adm.idx.jenis.get(el.dataset.kode));
-IN['adm.jenisManual'] = (el) => {
-  el.dataset.manual = el.value.trim() ? '1' : '';
-  if (el.name === 'prefix') { const c = $('#jn-contoh'); if (c) c.textContent = (el.value.trim().toUpperCase() || '??') + '-001'; }
-};
-IN['adm.jenisNama'] = (el) => {
-  const form = el.form, kode = form.kode, prefix = form.prefix;
-  if (kode && !kode.dataset.manual) kode.value = slugJenis(el.value);
-  if (prefix && !prefix.dataset.manual) {
-    prefix.value = awalanJenis(el.value, new Set(Adm.s.data.jenis.map((j) => j.prefix)));
-    const c = $('#jn-contoh'); if (c) c.textContent = (prefix.value || '??') + '-001';
-  }
-};
 CH['adm.jenisAktif'] = async (el) => {
   const j = Adm.idx.jenis.get(el.dataset.kode);
   try {
@@ -3423,48 +3799,19 @@ CH['adm.jenisAktif'] = async (el) => {
   } catch (e) { el.checked = !el.checked; toast(pesanError(e), 'bad'); }
 };
 SUB['adm.simpanJenis'] = async (form) => {
-  const kodeLama = form.dataset.kode || null, d = Adm.s.data, v = (n) => String(form[n].value).trim();
-  const isi = {
-    nama: v('nama'), harga: v('harga') === '' ? NaN : Number(v('harga')), prefix: v('prefix').toUpperCase(),
-    urutan: v('urutan') === '' ? 0 : Number(v('urutan')), aktif: form.aktif.checked,
-  };
-  const kode = kodeLama || slugJenis(v('kode') || isi.nama);
+  const kode = form.dataset.kode, d = Adm.s.data, v = (n) => String(form[n].value).trim();
+  const isi = { nama: v('nama'), harga: v('harga') === '' ? NaN : Number(v('harga')), urutan: v('urutan') === '' ? 0 : Number(v('urutan')), aktif: form.aktif.checked };
   if (!isi.nama) return toast('Isi nama jenis layangan.', 'bad');
   if (!Number.isInteger(isi.harga) || isi.harga < 0) return toast('Harga harus berupa angka (Rp).', 'bad');
-  if (!/^[A-Z0-9]{1,5}$/.test(isi.prefix)) return toast('Awalan nomor harus 1–5 huruf/angka.', 'bad');
   if (!Number.isInteger(isi.urutan) || isi.urutan < 0 || isi.urutan > 999) return toast('Urutan harus angka 0–999.', 'bad');
-  if (!kode) return toast('Kode sistem tidak valid.', 'bad');
-  const lain = d.jenis.filter((j) => j.kode !== kodeLama);
-  if (!kodeLama && lain.some((j) => j.kode === kode)) return toast(`Kode "${kode}" sudah dipakai jenis lain.`, 'bad');
-  if (lain.some((j) => j.nama.toLowerCase() === isi.nama.toLowerCase())) return toast(`Nama "${isi.nama}" sudah ada.`, 'bad');
-  if (lain.some((j) => j.prefix === isi.prefix)) return toast(`Awalan "${isi.prefix}" sudah dipakai jenis lain.`, 'bad');
-  if (kodeLama) {
-    const lama = Adm.idx.jenis.get(kodeLama);
-    if (lama.prefix !== isi.prefix && lama.nomor_terakhir > 0 && !(await konfirmasiDialog({ judul: 'Ganti awalan nomor?', isi: `Nomor yang sudah keluar (${esc(lama.prefix)}-…) tidak berubah. Nomor berikutnya memakai awalan <b>${esc(isi.prefix)}</b>.`, tombol: 'Ganti awalan' }))) return;
-  }
-  const jmlSeri = !kodeLama && form.jml_seri ? (v('jml_seri') === '' ? 0 : Number(v('jml_seri'))) : 0;
-  const kuotaSeri = !kodeLama && form.kuota_seri ? Number(v('kuota_seri')) : 60;
-  if (!kodeLama && (!Number.isInteger(jmlSeri) || jmlSeri < 0 || jmlSeri > 50)) return toast('Jumlah seri harus angka 0–50.', 'bad');
-  if (!kodeLama && jmlSeri > 0 && (!Number.isInteger(kuotaSeri) || kuotaSeri < 0 || kuotaSeri > 999)) return toast('Kuota per seri harus angka 0–999.', 'bad');
-  const buatSeri = jmlSeri > 0;
-  const btn = form.querySelector('[type=submit]');
-  await sibuk(btn, async () => {
+  if (d.jenis.some((j) => j.kode !== kode && j.nama.toLowerCase() === isi.nama.toLowerCase())) return toast(`Nama "${isi.nama}" sudah ada.`, 'bad');
+  await sibuk(form.querySelector('[type=submit]'), async () => {
     try {
-      Adm.tandaiUbah();
-      if (kodeLama) {
-        const hasil = await api.simpanJenis(kodeLama, isi);
-        Object.assign(Adm.idx.jenis.get(kodeLama), hasil);
-      } else {
-        const hasil = await api.tambahJenis({ kode, ...isi });
-        d.jenis.push(hasil);
-        for (let i = 1; i <= jmlSeri; i++) {
-          try { d.seri.push(await api.simpanSeri({ jenis: kode, nama: `Seri ${i}`, kuota: kuotaSeri, aktif: true, urutan: i, catatan: '' })); }
-          catch (e) { toast(`Jenis ditambahkan, tapi Seri ${i} dst gagal dibuat: ` + pesanError(e), 'bad', 7000); break; }
-        }
-      }
+      const hasil = await api.simpanJenis(kode, isi);
+      Adm.tandaiUbah(); Object.assign(Adm.idx.jenis.get(kode), hasil);
       d.jenis.sort((a, b) => a.urutan - b.urutan || a.nama.localeCompare(b.nama));
       Adm.indeks(); Overlay.tutupYangBerisi(form); Adm.segarkanTampilan();
-      toast(kodeLama ? 'Jenis layangan diperbarui' : `${isi.nama} ditambahkan${buatSeri ? ` dengan ${jmlSeri} seri · atur tanggal & jam di Seri & Jadwal` : ''}`, 'good', 5000);
+      toast('Jenis layangan diperbarui', 'good');
     } catch (e) { toast(pesanError(e), 'bad', 6000); }
   });
 };
@@ -3473,7 +3820,7 @@ ACT['adm.jenisHapus'] = async (el) => {
   if (!j) return;
   const c = Adm.statJenis(j.kode);
   if (c.total) return toast('Jenis ini sudah punya pendaftar — nonaktifkan saja.', 'bad', 5000);
-  if (!(await konfirmasiDialog({ judul: `Hapus ${j.nama}?`, isi: `Jenis <b>${esc(j.nama)}</b>${c.seri ? ` beserta ${c.seri} seri-nya` : ''} dihapus permanen.`, tombol: 'Hapus jenis', bahaya: true }))) return;
+  if (!(await konfirmasiDialog({ judul: `Hapus ${j.nama}?`, isi: `Jenis <b>${esc(j.nama)}</b>${c.seri ? ` beserta ${c.seri} grup-nya di jadwal` : ''} dihapus permanen.`, tombol: 'Hapus jenis', bahaya: true }))) return;
   try {
     await api.hapusJenis(j.kode);
     Adm.tandaiUbah();
@@ -3485,89 +3832,150 @@ ACT['adm.jenisHapus'] = async (el) => {
   } catch (e) { toast(pesanError(e), 'bad', 6000); }
 };
 
-ACT['adm.kuotaJenis'] = (el) => {
-  const j = Adm.idx.jenis.get(el.dataset.kode);
-  const list = Adm.s.data.seri.filter((x) => x.jenis === j.kode);
-  if (!list.length) return toast('Jenis ini belum punya seri.', 'info');
-  const sama = list.every((x) => x.kuota === list[0].kuota);
-  Overlay.modal(`<form data-submit="adm.simpanKuotaJenis" data-kode="${esc(j.kode)}" novalidate>
-    <h3>Kuota semua seri ${esc(j.nama)}</h3>
-    <p class="lead">Kuota baru dipakai untuk ${list.length} seri ${esc(j.nama)}. Kuota tiap seri tetap bisa diubah satu per satu di Seri & Jadwal.</p>
-    <div class="field"><label class="label" for="kj-kuota">Kuota per seri</label><input class="input" type="number" inputmode="numeric" min="0" max="999" id="kj-kuota" name="kuota" value="${sama ? list[0].kuota : ''}">
-      <span class="hint">Sekarang: ${list.map((x) => `${esc(x.nama)} ${x.kuota}`).join(' · ')}</span></div>
-    <div class="actions end"><button type="button" class="btn" data-act="ovl.tutup">Batal</button><button type="submit" class="btn btn-primary">Simpan kuota</button></div>
-  </form>`);
+/* jadwal terbang: hari */
+ACT['adm.hariBaru'] = () => Adm.formHari(null);
+ACT['adm.hariEdit'] = (el) => Adm.formHari(Adm.idx.hari.get(Number(el.dataset.id)));
+IN['adm.hariNama'] = (el) => { el.dataset.manual = el.value.trim() ? '1' : ''; };
+CH['adm.hariTgl'] = (el) => {
+  const nama = el.form.nama, d = parseTanggal(el.value);
+  if (nama && !nama.dataset.manual && d) nama.value = 'Hari ' + HARI[d.getDay()];
 };
-SUB['adm.simpanKuotaJenis'] = async (form) => {
-  const kode = form.dataset.kode, j = Adm.idx.jenis.get(kode), kuota = parseInt(String(form.kuota.value).trim(), 10);
-  if (!Number.isInteger(kuota) || kuota < 0 || kuota > 999) return toast('Kuota harus angka 0–999.', 'bad');
-  const list = Adm.s.data.seri.filter((x) => x.jenis === kode && x.kuota !== kuota);
-  if (!list.length) { Overlay.tutupYangBerisi(form); return toast('Kuota sudah sama, tidak ada yang diubah.', 'info'); }
-  const lebih = list.filter((x) => { const c = Adm.idx.perSeri.get(x.id) || { menunggu: 0, terkonfirmasi: 0 }; return c.menunggu + c.terkonfirmasi > kuota; });
-  if (lebih.length && !(await konfirmasiDialog({ judul: 'Kuota lebih kecil dari pendaftar?', isi: `${lebih.map((x) => esc(x.nama)).join(', ')} sudah punya pendaftar lebih dari ${kuota}. Pendaftar lama tetap tercatat, tetapi pendaftaran baru ditolak sampai ada slot kosong.`, tombol: 'Tetap simpan' }))) return;
-  const btn = form.querySelector('[type=submit]');
-  await sibuk(btn, async () => {
-    let n = 0;
+SUB['adm.simpanHari'] = async (form) => {
+  const id = Number(form.dataset.id) || null, nama = form.nama.value.trim(), tanggal = form.tanggal.value || null;
+  if (!nama) return toast('Isi nama hari, misalnya Hari Minggu.', 'bad');
+  const buatSesi = !id && form.buat_sesi && form.buat_sesi.checked;
+  await sibuk(form.querySelector('[type=submit]'), async () => {
     try {
-      for (const x of list) { Object.assign(x, await api.simpanSeri({ id: x.id, kuota })); n++; }
-      Adm.tandaiUbah(); Adm.indeks(); Overlay.tutupYangBerisi(form); Adm.segarkanTampilan();
-      toast(`Kuota ${n} seri ${j.nama} jadi ${kuota}`, 'good');
-    } catch (e) {
-      if (n) { Adm.tandaiUbah(); Adm.indeks(); Adm.segarkanTampilan(); }
-      toast(`${n} seri berhasil diubah, sisanya gagal: ` + pesanError(e), 'bad', 7000);
-    }
+      const d = Adm.s.data;
+      const h = await api.simpanHari(id ? { id, nama, tanggal } : { nama, tanggal, urutan: d.hari.length + 1 });
+      Adm.tandaiUbah();
+      if (id) { Object.assign(Adm.idx.hari.get(id), h); await Adm.muat({ diam: true }); }
+      else {
+        d.hari.push(h);
+        if (buatSesi) { try { d.sesi.push(await api.simpanSesi({ hari_id: h.id, nama: 'I', urutan: 1 })); } catch (e) { toast('Hari ditambahkan, tapi Seri I gagal dibuat: ' + pesanError(e), 'bad', 6000); } }
+        Adm.indeks(); Adm.segarkanTampilan();
+      }
+      Overlay.tutupYangBerisi(form);
+      toast(id ? 'Hari diperbarui' : `${nama} ditambahkan${buatSesi ? ' dengan Seri I — atur jamnya lewat tombol ✎' : ''}`, 'good', 5000);
+    } catch (e) { toast(pesanError(e), 'bad', 6000); }
   });
 };
-
-/* seri */
-ACT['adm.seriBaru'] = (el) => {
-  if (!Adm.s.data.jenis.length) { toast('Tambahkan jenis layangan dulu.', 'info'); location.hash = '#admin/jenis'; return; }
-  Adm.formSeri(null, { jenis: el.dataset.jenis });
+ACT['adm.hariHapus'] = async (el) => {
+  const h = Adm.idx.hari.get(Number(el.dataset.id)), d = Adm.s.data;
+  const sesi = d.sesi.filter((x) => x.hari_id === h.id).map((x) => x.id), grup = d.seri.filter((g) => sesi.includes(g.sesi_id));
+  if (grup.some((g) => { const c = Adm.idx.perSeri.get(g.id); return c.menunggu + c.terkonfirmasi + c.ditolak > 0; })) return toast('Hari ini masih punya pendaftar. Pindahkan atau hapus pendaftarnya dulu.', 'bad', 6000);
+  if (!(await konfirmasiDialog({ judul: `Hapus ${h.nama}?`, isi: `${sesi.length} seri dan ${grup.length} grup di dalamnya ikut dihapus.`, tombol: 'Hapus hari', bahaya: true }))) return;
+  try { await api.hapusHari(h.id); Adm.tandaiUbah(); Overlay.tutupSemua(); await Adm.muat({ diam: true }); toast(`${h.nama} dihapus`, 'good'); }
+  catch (e) { toast(pesanError(e), 'bad', 6000); }
 };
-ACT['adm.seriEdit'] = (el) => Adm.formSeri(Adm.idx.seri.get(Number(el.dataset.id)));
-ACT['adm.seriDuplikat'] = (el) => Adm.formSeri(Adm.idx.seri.get(Number(el.dataset.id)), { duplikat: true });
+
+/* jadwal terbang: seri (blok waktu) */
+ACT['adm.sesiBaru'] = (el) => Adm.formSesi(null, Number(el.dataset.hari));
+ACT['adm.sesiEdit'] = (el) => Adm.formSesi(Adm.idx.sesi.get(Number(el.dataset.id)));
+SUB['adm.simpanSesi'] = async (form) => {
+  const id = Number(form.dataset.id) || null, hari_id = Number(form.dataset.hari), v = (n) => String(form[n].value).trim();
+  const isi = { nama: v('nama').toUpperCase(), jam_mulai: v('jam_mulai') || null, jam_selesai: v('jam_selesai') || null };
+  if (!isi.nama) return toast('Isi nama seri, misalnya I atau II.', 'bad');
+  if (isi.jam_mulai && isi.jam_selesai && isi.jam_selesai <= isi.jam_mulai) return toast('Jam selesai harus setelah jam mulai.', 'bad');
+  const d = Adm.s.data;
+  if (d.sesi.some((x) => x.hari_id === hari_id && x.id !== id && String(x.nama).toUpperCase() === isi.nama)) return toast(`Seri ${isi.nama} sudah ada di hari ini.`, 'bad');
+  await sibuk(form.querySelector('[type=submit]'), async () => {
+    try {
+      await api.simpanSesi(id ? { id, ...isi } : { hari_id, urutan: d.sesi.filter((x) => x.hari_id === hari_id).length + 1, ...isi });
+      Adm.tandaiUbah(); Overlay.tutupYangBerisi(form);
+      await Adm.muat({ diam: true });
+      toast(id ? `Seri ${isi.nama} diperbarui` : `Seri ${isi.nama} ditambahkan`, 'good');
+    } catch (e) { toast(pesanError(e), 'bad', 6000); }
+  });
+};
+ACT['adm.sesiHapus'] = async (el) => {
+  const x = Adm.idx.sesi.get(Number(el.dataset.id)), grup = Adm.s.data.seri.filter((g) => g.sesi_id === x.id);
+  if (grup.some((g) => { const c = Adm.idx.perSeri.get(g.id); return c.menunggu + c.terkonfirmasi + c.ditolak > 0; })) return toast('Seri ini masih punya pendaftar. Pindahkan atau hapus pendaftarnya dulu.', 'bad', 6000);
+  if (!(await konfirmasiDialog({ judul: `Hapus Seri ${x.nama}?`, isi: grup.length ? `${grup.length} grup di dalamnya ikut dihapus.` : 'Seri ini belum punya grup.', tombol: 'Hapus seri', bahaya: true }))) return;
+  try { await api.hapusSesi(x.id); Adm.tandaiUbah(); Overlay.tutupSemua(); await Adm.muat({ diam: true }); toast(`Seri ${x.nama} dihapus`, 'good'); }
+  catch (e) { toast(pesanError(e), 'bad', 6000); }
+};
+
+/* jadwal terbang: grup (lomba_seri) */
+ACT['adm.grupBaru'] = (el) => Adm.formGrup(null, Number(el.dataset.sesi));
+ACT['adm.grupEdit'] = (el) => Adm.formGrup(Adm.idx.seri.get(Number(el.dataset.id)));
+IN['adm.grupJenis'] = (el) => {
+  const ada = cariJenisNama(el.value), wrap = $('#g-harga-wrap'), hint = $('#g-jenis-hint');
+  const baru = !!el.value.trim() && !ada;
+  if (wrap) wrap.hidden = !baru;
+  if (hint) hint.innerHTML = baru ? `<b>${esc(el.value.trim())}</b> belum ada — akan dibuat sebagai jenis baru.` : ada ? `Harga ${esc(ada.nama)}: ${rupiah(ada.harga)}` : 'Pilih dari daftar atau ketik jenis baru.';
+};
+SUB['adm.simpanGrup'] = async (form) => {
+  const id = Number(form.dataset.id) || null, sesi_id = Number(form.dataset.sesi), lama = id ? Adm.idx.seri.get(id) : null, d = Adm.s.data;
+  const v = (n) => String(form[n].value).trim();
+  const namaJenis = form.jenis.disabled ? null : v('jenis');
+  const isi = { huruf: v('huruf').toUpperCase(), kotak: parseInt(v('kotak'), 10), catatan: v('catatan'), aktif: form.aktif.checked };
+  if (!form.jenis.disabled && !namaJenis) return toast('Isi jenis layangan.', 'bad');
+  if (!/^[A-Z0-9]{1,3}$/.test(isi.huruf)) return toast('Grup diisi huruf, misalnya A atau B.', 'bad');
+  if (!Number.isInteger(isi.kotak) || isi.kotak < 1 || isi.kotak > 200) return toast('Jumlah kotak harus 1–200.', 'bad');
+  if (d.seri.some((g) => g.sesi_id === sesi_id && g.id !== id && g.huruf === isi.huruf)) return toast(`Grup ${isi.huruf} sudah ada di seri ini.`, 'bad');
+  let jenis = namaJenis ? cariJenisNama(namaJenis) : null;
+  let hargaBaru = null;
+  if (namaJenis && !jenis) {
+    hargaBaru = v('harga') === '' ? NaN : Number(v('harga'));
+    if (!Number.isInteger(hargaBaru) || hargaBaru < 0) { const w = $('#g-harga-wrap'); if (w) w.hidden = false; $('#g-harga') && $('#g-harga').focus(); return toast(`Isi harga untuk jenis baru "${namaJenis}".`, 'bad'); }
+  }
+  if (lama) {
+    const c = Adm.idx.kotak.get(lama.id) || new Map();
+    const lewat = [...c.keys()].filter((k) => k > isi.kotak);
+    if (lewat.length) return toast(`Kotak ${lewat.join(', ')} sudah terisi. Jumlah kotak minimal ${Math.max(...c.keys())}.`, 'bad', 6000);
+  }
+  await sibuk(form.querySelector('[type=submit]'), async () => {
+    try {
+      if (namaJenis && !jenis) {
+        let kode = slugJenis(namaJenis) || 'jenis';
+        for (let i = 2; d.jenis.some((j) => j.kode === kode); i++) kode = (slugJenis(namaJenis) || 'jenis').slice(0, 26) + '-' + i;
+        jenis = await api.tambahJenis({ kode, nama: namaJenis, harga: hargaBaru, prefix: awalanJenis(namaJenis, new Set(d.jenis.map((j) => j.prefix))), urutan: d.jenis.reduce((m, x) => Math.max(m, x.urutan || 0), 0) + 1, aktif: true });
+        d.jenis.push(jenis);
+        Adm.tandaiUbah(); Adm.indeks();
+      }
+      const data = { ...isi, sesi_id };
+      if (jenis) data.jenis = jenis.kode;
+      if (!lama) { data.tutup = []; data.urutan = d.seri.filter((g) => g.sesi_id === sesi_id).length + 1; data.nama = 'Grup ' + isi.huruf; }
+      const hasil = await api.simpanSeri(lama ? { id: lama.id, ...data } : data);
+      Adm.tandaiUbah();
+      const i = d.seri.findIndex((g) => g.id === hasil.id);
+      if (i >= 0) d.seri[i] = hasil; else d.seri.push(hasil);
+      Adm.indeks(); Overlay.tutupYangBerisi(form); Adm.segarkanTampilan();
+      toast(lama ? `Grup ${hasil.huruf} diperbarui` : `Grup ${hasil.huruf} · ${Adm.namaJenis(hasil.jenis)} ditambahkan`, 'good');
+    } catch (e) { toast(pesanError(e), 'bad', 6000); }
+  });
+};
+ACT['adm.kotak'] = async (el) => {
+  const g = Adm.idx.seri.get(Number(el.dataset.id)), k = Number(el.dataset.k);
+  if (!g || el.dataset.sibuk) return;
+  const tutup = new Set(g.tutup || []);
+  const tutupBaru = !tutup.has(k);
+  if (tutupBaru) tutup.add(k); else tutup.delete(k);
+  el.dataset.sibuk = '1';
+  const td = el.parentElement; td.classList.toggle('tutup', tutupBaru);
+  try {
+    const hasil = await api.simpanSeri({ id: g.id, tutup: [...tutup].sort((a, b) => a - b) });
+    Adm.tandaiUbah(); Object.assign(g, hasil); Adm.indeks(); Adm.segarkanTampilan();
+    toast(`${g.nama} · kotak ${k} ${tutupBaru ? 'ditutup' : 'dibuka'}`, 'good', 1800);
+  } catch (e) { td.classList.toggle('tutup', !tutupBaru); delete el.dataset.sibuk; toast(pesanError(e), 'bad', 6000); }
+};
+ACT['adm.bukaSemua'] = (el) => sibuk(el, async () => {
+  const g = Adm.idx.seri.get(Number(el.dataset.id));
+  try {
+    const hasil = await api.simpanSeri({ id: g.id, tutup: [] });
+    Adm.tandaiUbah(); Object.assign(g, hasil); Adm.indeks(); Overlay.tutupSemua(); Adm.segarkanTampilan();
+    toast(`Semua kotak ${g.nama} dibuka`, 'good');
+  } catch (e) { toast(pesanError(e), 'bad', 6000); }
+});
+ACT['adm.cetakHari'] = (el) => Adm.cetakHari(Number(el.dataset.id));
 ACT['adm.lihatSeri'] = (el) => { const x = Adm.idx.seri.get(Number(el.dataset.id)); Adm.s.f = { ...FILTER_AWAL, jenis: x.jenis, seri: String(x.id), urut: 'nomor' }; location.hash = '#admin/pendaftaran'; };
 ACT['adm.cetakSeri'] = (el) => Adm.cetakSeri(Number(el.dataset.id));
 ACT['adm.seriHapus'] = async (el) => {
   const x = Adm.idx.seri.get(Number(el.dataset.id));
-  if (!x || !(await konfirmasiDialog({ judul: `Hapus ${x.nama}?`, isi: `Seri ${esc(Adm.namaJenis(x.jenis))} · ${esc(x.nama)} dihapus. Seri yang sudah punya pendaftar tidak bisa dihapus.`, tombol: 'Hapus seri', bahaya: true }))) return;
-  try { await api.hapusSeri(x.id); Adm.tandaiUbah(); Adm.s.data.seri = Adm.s.data.seri.filter((y) => y.id !== x.id); Adm.indeks(); Adm.segarkanTampilan(); toast('Seri dihapus', 'good'); }
+  if (!x || !(await konfirmasiDialog({ judul: `Hapus ${x.nama}?`, isi: `${esc(Adm.namaJenis(x.jenis))} · ${esc(x.nama)} dihapus. Grup yang sudah punya pendaftar tidak bisa dihapus.`, tombol: 'Hapus', bahaya: true }))) return;
+  try { await api.hapusSeri(x.id); Adm.tandaiUbah(); Adm.s.data.seri = Adm.s.data.seri.filter((y) => y.id !== x.id); Adm.indeks(); Overlay.tutupSemua(); Adm.segarkanTampilan(); toast('Dihapus', 'good'); }
   catch (e) { toast(pesanError(e), 'bad', 6000); }
-};
-CH['adm.seriAktif'] = async (el) => {
-  const x = Adm.idx.seri.get(Number(el.dataset.id));
-  try {
-    const baru = await api.simpanSeri({ id: x.id, aktif: el.checked });
-    Adm.tandaiUbah(); Object.assign(x, baru); Adm.indeks(); Adm.segarkanTampilan();
-    toast(`${Adm.namaJenis(x.jenis)} · ${x.nama} ${el.checked ? 'dibuka' : 'ditutup'}`, 'good');
-  } catch (e) { el.checked = !el.checked; toast(pesanError(e), 'bad'); }
-};
-SUB['adm.simpanSeri'] = async (form) => {
-  const id = Number(form.dataset.id) || null, lama = id ? Adm.idx.seri.get(id) : null, v = (n) => String(form[n].value).trim();
-  const isi = {
-    jenis: form.jenis.disabled && lama ? lama.jenis : v('jenis'), nama: v('nama'), tanggal: v('tanggal') || null,
-    jam_mulai: v('jam_mulai') || null, jam_selesai: v('jam_selesai') || null, kuota: parseInt(v('kuota'), 10),
-    catatan: v('catatan'), aktif: form.aktif.checked,
-  };
-  if (!isi.nama) return toast('Isi nama seri.', 'bad');
-  if (!Number.isInteger(isi.kuota) || isi.kuota < 0 || isi.kuota > 999) return toast('Kuota harus angka 0–999.', 'bad');
-  if (isi.jam_mulai && isi.jam_selesai && isi.jam_selesai <= isi.jam_mulai) return toast('Jam selesai harus setelah jam mulai.', 'bad');
-  if (lama) {
-    const c = Adm.idx.perSeri.get(lama.id), aktif = c.menunggu + c.terkonfirmasi;
-    if (isi.kuota < aktif && !(await konfirmasiDialog({ judul: 'Kuota lebih kecil dari pendaftar?', isi: `Seri ini sudah punya ${aktif} pendaftar aktif. Pendaftar lama tetap tercatat, tetapi pendaftaran baru akan ditolak sampai ada slot kosong.`, tombol: 'Tetap simpan' }))) return;
-  }
-  const btn = form.querySelector('[type=submit]');
-  await sibuk(btn, async () => {
-    try {
-      const hasil = await api.simpanSeri(id ? { id, ...isi } : isi);
-      Adm.tandaiUbah();
-      const d = Adm.s.data, i = d.seri.findIndex((y) => y.id === hasil.id);
-      if (i >= 0) d.seri[i] = hasil; else d.seri.push(hasil);
-      d.seri.sort((a, b) => (a.tanggal || '9999').localeCompare(b.tanggal || '9999') || String(a.jam_mulai || '99').localeCompare(String(b.jam_mulai || '99')) || a.urutan - b.urutan || a.id - b.id);
-      Adm.indeks(); Overlay.tutupYangBerisi(form); Adm.segarkanTampilan();
-      toast(id ? 'Seri diperbarui' : 'Seri ditambahkan', 'good');
-    } catch (e) { toast(pesanError(e), 'bad', 6000); }
-  });
 };
 
 /* logo & gambar latar */
