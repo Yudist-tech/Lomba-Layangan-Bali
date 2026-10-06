@@ -993,7 +993,7 @@ function pesanError(e) {
   const msg = (e && (e.message || e.error_description || e.msg || e.error)) || String(e || '');
   for (const k of Object.keys(PESAN_ERROR)) if (msg.includes(k)) return PESAN_ERROR[k];
   if (/nomor_layangan/i.test(msg) && /duplicate|unique/i.test(msg)) return PESAN_ERROR.NOMOR_DIPAKAI;
-  if (/foreign key/i.test(msg)) return 'Data ini masih dipakai (mis. seri masih punya pendaftar).';
+  if (/foreign key/i.test(msg)) return 'Data ini masih dipakai (seri masih punya pendaftar).';
   if (/duplicate key|unique constraint/i.test(msg)) return 'Data yang sama sudah ada.';
   if (/Failed to fetch|NetworkError|Load failed|network|fetch/i.test(msg)) return 'Koneksi internet bermasalah. Periksa sinyal lalu coba lagi.';
   if (/Invalid login credentials/i.test(msg)) return 'Email atau password salah.';
