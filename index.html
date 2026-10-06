@@ -1117,7 +1117,7 @@ class SupabaseAPI {
     }
     return r;
   }
-  /* File bukti yang tidak terpakai (mis. upload berhasil tapi pendaftaran gagal), > 1 hari */
+  /* File bukti yang tidak terpakai, > 1 hari */
   async bersihkanFileYatim(dipakai) {
     const set = new Set(dipakai), yatim = [], batas = Date.now() - 86400000;
     for (let offset = 0; ; offset += 1000) {
