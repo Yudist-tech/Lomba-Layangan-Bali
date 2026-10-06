@@ -1868,7 +1868,7 @@ const Pub = {
           ${f.jenis ? this.vListSeri() : '<div class="empty-sm">Pilih jenis layangan dulu untuk melihat seri dan jadwalnya.</div>'}
           ${errMsg(e.seri_id)}
         </fieldset>
-        ${fieldInput({ name: 'nama_sekha', label: 'Nama sekha', value: f.nama_sekha, placeholder: 'mis. Sekha Layangan Putra Jaya', maxlength: 120, autocomplete: 'organization', err: e.nama_sekha, data: 'data-in="pub.f"' })}
+        ${fieldInput({ name: 'nama_sekha', label: 'Nama sekha', value: f.nama_sekha, maxlength: 120, autocomplete: 'organization', err: e.nama_sekha, data: 'data-in="pub.f"' })}
         ${fieldInput({ name: 'alamat', label: 'Alamat', value: f.alamat, placeholder: 'Banjar, desa/kelurahan, kecamatan', maxlength: 300, textarea: true, rows: 2, autocomplete: 'street-address', err: e.alamat, data: 'data-in="pub.f"' })}
         ${fieldInput({ name: 'no_wa', label: 'Nomor WhatsApp', value: f.no_wa, type: 'tel', inputmode: 'tel', placeholder: '08xx-xxxx-xxxx', maxlength: 20, autocomplete: 'tel', err: e.no_wa, data: 'data-in="pub.f"', hint: this.hintWA() })}
         <input type="text" name="website" class="hp" tabindex="-1" autocomplete="off" aria-hidden="true">
@@ -2951,7 +2951,7 @@ const Adm = {
     Overlay.modal(`<form data-submit="adm.simpanJenis" data-kode="${baru ? '' : esc(j.kode)}" novalidate>
       <h3>${baru ? 'Tambah jenis layangan' : `Ubah ${esc(j.nama)}`}</h3>
       <p class="lead">${baru ? 'Jenis baru langsung bisa dipilih peserta setelah punya seri yang dibuka.' : 'Harga baru berlaku untuk pendaftaran berikutnya; pendaftaran lama tetap memakai harga saat mendaftar.'}</p>
-      <div class="field"><label class="label" for="jn-nama">Nama jenis</label><input class="input" id="jn-nama" name="nama" value="${esc(v.nama)}" maxlength="40" placeholder="mis. Pecukan" ${baru ? 'data-in="adm.jenisNama"' : ''} required></div>
+      <div class="field"><label class="label" for="jn-nama">Nama jenis</label><input class="input" id="jn-nama" name="nama" value="${esc(v.nama)}" maxlength="40" ${baru ? 'data-in="adm.jenisNama"' : ''} required></div>
       <div class="g2">
         <div class="field"><label class="label" for="jn-harga">Harga (Rp)</label><input class="input" type="number" inputmode="numeric" min="0" step="1000" id="jn-harga" name="harga" value="${esc(v.harga)}" placeholder="mis. 100000"></div>
         <div class="field"><label class="label" for="jn-prefix">Awalan nomor</label><input class="input" id="jn-prefix" name="prefix" value="${esc(v.prefix)}" maxlength="5" style="text-transform:uppercase" placeholder="mis. PC" data-in="adm.jenisManual"><span class="hint">Nomor layangan: <b id="jn-contoh">${esc(v.prefix || '??')}-001</b></span></div>
