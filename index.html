@@ -759,10 +759,11 @@ code { font-family: ui-monospace, Menlo, Consolas, monospace; font-size: .92em; 
 .jt .k > button:focus-visible { box-shadow: inset 0 0 0 2px var(--brand); }
 .jt tr.off .k:not(.tutup), .jt tr.off .jt-jenis { opacity: .5; }
 .jt .k.isi > button { font-weight: 700; color: inherit; }
-.peserta-pop h3 { margin: 4px 0 10px; font-size: 20px; }
-.pp-no { display: inline-flex; flex-direction: column; background: var(--brand-soft); color: var(--brand-soft-ink); border-radius: 12px; padding: 8px 14px; }
-.pp-no span { font-size: 12px; font-weight: 700; }
-.pp-no b { font-size: 26px; line-height: 1.1; font-variant-numeric: tabular-nums; }
+.pop-peserta { position: fixed; z-index: 80; display: flex; align-items: center; gap: 10px; max-width: min(260px, calc(100vw - 16px)); padding: 8px 12px 8px 8px; background: var(--surface); color: var(--ink); border: 1px solid var(--line-strong); border-radius: 12px; box-shadow: var(--shadow); }
+.pop-peserta .pp-n { flex: none; min-width: 42px; padding: 4px 8px; border-radius: 8px; background: var(--brand-soft); color: var(--brand-soft-ink); font-size: 19px; font-weight: 800; text-align: center; font-variant-numeric: tabular-nums; }
+.pop-peserta .pp-t { min-width: 0; display: flex; flex-direction: column; line-height: 1.3; }
+.pop-peserta .pp-t b { font-size: 14px; overflow-wrap: anywhere; }
+.pop-peserta .pp-t span { font-size: 12.5px; color: var(--muted); }
 .jt-legend { display: flex; gap: 6px 16px; flex-wrap: wrap; font-size: 12.5px; color: var(--muted); margin: 10px 2px 0; }
 .jt-legend span { display: inline-flex; align-items: center; gap: 6px; }
 .jt-legend i { display: inline-block; width: 16px; height: 16px; border: 1px solid var(--line-strong); border-radius: 3px; }
@@ -2582,20 +2583,42 @@ IN['pub.f'] = (el) => {
   Pub.simpanDraft();
 };
 IN['pub.cekWa'] = (el) => { Pub.s.cekWa = el.value; };
+/* Pop-up kecil di dekat nomor: nomor layangan, nama sekha, alamat */
+let popAsal = null;
+function tutupPopPeserta() { const el = document.getElementById('pop-peserta'); if (el) el.remove(); popAsal = null; }
+function posisiPopPeserta() {
+  const pop = document.getElementById('pop-peserta');
+  if (!pop || !popAsal) return;
+  if (!popAsal.isConnected) { tutupPopPeserta(); return; }
+  const r = popAsal.getBoundingClientRect(), w = pop.offsetWidth, h = pop.offsetHeight;
+  if (r.bottom < 0 || r.top > window.innerHeight || r.right < 0 || r.left > window.innerWidth) { tutupPopPeserta(); return; }
+  const left = Math.max(8, Math.min(r.left + r.width / 2 - w / 2, window.innerWidth - w - 8));
+  let top = r.top - h - 8;
+  if (top < 8) top = r.bottom + 8;
+  pop.style.left = left + 'px'; pop.style.top = top + 'px';
+}
 ACT['pub.peserta'] = (el) => {
   const info = Pub.s.info, g = info.seri.find((x) => x.id === Number(el.dataset.id)), k = Number(el.dataset.k);
   const p = g && (g.peserta || []).find((x) => x.kotak === k);
-  if (!p) return;
-  const j = info.jenis.find((x) => x.kode === g.jenis);
-  Overlay.modal(`<div class="peserta-pop">
-    <div class="pp-no"><span>Nomor layangan</span><b>${esc(p.nomor || '-')}</b></div>
-    <h3>${esc(p.sekha)}</h3>
-    <dl class="kv"><dt>Alamat</dt><dd>${nl2br(p.alamat || '-')}</dd>
-      <dt>Jenis</dt><dd>${esc((j && j.nama) || g.jenis)}</dd>
-      <dt>Jadwal</dt><dd>${esc(Pub.labelGrup(g))} · kotak ${k}<div class="sub">${esc(jadwalText(g))}</div></dd>
-      <dt>Status</dt><dd>${badgeStatus('terkonfirmasi')}</dd></dl>
-    <div class="actions end"><button type="button" class="btn btn-primary" data-act="ovl.tutup">Tutup</button></div></div>`);
+  const sama = document.getElementById('pop-peserta');
+  tutupPopPeserta();
+  if (!p || (sama && sama.dataset.asal === `${g.id}-${k}`)) return;
+  const pop = document.createElement('div');
+  pop.id = 'pop-peserta'; pop.className = 'pop-peserta'; pop.dataset.asal = `${g.id}-${k}`;
+  pop.setAttribute('role', 'status');
+  pop.innerHTML = `<b class="pp-n">${esc(p.nomor || '-')}</b><span class="pp-t"><b>${esc(p.sekha)}</b>${p.alamat ? `<span>${esc(p.alamat)}</span>` : ''}</span>`;
+  document.body.appendChild(pop);
+  popAsal = el;
+  posisiPopPeserta();
 };
+document.addEventListener('pointerdown', (e) => {
+  const pop = document.getElementById('pop-peserta');
+  if (pop && !pop.contains(e.target) && !(e.target.closest && e.target.closest('[data-act="pub.peserta"]'))) tutupPopPeserta();
+}, true);
+document.addEventListener('scroll', posisiPopPeserta, true);
+window.addEventListener('resize', posisiPopPeserta);
+document.addEventListener('keydown', (e) => { if (e.key === 'Escape') tutupPopPeserta(); });
+window.addEventListener('hashchange', tutupPopPeserta);
 IN['pub.nomor'] = (el) => {
   Pub.s.form.nomor_layangan = el.value; Pub.s.ref = null;
   if (Pub.s.errors.nomor_layangan && normNomor(el.value)) {
