@@ -3514,7 +3514,8 @@ body{font:11px/1.3 system-ui,-apple-system,'Segoe UI',sans-serif;margin:16px;col
 .jt{border-collapse:collapse;width:100%}.jt th,.jt td{border:1px solid #888;padding:0;text-align:center}.jt thead th{background:#e8e8e8;font-size:9.5px;padding:4px 2px}
 .jt .jt-seri{padding:4px}.jt .jt-seri b{display:block;font-size:14px}.jt .jt-seri span{display:block;font-size:10px}.jt .jt-grup{font-weight:800;width:22px}
 .jt .jt-jenis{font-weight:700;text-transform:uppercase;font-size:10px;background:color-mix(in srgb,var(--jc) 35%,#fff);min-width:110px}.jt .jt-jenis span{display:block;padding:3px 6px}.jt .jt-jenis small{display:block;font-weight:400;text-transform:none}
-.jt .k{width:26px;height:20px;font-size:10.5px;font-weight:600}.jt .k.tutup{background:#111}.jt .k.na{background:#eee}.jt .jt-tot{font-weight:800;font-size:12px}.jt .jt-tot small{display:block;font-weight:400;font-size:9px}
+*{-webkit-print-color-adjust:exact;print-color-adjust:exact;color-adjust:exact}
+.jt .k{width:26px;height:20px;font-size:10.5px;font-weight:600}.jt .k.tutup{background:#000!important;border-color:#000}.jt .k.na{background:#eee}.jt .jt-tot{font-weight:800;font-size:12px}.jt .jt-tot small{display:block;font-weight:400;font-size:9px}
 .jt-wrap{overflow:visible}@page{size:A4 landscape;margin:8mm}@media print{body{margin:0}}</style></head><body>
 <h1>${esc(String(h.nama).toUpperCase())}</h1><div class="meta">${esc(ev.nama_event || '')}${h.tanggal ? ' · ' + esc(fmtTanggal(h.tanggal)) : ''}${ev.lokasi ? ' · ' + esc(ev.lokasi) : ''}</div>
 ${tabel}<div class="meta" style="text-align:left;margin-top:8px">Hanya nomor layangan yang sudah terkonfirmasi yang dicetak. Kotak hitam = ditutup panitia. Dicetak ${esc(fmtWaktu(new Date().toISOString()))}.</div>
