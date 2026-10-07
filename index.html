@@ -1568,7 +1568,7 @@ class DemoAPI {
     return this._salin({
       event: { nama_event: st.nama_event, penyelenggara: st.penyelenggara, lokasi: st.lokasi, logo_url: st.logo_url || '' },
       kode: r.kode, nomor_layangan: r.nomor_layangan, jenis: j.nama, nama_sekha: r.nama_sekha, alamat: r.alamat,
-      no_wa: '0' + r.no_wa.slice(2, 5) + '-****-' + r.no_wa.slice(-4), kotak: r.kotak, seri_nama: g.nama, huruf: g.huruf,
+      no_wa: r.no_wa, kotak: r.kotak, seri_nama: g.nama, huruf: g.huruf,
       sesi_nama: x ? x.nama : null, hari: h ? h.nama : null, tanggal: g.tanggal, jam_mulai: g.jam_mulai, jam_selesai: g.jam_selesai,
     });
   }
@@ -2458,7 +2458,7 @@ const Pub = {
   dataPdfTiket(t) {
     const x = { tanggal: t.tanggal, jam_mulai: t.jam_mulai, jam_selesai: t.jam_selesai };
     return {
-      ev: t.event || {}, nomor: t.nomor_layangan, jenis: t.jenis, sekha: t.nama_sekha, alamat: t.alamat, wa: t.no_wa, kode: t.kode,
+      ev: t.event || {}, nomor: t.nomor_layangan, jenis: t.jenis, sekha: t.nama_sekha, alamat: t.alamat, wa: fmtWA(t.no_wa) || t.no_wa, kode: t.kode,
       hari: t.hari || '-', tanggal: fmtTanggal(t.tanggal) || (t.hari ? `${t.hari} (tanggal menyusul)` : 'Menyusul'),
       seri: t.sesi_nama ? `Seri ${t.sesi_nama} · Grup ${t.huruf}` : (t.seri_nama || '-'), jam: jamText(x) || 'Menyusul', kotak: t.kotak,
     };

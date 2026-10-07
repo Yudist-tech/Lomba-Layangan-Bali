@@ -757,7 +757,7 @@ end;
 $$;
 
 -- Data konfirmasi untuk link PDF yang dikirim lewat WhatsApp (#tiket/KODE).
--- Hanya pendaftaran TERKONFIRMASI; nomor WA disamarkan.
+-- Hanya pendaftaran TERKONFIRMASI.
 create or replace function public.lomba_tiket(p_kode text)
 returns json
 language plpgsql
@@ -778,7 +778,7 @@ begin
                   from public.lomba_pengaturan st where st.id = 1),
       'kode', p.kode, 'nomor_layangan', p.nomor_layangan, 'jenis', j.nama,
       'nama_sekha', p.nama_sekha, 'alamat', p.alamat,
-      'no_wa', '0' || substr(p.no_wa, 3, 3) || '-****-' || right(p.no_wa, 4),
+      'no_wa', p.no_wa,
       'kotak', p.kotak, 'seri_nama', s.nama, 'huruf', s.huruf, 'sesi_nama', ss.nama, 'hari', h.nama,
       'tanggal', s.tanggal, 'jam_mulai', s.jam_mulai, 'jam_selesai', s.jam_selesai)
     from public.lomba_pendaftaran p
