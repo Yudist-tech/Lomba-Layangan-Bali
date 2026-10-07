@@ -1922,10 +1922,13 @@ function legendaJadwal(o) {
   const isi = c.menunggu + c.terkonfirmasi + c.terisi;
   const kosong = Math.max(0, c.total - c.tutup - isi);
   const n = (v) => `<b style="color:var(--ink)">${angka(v)}</b>`;
+  const status = tampilNomor ? `<span><i style="background:var(--surface)"></i>${n(c.terkonfirmasi)} layangan terkonfirmasi (angka = nomor layangan)</span>
+    <span><i style="background:var(--warn-soft)"></i>${n(c.menunggu)} menunggu konfirmasi</span>` : `<span><i style="background:var(--surface-3)"></i>${n(isi)} layangan terdaftar</span>`;
+  // halaman peserta: cukup yang terkonfirmasi & menunggu; dashboard panitia: lengkap
+  if (!admin) return `<div class="jt-legend">${status}</div>`;
   return `<div class="jt-legend">
-    <span><i></i>${n(kosong)} kotak kosong${admin ? ' (klik untuk menutup)' : ''}</span>
-    ${tampilNomor ? `<span><i style="background:var(--warn-soft)"></i>${n(c.menunggu)} menunggu verifikasi</span>
-    <span><i style="background:var(--surface)"></i>${n(c.terkonfirmasi)} layangan terkonfirmasi (angka = nomor layangan)</span>` : `<span><i style="background:var(--surface-3)"></i>${n(isi)} kotak sudah terisi</span>`}
+    ${status}
+    <span><i></i>${n(kosong)} kotak kosong (klik untuk menutup)</span>
     <span><i style="background:var(--ink)"></i>${n(c.tutup)} kotak ditutup panitia</span>
   </div>`;
 }
