@@ -203,6 +203,9 @@ fieldset.field > legend { padding: 0; margin-bottom: 8px; }
 .label { font-weight: 700; font-size: 14px; color: var(--ink); }
 .label .opt-lbl { font-weight: 500; color: var(--muted); }
 .hint { font-size: 13px; color: var(--muted); }
+.input-rp { position: relative; }
+.input-rp > span { position: absolute; left: 13px; top: 50%; transform: translateY(-50%); color: var(--muted); font-weight: 700; pointer-events: none; }
+.input-rp > .input { padding-left: 42px; font-variant-numeric: tabular-nums; }
 .input {
   width: 100%; min-height: 48px; padding: 11px 13px; font-size: 16px;
   border: 1px solid var(--line-strong); border-radius: 11px; background: var(--surface); color: var(--ink);
@@ -1972,6 +1975,24 @@ function logoMerek() {
   return u ? `<div class="brand-logo has-img"><img src="${esc(u)}" alt="Logo"></div>` : `<div class="brand-logo">${KITE_LOGO}</div>`;
 }
 function ingatLogo(url) { Adm.s.logo = url || ''; simpanLokal(LOGO_KEY, Adm.s.logo); }
+/* Input uang (Rupiah): tampil "100.000", disimpan sebagai angka bulat 100000 */
+const fmtRibuan = (n) => (n === '' || n == null || isNaN(n) ? '' : Number(n).toLocaleString('id-ID', { maximumFractionDigits: 0 }));
+function angkaRupiah(teks) {
+  const d = String(teks || '').replace(/\D/g, '');
+  return d ? Number(d) : NaN;
+}
+function inputRupiah(id, nilai) {
+  return `<div class="input-rp"><span aria-hidden="true">Rp</span><input class="input" type="text" inputmode="numeric" autocomplete="off" id="${id}" name="harga" value="${esc(fmtRibuan(nilai))}" data-in="rupiah" placeholder="0"></div>`;
+}
+IN['rupiah'] = (el) => {
+  const pos = el.selectionStart == null ? el.value.length : el.selectionStart;
+  const digitSebelum = el.value.slice(0, pos).replace(/\D/g, '').length;
+  const d = el.value.replace(/\D/g, '').replace(/^0+(?=\d)/, '').slice(0, 9);
+  el.value = d ? fmtRibuan(Number(d)) : '';
+  let p = 0, n = 0;
+  while (p < el.value.length && n < digitSebelum) { if (/\d/.test(el.value[p])) n++; p++; }
+  try { el.setSelectionRange(p, p); } catch (e) { /* abaikan */ }
+};
 /* Field input standar. o.hint boleh berisi HTML (dari kode sendiri, bukan data pengguna). */
 function fieldInput(o) {
   const id = o.id || 'f-' + o.name;
@@ -3548,7 +3569,7 @@ const Adm = {
       <p class="lead">Harga baru berlaku untuk pendaftaran berikutnya; pendaftaran lama tetap memakai harga saat mendaftar.</p>
       <div class="field"><label class="label" for="jn-nama">Nama jenis</label><input class="input" id="jn-nama" name="nama" value="${esc(j.nama)}" maxlength="40" required></div>
       <div class="g2">
-        <div class="field"><label class="label" for="jn-harga">Harga (Rp)</label><input class="input" type="number" inputmode="numeric" min="0" step="1000" id="jn-harga" name="harga" value="${esc(j.harga)}"></div>
+        <div class="field"><label class="label" for="jn-harga">Harga</label>${inputRupiah('jn-harga', j.harga)}</div>
         <div class="field"><label class="label" for="jn-urut">Urutan tampil</label><input class="input" type="number" inputmode="numeric" min="0" max="999" id="jn-urut" name="urutan" value="${esc(j.urutan)}"></div>
       </div>
       <label class="switch"><input type="checkbox" name="aktif" ${j.aktif ? 'checked' : ''}><span class="sw"></span>Jenis ini dibuka untuk pendaftaran</label>
@@ -3633,7 +3654,7 @@ const Adm = {
         <input class="input" id="g-jenis" name="jenis" list="g-jenis-list" value="${esc(v.jenis)}" maxlength="40" autocomplete="off" data-in="adm.grupJenis" ${adaPeserta ? 'disabled' : ''}>
         <datalist id="g-jenis-list">${d.jenis.map((y) => `<option value="${esc(y.nama)}">`).join('')}</datalist>
         <span class="hint" id="g-jenis-hint">${adaPeserta ? 'Terkunci: grup ini sudah punya pendaftar.' : 'Pilih dari daftar atau ketik jenis baru.'}</span></div>
-      <div class="field" id="g-harga-wrap" hidden><label class="label" for="g-harga">Harga jenis baru (Rp)</label><input class="input" type="number" inputmode="numeric" min="0" step="1000" id="g-harga" name="harga"><span class="hint">Jenis baru akan dibuat. Harga bisa diubah nanti di menu Jenis Layangan.</span></div>
+      <div class="field" id="g-harga-wrap" hidden><label class="label" for="g-harga">Harga jenis baru</label>${inputRupiah('g-harga', '')}<span class="hint">Jenis baru akan dibuat. Harga bisa diubah nanti di menu Jenis Layangan.</span></div>
       <div class="g2">
         <div class="field"><label class="label" for="g-huruf">Grup</label><input class="input" id="g-huruf" name="huruf" value="${esc(v.huruf)}" maxlength="3" style="text-transform:uppercase"></div>
         <div class="field"><label class="label" for="g-kotak">Jumlah kotak</label><input class="input" type="number" inputmode="numeric" min="1" max="200" id="g-kotak" name="kotak" value="${esc(v.kotak)}"><span class="hint">${KOLOM_JADWAL} kotak per baris. Kotak ditutup: ${g && g.tutup.length ? g.tutup.join(', ') : 'tidak ada'}</span></div>
@@ -4209,7 +4230,7 @@ CH['adm.jenisAktif'] = async (el) => {
 };
 SUB['adm.simpanJenis'] = async (form) => {
   const kode = form.dataset.kode, d = Adm.s.data, v = (n) => String(form[n].value).trim();
-  const isi = { nama: v('nama'), harga: v('harga') === '' ? NaN : Number(v('harga')), urutan: v('urutan') === '' ? 0 : Number(v('urutan')), aktif: form.aktif.checked };
+  const isi = { nama: v('nama'), harga: angkaRupiah(v('harga')), urutan: v('urutan') === '' ? 0 : Number(v('urutan')), aktif: form.aktif.checked };
   if (!isi.nama) return toast('Isi nama jenis layangan.', 'bad');
   if (!Number.isInteger(isi.harga) || isi.harga < 0) return toast('Harga harus berupa angka (Rp).', 'bad');
   if (!Number.isInteger(isi.urutan) || isi.urutan < 0 || isi.urutan > 999) return toast('Urutan harus angka 0–999.', 'bad');
@@ -4326,7 +4347,7 @@ SUB['adm.simpanGrup'] = async (form) => {
   let jenis = namaJenis ? cariJenisNama(namaJenis) : null;
   let hargaBaru = null;
   if (namaJenis && !jenis) {
-    hargaBaru = v('harga') === '' ? NaN : Number(v('harga'));
+    hargaBaru = angkaRupiah(v('harga'));
     if (!Number.isInteger(hargaBaru) || hargaBaru < 0) { const w = $('#g-harga-wrap'); if (w) w.hidden = false; $('#g-harga') && $('#g-harga').focus(); return toast(`Isi harga untuk jenis baru "${namaJenis}".`, 'bad'); }
   }
   if (lama) {
