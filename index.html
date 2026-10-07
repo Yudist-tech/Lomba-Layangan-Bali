@@ -376,6 +376,8 @@ textarea.input { min-height: 88px; resize: vertical; line-height: 1.45; }
 .drop.has:hover { background: var(--surface-2); border-color: var(--line-strong); }
 .drop .thumb { width: 64px; height: 64px; border-radius: 10px; object-fit: cover; flex: none; background: var(--surface-3); display: grid; place-items: center; }
 .drop .thumb .ico { width: 26px; height: 26px; color: var(--ink-2); }
+.drop-alt { display: inline-flex; align-items: center; gap: 6px; margin-top: 8px; font-size: 13.5px; font-weight: 600; color: var(--brand); cursor: pointer; }
+.drop-alt .ico { width: 16px; height: 16px; }
 .drop-info { flex: 1; min-width: 0; display: flex; flex-direction: column; }
 .drop-info b { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 input[type="file"].sr-only:focus-visible + .drop, input[type="file"].sr-only:focus-visible + .drop-wrap .drop { outline: 2px solid var(--brand); outline-offset: 2px; }
@@ -2375,11 +2377,13 @@ const Pub = {
   },
   vKotakFile() {
     const s = this.s;
-    if (!s.file) return `<label for="f-file" class="drop">${ico('upload')}<b>Pilih file bukti transfer</b><span class="hint">Ketuk untuk memilih dari galeri atau file</span></label>`;
-    const gambar = s.file.type.startsWith('image/') && s.fileUrl;
-    return `<div class="drop has">${gambar ? `<img class="thumb" src="${esc(s.fileUrl)}" alt="Pratinjau bukti transfer">` : `<span class="thumb">${ico('file')}</span>`}
+    if (!s.file) return `<label for="f-file" class="drop">${ico('upload')}<b>Pilih foto bukti transfer</b><span class="hint">Ketuk untuk memilih dari galeri atau screenshot</span></label>
+      <label for="f-file-pdf" class="drop-alt">${ico('file')} Bukti berupa PDF? Pilih file PDF</label>`;
+    const pdf = s.file.type === 'application/pdf';
+    const thumb = s.fileUrl ? `<img class="thumb" src="${esc(s.fileUrl)}" alt="Pratinjau bukti transfer" decoding="async">` : `<span class="thumb">${ico(pdf ? 'file' : 'upload')}</span>`;
+    return `<div class="drop has">${thumb}
       <span class="drop-info"><b>${esc(s.file.name)}</b><span class="hint">${ukuranFile(s.file.size)}</span></span>
-      <label for="f-file" class="btn btn-sm">Ganti</label></div>`;
+      <label for="${pdf ? 'f-file-pdf' : 'f-file'}" class="btn btn-sm">Ganti</label></div>`;
   },
   vBayar() {
     const s = this.s, f = s.form, e = s.errors, j = this.jenisDipilih(), x = this.seriDipilih();
@@ -2393,7 +2397,8 @@ const Pub = {
         ${fieldInput({ name: 'nama_rekening', label: 'Nama pemilik rekening (pengirim)', value: f.nama_rekening, placeholder: 'Nama sesuai rekening yang dipakai transfer', maxlength: 120, autocomplete: 'name', err: e.nama_rekening, data: 'data-in="pub.f"' })}
         <div class="field ${e.file ? 'err' : ''}" id="wrap-file">
           <span class="label" id="lbl-file">Bukti transfer</span>
-          <input type="file" id="f-file" class="sr-only" accept="image/*,application/pdf" data-ch="pub.file" aria-labelledby="lbl-file">
+          <input type="file" id="f-file" class="sr-only" accept="image/*" data-ch="pub.file" aria-labelledby="lbl-file">
+          <input type="file" id="f-file-pdf" class="sr-only" accept="application/pdf,.pdf" data-ch="pub.file" aria-label="Pilih file PDF bukti transfer">
           ${this.vKotakFile()}
           <span class="hint">Foto atau screenshot bukti transfer (JPG/PNG) atau PDF.</span>
           ${errMsg(e.file)}
@@ -2753,10 +2758,21 @@ CH['pub.file'] = (el) => {
   if (gambar && file.size > 15 * 1048576) { s.errors.file = 'Foto maksimal 15 MB.'; Pub.render(); return; }
   Pub.hapusFile();
   s.file = pdf && file.type !== 'application/pdf' ? new File([file], file.name, { type: 'application/pdf' }) : file;
-  s.fileUrl = gambar ? URL.createObjectURL(file) : null;
+  s.fileUrl = null;
   s.ref = null; s.sendErr = null;
   delete s.errors.file;
+  el.value = '';
   Pub.render();
+  // pratinjau kecil dibuat di belakang layar agar foto besar dari kamera HP tidak membuat halaman tersendat
+  if (gambar && !pdf) {
+    const pilihan = s.file;
+    kompresGambar(file, 200, 0.7).then((b) => {
+      if (Pub.s.file !== pilihan) return;
+      Pub.s.fileUrl = URL.createObjectURL(b);
+      const t = $('#wrap-file .thumb');
+      if (t) t.outerHTML = `<img class="thumb" src="${esc(Pub.s.fileUrl)}" alt="Pratinjau bukti transfer">`;
+    }).catch(() => { /* pratinjau gagal: ikon tetap tampil */ });
+  }
 };
 ACT['pub.kembali'] = () => {
   const s = Pub.s;
