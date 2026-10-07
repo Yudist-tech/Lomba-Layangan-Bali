@@ -758,6 +758,11 @@ code { font-family: ui-monospace, Menlo, Consolas, monospace; font-size: .92em; 
 .jt .k > button:hover { box-shadow: inset 0 0 0 2px var(--brand); }
 .jt .k > button:focus-visible { box-shadow: inset 0 0 0 2px var(--brand); }
 .jt tr.off .k:not(.tutup), .jt tr.off .jt-jenis { opacity: .5; }
+.jt .k.isi > button { font-weight: 700; color: inherit; }
+.peserta-pop h3 { margin: 4px 0 10px; font-size: 20px; }
+.pp-no { display: inline-flex; flex-direction: column; background: var(--brand-soft); color: var(--brand-soft-ink); border-radius: 12px; padding: 8px 14px; }
+.pp-no span { font-size: 12px; font-weight: 700; }
+.pp-no b { font-size: 26px; line-height: 1.1; font-variant-numeric: tabular-nums; }
 .jt-legend { display: flex; gap: 6px 16px; flex-wrap: wrap; font-size: 12.5px; color: var(--muted); margin: 10px 2px 0; }
 .jt-legend span { display: inline-flex; align-items: center; gap: 6px; }
 .jt-legend i { display: inline-block; width: 16px; height: 16px; border: 1px solid var(--line-strong); border-radius: 3px; }
@@ -1488,10 +1493,11 @@ class DemoAPI {
       seri: seri.map((s) => ({
         ...s,
         terisi: db.daftar.filter((d) => d.seri_id === s.id && AKTIF(d.status)).length,
-        isi: db.daftar.filter((d) => d.seri_id === s.id && AKTIF(d.status) && d.kotak).map((d) => d.kotak).sort((a, b) => a - b),
+        isi: db.daftar.filter((d) => d.seri_id === s.id && AKTIF(d.status) && d.kotak).sort((a, b) => a.kotak - b.kotak)
+          .map((d) => ({ kotak: d.kotak, status: d.status, nomor: d.status === 'terkonfirmasi' ? d.nomor_layangan : null })),
         peserta: st.tampilkan_peserta
-          ? db.daftar.filter((d) => d.seri_id === s.id && d.status === 'terkonfirmasi')
-            .sort((a, b) => (a.kotak || 1e9) - (b.kotak || 1e9)).map((d) => ({ nomor: d.nomor_layangan, sekha: d.nama_sekha, kotak: d.kotak }))
+          ? db.daftar.filter((d) => d.seri_id === s.id && d.status === 'terkonfirmasi' && d.kotak).sort((a, b) => a.kotak - b.kotak)
+            .map((d) => ({ kotak: d.kotak, nomor: d.nomor_layangan, sekha: d.nama_sekha, alamat: d.alamat }))
           : null,
       })),
       waktu_server: new Date().toISOString(),
@@ -1897,6 +1903,8 @@ function tabelJadwal(o) {
           const tunggu = p.status === 'menunggu';
           const teks = p.nomor != null ? esc(p.nomor) : '';
           if (admin) tr += `<td class="k isi ${tunggu ? 'tunggu' : ''}"><button type="button" data-act="adm.buka" data-id="${esc(p.id)}" aria-label="Kotak ${k}: nomor ${teks || '-'}${tunggu ? ' (menunggu verifikasi)' : ''}">${teks || '•'}</button></td>`;
+          else if (tunggu) tr += '<td class="k isi tunggu"></td>';
+          else if (p.sekha) tr += `<td class="k isi"><button type="button" data-act="pub.peserta" data-id="${g.id}" data-k="${k}" aria-label="Nomor ${teks}: lihat nama sekha">${teks || '•'}</button></td>`;
           else tr += `<td class="k isi ${p.status === 'terisi' ? 'anon' : tunggu ? 'tunggu' : ''}">${teks}</td>`;
         });
         if (b === 0) tr += `<td class="jt-tot" rowspan="${barisGrup[gi]}">${nIsi}<small>/ ${g.kuota}</small></td>`;
@@ -2374,16 +2382,17 @@ const Pub = {
     const grup = this.grupJadwal();
     const isi = (g) => {
       const m = new Map();
-      (g.isi || []).forEach((k) => m.set(k, { status: ev.tampilkan_peserta ? 'menunggu' : 'terisi', nomor: null }));
-      if (ev.tampilkan_peserta) (g.peserta || []).forEach((p) => { if (p.kotak) m.set(p.kotak, { status: 'terkonfirmasi', nomor: p.nomor }); });
+      // isi = [{kotak, nomor, status}] (database terbaru) atau [kotak] (database lama)
+      (g.isi || []).forEach((x) => { if (typeof x === 'object' && x) m.set(x.kotak, { status: x.status, nomor: x.nomor }); else m.set(x, { status: 'terisi', nomor: null }); });
+      (g.peserta || []).forEach((p) => { if (!p.kotak) return; const a = m.get(p.kotak) || { status: 'terkonfirmasi' }; m.set(p.kotak, { ...a, nomor: p.nomor || a.nomor, sekha: p.sekha, alamat: p.alamat, grup: g.id }); });
       return m;
     };
     return `<section class="card">
       <h2 class="h2">Jadwal terbang</h2>
-      <p class="lead">Kotak terisi sejak formulir dikirim, termasuk yang masih menunggu verifikasi.${ev.tampilkan_peserta ? ' Angka di kotak adalah nomor layangan yang sudah terkonfirmasi.' : ''} Geser tabel ke samping untuk melihat semua kotak.</p>
+      <p class="lead">Angka di kotak adalah nomor layangan yang sudah terkonfirmasi. Kotak kuning sudah terisi tetapi masih menunggu konfirmasi panitia.${ev.tampilkan_peserta ? ' Ketuk nomor untuk melihat nama sekha dan alamat.' : ''} Geser tabel ke samping untuk melihat semua kotak.</p>
       ${hari.length ? hari.map((h) => `<div class="jt-hari"><div class="jt-hari-h"><h3>${esc(h.nama)}</h3>${h.tanggal ? `<span class="muted">${esc(fmtTanggal(h.tanggal))}</span>` : ''}</div>
         ${tabelJadwal({ hari: h, sesi: info.sesi || [], grup, jenis: info.jenis, kotakIsi: isi, admin: false })}
-        ${legendaJadwal({ hari: h, sesi: info.sesi || [], grup, kotakIsi: isi, admin: false, tampilNomor: !!ev.tampilkan_peserta })}</div>`).join('')
+        ${legendaJadwal({ hari: h, sesi: info.sesi || [], grup, kotakIsi: isi, admin: false, tampilNomor: !grup.some((g) => (g.isi || []).some((x) => typeof x !== 'object')) })}</div>`).join('')
         : '<div class="empty">Jadwal terbang belum tersedia.</div>'}
       ${ev.pendaftaran_buka ? `<div class="actions"><a class="btn btn-primary" href="#daftar">${ico('edit')} Daftar sekarang</a></div>` : ''}
     </section>`;
@@ -2573,6 +2582,20 @@ IN['pub.f'] = (el) => {
   Pub.simpanDraft();
 };
 IN['pub.cekWa'] = (el) => { Pub.s.cekWa = el.value; };
+ACT['pub.peserta'] = (el) => {
+  const info = Pub.s.info, g = info.seri.find((x) => x.id === Number(el.dataset.id)), k = Number(el.dataset.k);
+  const p = g && (g.peserta || []).find((x) => x.kotak === k);
+  if (!p) return;
+  const j = info.jenis.find((x) => x.kode === g.jenis);
+  Overlay.modal(`<div class="peserta-pop">
+    <div class="pp-no"><span>Nomor layangan</span><b>${esc(p.nomor || '-')}</b></div>
+    <h3>${esc(p.sekha)}</h3>
+    <dl class="kv"><dt>Alamat</dt><dd>${nl2br(p.alamat || '-')}</dd>
+      <dt>Jenis</dt><dd>${esc((j && j.nama) || g.jenis)}</dd>
+      <dt>Jadwal</dt><dd>${esc(Pub.labelGrup(g))} · kotak ${k}<div class="sub">${esc(jadwalText(g))}</div></dd>
+      <dt>Status</dt><dd>${badgeStatus('terkonfirmasi')}</dd></dl>
+    <div class="actions end"><button type="button" class="btn btn-primary" data-act="ovl.tutup">Tutup</button></div></div>`);
+};
 IN['pub.nomor'] = (el) => {
   Pub.s.form.nomor_layangan = el.value; Pub.s.ref = null;
   if (Pub.s.errors.nomor_layangan && normNomor(el.value)) {
@@ -3573,7 +3596,8 @@ ${rows.map((r, i) => `<tr><td class="n">${i + 1}</td><td class="no">${esc(r.nomo
       <form class="panel" data-submit="adm.setDaftar" novalidate><div class="panel-h"><h3>Status pendaftaran</h3></div>
         <label class="switch" style="margin-bottom:14px"><input type="checkbox" name="pendaftaran_buka" ${ev.pendaftaran_buka ? 'checked' : ''}><span class="sw"></span>Pendaftaran online dibuka</label>
         ${fieldInput({ id: 'p-batas', name: 'batas_daftar', label: 'Tutup otomatis pada', value: batas, type: 'datetime-local', opsional: true, hint: `Waktu ${CONFIG.ZONA_WAKTU}. Kosongkan jika tidak ada batas.` })}
-        <label class="switch"><input type="checkbox" name="tampilkan_peserta" ${ev.tampilkan_peserta ? 'checked' : ''}><span class="sw"></span>Tampilkan daftar peserta terkonfirmasi (nomor + nama sekha) di halaman Jadwal</label>
+        <label class="switch"><input type="checkbox" name="tampilkan_peserta" ${ev.tampilkan_peserta ? 'checked' : ''}><span class="sw"></span>Tampilkan nama sekha & alamat saat nomor di halaman Jadwal diklik</label>
+        <p class="hint" style="margin:6px 0 0">Nomor layangan selalu tampil di jadwal. Opsi ini hanya mengatur pop-up nama sekha & alamat.</p>
         <div class="actions end"><button class="btn btn-primary btn-sm" type="submit">Simpan</button></div></form>
       <form class="panel" data-submit="adm.setBank" novalidate><div class="panel-h"><h3>Rekening pembayaran</h3></div>
         ${fieldInput({ id: 'p-bank', name: 'bank_nama', label: 'Nama bank', value: ev.bank_nama, maxlength: 60 })}

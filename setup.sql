@@ -551,15 +551,20 @@ as $$
                'kuota', s.kuota, 'aktif', s.aktif, 'catatan', s.catatan,
                'sesi_id', s.sesi_id, 'huruf', s.huruf, 'kotak', s.kotak, 'tutup', s.tutup,
                'terisi', coalesce(h.terisi, 0),
-               'isi', (select coalesce(json_agg(p.kotak order by p.kotak), '[]'::json)
+               -- kotak terisi selalu tampil; nomor hanya untuk yang sudah terkonfirmasi
+               'isi', (select coalesce(json_agg(json_build_object('kotak', p.kotak, 'status', p.status,
+                                                                  'nomor', case when p.status = 'terkonfirmasi' then p.nomor_layangan end)
+                                                order by p.kotak), '[]'::json)
                          from public.lomba_pendaftaran p
                         where p.seri_id = s.id and p.kotak is not null
                           and p.status in ('menunggu', 'terkonfirmasi')),
+               -- nama sekha & alamat (pop-up saat nomor diklik) hanya bila opsi "tampilkan peserta" aktif
                'peserta', case when (select tampilkan_peserta from st) then (
-                   select coalesce(json_agg(json_build_object('nomor', p.nomor_layangan, 'sekha', p.nama_sekha, 'kotak', p.kotak)
-                                            order by p.kotak nulls last, p.nomor_urut nulls last, p.nama_sekha), '[]'::json)
+                   select coalesce(json_agg(json_build_object('kotak', p.kotak, 'nomor', p.nomor_layangan,
+                                                              'sekha', p.nama_sekha, 'alamat', p.alamat)
+                                            order by p.kotak), '[]'::json)
                    from public.lomba_pendaftaran p
-                   where p.seri_id = s.id and p.status = 'terkonfirmasi'
+                   where p.seri_id = s.id and p.kotak is not null and p.status = 'terkonfirmasi'
                  ) end)
              order by s.tanggal nulls last, s.jam_mulai nulls last, s.urutan, s.id)
       from public.lomba_seri s
