@@ -99,7 +99,10 @@ Simpan, buka lagi di browser. Banner kuning **MODE DEMO** hilang = sudah tersamb
 
 1. Peserta mengisi 3 langkah: **Data (jenis, seri & grup, nomor layangan, sekha) → Konfirmasi (tampil biaya & rekening) → Upload bukti transfer**. Status awal *Menunggu*, dan kotak di jadwal langsung terpakai (warna kuning).
 2. Dashboard → **Verifikasi**: cocokkan bukti transfer dengan tagihan → **Konfirmasi pembayaran** → nomor layangan tampil di tabel jadwal.
-3. Klik **Kirim WA konfirmasi** → WhatsApp terbuka dengan pesan sudah terisi → tekan Kirim → kembali ke dashboard → **Berikutnya**.
+3. Klik **Kirim PDF via WA** → PDF konfirmasi (A5: logo, nomor layangan, data sekha, jadwal terbang) dibuat otomatis.
+   - **HP**: tekan **Bagikan ke WhatsApp** → pilih WhatsApp → pilih kontak peserta. PDF + pesan ikut terkirim.
+   - **Laptop**: tekan **Unduh PDF + buka chat WA** → seret file PDF yang terunduh ke chat WhatsApp peserta → kirim.
+   - Tombol **Teks saja** untuk mengirim pesan konfirmasi tanpa PDF. PDF tidak disimpan di server (tidak memakai penyimpanan Supabase).
 4. Bukti bermasalah → **Tolak** + alasan → **Kirim WA penolakan**. Kotak dan nomor layangannya dilepas otomatis.
 5. Peserta bayar tunai di tempat → Pendaftaran → **Tambah manual**.
 6. Spam/pendaftaran palsu → filter *Menunggu* → **Tolak massal…**

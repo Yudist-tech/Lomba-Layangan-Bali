@@ -3298,6 +3298,7 @@ const Adm = {
           ${r.status === 'terkonfirmasi' ? `<button class="btn btn-sm" data-act="adm.batalKonfirmasi" data-id="${esc(r.id)}">${ico('undo')} Batalkan konfirmasi</button><button class="btn btn-sm" data-act="adm.tolak" data-id="${esc(r.id)}">${ico('x')} Tolak</button>` : ''}
           ${r.status === 'ditolak' ? `<button class="btn btn-sm" data-act="adm.pulihkan" data-id="${esc(r.id)}">${ico('undo')} Pulihkan ke menunggu</button>` : ''}
           ${r.status !== 'menunggu' ? `<button class="btn btn-sm" data-act="adm.salinWA" data-id="${esc(r.id)}">${ico('copy')} Salin teks WA</button>` : ''}
+          ${r.status === 'terkonfirmasi' ? `<button class="btn btn-sm" data-act="adm.pdfUnduh" data-id="${esc(r.id)}">${ico('download')} Unduh PDF konfirmasi</button>` : ''}
           <a class="btn btn-sm" href="${esc(waLink(r.no_wa))}" target="_blank" rel="noopener">${ico('chat')} Chat peserta</a>
           <button class="btn btn-sm btn-danger" data-act="adm.hapus" data-id="${esc(r.id)}">${ico('trash')} Hapus</button>
         </div></div>
@@ -3312,10 +3313,22 @@ const Adm = {
     const sudah = !!r.wa_terkirim_at;
     const label = r.status === 'terkonfirmasi' ? (sudah ? 'Kirim ulang WA konfirmasi' : 'Kirim WA konfirmasi') : (sudah ? 'Kirim ulang WA penolakan' : 'Kirim WA penolakan');
     return `<div class="drawer-f">
-      <a class="btn ${sudah ? '' : r.status === 'terkonfirmasi' ? 'btn-good' : 'btn-primary'}" href="${esc(waLink(r.no_wa, this.pesanWA(r)))}" target="_blank" rel="noopener" data-act="adm.waTerkirim" data-id="${esc(r.id)}">${ico('chat')} ${label}</a>
+      ${r.status === 'terkonfirmasi' ? `<button class="btn ${sudah ? '' : 'btn-good'}" data-act="adm.pdfWA" data-id="${esc(r.id)}">${ico('file')} ${sudah ? 'Kirim ulang PDF via WA' : 'Kirim PDF via WA'}</button>
+      <a class="btn" href="${esc(waLink(r.no_wa, this.pesanWA(r)))}" target="_blank" rel="noopener" data-act="adm.waTerkirim" data-id="${esc(r.id)}" title="Kirim teks konfirmasi saja">${ico('chat')} Teks saja</a>`
+      : `<a class="btn ${sudah ? '' : 'btn-primary'}" href="${esc(waLink(r.no_wa, this.pesanWA(r)))}" target="_blank" rel="noopener" data-act="adm.waTerkirim" data-id="${esc(r.id)}">${ico('chat')} ${label}</a>`}
       ${next ? `<button class="btn" data-act="adm.nav" data-id="${esc(next)}">Berikutnya ${ico('arrow-r')}</button>` : ''}
     </div>`;
   },
+  dataPdf(r) {
+    const ev = this.s.data.pengaturan, x = this.idx.seri.get(r.seri_id), j = this.idx.jenis.get(r.jenis);
+    const sesi = x && x.sesi_id && this.idx.sesi.get(x.sesi_id), hari = sesi && this.idx.hari.get(sesi.hari_id);
+    return {
+      ev, nomor: r.nomor_layangan, jenis: (j && j.nama) || r.jenis, sekha: r.nama_sekha, alamat: r.alamat, wa: fmtWA(r.no_wa), kode: r.kode,
+      hari: hari ? hari.nama : '-', tanggal: fmtTanggal(x && x.tanggal) || (hari ? `${hari.nama} (tanggal menyusul)` : 'Menyusul'), seri: sesi ? `Seri ${sesi.nama} · Grup ${x.huruf}` : ((x && x.nama) || '-'),
+      jam: jamText(x) || 'Menyusul', kotak: r.kotak,
+    };
+  },
+  namaPdf(r) { return `Konfirmasi-${String(r.nomor_layangan || r.kode).replace(/[^\w-]+/g, '')}-${String(r.nama_sekha).replace(/[^\w]+/g, '-').replace(/^-|-$/g, '').slice(0, 40)}.pdf`; },
   pesanWA(r, tpl) {
     const ev = this.s.data.pengaturan;
     const t = tpl != null ? tpl : r.status === 'ditolak' ? (ev.template_wa_tolak || TEMPLATE_WA.tolak) : (ev.template_wa_konfirmasi || TEMPLATE_WA.konfirmasi);
@@ -3771,6 +3784,112 @@ ${rows.map((r, i) => `<tr><td class="n">${i + 1}</td><td class="no">${esc(r.nomo
 };
 
 const SRI_XLSX = 'sha384-vtjasyidUo0kW94K5MXDXntzOJpQgBKXmE7e2Ga4LG0skTTLeBi97eFAXsqewJjw';
+/* =====================================================================
+   PDF KONFIRMASI — kartu digambar di canvas lalu dibungkus jadi PDF A5
+   (tanpa pustaka luar; tidak disimpan di server)
+   ===================================================================== */
+function bungkusPdfJpeg(jpeg, wPx, hPx) {
+  const enc = new TextEncoder(), parts = [], offs = [];
+  let len = 0;
+  const tulis = (x) => { const b = typeof x === 'string' ? enc.encode(x) : x; parts.push(b); len += b.length; };
+  const W = 419.53, H = 595.28; // A5 dalam point
+  const isi = `q ${W} 0 0 ${H} 0 0 cm /Im0 Do Q`;
+  tulis('%PDF-1.4\n%\xE2\xE3\xCF\xD3\n');
+  const obj = (n, body) => { offs[n] = len; tulis(`${n} 0 obj\n`); body(); tulis('\nendobj\n'); };
+  obj(1, () => tulis('<< /Type /Catalog /Pages 2 0 R >>'));
+  obj(2, () => tulis('<< /Type /Pages /Kids [3 0 R] /Count 1 >>'));
+  obj(3, () => tulis(`<< /Type /Page /Parent 2 0 R /MediaBox [0 0 ${W} ${H}] /Resources << /XObject << /Im0 4 0 R >> >> /Contents 5 0 R >>`));
+  obj(4, () => { tulis(`<< /Type /XObject /Subtype /Image /Width ${wPx} /Height ${hPx} /ColorSpace /DeviceRGB /BitsPerComponent 8 /Filter /DCTDecode /Length ${jpeg.length} >>\nstream\n`); tulis(jpeg); tulis('\nendstream'); });
+  obj(5, () => tulis(`<< /Length ${isi.length} >>\nstream\n${isi}\nendstream`));
+  const xref = len;
+  tulis(`xref\n0 6\n0000000000 65535 f \n${[1, 2, 3, 4, 5].map((n) => String(offs[n]).padStart(10, '0') + ' 00000 n \n').join('')}`);
+  tulis(`trailer\n<< /Size 6 /Root 1 0 R >>\nstartxref\n${xref}\n%%EOF\n`);
+  return new Blob(parts, { type: 'application/pdf' });
+}
+async function muatGambarAman(url) {
+  const u = urlGambarAman(url);
+  if (!u) return null;
+  try {
+    const src = u.startsWith('data:') ? u : URL.createObjectURL(await (await fetch(u, { mode: 'cors' })).blob());
+    const img = new Image();
+    await new Promise((ok, gagal) => { img.onload = ok; img.onerror = gagal; img.src = src; });
+    return img;
+  } catch (e) { return null; }
+}
+function bungkusTeks(ctx, teks, lebar) {
+  const kata = String(teks || '').split(/\s+/), baris = [];
+  let b = '';
+  for (const k of kata) {
+    const coba = b ? b + ' ' + k : k;
+    if (ctx.measureText(coba).width > lebar && b) { baris.push(b); b = k; } else b = coba;
+  }
+  if (b) baris.push(b);
+  return baris.length ? baris : [''];
+}
+async function buatPdfKonfirmasi(d) {
+  // d = { ev, nomor, jenis, sekha, alamat, wa, kode, hari, tanggal, seri, jam, kotak }
+  try { await document.fonts.ready; } catch (e) { /* abaikan */ }
+  const W = 1050, H = 1490, M = 64, F = "'Plus Jakarta Sans', Arial, Helvetica, sans-serif";
+  const c = document.createElement('canvas'); c.width = W; c.height = H;
+  const x = c.getContext('2d');
+  const font = (px, tebal = 500) => { x.font = `${tebal} ${px}px ${F}`; };
+  const kotakBulat = (X, Y, w, h, r) => { x.beginPath(); x.moveTo(X + r, Y); x.arcTo(X + w, Y, X + w, Y + h, r); x.arcTo(X + w, Y + h, X, Y + h, r); x.arcTo(X, Y + h, X, Y, r); x.arcTo(X, Y, X + w, Y, r); x.closePath(); };
+  x.fillStyle = '#ffffff'; x.fillRect(0, 0, W, H);
+  // kepala
+  const g = x.createLinearGradient(0, 0, W, 240); g.addColorStop(0, '#0a3a6d'); g.addColorStop(1, '#2f86cf');
+  x.fillStyle = g; x.fillRect(0, 0, W, 240);
+  const logo = await muatGambarAman(d.ev.logo_url);
+  let tx = M;
+  if (logo) {
+    x.fillStyle = '#ffffff'; kotakBulat(M, 45, 150, 150, 22); x.fill();
+    const sk = Math.min(126 / logo.naturalWidth, 126 / logo.naturalHeight), lw = logo.naturalWidth * sk, lh = logo.naturalHeight * sk;
+    x.drawImage(logo, M + 75 - lw / 2, 120 - lh / 2, lw, lh);
+    tx = M + 180;
+  }
+  x.fillStyle = '#ffffff'; x.textBaseline = 'alphabetic';
+  font(44, 800);
+  const judul = bungkusTeks(x, d.ev.nama_event || 'Lomba Layangan', W - tx - M).slice(0, 2);
+  let y = judul.length > 1 ? 95 : 115;
+  judul.forEach((t) => { x.fillText(t, tx, y); y += 50; });
+  font(25, 500); x.fillStyle = 'rgba(255,255,255,.88)';
+  x.fillText([d.ev.penyelenggara, d.ev.lokasi].filter(Boolean).join(' · ').slice(0, 70), tx, y + 4);
+  // judul dokumen
+  y = 305; x.fillStyle = '#16181d'; font(40, 800); x.fillText('KONFIRMASI PENDAFTARAN', M, y);
+  font(25, 500); x.fillStyle = '#474a53'; x.fillText('Pembayaran sudah diterima. Layangan Anda resmi terdaftar.', M, y + 42);
+  font(22, 800); const pill = 'TERDAFTAR', pw = x.measureText(pill).width + 40;
+  x.fillStyle = '#e6f5e8'; kotakBulat(W - M - pw, y - 34, pw, 46, 23); x.fill();
+  x.fillStyle = '#0a6b24'; x.fillText(pill, W - M - pw + 20, y - 3);
+  // nomor layangan
+  y = 385; x.fillStyle = '#e8f1fb'; kotakBulat(M, y, W - 2 * M, 260, 26); x.fill();
+  x.textAlign = 'center'; x.fillStyle = '#0b4a8b'; font(24, 800); x.fillText('NOMOR LAYANGAN', W / 2, y + 50);
+  font(140, 800); x.fillText(String(d.nomor || '-'), W / 2, y + 185);
+  font(30, 700); x.fillStyle = '#16181d'; x.fillText(String(d.jenis || '').toUpperCase(), W / 2, y + 235);
+  x.textAlign = 'left';
+  // bagian data
+  const bagian = (judulB, baris, y0) => {
+    font(22, 800); x.fillStyle = '#0e5aa7'; x.fillText(judulB, M, y0);
+    x.fillStyle = '#d2cec3'; x.fillRect(M, y0 + 14, W - 2 * M, 2);
+    let yy = y0 + 58;
+    baris.forEach(([k, v]) => {
+      font(24, 500); x.fillStyle = '#6b6e76'; x.fillText(k, M, yy);
+      font(27, 700); x.fillStyle = '#16181d';
+      const ls = bungkusTeks(x, v || '-', W - M - 330).slice(0, 2);
+      ls.forEach((t, i) => x.fillText(t, 330, yy + i * 34));
+      yy += 20 + ls.length * 34;
+    });
+    return yy;
+  };
+  y = bagian('DATA LAYANGAN', [['Nama sekha', d.sekha], ['Alamat', d.alamat], ['Nomor WhatsApp', d.wa], ['Kode pendaftaran', d.kode]], 705);
+  bagian('JADWAL TERBANG', [['Tanggal', d.tanggal], ['Seri & grup', d.seri], ['Jam terbang', d.jam], ['Posisi di jadwal', d.kotak ? 'Kotak ' + d.kotak : '-']], y + 26);
+  // kaki
+  x.fillStyle = '#efede7'; x.fillRect(0, H - 130, W, 130);
+  font(22, 600); x.fillStyle = '#16181d';
+  bungkusTeks(x, 'Pasang nomor layangan pada layangan dan hadir paling lambat 30 menit sebelum jadwal seri.', W - 2 * M).slice(0, 2).forEach((t, i) => x.fillText(t, M, H - 88 + i * 30));
+  font(19, 500); x.fillStyle = '#6b6e76';
+  x.fillText(`Diterbitkan ${fmtWaktu(new Date().toISOString())} ${CONFIG.ZONA_WAKTU}${d.ev.penyelenggara ? ' · ' + d.ev.penyelenggara : ''}`.slice(0, 90), M, H - 24);
+  const blob = await new Promise((ok, gagal) => c.toBlob((b) => (b ? ok(b) : gagal(new Error('GAMBAR_GAGAL'))), 'image/jpeg', 0.9));
+  return bungkusPdfJpeg(new Uint8Array(await blob.arrayBuffer()), W, H);
+}
 async function muatSheetJS() {
   if (window.XLSX) return window.XLSX;
   for (const src of ['https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js', 'https://unpkg.com/xlsx@0.18.5/dist/xlsx.full.min.js']) {
@@ -3873,6 +3992,72 @@ ACT['adm.waTerkirim'] = (el) => {
   if (!r) return;
   el.href = waLink(r.no_wa, Adm.pesanWA(r));
   Adm.ubah(r.id, { wa_terkirim_at: new Date().toISOString() }, null, false).catch((e) => toast(pesanError(e), 'bad'));
+};
+/* PDF konfirmasi via WhatsApp */
+function unduhBlob(blob, nama) {
+  const url = URL.createObjectURL(blob), a = document.createElement('a');
+  a.href = url; a.download = nama; document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 60000);
+}
+async function siapkanPdf(r) {
+  if (!r.nomor_layangan) throw new Error('Pendaftaran ini belum punya nomor layangan.');
+  const blob = await buatPdfKonfirmasi(Adm.dataPdf(r));
+  return new File([blob], Adm.namaPdf(r), { type: 'application/pdf' });
+}
+ACT['adm.pdfUnduh'] = (el) => sibuk(el, async () => {
+  const r = Adm.baris(el.dataset.id);
+  try { const f = await siapkanPdf(r); unduhBlob(f, f.name); toast('PDF konfirmasi diunduh', 'good'); }
+  catch (e) { toast(pesanError(e), 'bad', 6000); }
+});
+ACT['adm.pdfWA'] = (el) => sibuk(el, async () => {
+  const r = Adm.baris(el.dataset.id);
+  if (!r) return;
+  let file;
+  try { file = await siapkanPdf(r); } catch (e) { toast(pesanError(e), 'bad', 6000); return; }
+  Adm.s.pdfSiap = { id: r.id, file };
+  const bisaBagikan = !!(navigator.canShare && navigator.canShare({ files: [file] }));
+  Overlay.modal(`<div>
+    <h3>PDF konfirmasi siap</h3>
+    <p class="lead">${esc(r.nama_sekha)} · nomor <b>${esc(r.nomor_layangan)}</b> · ${esc(fmtWA(r.no_wa))}</p>
+    <div class="drop has" style="cursor:default"><span class="thumb">${ico('file')}</span><span class="drop-info"><b>${esc(file.name)}</b><span class="hint">${ukuranFile(file.size)} · PDF A5</span></span>
+      <button type="button" class="btn btn-sm" data-act="adm.pdfLihat">${ico('eye')} Lihat</button></div>
+    ${bisaBagikan
+      ? `<p class="hint" style="margin:14px 0 0">Tekan <b>Bagikan ke WhatsApp</b>, pilih WhatsApp, lalu pilih kontak <b>${esc(fmtWA(r.no_wa))}</b>. PDF dan pesan konfirmasi ikut terkirim.</p>`
+      : `<p class="hint" style="margin:14px 0 0">Browser ini tidak bisa melampirkan file langsung ke WhatsApp. Tekan tombol di bawah: PDF akan <b>terunduh</b> dan chat WhatsApp peserta terbuka. Lalu <b>seret file PDF</b> ke chat itu (atau klik ikon klip/➕ → Dokumen) dan kirim.</p>`}
+    <div class="actions end">
+      <button type="button" class="btn" data-act="ovl.tutup">Tutup</button>
+      ${bisaBagikan ? `<button type="button" class="btn" data-act="adm.pdfUnduhWA" data-id="${esc(r.id)}">${ico('download')} Unduh + buka chat</button>
+        <button type="button" class="btn btn-good" data-act="adm.pdfBagikan" data-id="${esc(r.id)}">${ico('share')} Bagikan ke WhatsApp</button>`
+      : `<button type="button" class="btn btn-good" data-act="adm.pdfUnduhWA" data-id="${esc(r.id)}">${ico('download')} Unduh PDF + buka chat WA</button>`}
+    </div></div>`);
+});
+ACT['adm.pdfLihat'] = () => {
+  const f = Adm.s.pdfSiap && Adm.s.pdfSiap.file;
+  if (!f) return;
+  const url = URL.createObjectURL(f), w = window.open(url, '_blank');
+  if (!w) unduhBlob(f, f.name);
+  setTimeout(() => URL.revokeObjectURL(url), 120000);
+};
+const tandaiWA = (r) => Adm.ubah(r.id, { wa_terkirim_at: new Date().toISOString() }, null, false).catch((e) => toast(pesanError(e), 'bad'));
+ACT['adm.pdfBagikan'] = async (el) => {
+  const r = Adm.baris(el.dataset.id), siap = Adm.s.pdfSiap;
+  if (!r || !siap || siap.id !== r.id) return;
+  try {
+    await navigator.share({ files: [siap.file], text: Adm.pesanWA(r) });
+    tandaiWA(r); Overlay.tutupYangBerisi(el); toast('PDF konfirmasi dibagikan', 'good');
+  } catch (e) {
+    if (e && e.name === 'AbortError') return;
+    toast('Gagal membuka menu bagikan. Pakai "Unduh + buka chat".', 'bad', 6000);
+  }
+};
+ACT['adm.pdfUnduhWA'] = (el) => {
+  const r = Adm.baris(el.dataset.id), siap = Adm.s.pdfSiap;
+  if (!r || !siap || siap.id !== r.id) return;
+  unduhBlob(siap.file, siap.file.name);
+  window.open(waLink(r.no_wa, Adm.pesanWA(r) + '\n\n(PDF konfirmasi terlampir)'), '_blank', 'noopener');
+  tandaiWA(r);
+  Overlay.tutupYangBerisi(el);
+  toast(`PDF terunduh (${siap.file.name}). Seret file itu ke chat WhatsApp yang terbuka, lalu kirim.`, 'info', 9000);
 };
 ACT['adm.salinWA'] = (el) => { const r = Adm.baris(el.dataset.id); if (r) salin(Adm.pesanWA(r), 'Teks pesan WA disalin'); };
 ACT['adm.simpanCatatan'] = (el) => sibuk(el, async () => {
