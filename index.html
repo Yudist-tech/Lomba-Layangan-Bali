@@ -444,6 +444,8 @@ input[type="file"].sr-only:focus-visible + .drop, input[type="file"].sr-only:foc
 .bnav { display: none; }
 
 .kpis { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; margin-bottom: 16px; }
+.kpis.kpis-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.kpi .l .ico { width: 16px; height: 16px; flex: none; }
 .kpi { background: var(--surface); border: 1px solid var(--line); border-radius: 15px; padding: 15px 16px; text-align: left; font: inherit; color: inherit; }
 button.kpi { cursor: pointer; transition: border-color .15s; }
 button.kpi:hover { border-color: var(--line-strong); }
@@ -637,6 +639,8 @@ details.tbl-toggle summary { cursor: pointer; font-size: 13px; color: var(--bran
 }
 @media (max-width: 980px) {
   .kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .kpis.kpis-3 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .kpis.kpis-3 .kpi.hi { grid-column: 1 / -1; }
   .grid2, .set-grid { grid-template-columns: minmax(0, 1fr); }
   .row { grid-template-columns: minmax(0, 1fr) auto; grid-template-areas: "st wa" "sekha no" "meta meta"; gap: 4px 12px; padding: 12px 14px; }
   .row.head { display: none; }
@@ -2016,6 +2020,8 @@ function dataTemplate(r, seri, jenis, ev) {
     harga: rupiah(r.harga), alasan: r.alasan_tolak || '-', wa_panitia: fmtWA(ev.wa_admin),
   };
 }
+/* Pendaftaran tanpa bukti transfer = didaftarkan manual oleh panitia (bayar tunai) */
+const caraBayar = (r) => (r.bukti_path ? 'transfer' : 'tunai');
 const isiTemplate = (tpl, data) => String(tpl || '').replace(/\{(\w+)\}/g, (m, k) => (k in data ? String(data[k] ?? '') : m));
 
 /* =====================================================================
@@ -2934,6 +2940,7 @@ const Adm = {
         <div>${this.vKuota()}</div>
         <div>${this.vPerJenis()}<div class="panel">${this.vGrafik()}</div></div>
       </div>
+      ${this.vPemasukan()}
       <div class="panel" style="margin-top:16px"><div class="panel-h"><h3>Pendaftaran terbaru</h3><a class="btn btn-sm" href="#admin/pendaftaran">Lihat semua ${ico('arrow-r')}</a></div>
         ${d.daftar.length ? `<div class="rows">${d.daftar.slice(0, 6).map((r) => this.vRow(r, 'baru')).join('')}</div>` : '<div class="empty">Belum ada pendaftaran. Bagikan link pendaftaran dari menu Pengaturan.</div>'}
       </div>`;
@@ -2971,6 +2978,39 @@ const Adm = {
     return `<div class="panel"><div class="panel-h"><h3>Per jenis layangan</h3></div><div class="tbl-wrap"><table class="tbl">
       <thead><tr><th>Jenis</th><th class="r">Menunggu</th><th class="r">Konfirmasi</th><th class="r hide-sm">Ditolak</th><th class="r">Pemasukan</th></tr></thead>
       <tbody>${rows}</tbody><tfoot><tr><td>Total</td><td class="r">${tot.m}</td><td class="r">${tot.k}</td><td class="r hide-sm">${tot.t}</td><td class="r">${rupiah(tot.u)}</td></tr></tfoot></table></div></div>`;
+  },
+  /* Pemasukan dipisah menurut cara bayar: transfer (ada bukti) vs tunai (daftar manual panitia) */
+  vPemasukan() {
+    const d = this.s.data;
+    const nol = () => ({ n: 0, rp: 0 });
+    const tambah = (o, r) => { o.n++; o.rp += r.harga || 0; };
+    const tot = { tf: nol(), cash: nol(), tfTunggu: nol(), cashTunggu: nol() };
+    const baris = d.jenis.map((j) => {
+      const b = { tf: nol(), cash: nol() };
+      for (const r of d.daftar) {
+        if (r.jenis !== j.kode) continue;
+        const tunai = caraBayar(r) === 'tunai';
+        if (r.status === 'terkonfirmasi') { tambah(tunai ? b.cash : b.tf, r); tambah(tunai ? tot.cash : tot.tf, r); }
+        else if (r.status === 'menunggu') tambah(tunai ? tot.cashTunggu : tot.tfTunggu, r);
+      }
+      return { j, ...b };
+    }).filter((x) => x.tf.n || x.cash.n);
+    const sel = (o) => `<td class="r">${o.n ? `${rupiah(o.rp)}<div class="hint">${o.n} layangan</div>` : '<span class="muted">—</span>'}</td>`;
+    const total = tot.tf.rp + tot.cash.rp;
+    const pct = (x) => (total ? Math.round((x / total) * 100) : 0);
+    return `<div class="panel" style="margin-top:16px"><div class="panel-h"><h3>Pemasukan per cara bayar</h3><span class="hint">Hanya pendaftaran terkonfirmasi</span></div>
+      <div class="kpis kpis-3" style="margin-bottom:14px">
+        <div class="kpi"><div class="l">${ico('bank')} Transfer</div><div class="v">${rupiahSingkat(tot.tf.rp)}</div><div class="s">${tot.tf.n} layangan · ${pct(tot.tf.rp)}%</div></div>
+        <div class="kpi"><div class="l">${ico('wallet')} Tunai (daftar manual)</div><div class="v">${rupiahSingkat(tot.cash.rp)}</div><div class="s">${tot.cash.n} layangan · ${pct(tot.cash.rp)}%</div></div>
+        <div class="kpi hi"><div class="l">Total pemasukan</div><div class="v">${rupiahSingkat(total)}</div><div class="s">${rupiah(total)}</div></div>
+      </div>
+      ${baris.length ? `<div class="tbl-wrap"><table class="tbl">
+        <thead><tr><th>Jenis</th><th class="r">Transfer</th><th class="r">Tunai</th><th class="r">Total</th></tr></thead>
+        <tbody>${baris.map((x) => `<tr><td><span class="jtag">${jdot(x.j.kode, d.jenis)}${esc(x.j.nama)}</span></td>${sel(x.tf)}${sel(x.cash)}<td class="r"><b>${rupiah(x.tf.rp + x.cash.rp)}</b><div class="hint">${x.tf.n + x.cash.n} layangan</div></td></tr>`).join('')}</tbody>
+        <tfoot><tr><td>Total</td>${sel(tot.tf)}${sel(tot.cash)}<td class="r">${rupiah(total)}<div class="hint">${tot.tf.n + tot.cash.n} layangan</div></td></tr></tfoot>
+      </table></div>` : '<div class="empty">Belum ada pemasukan terkonfirmasi.</div>'}
+      ${tot.tfTunggu.n || tot.cashTunggu.n ? `<p class="hint" style="margin:12px 0 0">Belum dihitung (masih menunggu verifikasi): transfer ${rupiah(tot.tfTunggu.rp)} (${tot.tfTunggu.n})${tot.cashTunggu.n ? ` · tunai ${rupiah(tot.cashTunggu.rp)} (${tot.cashTunggu.n})` : ''}.</p>` : ''}
+    </div>`;
   },
   vGrafik() {
     const HARI = 14, kini = bagianWaktu(new Date()), tHariIni = Date.UTC(kini.y, kini.m - 1, kini.d);
@@ -3600,6 +3640,7 @@ ${rows.map((r, i) => `<tr><td class="n">${i + 1}</td><td class="no">${esc(r.nomo
         'Kode': r.kode, 'Tanggal daftar': fmtWaktu(r.created_at), 'Status': STATUS[r.status].label, 'Nomor layangan': r.nomor_layangan || '',
         'Jenis layangan': (j && j.nama) || r.jenis, 'Seri & grup': (x && x.nama) || '', 'Kotak': r.kotak || '', 'Tanggal terbang': fmtTanggal(x && x.tanggal), 'Jam terbang': jamText(x),
         'Nama sekha': r.nama_sekha, 'Alamat': r.alamat, 'Nomor WA': fmtWA(r.no_wa), 'Nama pemilik rekening': r.nama_rekening, 'Biaya (Rp)': r.harga,
+        'Cara bayar': caraBayar(r) === 'tunai' ? 'Tunai (manual)' : 'Transfer',
         'WA terkirim': r.wa_terkirim_at ? fmtWaktu(r.wa_terkirim_at) : '', 'Dikonfirmasi': r.dikonfirmasi_at ? fmtWaktu(r.dikonfirmasi_at) : '',
         'Alasan ditolak': r.alasan_tolak || '', 'Catatan admin': r.catatan_admin || '',
       };
@@ -3619,6 +3660,19 @@ ${rows.map((r, i) => `<tr><td class="n">${i + 1}</td><td class="no">${esc(r.nomo
       const ws2 = XLSX.utils.json_to_sheet(rekap);
       ws2['!cols'] = Object.keys(rekap[0] || { a: 1 }).map(() => ({ wch: 16 }));
       XLSX.utils.book_append_sheet(wb, ws2, 'Rekap grup');
+      const ok = d.daftar.filter((r) => r.status === 'terkonfirmasi');
+      const uang = d.jenis.map((j) => {
+        const rows = ok.filter((r) => r.jenis === j.kode), tf = rows.filter((r) => caraBayar(r) === 'transfer'), cs = rows.filter((r) => caraBayar(r) === 'tunai');
+        const jml = (a) => a.reduce((t, r) => t + (r.harga || 0), 0);
+        return { 'Jenis': j.nama, 'Transfer (layangan)': tf.length, 'Transfer (Rp)': jml(tf), 'Tunai (layangan)': cs.length, 'Tunai (Rp)': jml(cs), 'Total (Rp)': jml(rows) };
+      }).filter((x) => x['Total (Rp)'] || x['Transfer (layangan)'] || x['Tunai (layangan)']);
+      if (uang.length) {
+        const sum = (k) => uang.reduce((t, x) => t + x[k], 0);
+        uang.push({ 'Jenis': 'TOTAL', 'Transfer (layangan)': sum('Transfer (layangan)'), 'Transfer (Rp)': sum('Transfer (Rp)'), 'Tunai (layangan)': sum('Tunai (layangan)'), 'Tunai (Rp)': sum('Tunai (Rp)'), 'Total (Rp)': sum('Total (Rp)') });
+        const ws3 = XLSX.utils.json_to_sheet(uang);
+        ws3['!cols'] = Object.keys(uang[0]).map(() => ({ wch: 18 }));
+        XLSX.utils.book_append_sheet(wb, ws3, 'Pemasukan');
+      }
       XLSX.writeFile(wb, nama + '.xlsx');
       toast(`${data.length} baris diekspor ke Excel`, 'good');
     } catch (e) {
