@@ -1566,7 +1566,7 @@ class DemoAPI {
     if (!r) return null;
     const g = this._seri(r.seri_id) || {}, j = this._jenis(r.jenis) || {}, x = g.sesi_id && this.db.sesi.find((y) => y.id === g.sesi_id), h = x && this.db.hari.find((y) => y.id === x.hari_id), st = this.db.pengaturan;
     return this._salin({
-      event: { nama_event: st.nama_event, penyelenggara: st.penyelenggara, lokasi: st.lokasi, logo_url: st.logo_url || '' },
+      event: { nama_event: st.nama_event, penyelenggara: st.penyelenggara, lokasi: st.lokasi, logo_url: st.logo_url || '', bg_url: st.bg_url || '' },
       kode: r.kode, nomor_layangan: r.nomor_layangan, jenis: j.nama, nama_sekha: r.nama_sekha, alamat: r.alamat,
       no_wa: r.no_wa, kotak: r.kotak, seri_nama: g.nama, huruf: g.huruf,
       sesi_nama: x ? x.nama : null, hari: h ? h.nama : null, tanggal: g.tanggal, jam_mulai: g.jam_mulai, jam_selesai: g.jam_selesai,
@@ -3925,9 +3925,21 @@ async function buatPdfKonfirmasi(d) {
   const kotakBulat = (X, Y, w, h, r) => { x.beginPath(); x.moveTo(X + r, Y); x.arcTo(X + w, Y, X + w, Y + h, r); x.arcTo(X + w, Y + h, X, Y + h, r); x.arcTo(X, Y + h, X, Y, r); x.arcTo(X, Y, X + w, Y, r); x.closePath(); };
   x.fillStyle = '#ffffff'; x.fillRect(0, 0, W, H);
   // kepala
-  const g = x.createLinearGradient(0, 0, W, 240); g.addColorStop(0, '#0a3a6d'); g.addColorStop(1, '#2f86cf');
-  x.fillStyle = g; x.fillRect(0, 0, W, 240);
-  const logo = await muatGambarAman(d.ev.logo_url);
+  const [latar, logo] = await Promise.all([muatGambarAman(d.ev.bg_url), muatGambarAman(d.ev.logo_url)]);
+  if (latar) {
+    // gambar latar halaman peserta (diatur panitia), dipotong memenuhi kepala + lapisan gelap yang sama dengan halaman
+    const sk = Math.max(W / latar.naturalWidth, 240 / latar.naturalHeight), lw = latar.naturalWidth * sk, lh = latar.naturalHeight * sk;
+    x.fillStyle = '#0a3a6d'; x.fillRect(0, 0, W, 240);
+    x.save(); x.beginPath(); x.rect(0, 0, W, 240); x.clip();
+    x.drawImage(latar, (W - lw) / 2, (240 - lh) / 2, lw, lh);
+    x.restore();
+    const ov = x.createLinearGradient(0, 0, W * 0.17, 240);
+    ov.addColorStop(0, 'rgba(6,28,56,.72)'); ov.addColorStop(0.55, 'rgba(6,28,56,.45)'); ov.addColorStop(1, 'rgba(6,28,56,.62)');
+    x.fillStyle = ov; x.fillRect(0, 0, W, 240);
+  } else {
+    const g = x.createLinearGradient(0, 0, W, 240); g.addColorStop(0, '#0a3a6d'); g.addColorStop(1, '#2f86cf');
+    x.fillStyle = g; x.fillRect(0, 0, W, 240);
+  }
   let tx = M;
   if (logo) {
     x.fillStyle = '#ffffff'; kotakBulat(M, 45, 150, 150, 22); x.fill();

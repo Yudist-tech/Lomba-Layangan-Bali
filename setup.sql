@@ -774,7 +774,7 @@ begin
   return (
     select json_build_object(
       'event', (select json_build_object('nama_event', st.nama_event, 'penyelenggara', st.penyelenggara,
-                                         'lokasi', st.lokasi, 'logo_url', st.logo_url)
+                                         'lokasi', st.lokasi, 'logo_url', st.logo_url, 'bg_url', st.bg_url)
                   from public.lomba_pengaturan st where st.id = 1),
       'kode', p.kode, 'nomor_layangan', p.nomor_layangan, 'jenis', j.nama,
       'nama_sekha', p.nama_sekha, 'alamat', p.alamat,
