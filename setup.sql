@@ -1107,9 +1107,6 @@ insert into public.lomba_admin (email) values
   ('adeyudistira62@gmail.com')
 on conflict (email) do nothing;
 
--- Admin yang sudah dicabut: dihapus setiap kali file ini dijalankan
-delete from public.lomba_admin where lower(email) in ('putukresnabali@gmail.com');
-
 -- Pengaturan awal + template pesan WhatsApp (bisa diubah dari dashboard)
 insert into public.lomba_pengaturan (id, nama_event, template_wa_konfirmasi, template_wa_tolak)
 values (
