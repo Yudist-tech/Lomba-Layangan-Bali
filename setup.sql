@@ -756,6 +756,41 @@ begin
 end;
 $$;
 
+-- Data konfirmasi untuk link PDF yang dikirim lewat WhatsApp (#tiket/KODE).
+-- Hanya pendaftaran TERKONFIRMASI; nomor WA disamarkan.
+create or replace function public.lomba_tiket(p_kode text)
+returns json
+language plpgsql
+stable
+security definer
+set search_path = public
+as $$
+declare
+  v_kode text := upper(btrim(coalesce(p_kode, '')));
+begin
+  if v_kode !~ '^LL-[0-9A-Z]{6}$' then
+    return null;
+  end if;
+  return (
+    select json_build_object(
+      'event', (select json_build_object('nama_event', st.nama_event, 'penyelenggara', st.penyelenggara,
+                                         'lokasi', st.lokasi, 'logo_url', st.logo_url)
+                  from public.lomba_pengaturan st where st.id = 1),
+      'kode', p.kode, 'nomor_layangan', p.nomor_layangan, 'jenis', j.nama,
+      'nama_sekha', p.nama_sekha, 'alamat', p.alamat,
+      'no_wa', '0' || substr(p.no_wa, 3, 3) || '-****-' || right(p.no_wa, 4),
+      'kotak', p.kotak, 'seri_nama', s.nama, 'huruf', s.huruf, 'sesi_nama', ss.nama, 'hari', h.nama,
+      'tanggal', s.tanggal, 'jam_mulai', s.jam_mulai, 'jam_selesai', s.jam_selesai)
+    from public.lomba_pendaftaran p
+    join public.lomba_jenis j on j.kode = p.jenis
+    join public.lomba_seri s on s.id = p.seri_id
+    left join public.lomba_sesi ss on ss.id = s.sesi_id
+    left join public.lomba_hari h on h.id = ss.hari_id
+    where p.kode = v_kode and p.status = 'terkonfirmasi'
+  );
+end;
+$$;
+
 -- Cek status pendaftaran berdasarkan nomor WA (data terbatas)
 create or replace function public.lomba_cek_status(p_no_wa text)
 returns json
@@ -962,6 +997,7 @@ grant execute on function public.lomba_daftar(text, bigint, text, text, text, te
   to anon, authenticated;
 grant execute on function public.lomba_cek_nomor(text, text) to anon, authenticated;
 grant execute on function public.lomba_cek_status(text) to anon, authenticated;
+grant execute on function public.lomba_tiket(text) to anon, authenticated;
 grant execute on function public.lomba_is_admin() to anon, authenticated;
 grant execute on function public.lomba_normalisasi_wa(text) to anon, authenticated;
 grant execute on function public.lomba_kode_baru() to authenticated;

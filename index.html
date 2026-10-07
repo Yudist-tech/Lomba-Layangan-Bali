@@ -1131,6 +1131,7 @@ class SupabaseAPI {
   }
   cekNomor(jenis, nomor) { return this._rpc('lomba_cek_nomor', { p_jenis: jenis, p_nomor: String(nomor || '') }); }
   cekStatus(wa) { return this._rpc('lomba_cek_status', { p_no_wa: wa }); }
+  tiket(kode) { return this._rpc('lomba_tiket', { p_kode: kode }); }
 
   /* ---- login admin ---- */
   async sesi() { const { data } = await this.sb.auth.getSession(); return data.session ? { email: data.session.user.email } : null; }
@@ -1555,6 +1556,19 @@ class DemoAPI {
     v = v.replace(/^0+(?=\d)/, '');
     return !this.db.daftar.some((d) => d.jenis === jenis && AKTIF(d.status) && d.nomor_layangan === v);
   }
+  async tiket(kode) {
+    await this._jeda(200);
+    const k = String(kode || '').trim().toUpperCase();
+    const r = this.db.daftar.find((d) => d.kode === k && d.status === 'terkonfirmasi');
+    if (!r) return null;
+    const g = this._seri(r.seri_id) || {}, j = this._jenis(r.jenis) || {}, x = g.sesi_id && this.db.sesi.find((y) => y.id === g.sesi_id), h = x && this.db.hari.find((y) => y.id === x.hari_id), st = this.db.pengaturan;
+    return this._salin({
+      event: { nama_event: st.nama_event, penyelenggara: st.penyelenggara, lokasi: st.lokasi, logo_url: st.logo_url || '' },
+      kode: r.kode, nomor_layangan: r.nomor_layangan, jenis: j.nama, nama_sekha: r.nama_sekha, alamat: r.alamat,
+      no_wa: '0' + r.no_wa.slice(2, 5) + '-****-' + r.no_wa.slice(-4), kotak: r.kotak, seri_nama: g.nama, huruf: g.huruf,
+      sesi_nama: x ? x.nama : null, hari: h ? h.nama : null, tanggal: g.tanggal, jam_mulai: g.jam_mulai, jam_selesai: g.jam_selesai,
+    });
+  }
   async cekStatus(wa) {
     await this._jeda(250);
     const n = normWA(wa);
@@ -1793,6 +1807,8 @@ Pembayaran sudah kami terima. Layangan Anda resmi *TERDAFTAR*.
 • Jadwal terbang: {jadwal}
 
 Kode pendaftaran: {kode}
+Unduh PDF konfirmasi: {link_konfirmasi}
+
 Mohon nomor layangan dipasang pada layangan dan hadir tepat waktu sesuai jadwal seri.
 
 Suksma 🙏
@@ -2053,12 +2069,15 @@ function dataTemplate(r, seri, jenis, ev) {
     nama_event: ev.nama_event || '', penyelenggara: ev.penyelenggara || '', lokasi: ev.lokasi || '',
     kode: r.kode, jenis: (jenis && jenis.nama) || r.jenis, nama_sekha: r.nama_sekha, alamat: r.alamat,
     no_wa: fmtWA(r.no_wa), nomor_layangan: r.nomor_layangan || '-', seri: (seri && seri.nama) || '-', kotak: r.kotak || '-',
+    link_konfirmasi: r.kode ? linkTiket(r.kode) : '-',
     jadwal: jadwalText(seri), tanggal: fmtTanggal(seri && seri.tanggal) || '-', jam: jamText(seri) || '-',
     harga: rupiah(r.harga), alasan: r.alasan_tolak || '-', wa_panitia: fmtWA(ev.wa_admin),
   };
 }
 /* Pendaftaran tanpa bukti transfer = didaftarkan manual oleh panitia (bayar tunai) */
 const caraBayar = (r) => (r.bukti_path ? 'transfer' : 'tunai');
+/* Link pribadi ke halaman konfirmasi (+ unduh PDF) untuk peserta terkonfirmasi */
+const linkTiket = (kode) => `${location.origin}${location.pathname}#tiket/${encodeURIComponent(kode)}`;
 const isiTemplate = (tpl, data) => String(tpl || '').replace(/\{(\w+)\}/g, (m, k) => (k in data ? String(data[k] ?? '') : m));
 
 /* =====================================================================
@@ -2104,9 +2123,10 @@ const Pub = {
     if (f.jenis && !this.jenisTerjadwal().some((j) => j.kode === f.jenis)) { f.jenis = ''; f.seri_id = null; }
     if (f.seri_id && !this.grupJadwal().some((x) => x.id === f.seri_id && x.jenis === f.jenis && x.aktif)) f.seri_id = null;
   },
-  mount(tab) {
+  mount(tab, sub) {
     const lama = this.s.tab;
-    this.s.tab = ['daftar', 'jadwal', 'cek'].includes(tab) ? tab : 'daftar';
+    this.s.tab = ['daftar', 'jadwal', 'cek', 'tiket'].includes(tab) ? tab : 'daftar';
+    if (this.s.tab === 'tiket' && this.s.tiketKode !== sub) { this.s.tiketKode = sub || ''; this.s.tiket = undefined; this.muatTiket(); }
     document.body.classList.remove('is-admin');
     if (!this.s.info && !this.s.loading) { this.muat(); return; }
     this.render();
@@ -2160,6 +2180,7 @@ const Pub = {
     else if (!s.info) isi = this.vGagal();
     else if (s.tab === 'jadwal') isi = this.vJadwal();
     else if (s.tab === 'cek') isi = this.vCek();
+    else if (s.tab === 'tiket') isi = this.vTiket();
     else isi = this.vDaftar();
     return `${demoBar()}${this.vHero()}<main class="pub-main" id="main">${this.vTabs()}${isi}${this.vFooter()}</main>`;
   },
@@ -2409,6 +2430,42 @@ const Pub = {
       ${ev.pendaftaran_buka ? `<div class="actions"><a class="btn btn-primary" href="#daftar">${ico('edit')} Daftar sekarang</a></div>` : ''}
     </section>`;
   },
+  async muatTiket() {
+    const kode = this.s.tiketKode;
+    try { this.s.tiket = await api.tiket(kode); } catch (e) { this.s.tiket = { gagal: pesanError(e) }; }
+    if (this.s.tiketKode === kode && this.s.tab === 'tiket') this.render();
+  },
+  dataPdfTiket(t) {
+    const x = { tanggal: t.tanggal, jam_mulai: t.jam_mulai, jam_selesai: t.jam_selesai };
+    return {
+      ev: t.event || {}, nomor: t.nomor_layangan, jenis: t.jenis, sekha: t.nama_sekha, alamat: t.alamat, wa: t.no_wa, kode: t.kode,
+      hari: t.hari || '-', tanggal: fmtTanggal(t.tanggal) || (t.hari ? `${t.hari} (tanggal menyusul)` : 'Menyusul'),
+      seri: t.sesi_nama ? `Seri ${t.sesi_nama} · Grup ${t.huruf}` : (t.seri_nama || '-'), jam: jamText(x) || 'Menyusul', kotak: t.kotak,
+    };
+  },
+  vTiket() {
+    const t = this.s.tiket;
+    if (t === undefined) return this.vKerangka();
+    if (!t || t.gagal) {
+      return `<section class="card"><h2 class="h2">Konfirmasi tidak ditemukan</h2>
+        <p class="lead">${t && t.gagal ? esc(t.gagal) : 'Link ini tidak berlaku. Pendaftaran belum dikonfirmasi, dibatalkan, atau kodenya salah.'}</p>
+        <div class="actions"><a class="btn" href="#cek">${ico('search')} Cek status pendaftaran</a></div></section>`;
+    }
+    const d = this.dataPdfTiket(t);
+    return `<section class="card" aria-labelledby="judul-tiket">
+      <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:6px">${badgeStatus('terkonfirmasi', 'Terdaftar')}<span class="hint mono">${esc(t.kode)}</span></div>
+      <h2 class="h2" id="judul-tiket">Konfirmasi pendaftaran</h2>
+      <div class="big-no" style="margin:14px 0">${ico('kite')}<div><span>Nomor layangan · ${esc(t.jenis)}</span><br><b>${esc(t.nomor_layangan || '-')}</b></div></div>
+      <dl class="kv">
+        <dt>Nama sekha</dt><dd>${esc(t.nama_sekha)}</dd>
+        <dt>Alamat</dt><dd>${nl2br(t.alamat || '-')}</dd>
+        <dt>Seri & grup</dt><dd>${esc(d.seri)}${t.kotak ? ` · kotak ${t.kotak}` : ''}</dd>
+        <dt>Jadwal terbang</dt><dd>${esc(d.tanggal)}<div class="sub">${esc(d.jam)}</div></dd>
+      </dl>
+      <button type="button" class="btn btn-primary btn-lg btn-block" data-act="pub.unduhPdf">${ico('download')} Unduh PDF konfirmasi</button>
+      <p class="hint" style="margin:10px 0 0;text-align:center">Simpan PDF ini dan tunjukkan bila diminta panitia.</p>
+    </section>`;
+  },
   vCek() {
     const s = this.s;
     let hasil = '';
@@ -2568,6 +2625,16 @@ const Pub = {
 };
 
 ACT['pub.muat'] = () => Pub.muat();
+ACT['pub.unduhPdf'] = (el) => sibuk(el, async () => {
+  const t = Pub.s.tiket;
+  if (!t || t.gagal) return;
+  try {
+    const blob = await buatPdfKonfirmasi(Pub.dataPdfTiket(t));
+    const nama = `Konfirmasi-${String(t.nomor_layangan || t.kode).replace(/[^\w-]+/g, '')}-${String(t.nama_sekha).replace(/[^\w]+/g, '-').replace(/^-|-$/g, '').slice(0, 40)}.pdf`;
+    unduhBlob(blob, nama);
+    toast('PDF konfirmasi diunduh', 'good');
+  } catch (e) { toast(pesanError(e), 'bad', 6000); }
+});
 CH['pub.jenis'] = (el) => {
   const f = Pub.s.form;
   if (f.jenis !== el.value) { f.jenis = el.value; f.seri_id = null; Pub.s.nomorCek = null; if (normNomor(f.nomor_layangan)) Pub.periksaNomor(); }
@@ -3298,7 +3365,9 @@ const Adm = {
           ${r.status === 'terkonfirmasi' ? `<button class="btn btn-sm" data-act="adm.batalKonfirmasi" data-id="${esc(r.id)}">${ico('undo')} Batalkan konfirmasi</button><button class="btn btn-sm" data-act="adm.tolak" data-id="${esc(r.id)}">${ico('x')} Tolak</button>` : ''}
           ${r.status === 'ditolak' ? `<button class="btn btn-sm" data-act="adm.pulihkan" data-id="${esc(r.id)}">${ico('undo')} Pulihkan ke menunggu</button>` : ''}
           ${r.status !== 'menunggu' ? `<button class="btn btn-sm" data-act="adm.salinWA" data-id="${esc(r.id)}">${ico('copy')} Salin teks WA</button>` : ''}
-          ${r.status === 'terkonfirmasi' ? `<button class="btn btn-sm" data-act="adm.pdfUnduh" data-id="${esc(r.id)}">${ico('download')} Unduh PDF konfirmasi</button>` : ''}
+          ${r.status === 'terkonfirmasi' ? `<button class="btn btn-sm" data-act="salin" data-teks="${esc(linkTiket(r.kode))}" data-label="Link PDF konfirmasi disalin">${ico('copy')} Salin link PDF</button>
+          <button class="btn btn-sm" data-act="adm.pdfUnduh" data-id="${esc(r.id)}">${ico('download')} Unduh PDF</button>
+          <button class="btn btn-sm" data-act="adm.pdfWA" data-id="${esc(r.id)}">${ico('file')} Kirim PDF sebagai lampiran</button>` : ''}
           <a class="btn btn-sm" href="${esc(waLink(r.no_wa))}" target="_blank" rel="noopener">${ico('chat')} Chat peserta</a>
           <button class="btn btn-sm btn-danger" data-act="adm.hapus" data-id="${esc(r.id)}">${ico('trash')} Hapus</button>
         </div></div>
@@ -3313,9 +3382,7 @@ const Adm = {
     const sudah = !!r.wa_terkirim_at;
     const label = r.status === 'terkonfirmasi' ? (sudah ? 'Kirim ulang WA konfirmasi' : 'Kirim WA konfirmasi') : (sudah ? 'Kirim ulang WA penolakan' : 'Kirim WA penolakan');
     return `<div class="drawer-f">
-      ${r.status === 'terkonfirmasi' ? `<button class="btn ${sudah ? '' : 'btn-good'}" data-act="adm.pdfWA" data-id="${esc(r.id)}">${ico('file')} ${sudah ? 'Kirim ulang PDF via WA' : 'Kirim PDF via WA'}</button>
-      <a class="btn" href="${esc(waLink(r.no_wa, this.pesanWA(r)))}" target="_blank" rel="noopener" data-act="adm.waTerkirim" data-id="${esc(r.id)}" title="Kirim teks konfirmasi saja">${ico('chat')} Teks saja</a>`
-      : `<a class="btn ${sudah ? '' : 'btn-primary'}" href="${esc(waLink(r.no_wa, this.pesanWA(r)))}" target="_blank" rel="noopener" data-act="adm.waTerkirim" data-id="${esc(r.id)}">${ico('chat')} ${label}</a>`}
+      <a class="btn ${sudah ? '' : r.status === 'terkonfirmasi' ? 'btn-good' : 'btn-primary'}" href="${esc(waLink(r.no_wa, this.pesanWA(r)))}" target="_blank" rel="noopener" data-act="adm.waTerkirim" data-id="${esc(r.id)}"${r.status === 'terkonfirmasi' ? ' title="Pesan berisi link untuk mengunduh PDF konfirmasi"' : ''}>${ico('chat')} ${label}</a>
       ${next ? `<button class="btn" data-act="adm.nav" data-id="${esc(next)}">Berikutnya ${ico('arrow-r')}</button>` : ''}
     </div>`;
   },
@@ -3331,7 +3398,9 @@ const Adm = {
   namaPdf(r) { return `Konfirmasi-${String(r.nomor_layangan || r.kode).replace(/[^\w-]+/g, '')}-${String(r.nama_sekha).replace(/[^\w]+/g, '-').replace(/^-|-$/g, '').slice(0, 40)}.pdf`; },
   pesanWA(r, tpl) {
     const ev = this.s.data.pengaturan;
-    const t = tpl != null ? tpl : r.status === 'ditolak' ? (ev.template_wa_tolak || TEMPLATE_WA.tolak) : (ev.template_wa_konfirmasi || TEMPLATE_WA.konfirmasi);
+    let t = tpl != null ? tpl : r.status === 'ditolak' ? (ev.template_wa_tolak || TEMPLATE_WA.tolak) : (ev.template_wa_konfirmasi || TEMPLATE_WA.konfirmasi);
+    // template lama tanpa {link_konfirmasi}: link tetap ditambahkan di akhir pesan konfirmasi
+    if (tpl == null && r.status === 'terkonfirmasi' && !t.includes('{link_konfirmasi}')) t += '\n\nUnduh PDF konfirmasi:\n{link_konfirmasi}';
     return isiTemplate(t, dataTemplate(r, this.idx.seri.get(r.seri_id), this.idx.jenis.get(r.jenis), ev));
   },
   async urlBukti(path) {
@@ -3637,7 +3706,7 @@ ${rows.map((r, i) => `<tr><td class="n">${i + 1}</td><td class="no">${esc(r.nomo
     const ev = this.s.data.pengaturan, d = this.s.data;
     const linkPublik = location.href.split('#')[0];
     const batas = lokalDariIso(ev.batas_daftar);
-    const phKonf = ['nama_event', 'jenis', 'nama_sekha', 'alamat', 'no_wa', 'nomor_layangan', 'seri', 'kotak', 'jadwal', 'tanggal', 'jam', 'kode', 'harga', 'penyelenggara', 'lokasi'];
+    const phKonf = ['nama_event', 'jenis', 'nama_sekha', 'alamat', 'no_wa', 'nomor_layangan', 'seri', 'kotak', 'link_konfirmasi', 'jadwal', 'tanggal', 'jam', 'kode', 'harga', 'penyelenggara', 'lokasi'];
     const phTolak = ['nama_event', 'jenis', 'nama_sekha', 'kode', 'alasan', 'seri', 'harga', 'penyelenggara', 'wa_panitia'];
     return `${this.vTopbar('Pengaturan', 'Event, pembayaran, harga & pesan WhatsApp')}
     <div class="set-grid" id="set-root"><div class="set-col">
@@ -4453,7 +4522,7 @@ function rute() {
   const [bag, sub] = h.split('/');
   Overlay.tutupSemua();
   if (bag === 'admin') { Router.aktif = 'adm'; Adm.mount(sub); }
-  else { Router.aktif = 'pub'; Pub.mount(bag); }
+  else { Router.aktif = 'pub'; Pub.mount(bag, sub); }
 }
 
 let targetTekan = null;
