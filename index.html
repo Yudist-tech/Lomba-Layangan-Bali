@@ -2367,7 +2367,6 @@ const Pub = {
         <dt>Nomor WhatsApp</dt><dd>${esc(fmtWA(f.no_wa))}</dd>
       </dl>
       <div class="total"><div><div class="t-l">Total yang harus dibayar</div><div class="t-s">Biaya pendaftaran 1 layangan ${esc(j.nama)}</div></div><div class="amt">${rupiah(j.harga)}</div></div>
-      ${this.vKotakBank(j.harga)}
       <label class="check ${e.setuju ? 'err' : ''}"><input type="checkbox" data-ch="pub.setuju" ${f.setuju ? 'checked' : ''}><span>Data di atas sudah benar dan saya akan mentransfer <b>${rupiah(j.harga)}</b>.</span></label>
       ${errMsg(e.setuju)}
       <div class="actions"><button type="button" class="btn" data-act="pub.kembali">${ico('arrow-l')} Ubah data</button>
