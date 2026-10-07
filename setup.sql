@@ -1122,7 +1122,6 @@ Pembayaran sudah kami terima. Layangan Anda resmi *TERDAFTAR*.
 • Jenis layangan: {jenis}
 • Nama sekha: {nama_sekha}
 • Alamat: {alamat}
-• Nomor WA: {no_wa}
 • Nomor layangan: *{nomor_layangan}*
 • Seri & grup: {seri}
 • Jadwal terbang: {jadwal}
