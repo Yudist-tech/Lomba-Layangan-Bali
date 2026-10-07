@@ -1907,12 +1907,24 @@ function tabelJadwal(o) {
     <thead><tr><th>Seri</th><th>Grup</th><th>Jenis layangan</th>${kol.map((c) => `<th>${c}</th>`).join('')}<th>Total</th></tr></thead>
     <tbody>${body}</tbody></table></div>`;
 }
-function legendaJadwal(admin, tampilNomor = true) {
+/* Keterangan di bawah tabel 1 hari, lengkap dengan jumlah kotak sebenarnya */
+function legendaJadwal(o) {
+  const { hari, admin, tampilNomor = true } = o;
+  const sesi = new Set(o.sesi.filter((x) => x.hari_id === hari.id).map((x) => x.id));
+  const c = { total: 0, tutup: 0, menunggu: 0, terkonfirmasi: 0, terisi: 0 };
+  o.grup.filter((g) => sesi.has(g.sesi_id)).forEach((g) => {
+    c.total += g.kotak || 0;
+    c.tutup += (g.tutup || []).filter((k) => k >= 1 && k <= g.kotak).length;
+    o.kotakIsi(g).forEach((p) => { c[p.status] = (c[p.status] || 0) + 1; });
+  });
+  const isi = c.menunggu + c.terkonfirmasi + c.terisi;
+  const kosong = Math.max(0, c.total - c.tutup - isi);
+  const n = (v) => `<b style="color:var(--ink)">${angka(v)}</b>`;
   return `<div class="jt-legend">
-    <span><i></i>Kosong${admin ? ' (klik untuk menutup)' : ''}</span>
-    ${tampilNomor ? `<span><i style="background:var(--warn-soft)"></i>Menunggu verifikasi</span>
-    <span><b style="color:var(--ink)">12</b> Nomor layangan terkonfirmasi</span>` : '<span><i style="background:var(--surface-3)"></i>Sudah terisi</span>'}
-    <span><i style="background:var(--ink)"></i>Ditutup panitia</span>
+    <span><i></i>${n(kosong)} kotak kosong${admin ? ' (klik untuk menutup)' : ''}</span>
+    ${tampilNomor ? `<span><i style="background:var(--warn-soft)"></i>${n(c.menunggu)} menunggu verifikasi</span>
+    <span><i style="background:var(--surface)"></i>${n(c.terkonfirmasi)} layangan terkonfirmasi (angka = nomor layangan)</span>` : `<span><i style="background:var(--surface-3)"></i>${n(isi)} kotak sudah terisi</span>`}
+    <span><i style="background:var(--ink)"></i>${n(c.tutup)} kotak ditutup panitia</span>
   </div>`;
 }
 const errMsg = (m) => (m ? `<span class="err-msg" role="alert">${ico('alert')}${esc(m)}</span>` : '');
@@ -2365,7 +2377,8 @@ const Pub = {
       <h2 class="h2">Jadwal terbang</h2>
       <p class="lead">Kotak terisi sejak formulir dikirim, termasuk yang masih menunggu verifikasi.${ev.tampilkan_peserta ? ' Angka di kotak adalah nomor layangan yang sudah terkonfirmasi.' : ''} Geser tabel ke samping untuk melihat semua kotak.</p>
       ${hari.length ? hari.map((h) => `<div class="jt-hari"><div class="jt-hari-h"><h3>${esc(h.nama)}</h3>${h.tanggal ? `<span class="muted">${esc(fmtTanggal(h.tanggal))}</span>` : ''}</div>
-        ${tabelJadwal({ hari: h, sesi: info.sesi || [], grup, jenis: info.jenis, kotakIsi: isi, admin: false })}</div>`).join('') + legendaJadwal(false, !!ev.tampilkan_peserta)
+        ${tabelJadwal({ hari: h, sesi: info.sesi || [], grup, jenis: info.jenis, kotakIsi: isi, admin: false })}
+        ${legendaJadwal({ hari: h, sesi: info.sesi || [], grup, kotakIsi: isi, admin: false, tampilNomor: !!ev.tampilkan_peserta })}</div>`).join('')
         : '<div class="empty">Jadwal terbang belum tersedia.</div>'}
       ${ev.pendaftaran_buka ? `<div class="actions"><a class="btn btn-primary" href="#daftar">${ico('edit')} Daftar sekarang</a></div>` : ''}
     </section>`;
@@ -3411,7 +3424,8 @@ const Adm = {
             <button class="btn btn-xs" data-act="adm.cetakHari" data-id="${h.id}">${ico('print')} Cetak</button>
           </div></div>
           ${tabelJadwal({ hari: h, sesi: d.sesi, grup: d.seri.filter((x) => x.sesi_id), jenis: d.jenis, kotakIsi: isi, admin: true })}
-        </section>`).join('') + legendaJadwal(true)
+          ${legendaJadwal({ hari: h, sesi: d.sesi, grup: d.seri.filter((x) => x.sesi_id), kotakIsi: isi, admin: true })}
+        </section>`).join('')
         : `<div class="panel"><div class="empty">Belum ada jadwal terbang.<div style="margin-top:12px"><button class="btn btn-primary" data-act="adm.hariBaru">${ico('plus')} Buat hari pertama</button></div></div></div>`}
       ${lama.length ? `<div class="panel" style="margin-top:20px"><div class="panel-h"><h3>Seri lama (sebelum jadwal terbang)</h3></div>
         <p class="hint" style="margin:0 0 12px">Seri dari sistem sebelumnya. Tidak tampil di formulir. Pendaftarnya tetap tercatat; pindahkan ke grup baru lewat <b>Ubah data</b> pada tiap pendaftaran, lalu hapus seri yang sudah kosong.</p>
