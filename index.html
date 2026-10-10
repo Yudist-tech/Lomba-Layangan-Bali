@@ -1453,6 +1453,7 @@ class DemoAPI {
     this.subs = new Set();
     this.eventId = null;
     this.db = null;
+    this.mem = {};          // salinan di memori bila penyimpanan browser diblokir
     this.ix = this._muatIndex();
     window.addEventListener('storage', (e) => {
       if (e.key === this.KEY) { this.ix = this._muatIndex(); this.subs.forEach((f) => f({ eventType: 'SYNC' })); }
@@ -1464,21 +1465,24 @@ class DemoAPI {
     if (ix && ix.versi === 1 && Array.isArray(ix.events)) return ix;
     return this._benihSemua();
   }
+  _bacaEv(id) { return this.mem[id] || bacaLokal(this.KEY_EV + id); }
+  _simpanEv(id, db) {
+    this.mem[id] = db;
+    try { localStorage.setItem(this.KEY_EV + id, JSON.stringify(db)); }
+    catch (e) { if (/quota/i.test(`${e.name} ${e.message}`)) throw new Error('DEMO_PENUH'); }
+  }
   _tulisIndex() {
     try { localStorage.setItem(this.KEY, JSON.stringify(this.ix)); }
     catch (e) { if (/quota/i.test(`${e.name} ${e.message}`)) throw new Error('DEMO_PENUH'); }
   }
   _muatEvent(id) {
-    const db = bacaLokal(this.KEY_EV + id);
-    if (db && db.versi === 2) return db;
+    const db = bacaLokal(this.KEY_EV + id) || this.mem[id];
+    if (db && db.versi === 2) { this.mem[id] = db; return db; }
     const baru = this._benih(false);
-    try { localStorage.setItem(this.KEY_EV + id, JSON.stringify(baru)); } catch (e) { /* abaikan */ }
+    try { this._simpanEv(id, baru); } catch (e) { /* abaikan */ }
     return baru;
   }
-  _tulis(db) {
-    try { localStorage.setItem(this.KEY_EV + this.eventId, JSON.stringify(db)); }
-    catch (e) { if (/quota/i.test(`${e.name} ${e.message}`)) throw new Error('DEMO_PENUH'); }
-  }
+  _tulis(db) { this._simpanEv(this.eventId, db); }
   /* pilih event yang sedang dibuka (alamat #e/<kode-event>/…) */
   pakaiEvent(slug) {
     const e = this.ix.events.find((x) => x.slug === String(slug || '').toLowerCase());
@@ -1563,7 +1567,7 @@ class DemoAPI {
         const contoh = this._benih(true, st, { skala: 0 });
         db.jenis = contoh.jenis;
       }
-      try { localStorage.setItem(this.KEY_EV + id, JSON.stringify(db)); } catch (e) { /* abaikan */ }
+      try { this._simpanEv(id, db); } catch (e) { /* abaikan */ }
     });
     this.ix = ix;
     this._tulisIndex();
@@ -1829,17 +1833,18 @@ class DemoAPI {
   }
 
   /* ---- login admin (demo: email & password apa saja) ---- */
-  async sesi() { return bacaLokal(this.KEY_SESI); }
+  async sesi() { return bacaLokal(this.KEY_SESI) || this.sesiMem || null; }
   onAuth() { /* tidak diperlukan di demo */ }
   async login(email, password) {
     await this._jeda(300);
     if (!email || !password) throw new Error('Isi email dan password.');
     const s = { email: String(email).trim().toLowerCase() };
     simpanLokal(this.KEY_SESI, s);
+    this.sesiMem = s;
     return s;
   }
-  async logout() { hapusLokal(this.KEY_SESI); }
-  _email() { const s = bacaLokal(this.KEY_SESI); return s && s.email ? String(s.email).toLowerCase() : null; }
+  async logout() { hapusLokal(this.KEY_SESI); this.sesiMem = null; }
+  _email() { const s = bacaLokal(this.KEY_SESI) || this.sesiMem; return s && s.email ? String(s.email).toLowerCase() : null; }
   _super(email = this._email()) { return !!email && this.ix.pengguna.some((p) => p.email === email && p.peran === 'super'); }
   _bolehEvent(id, email = this._email()) { return !!email && (this._super(email) || (this.ix.akses[id] || []).includes(email)); }
   /* admin = super admin, atau panitia yang ditugaskan ke event yang sedang dibuka */
@@ -1853,7 +1858,7 @@ class DemoAPI {
 
   /* ---- MULTI-EVENT ---- */
   _ringkasEvent(e, untukAdmin) {
-    const db = e.id === this.eventId && this.db ? this.db : (bacaLokal(this.KEY_EV + e.id) || this._benih(false));
+    const db = e.id === this.eventId && this.db ? this.db : (this._bacaEv(e.id) || this._benih(false));
     const st = db.pengaturan;
     const buka = !!st.pendaftaran_buka && (!st.batas_daftar || new Date() <= new Date(st.batas_daftar));
     const aktif = db.daftar.filter((d) => AKTIF(d.status));
@@ -1911,7 +1916,7 @@ class DemoAPI {
     let jenis = [];
     const asal = d.salin_dari && this.ix.events.find((e) => e.id === Number(d.salin_dari));
     if (asal) {
-      const src = bacaLokal(this.KEY_EV + asal.id) || this._benih(false);
+      const src = this._bacaEv(asal.id) || this._benih(false);
       const a = src.pengaturan, pilih = d.salin || {};
       if (pilih.jenis) jenis = src.jenis.map((j) => ({ ...j, nomor_terakhir: 0 }));
       if (pilih.bank) Object.assign(st, { bank_nama: a.bank_nama, bank_no_rek: a.bank_no_rek, bank_atas_nama: a.bank_atas_nama });
@@ -1921,8 +1926,8 @@ class DemoAPI {
     const db = this._benih(false, st);
     db.jenis = jenis;
     const id = this.ix.nextId++;
-    try { localStorage.setItem(this.KEY_EV + id, JSON.stringify(db)); }
-    catch (e) { this.ix.nextId--; throw new Error('DEMO_PENUH'); }
+    try { this._simpanEv(id, db); }
+    catch (e) { this.ix.nextId--; delete this.mem[id]; throw new Error('DEMO_PENUH'); }
     this.ix.events.push({ id, slug, tampil: d.tampil !== false, created_at: new Date().toISOString() });
     this.ix.akses[id] = this._rapikanEmail(d.panitia);
     this._daftarkanPengguna(this.ix.akses[id]);
@@ -1950,6 +1955,7 @@ class DemoAPI {
     this.ix.events = this.ix.events.filter((e) => e.id !== id);
     delete this.ix.akses[id];
     hapusLokal(this.KEY_EV + id);
+    delete this.mem[id];
     if (this.eventId === id) { this.eventId = null; this.db = null; }
     this._tulisIndex();
   }
@@ -1957,14 +1963,14 @@ class DemoAPI {
   async cariEventTiket(kode) {
     const k = String(kode || '').trim().toUpperCase();
     for (const e of this.ix.events) {
-      const db = e.id === this.eventId && this.db ? this.db : bacaLokal(this.KEY_EV + e.id);
+      const db = e.id === this.eventId && this.db ? this.db : this._bacaEv(e.id);
       if (db && db.daftar.some((d) => d.kode === k)) return e.slug;
     }
     return null;
   }
   async resetDemoSemua() {
-    Object.keys(localStorage).filter((k) => k.startsWith('lomba_ml_') && k !== this.KEY_SESI).forEach((k) => hapusLokal(k));
-    this.eventId = null; this.db = null;
+    try { Object.keys(localStorage).filter((k) => k.startsWith('lomba_ml_') && k !== this.KEY_SESI).forEach((k) => hapusLokal(k)); } catch (e) { /* abaikan */ }
+    this.eventId = null; this.db = null; this.mem = {};
     this.ix = this._benihSemua();
   }
 
