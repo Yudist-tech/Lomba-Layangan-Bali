@@ -15,6 +15,18 @@ Alamat halaman (setelah online):
 
 ---
 
+## Cabang `multi-event` (DEMO)
+
+Cabang ini berisi **demo** sistem multi-event. Selama `MULTI_EVENT_DEMO: true` di `CONFIG`, halaman selalu memakai data contoh di browser dan **tidak** tersambung ke Supabase. Jangan online-kan cabang ini sebagai pengganti `main`.
+
+- `#` → halaman depan semua event (poster tiket untuk event berlangsung & ≤ 2 minggu, kalender untuk event yang masih jauh, daftar event selesai)
+- `#panitia` → ruang panitia (super admin: semua event, buat event, akses panitia; panitia: hanya event yang ditugaskan)
+- `#e/<kode-event>` → halaman peserta event; `#e/<kode-event>/admin` → dashboard event
+
+Cadangan sistem satu-event: cabang `sebelum-multi-event`. Cadangan data Supabase: jalankan `cadangan-sebelum-multi-event.sql` sebelum memasang versi multi-event.
+
+---
+
 ## Pindah ke versi 2 (Jadwal Terbang)
 
 Versi 2 mengubah cara kerja seri: jadwal disusun sebagai **Hari → Seri (jam terbang) → Grup A, B, C** (satu jenis layangan per grup, 25 kotak per baris), dan **nomor layangan diisi peserta sendiri** (unik per jenis).
