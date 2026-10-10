@@ -942,6 +942,57 @@ fieldset.salin legend { font-weight: 700; font-size: 14px; padding: 0 6px; }
   .pe-grid { grid-template-columns: minmax(0, 1fr); }
   .salin-opsi { grid-template-columns: 1fr; }
 }
+/* kartu event: flyer A4 di kiri, info di kanan */
+.ev-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(430px, 1fr)); gap: 18px; }
+.ev-card { --ev-a: #0b3d78; --ev-b: #3a95d8; position: relative; display: flex; min-width: 0; background: var(--surface); border: 1px solid var(--line); border-radius: 18px; overflow: hidden; transition: transform .18s ease, box-shadow .18s ease, border-color .18s ease; }
+.ev-card:hover { transform: translateY(-2px); box-shadow: 0 2px 4px rgba(20,20,20,.05), 0 16px 34px rgba(20,20,20,.12); border-color: var(--line-strong); }
+.ev-card:has(.ev-link:focus-visible) { outline: 3px solid var(--brand); outline-offset: 2px; }
+.ev-sisi { position: relative; flex: none; width: 176px; padding: 14px; display: grid; place-items: center; background: linear-gradient(160deg, var(--ev-a), var(--ev-b)); }
+.ev-sisi::before { content: ''; position: absolute; inset: 0; background: radial-gradient(circle at 30% 20%, rgba(255,255,255,.22), transparent 60%); }
+.ev-flyer { position: relative; width: 100%; aspect-ratio: 210 / 297; border-radius: 6px; overflow: hidden; background: #fff; box-shadow: 0 1px 2px rgba(0,0,0,.2), 0 10px 22px rgba(0,0,0,.32); transform: rotate(-2deg); transition: transform .25s ease; }
+.ev-card:hover .ev-flyer { transform: rotate(0deg) scale(1.03); }
+.ev-flyer img, .ev-flyer svg { display: block; width: 100%; height: 100%; object-fit: cover; }
+.ev-zoom { position: absolute; inset: 0; z-index: 2; border: 0; background: transparent; cursor: zoom-in; display: flex; align-items: flex-end; justify-content: flex-end; padding: 10px; color: #fff; }
+.ev-zoom .ico { width: 30px; height: 30px; padding: 7px; border-radius: 50%; background: rgba(0,0,0,.45); opacity: 0; transition: opacity .2s; }
+.ev-card:hover .ev-zoom .ico, .ev-zoom:focus-visible .ico { opacity: 1; }
+.ev-body { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 7px; padding: 16px 18px; }
+.ev-atas { display: flex; }
+.ev-org { font-size: 11px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ev-judul { margin: 0; font-size: 18px; line-height: 1.22; letter-spacing: -.015em; text-wrap: balance; }
+.ev-link { color: inherit; text-decoration: none; }
+.ev-link::after { content: ''; position: absolute; inset: 0; z-index: 1; }
+.ev-link:focus-visible { outline: none; }
+.ev-meta { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 3px; font-size: 13.5px; color: var(--ink-2); }
+.ev-meta li { display: flex; align-items: center; gap: 7px; min-width: 0; }
+.ev-meta li span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ev-meta .ico { width: 15px; height: 15px; color: var(--muted); flex: none; }
+.ev-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 2px; }
+.ev-chip { font-size: 12px; font-weight: 700; padding: 3px 9px; border-radius: 99px; background: var(--surface-3); color: var(--ink-2); white-space: nowrap; }
+.ev-chip.buka { background: var(--good-soft); color: var(--good-ink); }
+.ev-aksi { margin-top: auto; padding-top: 4px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.ev-cta { display: inline-flex; align-items: center; gap: 6px; min-height: 38px; padding: 0 16px; border-radius: 10px; font-weight: 800; font-size: 14px; border: 1.5px solid var(--line-strong); color: var(--ink); }
+.ev-cta.primary { background: var(--brand); border-color: var(--brand); color: #fff; }
+.ev-cta .ico { width: 16px; height: 16px; transition: transform .18s ease; }
+.ev-card:hover .ev-cta .ico { transform: translateX(3px); }
+.ev-lihat { position: relative; z-index: 2; display: inline-flex; align-items: center; gap: 6px; min-height: 38px; padding: 0 12px; border-radius: 10px; border: 0; background: transparent; color: var(--ink-2); font: 700 13.5px var(--font); cursor: pointer; }
+.ev-lihat:hover { background: var(--surface-2); color: var(--ink); }
+.ev-lihat .ico { width: 16px; height: 16px; }
+.media-prev.flyer { width: 74px; height: 105px; background-size: cover; }
+.chip-btn { cursor: pointer; color: #fff; font: inherit; font-size: 13px; font-weight: 700; }
+.chip-btn:hover { background: rgba(255,255,255,.24); }
+.chip-btn .ico { width: 15px; height: 15px; }
+@media (max-width: 640px) {
+  .ev-grid { grid-template-columns: minmax(0, 1fr); gap: 12px; }
+  .ev-sisi { width: 124px; padding: 10px; }
+  .ev-body { padding: 12px 14px; gap: 5px; }
+  .ev-org { display: none; }
+  .ev-judul { font-size: 16px; }
+  .ev-meta { font-size: 12.5px; }
+  .ev-chip { font-size: 11.5px; padding: 2px 8px; }
+  .ev-cta { min-height: 34px; font-size: 13px; padding: 0 12px; }
+  .ev-lihat { min-height: 34px; padding: 0 8px; font-size: 13px; }
+}
+
 /* ruang panitia: tab super admin, admin event, pengaturan situs */
 .lp-top.has-bg { background-color: #0a3a6d; background-size: cover; background-position: center; }
 .lp-top.has-bg h1, .lp-top.has-bg p { text-shadow: 0 1px 12px rgba(0,0,0,.35); }
@@ -1559,8 +1610,8 @@ class DemoAPI {
      Semua fungsi lama bekerja pada this.db = data event yang sedang dibuka (pakaiEvent). */
   constructor() {
     this.mode = 'demo';
-    this.KEY = 'lomba_ml_index_v1';
-    this.KEY_EV = 'lomba_ml_event_v1_';
+    this.KEY = 'lomba_ml_index_v2';
+    this.KEY_EV = 'lomba_ml_event_v2_';
     this.KEY_SESI = 'lomba_ml_sesi_v1';
     this.subs = new Set();
     this.eventId = null;
@@ -1643,6 +1694,47 @@ class DemoAPI {
     if (denganContoh) this._isiContoh(db, db.pengaturan.tanggal_mulai || isoTanggal(minggu), opsi);
     return db;
   }
+  /* Contoh flyer A4 "buatan panitia" untuk demo (digambar di canvas, 620 × 877 px) */
+  _contohFlyer(r, tglIso) {
+    const W = 620, H = 877, c = document.createElement('canvas'); c.width = W; c.height = H;
+    const x = c.getContext('2d'), d = parseTanggal(tglIso);
+    const F = (px, w = 800) => { x.font = `${w} ${px}px 'Plus Jakarta Sans', Arial, sans-serif`; };
+    const tengah = (t, y) => { x.textAlign = 'center'; x.fillText(t, W / 2, y); x.textAlign = 'left'; };
+    const layang = (cx, cy, s, rot, warna) => { x.save(); x.translate(cx, cy); x.rotate(rot); x.scale(s, s); x.fillStyle = warna; x.beginPath(); x.moveTo(0, -60); x.lineTo(40, 0); x.lineTo(0, 72); x.lineTo(-40, 0); x.closePath(); x.fill(); x.strokeStyle = warna; x.lineWidth = 4; x.beginPath(); x.moveTo(0, 72); x.bezierCurveTo(-14, 100, 14, 120, 0, 150); x.stroke(); x.restore(); };
+    const bln = d ? BULAN[d.getMonth()].toUpperCase() : '';
+    if (r.flyer === 1) {        // gaya poster acara malam: gelap, judul kuning, pita merah
+      const g = x.createLinearGradient(0, 0, 0, H); g.addColorStop(0, '#0b1330'); g.addColorStop(1, '#27154a'); x.fillStyle = g; x.fillRect(0, 0, W, H);
+      x.fillStyle = 'rgba(255,214,90,.12)'; x.beginPath(); x.arc(470, 200, 190, 0, 7); x.fill();
+      layang(170, 230, 1.6, -0.25, '#e8463a'); layang(450, 300, 1.05, 0.2, '#ffd65a'); layang(330, 150, 0.6, -0.1, '#5ec8ff');
+      x.fillStyle = '#ffd65a'; F(30); tengah('PANITIA LAYANGAN PADANG GALAK', 70);
+      x.fillStyle = '#fff'; F(78); tengah('LOMBA', 500); tengah('LAYANGAN', 585);
+      x.fillStyle = '#ffd65a'; F(46); tengah('TRADISIONAL 2026', 645);
+      x.fillStyle = '#e8463a'; x.fillRect(0, 690, W, 76); x.fillStyle = '#fff'; F(40); tengah(d ? `${d.getDate()}–${d.getDate() + 1} ${bln} ${d.getFullYear()}` : '', 742);
+      F(26, 700); x.fillStyle = '#d7d9ff'; tengah('PANTAI PADANG GALAK · SANUR', 812);
+      F(22, 700); x.fillStyle = '#ffd65a'; tengah('Total hadiah Rp 25 juta · Daftar online', 852);
+    } else if (r.flyer === 2) {  // gaya cerah: kuning-oranye, kotak tanggal
+      const g = x.createLinearGradient(0, 0, W, H); g.addColorStop(0, '#ffcf3f'); g.addColorStop(1, '#ff7a3d'); x.fillStyle = g; x.fillRect(0, 0, W, H);
+      x.fillStyle = 'rgba(255,255,255,.35)'; for (let i = 0; i < 9; i++) { x.beginPath(); x.arc(60 + i * 70, 860, 46, 0, 7); x.fill(); }
+      layang(470, 210, 1.5, 0.2, '#1d4ed8'); layang(160, 170, 0.9, -0.2, '#fff'); layang(330, 330, 0.7, 0.1, '#0f766e');
+      x.fillStyle = '#7a1d00'; F(28); x.fillText('ST. DHARMA KERTI', 50, 80);
+      x.fillStyle = '#1d1d1d'; F(96); x.fillText('FESTIVAL', 46, 520); x.fillStyle = '#fff'; x.fillText('LAYANGAN', 46, 615);
+      x.fillStyle = '#1d1d1d'; F(56); x.fillText('SANUR KAJA', 50, 680);
+      x.fillStyle = '#1d1d1d'; x.fillRect(50, 712, 230, 104); x.fillStyle = '#ffcf3f'; F(64); x.fillText(d ? String(d.getDate()) : '', 70, 790); F(26); x.fillText(bln.slice(0, 3), 170, 760); x.fillText(d ? String(d.getFullYear()) : '', 170, 795);
+      x.fillStyle = '#1d1d1d'; F(26, 700); x.fillText('Lapangan Pantai Sindhu', 305, 752); x.fillText('Bebean · Janggan · Pecukan', 305, 790);
+    } else {                     // gaya bersih: putih-biru laut
+      x.fillStyle = '#f5f9ff'; x.fillRect(0, 0, W, H);
+      x.fillStyle = '#0e5aa7'; x.fillRect(0, 0, W, 360);
+      x.fillStyle = 'rgba(255,255,255,.15)'; x.beginPath(); x.arc(520, 90, 150, 0, 7); x.fill();
+      layang(150, 210, 1.3, -0.2, '#fff'); layang(430, 250, 0.8, 0.15, '#ffd65a');
+      x.fillStyle = '#fff'; F(26, 700); tengah('PANITIA MERTASARI PERSEMBAHKAN', 60);
+      x.fillStyle = '#0b2d55'; F(84); tengah('MERTASARI', 470); x.fillStyle = '#0e5aa7'; F(64); tengah('KITE FESTIVAL', 545);
+      x.fillStyle = '#0b2d55'; F(34, 700); tengah(d ? `${d.getDate()}–${d.getDate() + 1} ${bln} ${d.getFullYear()}` : '', 620);
+      x.strokeStyle = '#0e5aa7'; x.lineWidth = 3; x.beginPath(); x.moveTo(140, 655); x.lineTo(480, 655); x.stroke();
+      F(26, 600); x.fillStyle = '#334155'; tengah('Pantai Mertasari, Sanur Kauh', 700); tengah('Kategori remaja & dewasa', 740);
+      x.fillStyle = '#0e5aa7'; x.fillRect(150, 780, 320, 62); x.fillStyle = '#fff'; F(28); tengah('DAFTAR ONLINE', 822);
+    }
+    return c.toDataURL('image/jpeg', 0.82);
+  }
   /* Data contoh: beberapa event di berbagai waktu (berlangsung, segera, jauh, selesai) */
   _benihSemua() {
     const tgl = (plus) => { const d = new Date(); d.setDate(d.getDate() + plus); return isoTanggal(d); };
@@ -1657,10 +1749,10 @@ class DemoAPI {
       ],
     };
     const rencana = [
-      { slug: 'padang-galak-2026', nama: 'Lomba Layangan Tradisional Padang Galak', org: 'Panitia Layangan Padang Galak', lokasi: 'Pantai Padang Galak, Sanur', m: 0, s: 1, buka: false, skala: 1, panitia: ['panitia.padanggalak@demo.id'] },
-      { slug: 'sanur-kaja-2026', nama: 'Festival Layangan Sanur Kaja', org: 'ST. Dharma Kerti Sanur Kaja', lokasi: 'Lapangan Pantai Sindhu, Sanur', m: 5, s: 5, buka: true, skala: 0.7, panitia: ['panitia.sanur@demo.id'] },
+      { slug: 'padang-galak-2026', nama: 'Lomba Layangan Tradisional Padang Galak', org: 'Panitia Layangan Padang Galak', lokasi: 'Pantai Padang Galak, Sanur', m: 0, s: 1, buka: false, skala: 1, panitia: ['panitia.padanggalak@demo.id'], flyer: 1 },
+      { slug: 'sanur-kaja-2026', nama: 'Festival Layangan Sanur Kaja', org: 'ST. Dharma Kerti Sanur Kaja', lokasi: 'Lapangan Pantai Sindhu, Sanur', m: 5, s: 5, buka: true, skala: 0.7, panitia: ['panitia.sanur@demo.id'], flyer: 2 },
       { slug: 'kusamba-remaja', nama: 'Lomba Layangan Remaja Kusamba', org: 'Sekaa Teruna Kusamba', lokasi: 'Pantai Kusamba, Klungkung', m: 12, s: 12, buka: true, skala: 0.4, panitia: ['panitia.kusamba@demo.id'] },
-      { slug: 'mertasari-kite-fest', nama: 'Mertasari Kite Festival', org: 'Panitia Mertasari', lokasi: 'Pantai Mertasari, Sanur Kauh', m: 38, s: 39, buka: true, skala: 0.15, panitia: ['panitia.sanur@demo.id'] },
+      { slug: 'mertasari-kite-fest', nama: 'Mertasari Kite Festival', org: 'Panitia Mertasari', lokasi: 'Pantai Mertasari, Sanur Kauh', m: 38, s: 39, buka: true, skala: 0.15, panitia: ['panitia.sanur@demo.id'], flyer: 3 },
       { slug: 'pantai-lebih-janggan', nama: 'Lomba Layangan Janggan Pantai Lebih', org: 'Panitia Layangan Lebih', lokasi: 'Pantai Lebih, Gianyar', m: 74, s: 74, buka: false, skala: 0, panitia: [] },
       { slug: 'hut-desa-sanur', nama: 'Lomba Layangan HUT Desa Sanur', org: 'Panitia HUT Desa Sanur', lokasi: 'Pantai Semawang, Sanur', m: -19, s: -19, buka: false, skala: 0.8, panitia: ['panitia.sanur@demo.id'] },
       { slug: 'agustusan-ketewel', nama: 'Lomba Layangan Agustusan Ketewel', org: 'Sekaa Teruna Ketewel', lokasi: 'Pantai Ketewel, Gianyar', m: -55, s: -54, buka: false, skala: 0.6, panitia: [] },
@@ -1673,6 +1765,7 @@ class DemoAPI {
         nama_event: r.nama, penyelenggara: r.org, lokasi: r.lokasi, tanggal_mulai: tgl(r.m), tanggal_selesai: tgl(r.s),
         pendaftaran_buka: r.buka, wa_admin: '62812' + String(30000000 + i * 1111111).slice(0, 8), bank_atas_nama: r.org,
       };
+      if (r.flyer) { try { st.flyer_url = this._contohFlyer(r, tgl(r.m)); } catch (e) { /* tanpa canvas: pakai flyer bawaan */ } }
       const selesai = r.s < 0;
       const db = this._benih(r.skala > 0, st, { skala: r.skala, sebelum: selesai ? new Date(Date.now() + r.m * 86400000) : null });
       if (r.skala === 0) { // jadwal belum disusun panitia, cukup jenis layangan
@@ -1852,7 +1945,7 @@ class DemoAPI {
         nama_event: st.nama_event, penyelenggara: st.penyelenggara, lokasi: st.lokasi, info: st.info, wa_admin: st.wa_admin,
         bank_nama: st.bank_nama, bank_no_rek: st.bank_no_rek, bank_atas_nama: st.bank_atas_nama,
         pendaftaran_buka: buka, batas_daftar: st.batas_daftar, tampilkan_peserta: st.tampilkan_peserta,
-        logo_url: st.logo_url || '', bg_url: st.bg_url || '',
+        logo_url: st.logo_url || '', bg_url: st.bg_url || '', flyer_url: st.flyer_url || '',
         tanggal_mulai: st.tanggal_mulai || null, tanggal_selesai: st.tanggal_selesai || null,
       },
       hari: [...db.hari].sort(urutHari),
@@ -1981,7 +2074,7 @@ class DemoAPI {
     const r = {
       id: e.id, slug: e.slug, tampil: e.tampil,
       nama_event: st.nama_event, penyelenggara: st.penyelenggara, lokasi: st.lokasi,
-      logo_url: st.logo_url || '', bg_url: st.bg_url || '',
+      logo_url: st.logo_url || '', bg_url: st.bg_url || '', flyer_url: st.flyer_url || '',
       tanggal_mulai: st.tanggal_mulai || null, tanggal_selesai: st.tanggal_selesai || st.tanggal_mulai || null,
       pendaftaran_buka: buka, ada_jadwal: grup.length > 0,
       sisa_slot: grup.reduce((a, g) => a + Math.max(0, g.kuota - (terisi.get(g.id) || 0)), 0),
@@ -2798,7 +2891,7 @@ const Pub = {
       <div class="org">${esc(ev.penyelenggara || 'Pendaftaran online')}</div>
       <h1>${esc(ev.nama_event || 'Lomba Layangan')}</h1>
       <div class="meta">${rentang ? `<span>${ico('cal')}${esc(rentang)}</span>` : ''}${ev.lokasi ? `<span>${ico('pin')}${esc(ev.lokasi)}</span>` : ''}</div>
-      <div class="hero-chips">${chip}</div>
+      <div class="hero-chips">${chip}${urlGambarAman(ev.flyer_url) ? `<button type="button" class="chip chip-btn" data-act="lp.flyer" data-url="${esc(urlGambarAman(ev.flyer_url))}" data-judul="Flyer ${esc(ev.nama_event || '')}">${ico('image')}Lihat flyer</button>` : ''}</div>
     </div>${bg ? '' : HERO_ART}${HERO_WAVES}</header>`;
   },
   vTabs() {
@@ -4394,6 +4487,7 @@ ${rows.map((r, i) => `<tr><td class="n">${i + 1}</td><td class="no">${esc(r.nomo
     };
     return `<div class="panel" id="set-tampilan"><div class="panel-h"><h3>Tampilan halaman peserta</h3><a class="btn btn-xs" href="${hrefEv('daftar')}" target="_blank" rel="noopener">${ico('globe')} Lihat</a></div>
       ${baris('logo', 'Logo', 'Tampil di atas nama event. PNG transparan paling bagus.')}
+      ${baris('flyer', 'Flyer event (A4)', 'Tampil di halaman depan semua event & bisa diperbesar peserta. Ukuran A4 tegak, misalnya 1240 × 1754 piksel (JPG/PNG).')}
       ${baris('bg', 'Gambar latar', 'Latar bagian atas halaman. Gambar mendatar (landscape), dibuat sedikit gelap agar tulisan terbaca.')}
       <p class="hint" style="margin:0">Kosongkan untuk memakai tampilan bawaan. Gambar otomatis diperkecil sebelum diunggah.</p></div>`;
   },
@@ -5035,20 +5129,20 @@ CH['adm.media'] = async (el) => {
   if (tombol) { tombol.insertAdjacentHTML('afterbegin', '<span class="spinner"></span>'); tombol.style.pointerEvents = 'none'; tombol.setAttribute('aria-busy', 'true'); }
   try {
     const png = k === 'logo' && file.type !== 'image/jpeg';
-    const blob = await kompresGambar(file, k === 'logo' ? 512 : 1920, 0.82, png ? 'image/png' : 'image/jpeg');
+    const blob = await kompresGambar(file, k === 'logo' ? 512 : k === 'flyer' ? 1754 : 1920, k === 'flyer' ? 0.85 : 0.82, png ? 'image/png' : 'image/jpeg');
     const url = await api.uploadMedia(k, blob, blob.type || (png ? 'image/png' : 'image/jpeg'));
     const hasil = await api.simpanPengaturan({ [k + '_url']: url });
     Object.assign(ev, hasil); Adm.tandaiUbah();
     if (k === 'logo') ingatLogo(ev.logo_url);
     if (lama && lama !== url) api.hapusMedia(lama);
     Adm.segarkanTampilan();
-    toast(k === 'logo' ? 'Logo diperbarui' : 'Gambar latar diperbarui', 'good');
+    toast(k === 'logo' ? 'Logo diperbarui' : k === 'flyer' ? 'Flyer event diperbarui' : 'Gambar latar diperbarui', 'good');
   } catch (e) { toast(pesanError(e), 'bad', 6000); }
   finally { if (tombol && tombol.isConnected) { const sp = tombol.querySelector('.spinner'); if (sp) sp.remove(); tombol.style.pointerEvents = ''; tombol.removeAttribute('aria-busy'); } }
 };
 ACT['adm.mediaHapus'] = async (el) => {
   const k = el.dataset.k, ev = Adm.s.data.pengaturan, lama = ev[k + '_url'];
-  const nama = k === 'logo' ? 'logo' : 'gambar latar';
+  const nama = k === 'logo' ? 'logo' : k === 'flyer' ? 'flyer event' : 'gambar latar';
   if (!(await konfirmasiDialog({ judul: `Hapus ${nama}?`, isi: `Halaman peserta kembali memakai tampilan bawaan.`, tombol: 'Hapus', bahaya: true }))) return;
   try {
     const hasil = await api.simpanPengaturan({ [k + '_url']: '' });
@@ -5218,6 +5312,30 @@ function seniPoster(slug) {
     <path d="M0 300c40-14 70-14 100-4s60 14 100 2 70-10 100 0V360H0z" fill="#fff" opacity=".16"/>
     <path d="M0 322c50-10 80-6 120 4s80 10 180-6V360H0z" fill="${c0}" opacity=".55"/></svg>`;
 }
+/* Flyer bawaan bila panitia belum mengunggah flyer: A4 tegak dengan nama, tanggal & lokasi */
+function flyerBawaan(e) {
+  const h = hashTeks(e.slug), [c0, c1, sun, ak] = PALET_POSTER[h % PALET_POSTER.length], g = `fb${h.toString(36)}`;
+  const kata = String(e.nama_event || 'Lomba Layangan').toUpperCase().split(/\s+/), baris = [];
+  let b = '';
+  kata.forEach((k) => { if ((b + ' ' + k).trim().length > 13 && b) { baris.push(b); b = k; } else b = (b + ' ' + k).trim(); });
+  if (b) baris.push(b);
+  const judul = baris.slice(0, 4), uk = judul.length > 3 ? 19 : 22, y0 = 168 - (judul.length - 1) * (uk + 2);
+  const a = parseTanggal(e.tanggal_mulai);
+  const kite = (x, y, sk, rot, w) => `<g transform="translate(${x} ${y}) rotate(${rot}) scale(${sk})"><path d="M0 52c-9 16 9 26 0 42s9 26 0 42" fill="none" stroke="${w}" stroke-width="3" stroke-linecap="round"/><path d="M0-44 28 0 0 52-28 0z" fill="${w}"/><path d="M0-44 28 0H0z" fill="#fff" opacity=".3"/></g>`;
+  return `<svg viewBox="0 0 210 297" preserveAspectRatio="xMidYMid slice" role="img" aria-label="Flyer ${esc(e.nama_event)}">
+    <defs><linearGradient id="${g}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${c0}"/><stop offset="1" stop-color="${c1}"/></linearGradient></defs>
+    <rect width="210" height="297" fill="url(#${g})"/>
+    <circle cx="${150 - (h % 30)}" cy="62" r="34" fill="${sun}" opacity=".9"/>
+    ${kite(52 + (h % 20), 66, 0.6, -12, ak)}${kite(172, 96, 0.36, 10, '#fff')}
+    <text x="105" y="22" text-anchor="middle" fill="#fff" opacity=".85" font-size="8" font-weight="800" letter-spacing="2.4" font-family="Plus Jakarta Sans, sans-serif">LOMBA LAYANGAN</text>
+    ${judul.map((t, i) => `<text x="105" y="${y0 + i * (uk + 2)}" text-anchor="middle" fill="#fff" font-size="${uk}" font-weight="800" font-family="Plus Jakarta Sans, sans-serif">${esc(t)}</text>`).join('')}
+    <rect x="62" y="196" width="86" height="34" rx="6" fill="#fff"/>
+    <text x="105" y="212" text-anchor="middle" fill="${c0}" font-size="13" font-weight="800" font-family="Plus Jakarta Sans, sans-serif">${a ? esc(`${a.getDate()} ${BLN[a.getMonth()].toUpperCase()}`) : 'SEGERA'}</text>
+    <text x="105" y="224" text-anchor="middle" fill="${c0}" font-size="7.5" font-weight="700" font-family="Plus Jakarta Sans, sans-serif">${a ? a.getFullYear() : ''}</text>
+    <text x="105" y="250" text-anchor="middle" fill="#fff" font-size="8.5" font-weight="700" font-family="Plus Jakarta Sans, sans-serif">${esc(String(e.lokasi || '').slice(0, 34))}</text>
+    <path d="M0 262c40-10 70-10 105-2s70 10 105 0V297H0z" fill="#000" opacity=".18"/>
+    <text x="105" y="284" text-anchor="middle" fill="#fff" opacity=".9" font-size="7" font-weight="700" letter-spacing="1.2" font-family="Plus Jakarta Sans, sans-serif">DAFTAR ONLINE</text></svg>`;
+}
 function stEvent(st) { return `<span class="ev-st st-${st.k}">${st.k === 'live' ? '<i></i>' : ''}${esc(st.label)}</span>`; }
 
 /* ---------- HALAMAN DEPAN: semua event ---------- */
@@ -5262,12 +5380,12 @@ const Beranda = {
     const selesai = list.filter((e) => e._st.k === 'selesai');
     let isi;
     if (!this.s.list && this.s.err) isi = `<div class="card"><div class="note bad">${ico('alert')}<span>${esc(this.s.err)}</span></div><button class="btn btn-primary" data-act="lp.muat">${ico('refresh')} Coba lagi</button></div>`;
-    else if (!this.s.list) isi = `<div class="tiket-grid">${'<div class="tiket skel-tiket"><div class="skel" style="height:100%"></div></div>'.repeat(3)}</div>`;
+    else if (!this.s.list) isi = `<div class="ev-grid">${'<div class="ev-card"><div class="skel" style="height:236px;width:100%"></div></div>'.repeat(2)}</div>`;
     else {
       isi = `
       <section class="lp-sec" aria-labelledby="lp-dekat">
         <div class="lp-h"><h2 id="lp-dekat">Berlangsung & segera</h2><span>Hari ini sampai 2 minggu ke depan</span></div>
-        ${dekat.length ? `<div class="tiket-grid">${dekat.map((e) => this.vTiket(e)).join('')}</div>`
+        ${dekat.length ? `<div class="ev-grid">${dekat.map((e) => this.vTiket(e)).join('')}</div>`
           : `<div class="lp-kosong">${ico('cal')}<span>Belum ada lomba dalam 2 minggu ke depan. Lihat kalender di bawah.</span></div>`}
       </section>
       <section class="lp-sec" aria-labelledby="lp-jauh">
@@ -5294,26 +5412,30 @@ const Beranda = {
       </main>`;
   },
   /* poster ala tiket bioskop */
+  /* kartu event: flyer A4 dari panitia di kiri, info di kanan */
   vTiket(e) {
-    const st = e._st, a = parseTanggal(e.tanggal_mulai), bg = urlGambarAman(e.bg_url), logo = urlGambarAman(e.logo_url);
-    const href = `#e/${encodeURIComponent(e.slug)}`;
-    const cta = e.pendaftaran_buka ? ['primary', 'Daftar sekarang', ''] : st.k === 'live' ? ['', 'Lihat jadwal terbang', '/jadwal'] : ['', 'Lihat info event', ''];
-    const info = e.pendaftaran_buka
-      ? `<span class="tk-buka">Pendaftaran dibuka</span>${e.ada_jadwal ? `<span>Sisa ${angka(e.sisa_slot)} kotak</span>` : ''}${e.harga_min != null ? `<span>Mulai ${rupiah(e.harga_min)}</span>` : ''}`
-      : `<span class="tk-tutup">${st.k === 'live' ? 'Pendaftaran ditutup' : 'Pendaftaran belum dibuka'}</span>${e.peserta ? `<span>${angka(e.peserta)} layangan terdaftar</span>` : ''}`;
-    return `<a class="tiket" href="${href}${cta[2]}" aria-label="${esc(e.nama_event)}, ${esc(rentangEvent(e))}">
-      <div class="tiket-poster${bg ? ' has-bg' : ''}"${bg ? ` style="background-image:url('${esc(bg)}')"` : ''}>
-        ${bg ? '' : seniPoster(e.slug)}
-        <div class="tp-top">${stEvent(st)}${logo ? `<img class="tp-logo" src="${esc(logo)}" alt="">` : ''}</div>
-        <div class="tp-judul"><small>${esc(e.penyelenggara)}</small><b>${esc(e.nama_event)}</b></div>
+    const st = e._st, fl = urlGambarAman(e.flyer_url);
+    const [c0, c1] = PALET_POSTER[hashTeks(e.slug) % PALET_POSTER.length];
+    const cta = e.pendaftaran_buka ? ['primary', 'Daftar sekarang', ''] : st.k === 'live' ? ['', 'Lihat jadwal', '/jadwal'] : ['', 'Lihat info', ''];
+    const href = `#e/${encodeURIComponent(e.slug)}${cta[2]}`;
+    const chips = e.pendaftaran_buka
+      ? `<span class="ev-chip buka">Pendaftaran dibuka</span>${e.ada_jadwal ? `<span class="ev-chip">Sisa ${angka(e.sisa_slot)} kotak</span>` : ''}${e.harga_min != null ? `<span class="ev-chip">Mulai ${rupiah(e.harga_min)}</span>` : ''}`
+      : `<span class="ev-chip">${st.k === 'live' ? 'Pendaftaran ditutup' : 'Pendaftaran belum dibuka'}</span>${e.peserta ? `<span class="ev-chip">${angka(e.peserta)} layangan</span>` : ''}`;
+    return `<article class="ev-card" style="--ev-a:${c0};--ev-b:${c1}">
+      <div class="ev-sisi">
+        <div class="ev-flyer">${fl ? `<img src="${esc(fl)}" alt="Flyer ${esc(e.nama_event)}" loading="lazy" decoding="async">` : flyerBawaan(e)}</div>
+        ${fl ? `<button type="button" class="ev-zoom" data-act="lp.flyer" data-url="${esc(fl)}" data-judul="Flyer ${esc(e.nama_event)}" aria-label="Perbesar flyer ${esc(e.nama_event)}">${ico('eye')}</button>` : ''}
       </div>
-      <div class="tiket-sobek" aria-hidden="true"></div>
-      <div class="tiket-stub">
-        <div class="tk-tgl" aria-hidden="true"><span>${a ? HARI3[a.getDay()] : '—'}</span><b>${a ? a.getDate() : '?'}</b><span>${a ? BLN[a.getMonth()] : ''}</span></div>
-        <div class="tk-info"><span class="tk-lok">${ico('pin')}${esc(e.lokasi || 'Lokasi menyusul')}</span><span class="tk-rentang">${esc(rentangEvent(e))}</span><div class="tk-meta">${info}</div></div>
-        <span class="tk-cta ${cta[0]}">${cta[1]} ${ico('arrow-r')}</span>
+      <div class="ev-body">
+        <div class="ev-atas">${stEvent(st)}</div>
+        <div class="ev-org">${esc(e.penyelenggara)}</div>
+        <h3 class="ev-judul"><a class="ev-link" href="${href}">${esc(e.nama_event)}</a></h3>
+        <ul class="ev-meta"><li>${ico('cal')}<span>${esc(rentangEvent(e))}</span></li><li>${ico('pin')}<span>${esc(e.lokasi || 'Lokasi menyusul')}</span></li></ul>
+        <div class="ev-chips">${chips}</div>
+        <div class="ev-aksi"><span class="ev-cta ${cta[0]}">${cta[1]} ${ico('arrow-r')}</span>
+          ${fl ? `<button type="button" class="ev-lihat" data-act="lp.flyer" data-url="${esc(fl)}" data-judul="Flyer ${esc(e.nama_event)}">${ico('image')} Flyer</button>` : ''}</div>
       </div>
-    </a>`;
+    </article>`;
   },
   /* event yang masih jauh: daftar kalender per bulan */
   vKalender(list) {
@@ -5339,6 +5461,7 @@ const Beranda = {
   },
 };
 ACT['lp.muat'] = () => Beranda.muat();
+ACT['lp.flyer'] = (el, e) => { if (e) { e.preventDefault(); e.stopPropagation(); } lightbox(el.dataset.url, el.dataset.judul || 'Flyer event'); };
 
 /* ---------- RUANG PANITIA: daftar event, buat event (super admin), akses panitia ---------- */
 const AKUN_DEMO = [
