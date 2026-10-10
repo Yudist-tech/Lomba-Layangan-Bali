@@ -942,6 +942,51 @@ fieldset.salin legend { font-weight: 700; font-size: 14px; padding: 0 6px; }
   .pe-grid { grid-template-columns: minmax(0, 1fr); }
   .salin-opsi { grid-template-columns: 1fr; }
 }
+/* ruang panitia: tab super admin, admin event, pengaturan situs */
+.lp-top.has-bg { background-color: #0a3a6d; background-size: cover; background-position: center; }
+.lp-top.has-bg h1, .lp-top.has-bg p { text-shadow: 0 1px 12px rgba(0,0,0,.35); }
+.lp-brand .brand-logo.has-img, .pz-brand .brand-logo.has-img { background: #fff; }
+.pz-tabs { display: flex; gap: 4px; border-bottom: 1px solid var(--line); margin: -8px 0 22px; overflow-x: auto; scrollbar-width: none; }
+.pz-tabs::-webkit-scrollbar { display: none; }
+.pz-tab { display: inline-flex; align-items: center; gap: 7px; padding: 10px 14px; font-weight: 700; font-size: 14.5px; color: var(--ink-2); text-decoration: none; border-bottom: 2.5px solid transparent; margin-bottom: -1px; white-space: nowrap; }
+.pz-tab .ico { width: 17px; height: 17px; }
+.pz-tab:hover { color: var(--ink); }
+.pz-tab.on { color: var(--brand); border-bottom-color: var(--brand); }
+.pz-tab small { background: var(--surface-3); color: var(--ink-2); border-radius: 99px; padding: 0 7px; font-size: 12px; }
+.ico-inline { width: 15px; height: 15px; vertical-align: -2px; }
+.ak-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 14px; }
+.ak-card { background: var(--surface); border: 1px solid var(--line); border-radius: 16px; padding: 16px; min-width: 0; }
+.ak-top { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 12px; justify-content: space-between; }
+.ak-who { display: flex; align-items: center; gap: 10px; min-width: 0; }
+.ak-who b { display: block; font-size: 14.5px; overflow-wrap: anywhere; }
+.ak-who span:not(.ak-av) { font-size: 12.5px; color: var(--muted); }
+.ak-av { width: 34px; height: 34px; border-radius: 50%; background: var(--brand-soft); color: var(--brand-soft-ink); display: grid; place-items: center; font-weight: 800; flex: none; font-size: 14px; }
+.ak-aksi { display: flex; flex-wrap: wrap; gap: 6px; }
+.ak-ev { list-style: none; margin: 12px 0 0; padding: 0; border-top: 1px solid var(--line); }
+.ak-ev li { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 9px 0; border-bottom: 1px solid var(--line); }
+.ak-ev li:last-child { border-bottom: 0; padding-bottom: 0; }
+.ak-ev li > span { min-width: 0; }
+.ak-ev b { display: block; font-size: 14px; }
+.ak-ev small { font-size: 12.5px; color: var(--muted); }
+.ak-ganti { display: flex; gap: 6px; flex: 1; min-width: 0; align-items: center; flex-wrap: wrap; }
+.ak-ganti .input { flex: 1; min-width: 180px; }
+.ae-list { display: flex; flex-direction: column; border: 1px solid var(--line); border-radius: 12px; overflow: hidden; margin-top: 6px; }
+.ae-list > .hint { padding: 12px; }
+.ae-row { display: flex; align-items: center; gap: 8px; padding: 9px 10px; border-top: 1px solid var(--line); }
+.ae-row:first-child { border-top: 0; }
+.ae-row b { flex: 1; min-width: 0; font-size: 14px; overflow-wrap: anywhere; }
+.ae-row .ak-av { width: 28px; height: 28px; font-size: 12.5px; }
+.ae-tambah { display: flex; gap: 6px; margin-top: 8px; }
+.ae-tambah .input { flex: 1; min-width: 0; }
+.situs-prev { border-radius: 14px; padding: 16px 18px 22px; color: #fff; background: linear-gradient(165deg, #0a3a6d 0%, #0e5aa7 52%, #3b93d6 100%); background-size: cover; background-position: center; display: flex; flex-direction: column; gap: 8px; }
+.situs-prev .lp-brand { margin-bottom: 14px; font-size: 14px; }
+.situs-prev .sp-judul { font-size: 22px; line-height: 1.15; letter-spacing: -.02em; max-width: 16ch; }
+.situs-prev span { font-size: 13.5px; opacity: .92; }
+@media (max-width: 640px) {
+  .ak-list { grid-template-columns: minmax(0, 1fr); }
+  .ae-row { flex-wrap: wrap; }
+  .ae-row b { flex-basis: calc(100% - 40px); }
+}
 </style>
 </head>
 <body>
@@ -1243,6 +1288,9 @@ const PESAN_ERROR = {
   BUKAN_SUPER_ADMIN: 'Hanya super admin yang bisa membuat atau mengatur event.',
   EVENT_TIDAK_ADA: 'Event tidak ditemukan.',
   BELUM_MASUK: 'Silakan masuk dulu.',
+  EMAIL_TIDAK_VALID: 'Email tidak valid.',
+  EMAIL_SUDAH_ADA: 'Email ini sudah menjadi admin event tersebut.',
+  EMAIL_SUPER: 'Email ini milik super admin, yang sudah bisa membuka semua event.',
   MEDIA_TIDAK_VALID: 'Gunakan gambar JPG, PNG, atau WebP.',
   FILE_BESAR: 'Ukuran file terlalu besar (maksimal 3 MB setelah dikompres).',
   HARGA_BERUBAH: 'Biaya pendaftaran baru saja diperbarui panitia. Periksa kembali jumlah yang harus dibayar.',
@@ -1462,7 +1510,7 @@ class DemoAPI {
   }
   _muatIndex() {
     const ix = bacaLokal(this.KEY);
-    if (ix && ix.versi === 1 && Array.isArray(ix.events)) return ix;
+    if (ix && ix.versi === 1 && Array.isArray(ix.events)) { ix.situs = { ...SITUS_AWAL, ...(ix.situs || {}) }; return ix; }
     return this._benihSemua();
   }
   _bacaEv(id) { return this.mem[id] || bacaLokal(this.KEY_EV + id); }
@@ -1536,7 +1584,7 @@ class DemoAPI {
     const tgl = (plus) => { const d = new Date(); d.setDate(d.getDate() + plus); return isoTanggal(d); };
     const SUPER = 'superadmin@demo.id';
     const ix = {
-      versi: 1, nextId: 1, events: [], akses: {},
+      versi: 1, nextId: 1, events: [], akses: {}, situs: { ...SITUS_AWAL },
       pengguna: [
         { email: SUPER, nama: 'Super Admin', peran: 'super' },
         { email: 'panitia.padanggalak@demo.id', nama: 'Panitia Padang Galak', peran: 'panitia' },
@@ -1947,6 +1995,89 @@ class DemoAPI {
     if (patch.panitia) { this.ix.akses[e.id] = this._rapikanEmail(patch.panitia); this._daftarkanPengguna(this.ix.akses[e.id]); }
     this._tulisIndex();
     return this._salin(this._ringkasEvent(e, true));
+  }
+  /* ---- pengaturan situs (halaman depan): hanya super admin ---- */
+  async infoSitus() { return this._salin({ ...SITUS_AWAL, ...(this.ix.situs || {}) }); }
+  async simpanSitus(patch) {
+    await this._jeda(250);
+    this._wajibSuper();
+    const boleh = ['nama', 'judul', 'teks', 'logo_url', 'bg_url'];
+    const bersih = {};
+    boleh.forEach((k) => { if (k in patch) bersih[k] = String(patch[k] ?? '').trim(); });
+    if ('nama' in bersih && !bersih.nama) throw new Error('DATA_TIDAK_LENGKAP');
+    this.ix.situs = { ...SITUS_AWAL, ...(this.ix.situs || {}), ...bersih };
+    this._tulisIndex();
+    return this._salin(this.ix.situs);
+  }
+  /* ---- akses admin event: tambah, ganti email, cabut ---- */
+  _emailValid(e) { e = String(e || '').trim().toLowerCase(); if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(e)) throw new Error('EMAIL_TIDAK_VALID'); return e; }
+  _rapikanPengguna() {
+    const dipakai = new Set(Object.values(this.ix.akses).flat());
+    this.ix.pengguna = this.ix.pengguna.filter((p) => p.peran === 'super' || dipakai.has(p.email));
+  }
+  async tambahAkses(id, email) {
+    await this._jeda(200);
+    this._wajibSuper();
+    email = this._emailValid(email);
+    const list = this.ix.akses[id] || (this.ix.akses[id] = []);
+    if (list.includes(email)) throw new Error('EMAIL_SUDAH_ADA');
+    if (this._super(email)) throw new Error('EMAIL_SUPER');
+    list.push(email);
+    this._daftarkanPengguna([email]);
+    this._tulisIndex();
+  }
+  async gantiAkses(id, lama, baru) {
+    await this._jeda(200);
+    this._wajibSuper();
+    baru = this._emailValid(baru);
+    const list = this.ix.akses[id] || [];
+    const i = list.indexOf(String(lama).toLowerCase());
+    if (i < 0) throw new Error('EVENT_TIDAK_ADA');
+    if (baru === list[i]) return;
+    if (list.includes(baru)) throw new Error('EMAIL_SUDAH_ADA');
+    if (this._super(baru)) throw new Error('EMAIL_SUPER');
+    list[i] = baru;
+    this._daftarkanPengguna([baru]);
+    this._rapikanPengguna();
+    this._tulisIndex();
+  }
+  async cabutAkses(id, email) {
+    await this._jeda(200);
+    this._wajibSuper();
+    email = String(email).toLowerCase();
+    const ids = id === 'semua' ? Object.keys(this.ix.akses) : [id];
+    ids.forEach((k) => { this.ix.akses[k] = (this.ix.akses[k] || []).filter((x) => x !== email); });
+    this._rapikanPengguna();
+    this._tulisIndex();
+  }
+  /* ganti email 1 orang di semua event yang dipegangnya */
+  async gantiEmailPanitia(lama, baru) {
+    await this._jeda(250);
+    this._wajibSuper();
+    lama = String(lama).toLowerCase(); baru = this._emailValid(baru);
+    if (lama === baru) return;
+    if (this._super(baru)) throw new Error('EMAIL_SUPER');
+    Object.keys(this.ix.akses).forEach((k) => {
+      const list = this.ix.akses[k];
+      if (!list.includes(lama)) return;
+      this.ix.akses[k] = [...new Set(list.map((x) => (x === lama ? baru : x)))];
+    });
+    const p = this.ix.pengguna.find((x) => x.email === lama);
+    if (p && !this.ix.pengguna.some((x) => x.email === baru)) p.email = baru;
+    this._rapikanPengguna();
+    this._tulisIndex();
+  }
+  /* daftar semua panitia & event yang dipegang (untuk super admin) */
+  async daftarAkses() {
+    await this._jeda(200);
+    this._wajibSuper();
+    const peta = new Map();
+    this.ix.events.forEach((e) => (this.ix.akses[e.id] || []).forEach((email) => {
+      if (!peta.has(email)) peta.set(email, []);
+      const st = (this._bacaEv(e.id) || {}).pengaturan || {};
+      peta.get(email).push({ id: e.id, slug: e.slug, nama_event: st.nama_event || e.slug, tanggal_mulai: st.tanggal_mulai || null, tanggal_selesai: st.tanggal_selesai || null });
+    }));
+    return this._salin([...peta].map(([email, events]) => ({ email, events })).sort((a, b) => a.email.localeCompare(b.email)));
   }
   async hapusEvent(id) {
     await this._jeda(300);
@@ -5018,8 +5149,18 @@ function seniPoster(slug) {
 function stEvent(st) { return `<span class="ev-st st-${st.k}">${st.k === 'live' ? '<i></i>' : ''}${esc(st.label)}</span>`; }
 
 /* ---------- HALAMAN DEPAN: semua event ---------- */
+const SITUS_AWAL = {
+  nama: 'Lomba Layangan Bali',
+  judul: 'Semua lomba layangan, satu tempat daftar.',
+  teks: 'Pilih event, isi data layangan, transfer, dan unggah bukti. Nomor & jadwal terbang langsung terlihat.',
+  logo_url: '', bg_url: '',
+};
+const logoSitus = (st, cls = '') => {
+  const u = urlGambarAman(st && st.logo_url);
+  return u ? `<span class="brand-logo has-img ${cls}"><img src="${esc(u)}" alt=""></span>` : `<span class="brand-logo ${cls}">${KITE_LOGO}</span>`;
+};
 const Beranda = {
-  s: { list: null, err: null, loading: false },
+  s: { list: null, situs: null, err: null, loading: false },
   mount() {
     document.body.classList.remove('is-admin');
     document.title = 'Lomba Layangan Bali — Semua event';
@@ -5029,8 +5170,9 @@ const Beranda = {
   async muat() {
     if (this.s.loading) return;
     this.s.loading = true;
-    try { this.s.list = await api.daftarEvent(); this.s.err = null; } catch (e) { this.s.err = pesanError(e); }
+    try { [this.s.list, this.s.situs] = await Promise.all([api.daftarEvent(), api.infoSitus()]); this.s.err = null; } catch (e) { this.s.err = pesanError(e); }
     this.s.loading = false;
+    if (this.s.situs) document.title = `${this.s.situs.nama} — Semua event`;
     this.render();
   },
   render() { if (Router.aktif === 'beranda') $('#app').innerHTML = this.halaman(); },
@@ -5066,15 +5208,17 @@ const Beranda = {
       </section>` : ''}`;
     }
     const nAktif = list.filter((e) => e._st.k !== 'selesai').length, nBuka = list.filter((e) => e.pendaftaran_buka && e._st.k !== 'selesai').length;
-    return `${demoBar()}<header class="lp-top"><div class="lp-in">
-        <div class="lp-bar"><a class="lp-brand" href="#"><span class="brand-logo">${KITE_LOGO}</span><b>Lomba Layangan Bali</b></a>
+    const st = this.s.situs || SITUS_AWAL, bg = urlGambarAman(st.bg_url);
+    const gayaBg = bg ? ` style="background-image:linear-gradient(170deg,rgba(6,28,56,.74) 0%,rgba(6,28,56,.42) 55%,rgba(6,28,56,.66) 100%),url('${esc(bg)}')"` : '';
+    return `${demoBar()}<header class="lp-top${bg ? ' has-bg' : ''}"${gayaBg}><div class="lp-in">
+        <div class="lp-bar"><a class="lp-brand" href="#">${logoSitus(st)}<b>${esc(st.nama)}</b></a>
           <a class="btn btn-sm lp-masuk" href="#panitia">${ico('lock')} Masuk panitia</a></div>
-        <h1>Semua lomba layangan, satu tempat daftar.</h1>
-        <p>Pilih event, isi data layangan, transfer, dan unggah bukti. Nomor & jadwal terbang langsung terlihat.</p>
+        <h1>${esc(st.judul)}</h1>
+        ${st.teks ? `<p>${esc(st.teks)}</p>` : ''}
         ${this.s.list ? `<div class="hero-chips"><span class="chip"><i class="dot"></i>${nBuka} event buka pendaftaran</span><span class="chip">${ico('cal')}${nAktif} event mendatang</span></div>` : ''}
-      </div>${HERO_ART}${HERO_WAVES}</header>
+      </div>${bg ? '' : HERO_ART}${HERO_WAVES}</header>
       <main class="lp-main" id="main">${isi}
-        <footer class="pub-foot"><div class="foot-s">Sistem pendaftaran lomba layangan · <a href="#panitia">Masuk panitia</a></div></footer>
+        <footer class="pub-foot"><div class="foot-s">${esc(st.nama)} · <a href="#panitia">Masuk panitia</a></div></footer>
       </main>`;
   },
   /* poster ala tiket bioskop */
@@ -5135,8 +5279,10 @@ function akunDemo(act) {
     `<button type="button" class="akun-btn" data-act="${act}" data-email="${esc(email)}"><b>${esc(nama)}</b><span>${esc(email)} · ${esc(ket)}</span></button>`).join('')}</div>`;
 }
 const Pusat = {
-  s: { sesi: undefined, peran: null, list: null, err: null, loading: false, loginErr: null, loginBusy: false },
-  async mount() {
+  s: { sesi: undefined, peran: null, list: null, err: null, loading: false, loginErr: null, loginBusy: false, tab: 'event', situs: null, akses: null, edit: null },
+  async mount(sub) {
+    this.s.tab = ['event', 'akses', 'situs'].includes(sub) ? sub : 'event';
+    this.s.edit = null;
     document.body.classList.remove('is-admin');
     document.title = 'Ruang panitia — Lomba Layangan';
     if (this.s.sesi === undefined) this.render();
@@ -5148,7 +5294,11 @@ const Pusat = {
   },
   async muat() {
     this.s.loading = true;
-    try { this.s.list = await api.eventSaya(); this.s.err = null; } catch (e) { this.s.err = pesanError(e); }
+    try {
+      const sup = this.super;
+      const [list, situs, akses] = await Promise.all([api.eventSaya(), sup ? api.infoSitus() : null, sup ? api.daftarAkses() : null]);
+      Object.assign(this.s, { list, situs, akses, err: null });
+    } catch (e) { this.s.err = pesanError(e); }
     this.s.loading = false;
     this.render();
   },
@@ -5158,7 +5308,93 @@ const Pusat = {
     const s = this.s, app = $('#app');
     if (s.sesi === undefined) { app.innerHTML = Adm.vMemuat('Memeriksa akun…'); return; }
     if (!s.sesi) { app.innerHTML = this.vLogin(); return; }
-    app.innerHTML = `${demoBar()}${this.vTop()}<main class="pz-main" id="main">${this.vIsi()}</main>`;
+    const isi = !this.super || s.tab === 'event' ? this.vIsi() : s.tab === 'akses' ? this.vAkses() : this.vSitus();
+    app.innerHTML = `${demoBar()}${this.vTop()}<main class="pz-main" id="main">${this.super ? this.vTabs() : ''}${isi}</main>`;
+  },
+  vTabs() {
+    const t = this.s.tab, n = this.s.akses ? this.s.akses.length : 0;
+    const item = (id, label, ikon, c) => `<a class="pz-tab ${t === id ? 'on' : ''}" href="#panitia${id === 'event' ? '' : '/' + id}" ${t === id ? 'aria-current="page"' : ''}>${ico(ikon)}${label}${c ? `<small>${c}</small>` : ''}</a>`;
+    return `<nav class="pz-tabs" aria-label="Menu super admin">${item('event', 'Event', 'cal')}${item('akses', 'Admin event', 'users', n)}${item('situs', 'Pengaturan situs', 'sliders')}</nav>`;
+  },
+  /* ---- tab: admin event (semua panitia & event yang dipegang) ---- */
+  vAkses() {
+    const s = this.s, list = s.akses;
+    const head = `<div class="pz-head"><div><h1>Admin event</h1>
+      <p class="lead">Email yang diberi akses dashboard event. Ganti email atau cabut akses di sini, atau dari tombol ${ico('sliders', 'ico-inline')} di kartu event.</p></div></div>`;
+    if (!list) return head + (s.err ? `<div class="note bad">${ico('alert')}<span>${esc(s.err)}</span></div>` : '<div class="panel"><div class="skel" style="height:140px"></div></div>');
+    if (!list.length) return head + `<div class="lp-kosong">${ico('info')}<span>Belum ada admin event. Tambahkan email dari tombol ${ico('sliders', 'ico-inline')} di kartu event.</span></div>`;
+    return head + `<div class="ak-list">${list.map((p) => {
+      const sedangUbah = s.edit && s.edit.mode === 'orang' && s.edit.email === p.email;
+      return `<article class="ak-card">
+        <div class="ak-top">
+          ${sedangUbah ? this.vFormGanti('orang', '', p.email)
+            : `<div class="ak-who"><span class="ak-av">${esc(p.email[0].toUpperCase())}</span><div><b>${esc(p.email)}</b><span>${p.events.length} event</span></div></div>
+          <div class="ak-aksi"><button class="btn btn-xs" data-act="pusat.ubahOrang" data-email="${esc(p.email)}">${ico('edit')} Ganti email</button>
+            <button class="btn btn-xs btn-danger" data-act="pusat.cabutSemua" data-email="${esc(p.email)}">${ico('x')} Cabut semua akses</button></div>`}
+        </div>
+        <ul class="ak-ev">${p.events.map((e) => `<li><span><b>${esc(e.nama_event)}</b><small>${esc(rentangEvent(e, true))}</small></span>
+          <button class="btn btn-xs btn-ghost" data-act="pusat.cabut" data-id="${e.id}" data-email="${esc(p.email)}" aria-label="Cabut akses ${esc(p.email)} dari ${esc(e.nama_event)}">${ico('x')} Cabut</button></li>`).join('')}</ul>
+      </article>`;
+    }).join('')}</div>`;
+  },
+  vFormGanti(mode, id, email) {
+    return `<div class="ak-ganti" data-mode="${mode}" data-id="${id}" data-email="${esc(email)}">
+      <label class="sr-only" for="ak-baru-${mode}">Email baru untuk ${esc(email)}</label>
+      <input class="input input-sm" type="email" id="ak-baru-${mode}" value="${esc(email)}" autocomplete="off" spellcheck="false" data-enter="pusat.simpanGanti" autofocus>
+      <button type="button" class="btn btn-sm btn-primary" data-act="pusat.simpanGanti">Simpan</button><button type="button" class="btn btn-sm" data-act="pusat.batalGanti">Batal</button></div>`;
+  },
+  /* ---- daftar admin di dalam jendela "Atur event" ---- */
+  vAksesEvent(e) {
+    const ed = this.s.edit;
+    return `<div class="ae-list">${e.panitia.length ? e.panitia.map((m) => (ed && ed.mode === 'event' && ed.id === e.id && ed.email === m)
+      ? `<div class="ae-row">${this.vFormGanti('event', e.id, m)}</div>`
+      : `<div class="ae-row"><span class="ak-av">${esc(m[0].toUpperCase())}</span><b>${esc(m)}</b>
+          <button type="button" class="btn btn-xs" data-act="pusat.ubahAkses" data-id="${e.id}" data-email="${esc(m)}">${ico('edit')} Ganti</button>
+          <button type="button" class="btn btn-xs btn-danger" data-act="pusat.cabut" data-id="${e.id}" data-email="${esc(m)}">${ico('x')} Hapus akses</button></div>`).join('')
+      : '<p class="hint" style="margin:0">Belum ada admin. Hanya super admin yang bisa membuka dashboard event ini.</p>'}</div>
+      <div class="ae-tambah"><label class="sr-only" for="ae-baru">Email admin baru</label>
+        <input class="input input-sm" type="email" id="ae-baru" placeholder="Email admin baru" autocomplete="off" spellcheck="false" data-enter="pusat.tambahAkses" data-id="${e.id}">
+        <button type="button" class="btn btn-sm" data-act="pusat.tambahAkses" data-id="${e.id}">${ico('plus')} Tambah</button></div>`;
+  },
+  segarkanAksesEvent() {
+    const box = $('#ae-box');
+    if (!box) return;
+    const e = (this.s.list || []).find((x) => x.id === Number(box.dataset.id));
+    if (e) box.innerHTML = this.vAksesEvent(e);
+    const f = box.querySelector('.ak-ganti input'); if (f) f.focus();
+  },
+  /* ---- tab: pengaturan situs (halaman depan) ---- */
+  vSitus() {
+    const st = this.s.situs;
+    if (!st) return `<div class="panel"><div class="skel" style="height:220px"></div></div>`;
+    const media = (k, judul, ket) => {
+      const u = urlGambarAman(st[k + '_url']);
+      return `<div class="media-row">
+        <div class="media-prev ${k} ${u ? 'isi' : ''}" ${u ? `style="background-image:url('${esc(u)}')"` : ''}>${u ? '' : 'Bawaan'}</div>
+        <div class="media-info"><b>${judul}</b><span class="hint">${ket}</span>
+          <div class="sa-act">
+            <label class="btn btn-xs">${ico('upload')} ${u ? 'Ganti' : 'Unggah'}<input type="file" class="sr-only" accept="image/png,image/jpeg,image/webp" data-ch="pusat.media" data-k="${k}"></label>
+            ${u ? `<button type="button" class="btn btn-xs btn-danger" data-act="pusat.mediaHapus" data-k="${k}">${ico('trash')} Hapus</button>` : ''}
+          </div></div></div>`;
+    };
+    return `<div class="pz-head"><div><h1>Pengaturan situs</h1><p class="lead">Tampilan halaman depan yang memuat semua event. Tampilan tiap event diatur panitianya di dashboard event.</p></div>
+      <div class="pz-aksi"><a class="btn" href="#" target="_blank" rel="noopener">${ico('globe')} Lihat halaman depan</a></div></div>
+      <div class="set-grid"><div class="set-col">
+        <div class="panel" id="situs-media"><div class="panel-h"><h3>Logo & gambar</h3></div>
+          ${media('logo', 'Logo situs', 'Tampil di samping nama situs di halaman depan dan ruang panitia. PNG transparan paling bagus.')}
+          ${media('bg', 'Gambar halaman utama', 'Latar bagian atas halaman depan. Gambar mendatar (landscape); otomatis dibuat sedikit gelap agar tulisan terbaca.')}
+          <p class="hint" style="margin:0">Gambar otomatis diperkecil sebelum diunggah.</p></div>
+        <form class="panel" data-submit="pusat.simpanSitus" novalidate><div class="panel-h"><h3>Teks halaman depan</h3></div>
+          ${fieldInput({ id: 'st-nama', name: 'nama', label: 'Nama situs', value: st.nama, maxlength: 60 })}
+          ${fieldInput({ id: 'st-judul', name: 'judul', label: 'Judul besar', value: st.judul, maxlength: 90 })}
+          ${fieldInput({ id: 'st-teks', name: 'teks', label: 'Keterangan singkat', value: st.teks, textarea: true, rows: 3, maxlength: 220, opsional: true })}
+          <div class="actions end"><button type="button" class="btn btn-sm" data-act="pusat.situsBawaan">${ico('undo')} Teks bawaan</button><button class="btn btn-primary btn-sm" type="submit">Simpan</button></div></form>
+      </div><div class="set-col">
+        <div class="panel"><div class="panel-h"><h3>Pratinjau</h3></div>
+          <div class="situs-prev${urlGambarAman(st.bg_url) ? ' has-bg' : ''}" ${urlGambarAman(st.bg_url) ? `style="background-image:linear-gradient(170deg,rgba(6,28,56,.74),rgba(6,28,56,.42) 55%,rgba(6,28,56,.66)),url('${esc(urlGambarAman(st.bg_url))}')"` : ''}>
+            <div class="lp-brand">${logoSitus(st)}<b>${esc(st.nama)}</b></div>
+            <b class="sp-judul">${esc(st.judul)}</b>${st.teks ? `<span>${esc(st.teks)}</span>` : ''}</div></div>
+      </div></div>`;
   },
   vLogin() {
     const s = this.s;
@@ -5179,7 +5415,7 @@ const Pusat = {
   vTop() {
     const p = this.s.peran || {};
     return `<header class="pz-top"><div class="pz-in">
-      <a class="pz-brand" href="#"><span class="brand-logo">${KITE_LOGO}</span><span><b>Lomba Layangan Bali</b><small>Ruang panitia</small></span></a>
+      <a class="pz-brand" href="#">${logoSitus(this.s.situs || {})}<span><b>${esc((this.s.situs && this.s.situs.nama) || SITUS_AWAL.nama)}</b><small>Ruang panitia</small></span></a>
       <span class="pz-who"><b>${esc(p.nama || p.email || '')}</b><small>${this.super ? 'Super admin' : 'Panitia'} · ${esc(p.email || '')}</small></span>
       <button class="btn btn-sm btn-ghost" data-act="pusat.logout">${ico('logout')}<span class="hide-sm">Keluar</span></button>
     </div></header>`;
@@ -5254,9 +5490,9 @@ const Pusat = {
       <div class="field"><label class="label" for="at-slug">Kode alamat</label>
         <div class="slug-row"><span>…/#e/</span><input class="input" id="at-slug" name="slug" maxlength="40" value="${esc(e.slug)}" autocapitalize="off" spellcheck="false"></div>
         <span class="hint">Mengubah kode membuat link lama tidak bisa dibuka lagi.</span></div>
-      <div class="field"><label class="label" for="at-pan">Email panitia</label>
-        <textarea class="input" id="at-pan" name="panitia" rows="4" spellcheck="false">${esc(e.panitia.join('\n'))}</textarea>
-        <span class="hint">Satu email per baris. Hapus email untuk mencabut akses.</span></div>
+      <div class="field"><span class="label">Admin event</span>
+        <div id="ae-box" data-id="${e.id}">${this.vAksesEvent(e)}</div>
+        <span class="hint">Perubahan admin langsung tersimpan. Admin hanya bisa membuka dashboard event ini.</span></div>
       <label class="switch"><input type="checkbox" name="tampil" ${e.tampil ? 'checked' : ''}><span class="sw"></span>Tampilkan di halaman depan</label>
       <p class="hint" style="margin:10px 0 0">Nama, tanggal, lokasi, dan isi event diubah dari <a href="#e/${encodeURIComponent(e.slug)}/admin/pengaturan">Pengaturan di dashboard event</a>.</p>
       <div class="actions">
@@ -5328,7 +5564,7 @@ SUB['pusat.simpanAtur'] = async (form) => {
   const btn = form.querySelector('[type=submit]');
   await sibuk(btn, async () => {
     try {
-      await api.ubahEvent(form.dataset.id, { slug: String(form.slug.value).trim(), tampil: form.tampil.checked, panitia: emailDariTeks(form.panitia.value) });
+      await api.ubahEvent(form.dataset.id, { slug: String(form.slug.value).trim(), tampil: form.tampil.checked });
       Overlay.tutupYangBerisi(form);
       toast('Pengaturan event disimpan', 'good');
       await Pusat.muat();
@@ -5346,6 +5582,94 @@ ACT['pusat.hapus'] = async (el) => {
     toast('Event dihapus', 'good');
     await Pusat.muat();
   } catch (err) { toast(pesanError(err), 'bad', 6000); }
+};
+/* admin event */
+async function aksesBerubah(pesan) {
+  toast(pesan, 'good');
+  const [list, akses] = await Promise.all([api.eventSaya(), api.daftarAkses()]);
+  Object.assign(Pusat.s, { list, akses, edit: null });
+  Pusat.segarkanAksesEvent();
+  Pusat.render();
+}
+ACT['pusat.ubahAkses'] = (el) => { Pusat.s.edit = { mode: 'event', id: Number(el.dataset.id), email: el.dataset.email }; Pusat.segarkanAksesEvent(); };
+ACT['pusat.ubahOrang'] = (el) => { Pusat.s.edit = { mode: 'orang', email: el.dataset.email }; Pusat.render(); const f = $('.ak-ganti input'); if (f) { f.focus(); f.select(); } };
+ACT['pusat.batalGanti'] = () => { const ev = Pusat.s.edit && Pusat.s.edit.mode === 'event'; Pusat.s.edit = null; if (ev) Pusat.segarkanAksesEvent(); else Pusat.render(); };
+ACT['pusat.simpanGanti'] = async (el) => {
+  const box = el.closest('.ak-ganti'), baru = box.querySelector('input').value.trim(), lama = box.dataset.email;
+  if (baru.toLowerCase() === lama) { ACT['pusat.batalGanti'](); return; }
+  try {
+    if (box.dataset.mode === 'event') await api.gantiAkses(Number(box.dataset.id), lama, baru);
+    else await api.gantiEmailPanitia(lama, baru);
+    await aksesBerubah(`Email admin diganti menjadi ${baru.toLowerCase()}`);
+  } catch (e) { toast(pesanError(e), 'bad', 6000); }
+};
+ACT['pusat.tambahAkses'] = async (el) => {
+  const inp = $('#ae-baru'), email = inp ? inp.value.trim() : '';
+  if (!email) { if (inp) inp.focus(); return toast('Isi email admin baru.', 'bad'); }
+  try { await api.tambahAkses(Number(el.dataset.id), email); await aksesBerubah(`${email.toLowerCase()} sekarang admin event ini`); const i = $('#ae-baru'); if (i) i.focus(); }
+  catch (e) { toast(pesanError(e), 'bad', 6000); }
+};
+ACT['pusat.cabut'] = async (el) => {
+  const id = Number(el.dataset.id), email = el.dataset.email;
+  const e = (Pusat.s.list || []).find((x) => x.id === id);
+  if (!(await konfirmasiDialog({ judul: 'Hapus akses admin?', isi: `<b>${esc(email)}</b> tidak bisa lagi membuka dashboard <b>${esc(e ? e.nama_event : 'event ini')}</b>. Data pendaftaran tidak terhapus.`, tombol: 'Hapus akses', bahaya: true }))) return;
+  try { await api.cabutAkses(id, email); await aksesBerubah('Akses admin dihapus'); }
+  catch (err) { toast(pesanError(err), 'bad', 6000); }
+};
+ACT['pusat.cabutSemua'] = async (el) => {
+  const email = el.dataset.email, p = (Pusat.s.akses || []).find((x) => x.email === email);
+  if (!(await konfirmasiDialog({ judul: 'Cabut semua akses?', isi: `<b>${esc(email)}</b> tidak bisa lagi membuka dashboard ${p ? p.events.length : ''} event yang dipegangnya. Data pendaftaran tidak terhapus.`, tombol: 'Cabut semua', bahaya: true }))) return;
+  try { await api.cabutAkses('semua', email); await aksesBerubah('Semua akses dicabut'); }
+  catch (err) { toast(pesanError(err), 'bad', 6000); }
+};
+/* Enter di kolom email = tekan tombol di sebelahnya */
+document.addEventListener('keydown', (e) => {
+  const t = e.target;
+  if (e.key !== 'Enter' || !t.dataset || !t.dataset.enter) return;
+  e.preventDefault();
+  const b = t.parentElement.querySelector(`[data-act="${t.dataset.enter}"]`);
+  if (b) b.click();
+}, true);
+
+/* pengaturan situs */
+async function simpanSitus(patch, pesan) {
+  const hasil = await api.simpanSitus(patch);
+  Pusat.s.situs = hasil;
+  Pusat.render();
+  toast(pesan, 'good');
+}
+CH['pusat.media'] = async (el) => {
+  const file = el.files && el.files[0], k = el.dataset.k;
+  el.value = '';
+  if (!file) return;
+  if (!/^image\/(png|jpeg|webp)$/.test(file.type)) return toast(pesanError(new Error('MEDIA_TIDAK_VALID')), 'bad');
+  const tombol = el.closest('label');
+  if (tombol) { tombol.insertAdjacentHTML('afterbegin', '<span class="spinner"></span>'); tombol.style.pointerEvents = 'none'; }
+  try {
+    const png = k === 'logo' && file.type !== 'image/jpeg';
+    const blob = await kompresGambar(file, k === 'logo' ? 512 : 1920, 0.82, png ? 'image/png' : 'image/jpeg');
+    const url = await api.uploadMedia('situs-' + k, blob, blob.type || (png ? 'image/png' : 'image/jpeg'));
+    await simpanSitus({ [k + '_url']: url }, k === 'logo' ? 'Logo situs diperbarui' : 'Gambar halaman utama diperbarui');
+  } catch (e) { toast(pesanError(e), 'bad', 6000); if (tombol && tombol.isConnected) { const sp = tombol.querySelector('.spinner'); if (sp) sp.remove(); tombol.style.pointerEvents = ''; } }
+};
+ACT['pusat.mediaHapus'] = async (el) => {
+  const k = el.dataset.k, nama = k === 'logo' ? 'logo situs' : 'gambar halaman utama';
+  if (!(await konfirmasiDialog({ judul: `Hapus ${nama}?`, isi: 'Halaman depan kembali memakai tampilan bawaan.', tombol: 'Hapus', bahaya: true }))) return;
+  try { await simpanSitus({ [k + '_url']: '' }, `${nama[0].toUpperCase() + nama.slice(1)} dihapus`); } catch (e) { toast(pesanError(e), 'bad', 6000); }
+};
+SUB['pusat.simpanSitus'] = async (form) => {
+  const v = (n) => String(form[n].value).trim();
+  if (!v('nama')) return toast('Nama situs wajib diisi.', 'bad');
+  if (!v('judul')) return toast('Judul besar wajib diisi.', 'bad');
+  await sibuk(form.querySelector('[type=submit]'), async () => {
+    try { await simpanSitus({ nama: v('nama'), judul: v('judul'), teks: v('teks') }, 'Teks halaman depan disimpan'); } catch (e) { toast(pesanError(e), 'bad', 6000); }
+  });
+};
+ACT['pusat.situsBawaan'] = () => {
+  const f = $('form[data-submit="pusat.simpanSitus"]');
+  if (!f) return;
+  f.nama.value = SITUS_AWAL.nama; f.judul.value = SITUS_AWAL.judul; f.teks.value = SITUS_AWAL.teks;
+  toast('Teks bawaan dipasang — klik Simpan untuk menyimpan', 'info');
 };
 ACT['pusat.resetDemo'] = async () => {
   if (!(await konfirmasiDialog({ judul: 'Kembalikan demo ke data awal?', isi: 'Semua event & pendaftaran contoh dibuat ulang. Perubahan yang Anda buat di demo akan hilang.', tombol: 'Kembalikan' }))) return;
@@ -5372,7 +5696,7 @@ async function rute() {
     const slug = p[1].toLowerCase();
     p = p.slice(2);
     if (!gantiEvent(slug)) { Router.aktif = 'beranda'; Beranda.vTidakAda(slug); return; }
-  } else if (p[0] === 'panitia') { Router.aktif = 'pusat'; Pusat.mount(); return; }
+  } else if (p[0] === 'panitia') { Router.aktif = 'pusat'; Pusat.mount(p[1]); return; }
   else if (!p[0] || p[0] === 'semua') { Router.aktif = 'beranda'; Beranda.mount(); return; }
   else if (p[0] === 'tiket' && p[1]) {           // link konfirmasi lama tanpa kode event
     const slug = await api.cariEventTiket(p[1]).catch(() => null);
