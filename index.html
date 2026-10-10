@@ -780,6 +780,215 @@ code { font-family: ui-monospace, Menlo, Consolas, monospace; font-size: .92em; 
 .nomor-cek.bad { color: var(--bad-ink); }
 .grup-hari { margin: 14px 0 6px; font-size: 13px; font-weight: 800; letter-spacing: .04em; text-transform: uppercase; color: var(--ink-2); }
 .grup-hari:first-child { margin-top: 0; }
+/* ================================================================
+   MULTI-EVENT — halaman depan (poster tiket & kalender) + ruang panitia
+   ================================================================ */
+.hero-back { display: inline-flex; align-items: center; gap: 6px; color: #fff; text-decoration: none; font-size: 13.5px; font-weight: 700; opacity: .9; margin: -6px 0 14px; padding: 4px 10px 4px 6px; border-radius: 99px; background: rgba(255,255,255,.12); }
+.hero-back:hover { opacity: 1; background: rgba(255,255,255,.2); }
+.hero-back .ico { width: 16px; height: 16px; }
+.side-back { display: flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 700; color: var(--muted); text-decoration: none; padding: 4px 6px; margin: -6px 0 10px; border-radius: 8px; }
+.side-back:hover { color: var(--ink); background: var(--surface-2); }
+.side-back .ico { width: 15px; height: 15px; }
+
+.lp-top { position: relative; overflow: hidden; color: #fff; background: linear-gradient(165deg, #0a3a6d 0%, #0e5aa7 52%, #3b93d6 100%); padding: 18px 16px 76px; }
+.lp-in { max-width: 1080px; margin: 0 auto; position: relative; z-index: 1; }
+.lp-bar { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 34px; }
+.lp-brand { display: inline-flex; align-items: center; gap: 10px; color: #fff; text-decoration: none; font-size: 16px; }
+.lp-brand .brand-logo { width: 34px; height: 34px; background: rgba(255,255,255,.16); }
+.lp-masuk { background: rgba(255,255,255,.14); border-color: rgba(255,255,255,.3); color: #fff; }
+.lp-masuk:hover { background: rgba(255,255,255,.24); }
+.lp-top h1 { font-size: clamp(28px, 6vw, 46px); line-height: 1.08; letter-spacing: -.025em; margin: 0 0 12px; max-width: 15ch; text-wrap: balance; font-weight: 800; }
+.lp-top p { margin: 0; max-width: 46ch; font-size: 15.5px; opacity: .92; }
+.lp-top .hero-chips .chip .ico { width: 15px; height: 15px; }
+.lp-top .hero-art { right: max(8px, calc(50% - 560px)); top: 64px; }
+.lp-main { max-width: 1080px; margin: 0 auto; padding: 6px 16px 40px; position: relative; z-index: 2; }
+.lp-sec { margin-bottom: 34px; }
+.lp-h { display: flex; align-items: baseline; gap: 4px 12px; flex-wrap: wrap; margin: 0 2px 14px; }
+.lp-h h2 { font-size: 20px; margin: 0; letter-spacing: -.01em; }
+.lp-h span { color: var(--muted); font-size: 13.5px; }
+.lp-kosong { display: flex; gap: 10px; align-items: center; padding: 18px; border: 1.5px dashed var(--line-strong); border-radius: 16px; color: var(--ink-2); background: var(--surface); }
+.lp-kosong .ico { width: 20px; height: 20px; color: var(--muted); flex: none; }
+
+/* status event */
+.ev-st { display: inline-flex; align-items: center; gap: 6px; padding: 3px 10px; border-radius: 99px; font-size: 12.5px; font-weight: 700; white-space: nowrap; line-height: 1.5; background: var(--surface-3); color: var(--ink-2); }
+.ev-st i { width: 7px; height: 7px; border-radius: 50%; background: currentColor; animation: denyut 1.6s ease-in-out infinite; }
+.st-live { background: var(--bad-soft); color: var(--bad-ink); }
+.st-segera { background: var(--warn-soft); color: var(--warn-ink); }
+.st-jauh, .st-tbd { background: var(--brand-soft); color: var(--brand-soft-ink); }
+.st-buka { background: var(--good-soft); color: var(--good-ink); }
+.st-hide { background: var(--surface-3); color: var(--muted); }
+@keyframes denyut { 50% { opacity: .35; } }
+@media (prefers-reduced-motion: reduce) { .ev-st i { animation: none; } }
+
+/* poster ala tiket bioskop */
+.tiket-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 18px; }
+.tiket { display: flex; flex-direction: column; background: var(--surface); border-radius: 20px; box-shadow: var(--shadow); color: inherit; text-decoration: none; position: relative; transition: transform .18s ease, box-shadow .18s ease; min-width: 0; }
+.tiket:hover { transform: translateY(-3px); box-shadow: 0 2px 4px rgba(20,20,20,.05), 0 14px 32px rgba(20,20,20,.12); }
+.tiket:focus-visible { outline: 3px solid var(--brand); outline-offset: 3px; }
+.skel-tiket { height: 470px; padding: 0; overflow: hidden; }
+.tiket-poster { position: relative; aspect-ratio: 5 / 5.4; border-radius: 20px 20px 0 0; overflow: hidden; background: #0a3a6d center / cover no-repeat; color: #fff; display: flex; flex-direction: column; justify-content: space-between; padding: 14px; isolation: isolate; }
+.tiket-poster .tp-art { position: absolute; inset: 0; width: 100%; height: 100%; z-index: -2; }
+.tiket-poster::after { content: ''; position: absolute; inset: 0; z-index: -1; background: linear-gradient(180deg, rgba(0,0,0,.18) 0%, rgba(0,0,0,0) 30%, rgba(0,0,0,0) 45%, rgba(4,16,34,.82) 100%); }
+.tp-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; }
+.tp-top .ev-st { background: rgba(255,255,255,.94); color: #16181d; }
+.tp-top .ev-st.st-live { color: #b42318; }
+.tp-logo { width: 44px; height: 44px; object-fit: contain; border-radius: 10px; background: rgba(255,255,255,.94); padding: 3px; }
+.tp-judul small { display: block; font-size: 11.5px; font-weight: 700; letter-spacing: .07em; text-transform: uppercase; opacity: .85; margin-bottom: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.tp-judul b { display: block; font-size: 22px; line-height: 1.15; letter-spacing: -.015em; text-wrap: balance; text-shadow: 0 1px 10px rgba(0,0,0,.3); }
+.tiket-sobek { position: relative; height: 0; margin: 0 16px; border-top: 2px dashed var(--line-strong); }
+.tiket-sobek::before, .tiket-sobek::after { content: ''; position: absolute; top: -12px; width: 22px; height: 22px; border-radius: 50%; background: var(--page); }
+.tiket-sobek::before { left: -27px; }
+.tiket-sobek::after { right: -27px; }
+.tiket-stub { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 12px 14px; padding: 14px 16px 16px; align-items: center; }
+.tk-tgl { display: flex; flex-direction: column; align-items: center; width: 52px; padding-right: 14px; border-right: 1px solid var(--line); line-height: 1.1; }
+.tk-tgl span { font-size: 11.5px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
+.tk-tgl b { font-size: 30px; font-weight: 800; color: var(--brand); letter-spacing: -.02em; margin: 2px 0; font-variant-numeric: tabular-nums; }
+.tk-info { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+.tk-lok { display: flex; align-items: center; gap: 5px; font-weight: 700; font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.tk-lok .ico { width: 15px; height: 15px; color: var(--muted); flex: none; }
+.tk-rentang { font-size: 13px; color: var(--muted); }
+.tk-meta { display: flex; flex-wrap: wrap; gap: 2px 10px; font-size: 12.5px; color: var(--ink-2); margin-top: 3px; }
+.tk-buka { color: var(--good-ink); font-weight: 700; }
+.tk-tutup { color: var(--muted); font-weight: 700; }
+.tk-cta { grid-column: 1 / -1; display: flex; align-items: center; justify-content: center; gap: 6px; min-height: 44px; border-radius: 12px; font-weight: 800; font-size: 14.5px; border: 1.5px solid var(--line-strong); color: var(--ink); }
+.tk-cta.primary { background: var(--brand); border-color: var(--brand); color: var(--brand-ink); }
+.tk-cta .ico { width: 17px; height: 17px; transition: transform .18s ease; }
+.tiket:hover .tk-cta .ico { transform: translateX(3px); }
+
+/* kalender event yang masih jauh */
+.kal-bulan { font-size: 12.5px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); margin: 18px 2px 8px; }
+.kal-bulan:first-of-type { margin-top: 0; }
+.kal-card { background: var(--surface); border: 1px solid var(--line); border-radius: 16px; overflow: hidden; }
+.kal-row { display: grid; grid-template-columns: 64px minmax(0, 1fr) auto 20px; gap: 14px; align-items: center; padding: 14px 16px; color: inherit; text-decoration: none; border-top: 1px solid var(--line); }
+.kal-row:first-child { border-top: 0; }
+.kal-row:hover { background: var(--surface-2); }
+.kal-row:focus-visible { outline: 3px solid var(--brand); outline-offset: -3px; }
+.kal-tgl { text-align: center; line-height: 1.1; border-radius: 12px; padding: 8px 4px; background: var(--brand-soft); color: var(--brand-soft-ink); }
+.kal-tgl b { display: block; font-size: 20px; font-weight: 800; letter-spacing: -.02em; font-variant-numeric: tabular-nums; }
+.kal-tgl.rng b { font-size: 15px; white-space: nowrap; }
+.kal-tgl span { font-size: 11.5px; font-weight: 800; text-transform: uppercase; letter-spacing: .05em; }
+.kal-info { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+.kal-info b { font-size: 15.5px; line-height: 1.3; }
+.kal-info span { display: flex; align-items: center; gap: 5px; font-size: 13px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.kal-info .ico { width: 14px; height: 14px; flex: none; }
+.kal-kanan { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; }
+.kal-sisa { font-size: 12.5px; color: var(--muted); font-weight: 600; }
+.kal-chev { width: 18px; height: 18px; color: var(--muted); }
+.kal-card.selesai .kal-tgl { background: var(--surface-3); color: var(--ink-2); }
+.kal-card.selesai .kal-info b { color: var(--ink-2); }
+
+/* ruang panitia */
+.akun-demo { display: flex; flex-direction: column; gap: 8px; margin: 0 0 18px; padding: 12px; border-radius: 14px; background: var(--accent-soft); border: 1px solid var(--accent-line); }
+.akun-demo .label { color: var(--accent-ink); font-size: 12.5px; text-transform: uppercase; letter-spacing: .06em; }
+.akun-btn { display: flex; flex-direction: column; align-items: flex-start; gap: 1px; text-align: left; border: 1px solid var(--line); background: var(--surface); border-radius: 10px; padding: 9px 12px; cursor: pointer; color: var(--ink); font: inherit; }
+.akun-btn:hover { border-color: var(--brand); }
+.akun-btn b { font-size: 14px; }
+.akun-btn span { font-size: 12.5px; color: var(--muted); }
+.pz-top { background: var(--surface); border-bottom: 1px solid var(--line); position: sticky; top: 0; z-index: 20; }
+.pz-in { max-width: 1080px; margin: 0 auto; padding: 10px 16px; display: flex; align-items: center; gap: 12px; }
+.pz-brand { display: flex; align-items: center; gap: 10px; color: var(--ink); text-decoration: none; margin-right: auto; min-width: 0; }
+.pz-brand .brand-logo { width: 34px; height: 34px; }
+.pz-brand b, .pz-who b { display: block; font-size: 14.5px; line-height: 1.2; }
+.pz-brand small, .pz-who small { display: block; font-size: 12px; color: var(--muted); }
+.pz-who { text-align: right; min-width: 0; }
+.pz-who small { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 260px; }
+.pz-main { max-width: 1080px; margin: 0 auto; padding: 26px 16px 48px; }
+.pz-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 12px 20px; flex-wrap: wrap; margin-bottom: 18px; }
+.pz-head h1 { font-size: 26px; margin: 0 0 4px; letter-spacing: -.02em; }
+.pz-head .lead { margin: 0; }
+.pe-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(310px, 1fr)); gap: 16px; margin-top: 16px; }
+.pe-card { background: var(--surface); border: 1px solid var(--line); border-radius: 16px; padding: 18px; display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+.pe-head { display: flex; flex-wrap: wrap; gap: 6px; align-items: flex-start; }
+.pe-card h3 { margin: 2px 0 0; font-size: 17px; line-height: 1.3; letter-spacing: -.01em; }
+.pe-meta { display: flex; flex-direction: column; gap: 3px; margin: 0; font-size: 13.5px; color: var(--muted); }
+.pe-meta span { display: flex; align-items: center; gap: 6px; }
+.pe-meta .ico { width: 15px; height: 15px; flex: none; }
+.pe-kpi { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; margin-top: 2px; }
+.pe-kpi div { background: var(--surface-2); border-radius: 11px; padding: 9px 10px; min-width: 0; }
+.pe-kpi div.hi { background: var(--warn-soft); }
+.pe-kpi b { display: block; font-size: 17px; white-space: nowrap; font-variant-numeric: tabular-nums; letter-spacing: -.01em; }
+.pe-kpi span { display: block; font-size: 11.5px; color: var(--muted); line-height: 1.3; }
+.pe-kpi div.hi span, .pe-kpi div.hi b { color: var(--warn-ink); }
+.pe-panitia { display: flex; gap: 8px; align-items: flex-start; font-size: 12.5px; color: var(--ink-2); }
+.pe-panitia > .ico { width: 16px; height: 16px; color: var(--muted); flex: none; margin-top: 2px; }
+.pe-panitia span { display: flex; flex-wrap: wrap; gap: 4px; min-width: 0; }
+.pe-panitia i { font-style: normal; background: var(--surface-3); border-radius: 6px; padding: 1px 7px; overflow-wrap: anywhere; }
+.pe-panitia em { color: var(--muted); }
+.pe-act { display: flex; flex-wrap: wrap; gap: 8px; margin-top: auto; padding-top: 4px; }
+.pe-head .pe-atur { margin: -6px -6px 0 auto; width: 36px; min-height: 36px; }
+.slug-row { display: flex; align-items: stretch; }
+.slug-row span { display: flex; align-items: center; padding: 0 10px; border: 1px solid var(--line-strong); border-right: 0; border-radius: 10px 0 0 10px; background: var(--surface-2); color: var(--muted); font-size: 14px; white-space: nowrap; }
+.slug-row .input { border-radius: 0 10px 10px 0; min-width: 0; }
+fieldset.salin { border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px 14px; margin: 4px 0 16px; }
+fieldset.salin legend { font-weight: 700; font-size: 14px; padding: 0 6px; }
+.salin-opsi { display: grid; grid-template-columns: 1fr 1fr; gap: 8px 12px; margin-top: 12px; }
+.check-sm { display: flex; align-items: center; gap: 8px; font-size: 14px; cursor: pointer; }
+.check-sm input { width: 18px; height: 18px; accent-color: var(--brand); flex: none; }
+
+@media (max-width: 640px) {
+  .lp-bar { margin-bottom: 24px; }
+  .lp-top { padding-bottom: 70px; }
+  .lp-top .hero-art { width: 130px; right: -20px; top: 70px; opacity: .45; }
+  .lp-sec:first-child .tiket-grid { grid-auto-flow: column; grid-template-columns: none; grid-auto-columns: 84%; overflow-x: auto; scroll-snap-type: x mandatory; margin: 0 -16px; padding: 4px 16px 14px; scrollbar-width: none; }
+  .lp-sec:first-child .tiket-grid::-webkit-scrollbar { display: none; }
+  .lp-sec:first-child .tiket { scroll-snap-align: center; }
+  .kal-row { grid-template-columns: 56px minmax(0, 1fr) 16px; gap: 12px; padding: 12px 14px; }
+  .kal-kanan { grid-column: 2; grid-row: 2; flex-direction: row; align-items: center; justify-content: flex-start; gap: 8px; margin-top: -6px; }
+  .kal-chev { grid-column: 3; grid-row: 1 / span 2; }
+  .kal-tgl { grid-row: 1 / span 2; align-self: start; }
+  .kal-info span { white-space: normal; }
+  .pz-who { display: none; }
+  .hide-sm { display: none; }
+  .pe-grid { grid-template-columns: minmax(0, 1fr); }
+  .salin-opsi { grid-template-columns: 1fr; }
+}
+/* ruang panitia: tab super admin, admin event, pengaturan situs */
+.lp-top.has-bg { background-color: #0a3a6d; background-size: cover; background-position: center; }
+.lp-top.has-bg h1, .lp-top.has-bg p { text-shadow: 0 1px 12px rgba(0,0,0,.35); }
+.lp-brand .brand-logo.has-img, .pz-brand .brand-logo.has-img { background: #fff; }
+.input[readonly] { background: var(--surface-2); color: var(--ink-2); cursor: not-allowed; }
+.link-btn { background: none; border: 0; padding: 0; font: inherit; color: var(--brand); text-decoration: underline; cursor: pointer; }
+.pz-tabs { display: flex; gap: 4px; border-bottom: 1px solid var(--line); margin: -8px 0 22px; overflow-x: auto; scrollbar-width: none; }
+.pz-tabs::-webkit-scrollbar { display: none; }
+.pz-tab { display: inline-flex; align-items: center; gap: 7px; padding: 10px 14px; font-weight: 700; font-size: 14.5px; color: var(--ink-2); text-decoration: none; border-bottom: 2.5px solid transparent; margin-bottom: -1px; white-space: nowrap; }
+.pz-tab .ico { width: 17px; height: 17px; }
+.pz-tab:hover { color: var(--ink); }
+.pz-tab.on { color: var(--brand); border-bottom-color: var(--brand); }
+.pz-tab small { background: var(--surface-3); color: var(--ink-2); border-radius: 99px; padding: 0 7px; font-size: 12px; }
+.ico-inline { width: 15px; height: 15px; vertical-align: -2px; }
+.ak-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 14px; }
+.ak-card { background: var(--surface); border: 1px solid var(--line); border-radius: 16px; padding: 16px; min-width: 0; }
+.ak-top { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 12px; justify-content: space-between; }
+.ak-who { display: flex; align-items: center; gap: 10px; min-width: 0; }
+.ak-who b { display: block; font-size: 14.5px; overflow-wrap: anywhere; }
+.ak-who span:not(.ak-av) { font-size: 12.5px; color: var(--muted); }
+.ak-av { width: 34px; height: 34px; border-radius: 50%; background: var(--brand-soft); color: var(--brand-soft-ink); display: grid; place-items: center; font-weight: 800; flex: none; font-size: 14px; }
+.ak-aksi { display: flex; flex-wrap: wrap; gap: 6px; }
+.ak-ev { list-style: none; margin: 12px 0 0; padding: 0; border-top: 1px solid var(--line); }
+.ak-ev li { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 9px 0; border-bottom: 1px solid var(--line); }
+.ak-ev li:last-child { border-bottom: 0; padding-bottom: 0; }
+.ak-ev li > span { min-width: 0; }
+.ak-ev b { display: block; font-size: 14px; }
+.ak-ev small { font-size: 12.5px; color: var(--muted); }
+.ak-ganti { display: flex; gap: 6px; flex: 1; min-width: 0; align-items: center; flex-wrap: wrap; }
+.ak-ganti .input { flex: 1; min-width: 180px; }
+.ae-list { display: flex; flex-direction: column; border: 1px solid var(--line); border-radius: 12px; overflow: hidden; margin-top: 6px; }
+.ae-list > .hint { padding: 12px; }
+.ae-row { display: flex; align-items: center; gap: 8px; padding: 9px 10px; border-top: 1px solid var(--line); }
+.ae-row:first-child { border-top: 0; }
+.ae-row b { flex: 1; min-width: 0; font-size: 14px; overflow-wrap: anywhere; }
+.ae-row .ak-av { width: 28px; height: 28px; font-size: 12.5px; }
+.ae-tambah { display: flex; gap: 6px; margin-top: 8px; }
+.ae-tambah .input { flex: 1; min-width: 0; }
+.situs-prev { border-radius: 14px; padding: 16px 18px 22px; color: #fff; background: linear-gradient(165deg, #0a3a6d 0%, #0e5aa7 52%, #3b93d6 100%); background-size: cover; background-position: center; display: flex; flex-direction: column; gap: 8px; }
+.situs-prev .lp-brand { margin-bottom: 14px; font-size: 14px; }
+.situs-prev .sp-judul { font-size: 22px; line-height: 1.15; letter-spacing: -.02em; max-width: 16ch; }
+.situs-prev span { font-size: 13.5px; opacity: .92; }
+@media (max-width: 640px) {
+  .ak-list { grid-template-columns: minmax(0, 1fr); }
+  .ae-row { flex-wrap: wrap; }
+  .ae-row b { flex-basis: calc(100% - 40px); }
+}
 </style>
 </head>
 <body>
@@ -794,6 +1003,9 @@ code { font-family: ui-monospace, Menlo, Consolas, monospace; font-size: .92em; 
       (data hanya tersimpan di browser ini, cocok untuk mencoba).
    ===================================================================== */
 const CONFIG = {
+  /* true = selalu mode demo (data contoh di browser), walaupun kunci Supabase terisi.
+     false = pakai database Supabase multi-event (jalankan multi-event.sql dulu). */
+  MULTI_EVENT_DEMO: false,
   SUPABASE_URL: 'https://igxbxbfbakytxktybdck.supabase.co',   // contoh: ''
   SUPABASE_KEY: 'sb_publishable_wbSax22UaQKnv_X6hM-xYg_rElib4aM',   // Publishable key (- [ ] ) atau anon key
   BUCKET: 'lomba-bukti',
@@ -1073,6 +1285,17 @@ const PESAN_ERROR = {
   BUKAN_ADMIN: 'Akun ini tidak terdaftar sebagai admin.',
   DEMO_PENUH: 'Penyimpanan mode demo penuh. Hapus data demo di menu Pengaturan.',
   GAMBAR_GAGAL: 'Foto tidak bisa dibaca. Gunakan format JPG/PNG atau screenshot.',
+  KODE_EVENT_TIDAK_VALID: 'Kode alamat event hanya boleh huruf kecil, angka, dan tanda strip (3–40 karakter).',
+  KODE_EVENT_DIPAKAI: 'Kode alamat event ini sudah dipakai event lain.',
+  BUKAN_SUPER_ADMIN: 'Hanya super admin yang bisa melakukan ini (membuat event, mengatur akses, atau mengubah nama, tanggal & lokasi event).',
+  EVENT_TIDAK_ADA: 'Event tidak ditemukan.',
+  BELUM_MASUK: 'Silakan masuk dulu.',
+  EMAIL_TIDAK_VALID: 'Email tidak valid.',
+  TANGGAL_TIDAK_VALID: 'Tanggal selesai tidak boleh sebelum tanggal mulai.',
+  EVENT_TIDAK_BOLEH_DIPINDAH: 'Data tidak bisa dipindah ke event lain.',
+  BUKAN_ADMIN: 'Akun ini tidak punya akses ke event ini.',
+  EMAIL_SUDAH_ADA: 'Email ini sudah menjadi admin event tersebut.',
+  EMAIL_SUPER: 'Email ini milik super admin, yang sudah bisa membuka semua event.',
   MEDIA_TIDAK_VALID: 'Gunakan gambar JPG, PNG, atau WebP.',
   FILE_BESAR: 'Ukuran file terlalu besar (maksimal 3 MB setelah dikompres).',
   HARGA_BERUBAH: 'Biaya pendaftaran baru saja diperbarui panitia. Periksa kembali jumlah yang harus dibayar.',
@@ -1108,6 +1331,8 @@ const AKTIF = (s) => s === 'menunggu' || s === 'terkonfirmasi';
 class SupabaseAPI {
   constructor() {
     this.mode = 'supabase';
+    this.eventId = null;
+    this.evCache = new Map();
     this.bucket = CONFIG.BUCKET;
     this.sb = window.supabase.createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_KEY, {
       auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: false, storageKey: 'lomba-layangan-auth' },
@@ -1120,8 +1345,22 @@ class SupabaseAPI {
   }
   _ok({ data, error }) { if (error) throw error; return data; }
 
+  /* ---- event yang sedang dibuka (#e/<kode>) ---- */
+  async pakaiEvent(slug) {
+    slug = String(slug || '').toLowerCase();
+    let e = this.evCache.get(slug);
+    if (!e) {
+      e = await this._rpc('lomba_event_slug', { p_slug: slug });
+      if (e) this.evCache.set(slug, e);
+    }
+    if (!e) return null;
+    this.eventId = e.id;
+    return { ...e };
+  }
+  _ev() { if (!this.eventId) throw new Error('EVENT_TIDAK_ADA'); return this.eventId; }
+
   /* ---- publik ---- */
-  infoPublik() { return this._rpc('lomba_info_publik'); }
+  infoPublik() { return this._rpc('lomba_info_publik', { p_event: this._ev() }); }
   async uploadBukti(path, blob, contentType) {
     const { error } = await this.sb.storage.from(this.bucket).upload(path, blob, { contentType, upsert: false, cacheControl: '3600' });
     if (error && !/already exists|Duplicate|409/i.test(`${error.message} ${error.statusCode || ''}`)) throw error;
@@ -1131,12 +1370,15 @@ class SupabaseAPI {
     return this._rpc('lomba_daftar', {
       p_jenis: p.jenis, p_seri_id: p.seri_id, p_nama_sekha: p.nama_sekha, p_alamat: p.alamat, p_no_wa: p.no_wa,
       p_nama_rekening: p.nama_rekening, p_bukti_path: p.bukti_path, p_bukti_hash: p.bukti_hash || null, p_client_ref: p.client_ref,
-      p_harga: p.harga == null ? null : Number(p.harga), p_nomor_layangan: p.nomor_layangan,
+      p_harga: p.harga == null ? null : Number(p.harga), p_nomor_layangan: p.nomor_layangan, p_event: this._ev(),
     });
   }
-  cekNomor(jenis, nomor) { return this._rpc('lomba_cek_nomor', { p_jenis: jenis, p_nomor: String(nomor || '') }); }
-  cekStatus(wa) { return this._rpc('lomba_cek_status', { p_no_wa: wa }); }
+  cekNomor(jenis, nomor) { return this._rpc('lomba_cek_nomor', { p_jenis: jenis, p_nomor: String(nomor || ''), p_event: this._ev() }); }
+  cekStatus(wa) { return this._rpc('lomba_cek_status', { p_no_wa: wa, p_event: this._ev() }); }
   tiket(kode) { return this._rpc('lomba_tiket', { p_kode: kode }); }
+  cariEventTiket(kode) { return this._rpc('lomba_event_dari_kode', { p_kode: kode }); }
+  daftarEvent() { return this._rpc('lomba_daftar_event'); }
+  infoSitus() { return this._rpc('lomba_info_situs'); }
 
   /* ---- login admin ---- */
   async sesi() { const { data } = await this.sb.auth.getSession(); return data.session ? { email: data.session.user.email } : null; }
@@ -1147,26 +1389,65 @@ class SupabaseAPI {
     return { email: data.user.email };
   }
   async logout() { await this.sb.auth.signOut({ scope: 'local' }); }
-  isAdmin() { return this._rpc('lomba_is_admin'); }
+  isAdmin() { return this._rpc('lomba_boleh_event', { p_event: this._ev() }); }
+  async peran() { const p = await this._rpc('lomba_peran'); return p ? { ...p, nama: p.email } : null; }
+  /* link masuk / undangan lewat email (admin baru membuat password sendiri) */
+  _alamatKembali() { return location.origin + location.pathname; }
+  async kirimLinkMasuk(email, buatAkun = false) {
+    const { error } = await this.sb.auth.signInWithOtp({ email, options: { shouldCreateUser: buatAkun, emailRedirectTo: this._alamatKembali() } });
+    if (error) throw error;
+  }
+  async gantiPassword(password) {
+    const { error } = await this.sb.auth.updateUser({ password });
+    if (error) throw error;
+  }
+  async pasangSesiDariLink(access_token, refresh_token) {
+    const { error } = await this.sb.auth.setSession({ access_token, refresh_token });
+    if (error) throw error;
+  }
 
-  /* ---- data admin ---- */
+  /* ---- ruang panitia & super admin ---- */
+  eventSaya() { return this._rpc('lomba_event_saya'); }
+  async buatEvent(d) { const r = await this._rpc('lomba_buat_event', { p: d }); await this._undangBanyak(d.panitia || []); return r; }
+  async ubahEvent(id, patch) { this.evCache.clear(); return this._rpc('lomba_ubah_event', { p_id: Number(id), p_slug: patch.slug ?? null, p_tampil: patch.tampil ?? null }); }
+  async hapusEvent(id) {
+    const r = await this._rpc('lomba_hapus_event', { p_id: Number(id) });
+    this.evCache.clear();
+    const paths = (r && r.bukti_paths) || [];
+    for (let i = 0; i < paths.length; i += 100) { try { await this.sb.storage.from(this.bucket).remove(paths.slice(i, i + 100)); } catch (e) { /* abaikan */ } }
+  }
+  simpanSitus(patch) { return this._rpc('lomba_simpan_situs', { p: patch }); }
+  daftarAkses() { return this._rpc('lomba_daftar_akses'); }
+  async _undang(email) {
+    try { await this.kirimLinkMasuk(String(email).trim().toLowerCase(), true); return true; }
+    catch (e) { this.undanganGagal = pesanError(e); return false; }
+  }
+  async _undangBanyak(list) { for (const e of list) await this._undang(e); }
+  async tambahAkses(id, email) { await this._rpc('lomba_tambah_akses', { p_event: Number(id), p_email: email }); return this._undang(email); }
+  async gantiAkses(id, lama, baru) { await this._rpc('lomba_ganti_akses', { p_event: Number(id), p_lama: lama, p_baru: baru }); return this._undang(baru); }
+  cabutAkses(id, email) { return this._rpc('lomba_cabut_akses', { p_event: id === 'semua' ? null : Number(id), p_email: email }); }
+  async gantiEmailPanitia(lama, baru) { await this._rpc('lomba_ganti_email_panitia', { p_lama: lama, p_baru: baru }); return this._undang(baru); }
+  undangUlang(email) { return this._undang(email); }
+
+  /* ---- data admin (event yang sedang dibuka) ---- */
   async _semuaPendaftaran() {
     let out = [];
     for (let dari = 0; ; dari += 1000) {
-      const rows = this._ok(await this.sb.from('lomba_pendaftaran').select('*').order('created_at', { ascending: false }).range(dari, dari + 999));
+      const rows = this._ok(await this.sb.from('lomba_pendaftaran').select('*').eq('event_id', this._ev()).order('created_at', { ascending: false }).range(dari, dari + 999));
       out = out.concat(rows);
       if (rows.length < 1000) break;
     }
     return out;
   }
   async muatSemua() {
+    const ev = this._ev();
     const [pengaturan, jenis, seri, daftar, hari, sesi] = await Promise.all([
-      this.sb.from('lomba_pengaturan').select('*').eq('id', 1).maybeSingle().then((r) => this._ok(r)),
-      this.sb.from('lomba_jenis').select('*').order('urutan').order('nama').then((r) => this._ok(r)),
-      this.sb.from('lomba_seri').select('*').order('tanggal', { ascending: true, nullsFirst: false }).order('jam_mulai', { ascending: true, nullsFirst: false }).order('urutan').order('id').then((r) => this._ok(r)),
+      this.sb.from('lomba_pengaturan').select('*').eq('event_id', ev).maybeSingle().then((r) => this._ok(r)),
+      this.sb.from('lomba_jenis').select('*').eq('event_id', ev).order('urutan').order('nama').then((r) => this._ok(r)),
+      this.sb.from('lomba_seri').select('*').eq('event_id', ev).order('tanggal', { ascending: true, nullsFirst: false }).order('jam_mulai', { ascending: true, nullsFirst: false }).order('urutan').order('id').then((r) => this._ok(r)),
       this._semuaPendaftaran(),
-      this.sb.from('lomba_hari').select('*').order('tanggal', { ascending: true, nullsFirst: false }).order('urutan').order('id').then((r) => this._ok(r)),
-      this.sb.from('lomba_sesi').select('*').order('jam_mulai', { ascending: true, nullsFirst: false }).order('urutan').order('id').then((r) => this._ok(r)),
+      this.sb.from('lomba_hari').select('*').eq('event_id', ev).order('tanggal', { ascending: true, nullsFirst: false }).order('urutan').order('id').then((r) => this._ok(r)),
+      this.sb.from('lomba_sesi').select('*').eq('event_id', ev).order('jam_mulai', { ascending: true, nullsFirst: false }).order('urutan').order('id').then((r) => this._ok(r)),
     ]);
     return { pengaturan: pengaturan || {}, jenis, seri, daftar, hari, sesi };
   }
@@ -1178,7 +1459,7 @@ class SupabaseAPI {
     if (!data) throw new Error('DATA_BERUBAH');
     return data;
   }
-  async tambahPendaftaran(row) { return this._ok(await this.sb.from('lomba_pendaftaran').insert(row).select().single()); }
+  async tambahPendaftaran(row) { return this._ok(await this.sb.from('lomba_pendaftaran').insert({ ...row, event_id: this._ev() }).select().single()); }
   async hapusPendaftaran(row) {
     this._ok(await this.sb.from('lomba_pendaftaran').delete().eq('id', row.id));
     if (row.bukti_path) { try { await this.sb.storage.from(this.bucket).remove([row.bukti_path]); } catch (e) { /* abaikan */ } }
@@ -1191,7 +1472,7 @@ class SupabaseAPI {
   async simpanSeri(s) {
     const { id, ...isi } = s;
     if (id) return this._ok(await this.sb.from('lomba_seri').update(isi).eq('id', id).select().single());
-    return this._ok(await this.sb.from('lomba_seri').insert(isi).select().single());
+    return this._ok(await this.sb.from('lomba_seri').insert({ ...isi, event_id: this._ev() }).select().single());
   }
   async hapusSeri(id) { this._ok(await this.sb.from('lomba_seri').delete().eq('id', id)); }
   aturKotak(seriId, kotak, tutup) { return this._rpc('lomba_atur_kotak', { p_seri_id: seriId, p_kotak: kotak, p_tutup: tutup }); }
@@ -1199,12 +1480,12 @@ class SupabaseAPI {
   async simpanHari(h) {
     const { id, ...isi } = h;
     if (id) return this._ok(await this.sb.from('lomba_hari').update(isi).eq('id', id).select().single());
-    return this._ok(await this.sb.from('lomba_hari').insert(isi).select().single());
+    return this._ok(await this.sb.from('lomba_hari').insert({ ...isi, event_id: this._ev() }).select().single());
   }
   async simpanSesi(x) {
     const { id, ...isi } = x;
     if (id) return this._ok(await this.sb.from('lomba_sesi').update(isi).eq('id', id).select().single());
-    return this._ok(await this.sb.from('lomba_sesi').insert(isi).select().single());
+    return this._ok(await this.sb.from('lomba_sesi').insert({ ...isi, event_id: this._ev() }).select().single());
   }
   async hapusSesi(id) {
     // grup kosong ikut dihapus; gagal (foreign key) bila masih ada pendaftar
@@ -1216,15 +1497,16 @@ class SupabaseAPI {
     for (const x of sesi) await this.hapusSesi(x.id);
     this._ok(await this.sb.from('lomba_hari').delete().eq('id', id));
   }
-  async simpanJenis(kode, patch) { return this._ok(await this.sb.from('lomba_jenis').update(patch).eq('kode', kode).select().single()); }
-  async tambahJenis(row) { return this._ok(await this.sb.from('lomba_jenis').insert(row).select().single()); }
+  async simpanJenis(kode, patch) { return this._ok(await this.sb.from('lomba_jenis').update(patch).eq('event_id', this._ev()).eq('kode', kode).select().single()); }
+  async tambahJenis(row) { return this._ok(await this.sb.from('lomba_jenis').insert({ ...row, event_id: this._ev() }).select().single()); }
   async hapusJenis(kode) {
     // seri ikut dihapus; gagal (foreign key) bila masih ada pendaftaran untuk jenis ini
-    this._ok(await this.sb.from('lomba_seri').delete().eq('jenis', kode));
-    this._ok(await this.sb.from('lomba_jenis').delete().eq('kode', kode));
+    const ev = this._ev();
+    this._ok(await this.sb.from('lomba_seri').delete().eq('event_id', ev).eq('jenis', kode));
+    this._ok(await this.sb.from('lomba_jenis').delete().eq('event_id', ev).eq('kode', kode));
   }
   async simpanPengaturan(patch) {
-    return this._ok(await this.sb.from('lomba_pengaturan').update({ ...patch, updated_at: new Date().toISOString() }).eq('id', 1).select().single());
+    return this._ok(await this.sb.from('lomba_pengaturan').update({ ...patch, updated_at: new Date().toISOString() }).eq('event_id', this._ev()).select().single());
   }
   /* logo & gambar latar halaman peserta (bucket publik) */
   async uploadMedia(nama, blob, contentType) {
@@ -1241,16 +1523,16 @@ class SupabaseAPI {
   }
   cekSetup() { return this._rpc('lomba_cek_setup'); }
   async resetData() {
-    const r = await this._rpc('lomba_reset_data');
+    const r = await this._rpc('lomba_reset_data', { p_event: this._ev() });
     const paths = (r && r.bukti_paths) || [];
     for (let i = 0; i < paths.length; i += 100) {
       try { await this.sb.storage.from(this.bucket).remove(paths.slice(i, i + 100)); } catch (e) { /* abaikan */ }
     }
     return r;
   }
-  /* File bukti yang tidak terpakai, > 1 hari */
-  async bersihkanFileYatim(dipakai) {
-    const set = new Set(dipakai), yatim = [], batas = Date.now() - 86400000;
+  /* File bukti yang tidak terpakai di SEMUA event, > 1 hari (hanya super admin) */
+  async bersihkanFileYatim() {
+    const set = new Set(await this._rpc('lomba_bukti_terpakai')), yatim = [], batas = Date.now() - 86400000;
     for (let offset = 0; ; offset += 1000) {
       const { data, error } = await this.sb.storage.from(this.bucket).list('bukti', { limit: 1000, offset, sortBy: { column: 'name', order: 'asc' } });
       if (error) throw error;
@@ -1266,33 +1548,59 @@ class SupabaseAPI {
   langganan(onChange, onStatus) {
     const ch = this.sb
       .channel('lomba-admin-' + Math.random().toString(36).slice(2))
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'lomba_pendaftaran' }, (p) => onChange(p))
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'lomba_pendaftaran', filter: `event_id=eq.${this._ev()}` }, (p) => onChange(p))
       .subscribe((status) => onStatus(status));
     return () => { try { this.sb.removeChannel(ch); } catch (e) { /* abaikan */ } };
   }
 }
 
 class DemoAPI {
+  /* MULTI-EVENT: 1 indeks (daftar event, pengguna, akses panitia) + 1 penyimpanan per event.
+     Semua fungsi lama bekerja pada this.db = data event yang sedang dibuka (pakaiEvent). */
   constructor() {
     this.mode = 'demo';
-    this.KEY = 'lomba_layangan_demo_v1';
-    this.KEY_SESI = 'lomba_layangan_demo_sesi';
+    this.KEY = 'lomba_ml_index_v1';
+    this.KEY_EV = 'lomba_ml_event_v1_';
+    this.KEY_SESI = 'lomba_ml_sesi_v1';
     this.subs = new Set();
-    this.db = this._muat();
+    this.eventId = null;
+    this.db = null;
+    this.mem = {};          // salinan di memori bila penyimpanan browser diblokir
+    this.ix = this._muatIndex();
     window.addEventListener('storage', (e) => {
-      if (e.key === this.KEY) { this.db = this._muat(); this.subs.forEach((f) => f({ eventType: 'SYNC' })); }
+      if (e.key === this.KEY) { this.ix = this._muatIndex(); this.subs.forEach((f) => f({ eventType: 'SYNC' })); }
+      else if (this.eventId && e.key === this.KEY_EV + this.eventId) { this.db = this._muatEvent(this.eventId); this.subs.forEach((f) => f({ eventType: 'SYNC' })); }
     });
   }
-  _muat() {
-    const db = bacaLokal(this.KEY);
-    if (db && db.versi === 2) return db;
-    const baru = this._benih(true);
-    this._tulis(baru);
+  _muatIndex() {
+    const ix = bacaLokal(this.KEY);
+    if (ix && ix.versi === 1 && Array.isArray(ix.events)) { ix.situs = { ...SITUS_AWAL, ...(ix.situs || {}) }; return ix; }
+    return this._benihSemua();
+  }
+  _bacaEv(id) { return this.mem[id] || bacaLokal(this.KEY_EV + id); }
+  _simpanEv(id, db) {
+    this.mem[id] = db;
+    try { localStorage.setItem(this.KEY_EV + id, JSON.stringify(db)); }
+    catch (e) { if (/quota/i.test(`${e.name} ${e.message}`)) throw new Error('DEMO_PENUH'); }
+  }
+  _tulisIndex() {
+    try { localStorage.setItem(this.KEY, JSON.stringify(this.ix)); }
+    catch (e) { if (/quota/i.test(`${e.name} ${e.message}`)) throw new Error('DEMO_PENUH'); }
+  }
+  _muatEvent(id) {
+    const db = bacaLokal(this.KEY_EV + id) || this.mem[id];
+    if (db && db.versi === 2) { this.mem[id] = db; return db; }
+    const baru = this._benih(false);
+    try { this._simpanEv(id, baru); } catch (e) { /* abaikan */ }
     return baru;
   }
-  _tulis(db) {
-    try { localStorage.setItem(this.KEY, JSON.stringify(db)); }
-    catch (e) { if (/quota/i.test(`${e.name} ${e.message}`)) throw new Error('DEMO_PENUH'); }
+  _tulis(db) { this._simpanEv(this.eventId, db); }
+  /* pilih event yang sedang dibuka (alamat #e/<kode-event>/…) */
+  pakaiEvent(slug) {
+    const e = this.ix.events.find((x) => x.slug === String(slug || '').toLowerCase());
+    if (!e) return null;
+    if (this.eventId !== e.id) { this.eventId = e.id; this.db = this._muatEvent(e.id); }
+    return { ...e };
   }
   _simpan() { this._tulis(this.db); this.subs.forEach((f) => f({ eventType: 'LOCAL' })); }
   _jeda(ms = 250) { return tunggu(ms * 0.6 + Math.random() * ms * 0.8); }
@@ -1300,12 +1608,16 @@ class DemoAPI {
   _jenis(kode) { return this.db.jenis.find((j) => j.kode === kode); }
   _seri(id) { return this.db.seri.find((s) => s.id === Number(id)); }
 
-  _benih(denganContoh) {
+  _benih(denganContoh, st = {}, opsi = {}) {
     const hari = (plus) => { const d = new Date(); d.setDate(d.getDate() + plus); return d; };
     const minggu = hari(21); minggu.setDate(minggu.getDate() + ((7 - minggu.getDay()) % 7));
     const db = {
       versi: 2,
       pengaturan: {
+        tanggal_mulai: null,
+        tanggal_selesai: null,
+        logo_url: '',
+        bg_url: '',
         id: 1,
         nama_event: 'Lomba Layangan Tradisional 2026',
         penyelenggara: 'Panitia Lomba Layangan',
@@ -1321,24 +1633,69 @@ class DemoAPI {
         template_wa_konfirmasi: '',
         template_wa_tolak: '',
         updated_at: new Date().toISOString(),
+        ...st,
       },
       jenis: [], seri: [], hari: [], sesi: [],
       nextSeriId: 1, nextHariId: 1, nextSesiId: 1,
       daftar: [],
       files: {},
     };
-    if (denganContoh) this._isiContoh(db, isoTanggal(minggu));
+    if (denganContoh) this._isiContoh(db, db.pengaturan.tanggal_mulai || isoTanggal(minggu), opsi);
     return db;
   }
+  /* Data contoh: beberapa event di berbagai waktu (berlangsung, segera, jauh, selesai) */
+  _benihSemua() {
+    const tgl = (plus) => { const d = new Date(); d.setDate(d.getDate() + plus); return isoTanggal(d); };
+    const SUPER = 'superadmin@demo.id';
+    const ix = {
+      versi: 1, nextId: 1, events: [], akses: {}, situs: { ...SITUS_AWAL },
+      pengguna: [
+        { email: SUPER, nama: 'Super Admin', peran: 'super' },
+        { email: 'panitia.padanggalak@demo.id', nama: 'Panitia Padang Galak', peran: 'panitia' },
+        { email: 'panitia.sanur@demo.id', nama: 'Panitia Sanur', peran: 'panitia' },
+        { email: 'panitia.kusamba@demo.id', nama: 'Panitia Kusamba', peran: 'panitia' },
+      ],
+    };
+    const rencana = [
+      { slug: 'padang-galak-2026', nama: 'Lomba Layangan Tradisional Padang Galak', org: 'Panitia Layangan Padang Galak', lokasi: 'Pantai Padang Galak, Sanur', m: 0, s: 1, buka: false, skala: 1, panitia: ['panitia.padanggalak@demo.id'] },
+      { slug: 'sanur-kaja-2026', nama: 'Festival Layangan Sanur Kaja', org: 'ST. Dharma Kerti Sanur Kaja', lokasi: 'Lapangan Pantai Sindhu, Sanur', m: 5, s: 5, buka: true, skala: 0.7, panitia: ['panitia.sanur@demo.id'] },
+      { slug: 'kusamba-remaja', nama: 'Lomba Layangan Remaja Kusamba', org: 'Sekaa Teruna Kusamba', lokasi: 'Pantai Kusamba, Klungkung', m: 12, s: 12, buka: true, skala: 0.4, panitia: ['panitia.kusamba@demo.id'] },
+      { slug: 'mertasari-kite-fest', nama: 'Mertasari Kite Festival', org: 'Panitia Mertasari', lokasi: 'Pantai Mertasari, Sanur Kauh', m: 38, s: 39, buka: true, skala: 0.15, panitia: ['panitia.sanur@demo.id'] },
+      { slug: 'pantai-lebih-janggan', nama: 'Lomba Layangan Janggan Pantai Lebih', org: 'Panitia Layangan Lebih', lokasi: 'Pantai Lebih, Gianyar', m: 74, s: 74, buka: false, skala: 0, panitia: [] },
+      { slug: 'hut-desa-sanur', nama: 'Lomba Layangan HUT Desa Sanur', org: 'Panitia HUT Desa Sanur', lokasi: 'Pantai Semawang, Sanur', m: -19, s: -19, buka: false, skala: 0.8, panitia: ['panitia.sanur@demo.id'] },
+      { slug: 'agustusan-ketewel', nama: 'Lomba Layangan Agustusan Ketewel', org: 'Sekaa Teruna Ketewel', lokasi: 'Pantai Ketewel, Gianyar', m: -55, s: -54, buka: false, skala: 0.6, panitia: [] },
+    ];
+    rencana.forEach((r, i) => {
+      const id = ix.nextId++;
+      ix.events.push({ id, slug: r.slug, tampil: true, created_at: new Date(Date.now() - (90 - i) * 86400000).toISOString() });
+      ix.akses[id] = r.panitia;
+      const st = {
+        nama_event: r.nama, penyelenggara: r.org, lokasi: r.lokasi, tanggal_mulai: tgl(r.m), tanggal_selesai: tgl(r.s),
+        pendaftaran_buka: r.buka, wa_admin: '62812' + String(30000000 + i * 1111111).slice(0, 8), bank_atas_nama: r.org,
+      };
+      const selesai = r.s < 0;
+      const db = this._benih(r.skala > 0, st, { skala: r.skala, sebelum: selesai ? new Date(Date.now() + r.m * 86400000) : null });
+      if (r.skala === 0) { // jadwal belum disusun panitia, cukup jenis layangan
+        const contoh = this._benih(true, st, { skala: 0 });
+        db.jenis = contoh.jenis;
+      }
+      try { this._simpanEv(id, db); } catch (e) { /* abaikan */ }
+    });
+    this.ix = ix;
+    this._tulisIndex();
+    return ix;
+  }
   /* Contoh jadwal mengikuti tabel "HARI MINGGU" panitia */
-  _isiContoh(db, tglMinggu) {
+  _isiContoh(db, tglMinggu, opsi = {}) {
+    const skala = opsi.skala == null ? 1 : opsi.skala, sebelum = opsi.sebelum || null;
     const J = [
       ['bebean-plastik', 'Bebean Plastik', 50000], ['buntut-plastik', 'Buntut Plastik', 50000], ['janggan-plastik', 'Janggan Plastik', 60000],
       ['bebean-big-plastik', 'Bebean Big Plastik', 75000], ['bebean-remaja', 'Bebean Remaja', 100000], ['pecukan-remaja', 'Pecukan Remaja', 100000],
       ['buntut-remaja', 'Buntut Remaja', 100000], ['janggan-remaja', 'Janggan Remaja', 125000], ['bebean-dewasa', 'Bebean Dewasa', 150000],
     ];
     J.forEach(([kode, nama, harga], i) => db.jenis.push({ kode, nama, harga, prefix: kode.split('-').map((k) => k[0]).join('').toUpperCase().slice(0, 5) + (i + 1), urutan: i + 1, aktif: true, nomor_terakhir: 0 }));
-    const h = { id: db.nextHariId++, nama: 'Hari Minggu', tanggal: tglMinggu, urutan: 1 };
+    const tglH = parseTanggal(tglMinggu);
+    const h = { id: db.nextHariId++, nama: tglH ? `Hari ${HARI[tglH.getDay()]}` : 'Hari Minggu', tanggal: tglMinggu, urutan: 1 };
     db.hari.push(h);
     const tutupBig = [22, 23, 24, 25, 47, 48, 49, 50];
     const rencana = [
@@ -1353,7 +1710,7 @@ class DemoAPI {
       grup.forEach(([jenis, n, tutup], gi) => {
         const g = this._hitungGrup({ id: db.nextSeriId++, jenis, sesi_id: x.id, huruf: String.fromCharCode(65 + gi), kotak: 50, tutup: tutup || [], aktif: true, catatan: '', urutan: gi + 1 }, db);
         db.seri.push(g);
-        isi.set(g.id, n);
+        isi.set(g.id, Math.round(n * skala));
       });
     });
     const nama = ['Putra Jaya', 'Dharma Kerti', 'Tunas Muda', 'Bayu Suci', 'Garuda Muda', 'Yowana Bhakti', 'Eka Sari', 'Kerta Buana', 'Sinar Segara',
@@ -1377,7 +1734,7 @@ class DemoAPI {
     const buatBaris = (g, kotak, status) => {
       const jenis = db.jenis.find((j) => j.kode === g.jenis);
       const umurJam = Math.random() ** 1.3 * 13 * 24 + Math.random() * 2;
-      const created = new Date(Date.now() - umurJam * 3600000);
+      const created = new Date((sebelum ? sebelum.getTime() - 86400000 : Date.now()) - umurJam * 3600000);
       const nomor = nomorBaru(g.jenis);
       const r = {
         id: uuid(), kode: this._kode(rows), client_ref: null, jenis: jenis.kode, seri_id: g.id, kotak,
@@ -1390,6 +1747,7 @@ class DemoAPI {
       if (status === 'terkonfirmasi') {
         const t = new Date(created.getTime() + (1 + Math.random() * 8) * 3600000);
         r.dikonfirmasi_at = (t > new Date() ? new Date() : t).toISOString();
+        if (sebelum) r.wa_terkirim_at = r.dikonfirmasi_at;
         if (Math.random() < 0.82) r.wa_terkirim_at = r.dikonfirmasi_at;
       }
       if (status === 'ditolak') { r.kotak = null; r.nomor_layangan = null; r.nomor_urut = null; }
@@ -1399,11 +1757,11 @@ class DemoAPI {
       let n = isi.get(g.id) || 0;
       for (let k = 1; k <= g.kotak && n > 0; k++) {
         if (g.tutup.includes(k)) continue;
-        buatBaris(g, k, Math.random() < 0.12 ? 'menunggu' : 'terkonfirmasi');
+        buatBaris(g, k, !sebelum && Math.random() < 0.12 ? 'menunggu' : 'terkonfirmasi');
         n--;
       }
     });
-    for (let i = 0; i < 5; i++) buatBaris(pilih(db.seri), null, 'ditolak');
+    if (skala > 0) for (let i = 0; i < 5; i++) buatBaris(pilih(db.seri), null, 'ditolak');
     rows.sort((a, b) => a.created_at.localeCompare(b.created_at));
     // 2 pendaftaran memakai bukti transfer yang sama (contoh deteksi bukti dobel)
     const dua = rows.filter((r) => r.status === 'menunggu').slice(0, 2);
@@ -1495,6 +1853,7 @@ class DemoAPI {
         bank_nama: st.bank_nama, bank_no_rek: st.bank_no_rek, bank_atas_nama: st.bank_atas_nama,
         pendaftaran_buka: buka, batas_daftar: st.batas_daftar, tampilkan_peserta: st.tampilkan_peserta,
         logo_url: st.logo_url || '', bg_url: st.bg_url || '',
+        tanggal_mulai: st.tanggal_mulai || null, tanggal_selesai: st.tanggal_selesai || null,
       },
       hari: [...db.hari].sort(urutHari),
       sesi: [...db.sesi].sort(urutSesi),
@@ -1586,17 +1945,232 @@ class DemoAPI {
   }
 
   /* ---- login admin (demo: email & password apa saja) ---- */
-  async sesi() { return bacaLokal(this.KEY_SESI); }
+  async sesi() { return bacaLokal(this.KEY_SESI) || this.sesiMem || null; }
   onAuth() { /* tidak diperlukan di demo */ }
   async login(email, password) {
     await this._jeda(300);
     if (!email || !password) throw new Error('Isi email dan password.');
-    const s = { email: String(email).trim() };
+    const s = { email: String(email).trim().toLowerCase() };
     simpanLokal(this.KEY_SESI, s);
+    this.sesiMem = s;
     return s;
   }
-  async logout() { hapusLokal(this.KEY_SESI); }
-  async isAdmin() { return true; }
+  async logout() { hapusLokal(this.KEY_SESI); this.sesiMem = null; }
+  _email() { const s = bacaLokal(this.KEY_SESI) || this.sesiMem; return s && s.email ? String(s.email).toLowerCase() : null; }
+  _super(email = this._email()) { return !!email && this.ix.pengguna.some((p) => p.email === email && p.peran === 'super'); }
+  _bolehEvent(id, email = this._email()) { return !!email && (this._super(email) || (this.ix.akses[id] || []).includes(email)); }
+  /* admin = super admin, atau panitia yang ditugaskan ke event yang sedang dibuka */
+  async isAdmin() { return this._bolehEvent(this.eventId); }
+  async peran() {
+    const email = this._email();
+    if (!email) return null;
+    const p = this.ix.pengguna.find((x) => x.email === email);
+    return { email, nama: p ? p.nama : email, peran: this._super(email) ? 'super' : 'panitia' };
+  }
+
+  /* ---- MULTI-EVENT ---- */
+  _ringkasEvent(e, untukAdmin) {
+    const db = e.id === this.eventId && this.db ? this.db : (this._bacaEv(e.id) || this._benih(false));
+    const st = db.pengaturan;
+    const buka = !!st.pendaftaran_buka && (!st.batas_daftar || new Date() <= new Date(st.batas_daftar));
+    const aktif = db.daftar.filter((d) => AKTIF(d.status));
+    const grup = db.seri.filter((g) => g.sesi_id && g.aktif);
+    const terisi = new Map();
+    aktif.forEach((d) => terisi.set(d.seri_id, (terisi.get(d.seri_id) || 0) + 1));
+    const harga = db.jenis.filter((j) => j.aktif).map((j) => j.harga);
+    const r = {
+      id: e.id, slug: e.slug, tampil: e.tampil,
+      nama_event: st.nama_event, penyelenggara: st.penyelenggara, lokasi: st.lokasi,
+      logo_url: st.logo_url || '', bg_url: st.bg_url || '',
+      tanggal_mulai: st.tanggal_mulai || null, tanggal_selesai: st.tanggal_selesai || st.tanggal_mulai || null,
+      pendaftaran_buka: buka, ada_jadwal: grup.length > 0,
+      sisa_slot: grup.reduce((a, g) => a + Math.max(0, g.kuota - (terisi.get(g.id) || 0)), 0),
+      jumlah_jenis: new Set(grup.map((g) => g.jenis)).size || db.jenis.filter((j) => j.aktif).length,
+      harga_min: harga.length ? Math.min(...harga) : null,
+      peserta: db.daftar.filter((d) => d.status === 'terkonfirmasi').length,
+    };
+    if (untukAdmin) {
+      r.menunggu = db.daftar.filter((d) => d.status === 'menunggu').length;
+      r.pemasukan = db.daftar.filter((d) => d.status === 'terkonfirmasi').reduce((a, d) => a + (Number(d.harga) || 0), 0);
+      r.panitia = [...(this.ix.akses[e.id] || [])];
+    }
+    return r;
+  }
+  /* halaman depan: semua event yang ditampilkan */
+  async daftarEvent() {
+    await this._jeda(250);
+    return this._salin(this.ix.events.filter((e) => e.tampil).map((e) => this._ringkasEvent(e, false)));
+  }
+  /* halaman panitia: super admin melihat semua, panitia hanya event yang ditugaskan */
+  async eventSaya() {
+    await this._jeda(250);
+    const email = this._email();
+    if (!email) throw new Error('BELUM_MASUK');
+    return this._salin(this.ix.events.filter((e) => this._bolehEvent(e.id, email)).map((e) => this._ringkasEvent(e, true)));
+  }
+  _wajibSuper() { if (!this._super()) throw new Error('BUKAN_SUPER_ADMIN'); }
+  _cekSlug(slug, kecualiId) {
+    if (!/^[a-z0-9](?:[a-z0-9-]{1,38}[a-z0-9])$/.test(slug)) throw new Error('KODE_EVENT_TIDAK_VALID');
+    if (['admin', 'panitia', 'semua', 'tiket'].includes(slug) || this.ix.events.some((e) => e.slug === slug && e.id !== kecualiId)) throw new Error('KODE_EVENT_DIPAKAI');
+  }
+  _rapikanEmail(list) { return [...new Set((list || []).map((x) => String(x).trim().toLowerCase()).filter((x) => /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(x)))]; }
+  async buatEvent(d) {
+    await this._jeda(400);
+    this._wajibSuper();
+    const slug = String(d.slug || '').trim().toLowerCase();
+    this._cekSlug(slug);
+    if (!String(d.nama_event || '').trim()) throw new Error('DATA_TIDAK_LENGKAP');
+    const st = {
+      nama_event: d.nama_event.trim(), penyelenggara: String(d.penyelenggara || '').trim() || 'Panitia Lomba Layangan', lokasi: String(d.lokasi || '').trim(),
+      tanggal_mulai: d.tanggal_mulai || null, tanggal_selesai: d.tanggal_selesai || d.tanggal_mulai || null,
+      pendaftaran_buka: false, info: '', wa_admin: '', bank_nama: '', bank_no_rek: '', bank_atas_nama: '',
+    };
+    let jenis = [];
+    const asal = d.salin_dari && this.ix.events.find((e) => e.id === Number(d.salin_dari));
+    if (asal) {
+      const src = this._bacaEv(asal.id) || this._benih(false);
+      const a = src.pengaturan, pilih = d.salin || {};
+      if (pilih.jenis) jenis = src.jenis.map((j) => ({ ...j, nomor_terakhir: 0 }));
+      if (pilih.bank) Object.assign(st, { bank_nama: a.bank_nama, bank_no_rek: a.bank_no_rek, bank_atas_nama: a.bank_atas_nama });
+      if (pilih.pesan) Object.assign(st, { template_wa_konfirmasi: a.template_wa_konfirmasi, template_wa_tolak: a.template_wa_tolak, info: a.info, wa_admin: a.wa_admin });
+      if (pilih.tampilan) Object.assign(st, { logo_url: a.logo_url || '', bg_url: a.bg_url || '' });
+    }
+    const db = this._benih(false, st);
+    db.jenis = jenis;
+    const id = this.ix.nextId++;
+    try { this._simpanEv(id, db); }
+    catch (e) { this.ix.nextId--; delete this.mem[id]; throw new Error('DEMO_PENUH'); }
+    this.ix.events.push({ id, slug, tampil: d.tampil !== false, created_at: new Date().toISOString() });
+    this.ix.akses[id] = this._rapikanEmail(d.panitia);
+    this._daftarkanPengguna(this.ix.akses[id]);
+    this._tulisIndex();
+    return this._salin(this._ringkasEvent(this.ix.events[this.ix.events.length - 1], true));
+  }
+  _daftarkanPengguna(emails) {
+    emails.forEach((email) => { if (!this.ix.pengguna.some((p) => p.email === email)) this.ix.pengguna.push({ email, nama: email.split('@')[0], peran: 'panitia' }); });
+  }
+  async ubahEvent(id, patch) {
+    await this._jeda(250);
+    this._wajibSuper();
+    const e = this.ix.events.find((x) => x.id === Number(id));
+    if (!e) throw new Error('EVENT_TIDAK_ADA');
+    if (patch.slug != null && patch.slug !== e.slug) { const slug = String(patch.slug).trim().toLowerCase(); this._cekSlug(slug, e.id); e.slug = slug; }
+    if (patch.tampil != null) e.tampil = !!patch.tampil;
+    if (patch.panitia) { this.ix.akses[e.id] = this._rapikanEmail(patch.panitia); this._daftarkanPengguna(this.ix.akses[e.id]); }
+    this._tulisIndex();
+    return this._salin(this._ringkasEvent(e, true));
+  }
+  /* ---- pengaturan situs (halaman depan): hanya super admin ---- */
+  async infoSitus() { return this._salin({ ...SITUS_AWAL, ...(this.ix.situs || {}) }); }
+  async simpanSitus(patch) {
+    await this._jeda(250);
+    this._wajibSuper();
+    const boleh = ['nama', 'judul', 'teks', 'logo_url', 'bg_url'];
+    const bersih = {};
+    boleh.forEach((k) => { if (k in patch) bersih[k] = String(patch[k] ?? '').trim(); });
+    if ('nama' in bersih && !bersih.nama) throw new Error('DATA_TIDAK_LENGKAP');
+    this.ix.situs = { ...SITUS_AWAL, ...(this.ix.situs || {}), ...bersih };
+    this._tulisIndex();
+    return this._salin(this.ix.situs);
+  }
+  /* ---- akses admin event: tambah, ganti email, cabut ---- */
+  _emailValid(e) { e = String(e || '').trim().toLowerCase(); if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(e)) throw new Error('EMAIL_TIDAK_VALID'); return e; }
+  _rapikanPengguna() {
+    const dipakai = new Set(Object.values(this.ix.akses).flat());
+    this.ix.pengguna = this.ix.pengguna.filter((p) => p.peran === 'super' || dipakai.has(p.email));
+  }
+  async tambahAkses(id, email) {
+    await this._jeda(200);
+    this._wajibSuper();
+    email = this._emailValid(email);
+    const list = this.ix.akses[id] || (this.ix.akses[id] = []);
+    if (list.includes(email)) throw new Error('EMAIL_SUDAH_ADA');
+    if (this._super(email)) throw new Error('EMAIL_SUPER');
+    list.push(email);
+    this._daftarkanPengguna([email]);
+    this._tulisIndex();
+  }
+  async gantiAkses(id, lama, baru) {
+    await this._jeda(200);
+    this._wajibSuper();
+    baru = this._emailValid(baru);
+    const list = this.ix.akses[id] || [];
+    const i = list.indexOf(String(lama).toLowerCase());
+    if (i < 0) throw new Error('EVENT_TIDAK_ADA');
+    if (baru === list[i]) return;
+    if (list.includes(baru)) throw new Error('EMAIL_SUDAH_ADA');
+    if (this._super(baru)) throw new Error('EMAIL_SUPER');
+    list[i] = baru;
+    this._daftarkanPengguna([baru]);
+    this._rapikanPengguna();
+    this._tulisIndex();
+  }
+  async cabutAkses(id, email) {
+    await this._jeda(200);
+    this._wajibSuper();
+    email = String(email).toLowerCase();
+    const ids = id === 'semua' ? Object.keys(this.ix.akses) : [id];
+    ids.forEach((k) => { this.ix.akses[k] = (this.ix.akses[k] || []).filter((x) => x !== email); });
+    this._rapikanPengguna();
+    this._tulisIndex();
+  }
+  /* ganti email 1 orang di semua event yang dipegangnya */
+  async gantiEmailPanitia(lama, baru) {
+    await this._jeda(250);
+    this._wajibSuper();
+    lama = String(lama).toLowerCase(); baru = this._emailValid(baru);
+    if (lama === baru) return;
+    if (this._super(baru)) throw new Error('EMAIL_SUPER');
+    Object.keys(this.ix.akses).forEach((k) => {
+      const list = this.ix.akses[k];
+      if (!list.includes(lama)) return;
+      this.ix.akses[k] = [...new Set(list.map((x) => (x === lama ? baru : x)))];
+    });
+    const p = this.ix.pengguna.find((x) => x.email === lama);
+    if (p && !this.ix.pengguna.some((x) => x.email === baru)) p.email = baru;
+    this._rapikanPengguna();
+    this._tulisIndex();
+  }
+  /* daftar semua panitia & event yang dipegang (untuk super admin) */
+  async daftarAkses() {
+    await this._jeda(200);
+    this._wajibSuper();
+    const peta = new Map();
+    this.ix.events.forEach((e) => (this.ix.akses[e.id] || []).forEach((email) => {
+      if (!peta.has(email)) peta.set(email, []);
+      const st = (this._bacaEv(e.id) || {}).pengaturan || {};
+      peta.get(email).push({ id: e.id, slug: e.slug, nama_event: st.nama_event || e.slug, tanggal_mulai: st.tanggal_mulai || null, tanggal_selesai: st.tanggal_selesai || null });
+    }));
+    return this._salin([...peta].map(([email, events]) => ({ email, events })).sort((a, b) => a.email.localeCompare(b.email)));
+  }
+  async hapusEvent(id) {
+    await this._jeda(300);
+    this._wajibSuper();
+    id = Number(id);
+    this.ix.events = this.ix.events.filter((e) => e.id !== id);
+    delete this.ix.akses[id];
+    hapusLokal(this.KEY_EV + id);
+    delete this.mem[id];
+    if (this.eventId === id) { this.eventId = null; this.db = null; }
+    this._tulisIndex();
+  }
+  /* link konfirmasi lama (#tiket/KODE tanpa kode event): cari event pemilik kode */
+  async cariEventTiket(kode) {
+    const k = String(kode || '').trim().toUpperCase();
+    for (const e of this.ix.events) {
+      const db = e.id === this.eventId && this.db ? this.db : this._bacaEv(e.id);
+      if (db && db.daftar.some((d) => d.kode === k)) return e.slug;
+    }
+    return null;
+  }
+  async undangUlang() { return true; }
+  async kirimLinkMasuk() { await this._jeda(300); }
+  async gantiPassword() { await this._jeda(300); }
+  async resetDemoSemua() {
+    try { Object.keys(localStorage).filter((k) => k.startsWith('lomba_ml_') && k !== this.KEY_SESI).forEach((k) => hapusLokal(k)); } catch (e) { /* abaikan */ }
+    this.eventId = null; this.db = null; this.mem = {};
+    this.ix = this._benihSemua();
+  }
 
   /* ---- data admin ---- */
   async muatSemua() {
@@ -1757,7 +2331,10 @@ class DemoAPI {
   }
   async simpanPengaturan(patch) {
     await this._jeda(200);
-    Object.assign(this.db.pengaturan, patch, { updated_at: new Date().toISOString() });
+    const st = this.db.pengaturan;
+    // nama, tanggal & lokasi event hanya boleh diubah super admin
+    if (!this._super() && ['nama_event', 'tanggal_mulai', 'tanggal_selesai', 'lokasi'].some((k) => k in patch && (patch[k] || null) !== (st[k] || null))) throw new Error('BUKAN_SUPER_ADMIN');
+    Object.assign(st, patch, { updated_at: new Date().toISOString() });
     this._simpan();
     return this._salin(this.db.pengaturan);
   }
@@ -1791,8 +2368,8 @@ class DemoAPI {
     return () => this.subs.delete(onChange);
   }
   /* khusus demo */
-  async isiContoh() { this.db = this._benih(true); this._simpan(); }
-  async kosongkanDemo() { this.db = this._benih(false); this._simpan(); }
+  async isiContoh() { this.db = this._benih(true, this.db.pengaturan, { skala: 0.7 }); this._simpan(); }
+  async kosongkanDemo() { this.db = this._benih(false, this.db.pengaturan); this._simpan(); }
 }
 
 const TEMPLATE_WA = {
@@ -1831,7 +2408,7 @@ Suksma 🙏
 
 function buatApi() {
   const terisi = CONFIG.SUPABASE_URL && CONFIG.SUPABASE_KEY && !/xxxx|ISI_/i.test(CONFIG.SUPABASE_URL + CONFIG.SUPABASE_KEY);
-  if (!terisi) return new DemoAPI();
+  if (CONFIG.MULTI_EVENT_DEMO || !terisi) return new DemoAPI();
   if (!window.supabase || !window.supabase.createClient) throw new Error('SUPABASE_JS_GAGAL');
   return new SupabaseAPI();
 }
@@ -1965,7 +2542,7 @@ function legendaJadwal(o) {
 }
 const errMsg = (m) => (m ? `<span class="err-msg" role="alert">${ico('alert')}${esc(m)}</span>` : '');
 const demoBar = () => (api && api.mode === 'demo'
-  ? '<div class="demo-bar"><b>MODE DEMO</b> · data hanya tersimpan di browser ini. Isi SUPABASE_URL &amp; SUPABASE_KEY di file agar online.</div>'
+  ? '<div class="demo-bar"><b>DEMO MULTI-EVENT</b> · data contoh, hanya tersimpan di browser ini.</div>'
   : '');
 
 /* Logo dashboard & halaman masuk panitia: ikut logo yang diunggah admin (Pengaturan → Tampilan) */
@@ -1973,10 +2550,10 @@ const LOGO_KEY = 'lomba_logo_url';
 function logoMerek() {
   const d = typeof Adm !== 'undefined' && Adm.s.data;
   const u = urlGambarAman((d && d.pengaturan && d.pengaturan.logo_url != null) ? d.pengaturan.logo_url
-    : (typeof Adm !== 'undefined' && Adm.s.logo != null) ? Adm.s.logo : bacaLokal(LOGO_KEY, ''));
+    : (typeof Adm !== 'undefined' && Adm.s.logo != null) ? Adm.s.logo : bacaLokal(LOGO_KEY + Ev.slug, ''));
   return u ? `<div class="brand-logo has-img"><img src="${esc(u)}" alt="Logo"></div>` : `<div class="brand-logo">${KITE_LOGO}</div>`;
 }
-function ingatLogo(url) { Adm.s.logo = url || ''; simpanLokal(LOGO_KEY, Adm.s.logo); }
+function ingatLogo(url) { Adm.s.logo = url || ''; simpanLokal(LOGO_KEY + Ev.slug, Adm.s.logo); }
 /* Input uang (Rupiah): tampil "100.000", disimpan sebagai angka bulat 100000 */
 const fmtRibuan = (n) => (n === '' || n == null || isNaN(n) ? '' : Number(n).toLocaleString('id-ID', { maximumFractionDigits: 0 }));
 function angkaRupiah(teks) {
@@ -2004,6 +2581,7 @@ function fieldInput(o) {
     o.maxlength ? `maxlength="${o.maxlength}"` : '',
     o.inputmode ? `inputmode="${o.inputmode}"` : '',
     o.autocomplete ? `autocomplete="${o.autocomplete}"` : '',
+    o.readonly ? 'readonly aria-readonly="true"' : '',
     o.min != null ? `min="${o.min}"` : '', o.max != null ? `max="${o.max}"` : '', o.step ? `step="${o.step}"` : '',
     o.required ? 'required' : '', o.data || '',
     o.hint ? `aria-describedby="${id}-hint"` : '',
@@ -2099,7 +2677,7 @@ function dataTemplate(r, seri, jenis, ev) {
 /* Pendaftaran tanpa bukti transfer = didaftarkan manual oleh panitia (bayar tunai) */
 const caraBayar = (r) => (r.bukti_path ? 'transfer' : 'tunai');
 /* Link pribadi ke halaman konfirmasi (+ unduh PDF) untuk peserta terkonfirmasi */
-const linkTiket = (kode) => `${location.origin}${location.pathname}#tiket/${encodeURIComponent(kode)}`;
+const linkTiket = (kode) => `${location.origin}${location.pathname}${hrefEv('tiket/' + encodeURIComponent(kode))}`;
 const isiTemplate = (tpl, data) => String(tpl || '').replace(/\{(\w+)\}/g, (m, k) => (k in data ? String(data[k] ?? '') : m));
 
 /* =====================================================================
@@ -2117,13 +2695,13 @@ const Pub = {
     infoOpen: false, tundaRender: false, catatanHarga: null,
   },
   init() {
-    const d = bacaLokal(DRAFT_KEY);
+    const d = bacaLokal(DRAFT_KEY + Ev.slug);
     if (d && d.form) Object.assign(this.s.form, d.form, { setuju: false });
     if (d && d.cekWa) this.s.cekWa = d.cekWa;
   },
   simpanDraft: debounce(() => {
     const f = Pub.s.form;
-    simpanLokal(DRAFT_KEY, { form: { jenis: f.jenis, seri_id: f.seri_id, nomor_layangan: f.nomor_layangan, nama_sekha: f.nama_sekha, alamat: f.alamat, no_wa: f.no_wa, nama_rekening: f.nama_rekening }, cekWa: Pub.s.cekWa });
+    simpanLokal(DRAFT_KEY + Ev.slug, { form: { jenis: f.jenis, seri_id: f.seri_id, nomor_layangan: f.nomor_layangan, nama_sekha: f.nama_sekha, alamat: f.alamat, no_wa: f.no_wa, nama_rekening: f.nama_rekening }, cekWa: Pub.s.cekWa });
   }, 400),
   async segarkan() {
     try { this.s.info = await api.infoPublik(); this.s.err = null; this.rapikanPilihan(); } catch (e) { /* biarkan data lama */ }
@@ -2215,6 +2793,7 @@ const Pub = {
     const logo = urlGambarAman(ev.logo_url), bg = urlGambarAman(ev.bg_url);
     const gayaBg = bg ? ` style="background-image:linear-gradient(170deg,rgba(6,28,56,.72) 0%,rgba(6,28,56,.45) 55%,rgba(6,28,56,.62) 100%),url('${esc(bg)}')"` : '';
     return `<header class="hero${bg ? ' has-bg' : ''}"${gayaBg}><div class="hero-in">
+      <a class="hero-back" href="#">${ico('arrow-l')} Semua event</a>
       ${logo ? `<img class="hero-logo" src="${esc(logo)}" alt="Logo ${esc(ev.nama_event || 'event')}">` : ''}
       <div class="org">${esc(ev.penyelenggara || 'Pendaftaran online')}</div>
       <h1>${esc(ev.nama_event || 'Lomba Layangan')}</h1>
@@ -2239,7 +2818,7 @@ const Pub = {
   vFooter() {
     const ev = (this.s.info && this.s.info.event) || {};
     const wa = ev.wa_admin ? `<a class="btn btn-ghost" target="_blank" rel="noopener" href="${esc(waLink(ev.wa_admin, `Halo panitia ${ev.nama_event || ''}, saya mau bertanya tentang pendaftaran lomba layangan.`))}">${ico('chat')} Tanya panitia via WhatsApp</a>` : '';
-    return `<footer class="pub-foot">${wa}<div class="foot-s">${esc(ev.penyelenggara || '')}${ev.penyelenggara ? ' · ' : ''}<a href="#admin">Masuk panitia</a></div></footer>`;
+    return `<footer class="pub-foot">${wa}<div class="foot-s"><a href="#">Semua event</a> · ${esc(ev.penyelenggara || '')}${ev.penyelenggara ? ' · ' : ''}<a href="#admin">Masuk panitia</a></div></footer>`;
   },
   vStepper(n) {
     const langkah = ['Data', 'Konfirmasi', 'Pembayaran'];
@@ -2820,26 +3399,28 @@ const Adm = {
     this.s.tab = tab;
     document.body.classList.add('is-admin');
     if (this.s.logo == null && !this.s.data) {
-      this.s.logo = bacaLokal(LOGO_KEY, '') || '';
+      this.s.logo = bacaLokal(LOGO_KEY + Ev.slug, '') || '';
       api.infoPublik().then((info) => {
         const baru = (info && info.event && info.event.logo_url) || '';
         if (baru !== this.s.logo) { ingatLogo(baru); if (!this.s.data && Router.aktif === 'adm') this.render(); }
       }).catch(() => {});
     }
-    if (this.s.sesi === undefined) {
-      this.render();
+    if (!this.s.sesi) {                       // belum tahu / belum masuk: cek ulang (mungkin baru masuk dari ruang panitia atau link email)
+      if (this.s.sesi === undefined) this.render();
       this.s.sesi = await api.sesi().catch(() => null);
       if (this.s.sesi) await this.masuk(); else this.render();
       return;
     }
+    if (this.s.sesi && this.s.adminEv !== Ev.slug) { await this.masuk(); return; }
     if (!this.s.sesi || !this.s.admin) { this.render(); return; }
     if (!this.s.data && !this.s.loading) { this.render(); this.muat(); return; }
     this.render();
     if (pindah) window.scrollTo(0, 0);
   },
   async masuk() {
+    this.s.adminEv = Ev.slug;
     this.s.cekAdmin = true; this.render();
-    try { this.s.admin = await api.isAdmin(); this.s.err = null; }
+    try { this.s.admin = await api.isAdmin(); this.s.super = !!(api.peran && ((await api.peran()) || {}).peran === 'super'); this.s.err = null; }
     catch (e) { this.s.admin = false; this.s.err = pesanError(e); }
     this.s.cekAdmin = false;
     if (!this.s.admin) { this.render(); return; }
@@ -2853,7 +3434,7 @@ const Adm = {
   },
   reset() {
     this.hentikanLive();
-    Object.assign(this.s, { sesi: null, admin: false, data: null, err: null, detail: null, idsLama: null, health: null, url: {}, f: { ...FILTER_AWAL } });
+    Object.assign(this.s, { sesi: null, admin: false, adminEv: null, data: null, err: null, detail: null, idsLama: null, health: null, url: {}, f: { ...FILTER_AWAL } });
     this.idx = null;
     Overlay.tutupSemua();
     document.title = 'Dashboard panitia';
@@ -3030,24 +3611,25 @@ const Adm = {
     return `${demoBar()}<div class="login-wrap"><div class="card login">
       ${logoMerek()}
       <h2 class="h2">Masuk dashboard panitia</h2>
-      <p class="lead">${api.mode === 'demo' ? 'Mode demo: isi email dan password apa saja.' : 'Gunakan akun admin yang dibuat di Supabase.'}</p>
+      <p class="lead">${api.mode === 'demo' ? 'Mode demo: pilih akun contoh di bawah, atau isi email dan password apa saja.' : 'Gunakan akun admin yang dibuat di Supabase.'}</p>
+      ${api.mode === 'demo' ? akunDemo('adm.cepat') : ''}
       <form data-submit="adm.login" novalidate>
         ${fieldInput({ name: 'email', label: 'Email', type: 'email', value: bacaLokal('lomba_admin_email', ''), autocomplete: 'username', inputmode: 'email', placeholder: 'email@contoh.com' })}
         ${fieldInput({ name: 'password', label: 'Password', type: 'password', value: '', autocomplete: 'current-password' })}
         ${s.loginErr ? `<div class="note bad" role="alert">${ico('alert')}<span>${esc(s.loginErr)}</span></div>` : ''}
         <button class="btn btn-primary btn-block btn-lg" type="submit" ${s.loginBusy ? 'disabled' : ''}>${s.loginBusy ? '<span class="spinner"></span> Memeriksa…' : `${ico('lock')} Masuk`}</button>
       </form>
-      <p class="hint" style="margin:16px 0 0;text-align:center"><a href="#daftar">← Kembali ke halaman pendaftaran</a></p>
+      <p class="hint" style="margin:16px 0 0;text-align:center"><a href="#daftar">← Kembali ke halaman pendaftaran</a> · <a href="#panitia">Lupa password?</a></p>
     </div></div>`;
   },
   vBukanAdmin() {
     return `${demoBar()}<div class="login-wrap"><div class="card login">
       ${logoMerek()}
-      <h2 class="h2">Akun bukan admin</h2>
-      <p class="lead"><b>${esc(this.s.sesi && this.s.sesi.email)}</b> belum terdaftar sebagai admin lomba.</p>
+      <h2 class="h2">Belum punya akses ke event ini</h2>
+      <p class="lead"><b>${esc(this.s.sesi && this.s.sesi.email)}</b> tidak ditugaskan sebagai panitia event ini.</p>
       ${this.s.err ? `<div class="note bad">${ico('alert')}<span>${esc(this.s.err)}</span></div>` : ''}
-      <div class="note">${ico('info')}<span>Tambahkan email ini lewat Supabase → SQL Editor:<br><code>insert into lomba_admin (email) values ('${esc(this.s.sesi && this.s.sesi.email)}');</code><br>Pastikan juga user-nya di menu Authentication sudah <b>terkonfirmasi</b> (buat dengan opsi Auto Confirm User).</span></div>
-      <div class="actions"><button class="btn" data-act="adm.logout">${ico('logout')} Keluar</button><button class="btn btn-primary" data-act="adm.cekLagi">${ico('refresh')} Periksa lagi</button></div>
+      <div class="note">${ico('info')}<span>Hanya super admin yang bisa memberi akses panitia. Minta super admin menambahkan email Anda pada event ini.</span></div>
+      <div class="actions"><button class="btn" data-act="adm.logout">${ico('logout')} Keluar</button><a class="btn btn-primary" href="#panitia">${ico('list')} Lihat event saya</a></div>
     </div></div>`;
   },
   vLive() {
@@ -3059,10 +3641,11 @@ const Adm = {
     const nav = [['ringkasan', 'Ringkasan', 'home', 0], ['pendaftaran', 'Pendaftaran', 'list', st.menunggu], ['seri', 'Jadwal Terbang', 'cal', 0], ['jenis', 'Jenis Layangan', 'kite', 0], ['pengaturan', 'Pengaturan', 'sliders', 0]];
     return `<aside class="side" id="adm-side">
       <div class="brand">${logoMerek()}<div style="min-width:0"><b>${esc(ev.nama_event || 'Lomba Layangan')}</b><span>Dashboard panitia</span></div></div>
+      <a class="side-back" href="#panitia">${ico('arrow-l')} Semua event saya</a>
       <nav class="nav" aria-label="Menu admin">${nav.map(([id, l, i, c]) => `<a href="#admin/${id}" class="${this.s.tab === id ? 'on' : ''}" ${this.s.tab === id ? 'aria-current="page"' : ''}>${ico(i)}${l}${c ? `<span class="count" aria-label="${c} menunggu">${c}</span>` : ''}</a>`).join('')}</nav>
       <div class="side-foot">
         ${this.vLive()}
-        <a href="#daftar" target="_blank" rel="noopener" class="btn btn-sm">${ico('globe')} Halaman pendaftaran</a>
+        <a href="${hrefEv('daftar')}" target="_blank" rel="noopener" class="btn btn-sm">${ico('globe')} Halaman pendaftaran</a>
         <div class="who" title="${esc(this.s.sesi && this.s.sesi.email)}">${esc(this.s.sesi && this.s.sesi.email)}</div>
         <button class="btn btn-sm btn-ghost" data-act="adm.logout">${ico('logout')} Keluar</button>
       </div>
@@ -3075,8 +3658,8 @@ const Adm = {
   },
   vMtop() {
     const ev = (this.s.data && this.s.data.pengaturan) || {};
-    return `<div class="mtop"><div class="brand">${logoMerek()}<div style="min-width:0"><b>${esc(ev.nama_event || 'Lomba Layangan')}</b><span>${this.s.live === 'on' ? 'Live' : 'Dashboard panitia'}</span></div></div>
-      <a class="btn btn-sm btn-icon" href="#daftar" target="_blank" rel="noopener" aria-label="Halaman pendaftaran">${ico('globe')}</a>
+    return `<div class="mtop"><a class="btn btn-sm btn-icon" href="#panitia" aria-label="Semua event saya">${ico('arrow-l')}</a><div class="brand">${logoMerek()}<div style="min-width:0"><b>${esc(ev.nama_event || 'Lomba Layangan')}</b><span>${this.s.live === 'on' ? 'Live' : 'Dashboard panitia'}</span></div></div>
+      <a class="btn btn-sm btn-icon" href="${hrefEv('daftar')}" target="_blank" rel="noopener" aria-label="Halaman pendaftaran">${ico('globe')}</a>
       <button class="btn btn-sm btn-icon" data-act="adm.logout" aria-label="Keluar">${ico('logout')}</button></div>`;
   },
   vTopbar(judul, sub, aksi = '') {
@@ -3739,16 +4322,19 @@ ${rows.map((r, i) => `<tr><td class="n">${i + 1}</td><td class="no">${esc(r.nomo
   /* ---------------- PENGATURAN ---------------- */
   vPengaturan() {
     const ev = this.s.data.pengaturan, d = this.s.data;
-    const linkPublik = location.href.split('#')[0];
+    const linkPublik = location.href.split('#')[0] + hrefEv();
     const batas = lokalDariIso(ev.batas_daftar);
     const phKonf = ['nama_event', 'jenis', 'nama_sekha', 'alamat', 'no_wa', 'nomor_layangan', 'seri', 'kotak', 'link_konfirmasi', 'jadwal', 'tanggal', 'jam', 'kode', 'harga', 'penyelenggara', 'lokasi'];
     const phTolak = ['nama_event', 'jenis', 'nama_sekha', 'kode', 'alasan', 'seri', 'harga', 'penyelenggara', 'wa_panitia'];
     return `${this.vTopbar('Pengaturan', 'Event, pembayaran, harga & pesan WhatsApp')}
     <div class="set-grid" id="set-root"><div class="set-col">
       <form class="panel" data-submit="adm.setEvent" novalidate><div class="panel-h"><h3>Informasi event</h3></div>
-        ${fieldInput({ id: 'p-nama', name: 'nama_event', label: 'Nama event', value: ev.nama_event, maxlength: 120 })}
+        ${this.s.super ? '' : `<div class="note">${ico('lock')}<span>Nama, tanggal, dan lokasi event diatur oleh super admin. Hubungi super admin bila perlu diubah.</span></div>`}
+        ${fieldInput({ id: 'p-nama', name: 'nama_event', label: 'Nama event', value: ev.nama_event, maxlength: 120, readonly: !this.s.super })}
         ${fieldInput({ id: 'p-org', name: 'penyelenggara', label: 'Penyelenggara', value: ev.penyelenggara, maxlength: 120 })}
-        ${fieldInput({ id: 'p-lokasi', name: 'lokasi', label: 'Lokasi lomba', value: ev.lokasi, maxlength: 160 })}
+        ${fieldInput({ id: 'p-lokasi', name: 'lokasi', label: 'Lokasi lomba', value: ev.lokasi, maxlength: 160, readonly: !this.s.super })}
+        <div class="g2">${fieldInput({ id: 'p-mulai', name: 'tanggal_mulai', label: 'Tanggal mulai', value: ev.tanggal_mulai || '', type: 'date', readonly: !this.s.super })}
+        ${fieldInput({ id: 'p-selesai', name: 'tanggal_selesai', label: 'Tanggal selesai', value: ev.tanggal_selesai || '', type: 'date', readonly: !this.s.super, hint: 'Dipakai di halaman depan semua event.' })}</div>
         ${fieldInput({ id: 'p-wa', name: 'wa_admin', label: 'Nomor WA panitia', value: ev.wa_admin ? fmtWA(ev.wa_admin) : '', type: 'tel', inputmode: 'tel', maxlength: 20, hint: 'Dipakai tombol "Tanya panitia" di halaman peserta.' })}
         ${fieldInput({ id: 'p-info', name: 'info', label: 'Info & ketentuan lomba', value: ev.info, textarea: true, rows: 4, maxlength: 2000, opsional: true, hint: 'Tampil di atas formulir pendaftaran.' })}
         <div class="actions end"><button class="btn btn-primary btn-sm" type="submit">Simpan</button></div></form>
@@ -3781,15 +4367,15 @@ ${rows.map((r, i) => `<tr><td class="n">${i + 1}</td><td class="no">${esc(r.nomo
       <div class="panel"><div class="panel-h"><h3>Link & berbagi</h3></div>
         <div class="field"><span class="label">Link pendaftaran peserta</span><div class="copy-row"><input class="input input-sm" readonly value="${esc(linkPublik)}" aria-label="Link pendaftaran"><button class="btn btn-sm" data-act="salin" data-teks="${esc(linkPublik)}" data-label="Link disalin">${ico('copy')}</button></div></div>
         <div class="sa-act"><a class="btn btn-sm" target="_blank" rel="noopener" href="${esc(`https://wa.me/?text=${encodeURIComponent(`Pendaftaran ${ev.nama_event} sudah dibuka! Daftar online di sini: ${linkPublik}`)}`)}">${ico('share')} Bagikan via WA</a>
-        <a class="btn btn-sm" href="#daftar" target="_blank" rel="noopener">${ico('globe')} Buka halaman peserta</a></div>
-        <p class="hint" style="margin:12px 0 0">Dashboard: <b>${esc(linkPublik)}#admin</b></p>
+        <a class="btn btn-sm" href="${hrefEv('daftar')}" target="_blank" rel="noopener">${ico('globe')} Buka halaman peserta</a></div>
+        <p class="hint" style="margin:12px 0 0">Dashboard: <b>${esc(linkPublik)}/admin</b></p>
       </div>
       <div class="panel"><div class="panel-h"><h3>Status sistem</h3><button class="btn btn-xs" data-act="adm.cekSetup">${ico('refresh')} Periksa</button></div><div id="health">${this.vHealth()}</div></div>
       <div class="panel danger-zone"><div class="panel-h"><h3>Zona berbahaya</h3></div>
         <p class="hint" style="margin:0 0 12px">Dipakai setelah uji coba, sebelum pendaftaran resmi dibuka.</p>
         <div class="sa-act">
           <button class="btn btn-sm btn-danger" data-act="adm.reset">${ico('trash')} Hapus semua pendaftaran</button>
-          ${api.mode === 'supabase' ? `<button class="btn btn-sm" data-act="adm.yatim">${ico('image')} Bersihkan file bukti tak terpakai</button>` : `<button class="btn btn-sm" data-act="adm.demoIsi">${ico('refresh')} Isi ulang data contoh</button><button class="btn btn-sm" data-act="adm.demoKosong">${ico('x')} Kosongkan demo</button>`}
+          ${api.mode === 'supabase' ? (this.s.super ? `<button class="btn btn-sm" data-act="adm.yatim">${ico('image')} Bersihkan file bukti tak terpakai (semua event)</button>` : '') : `<button class="btn btn-sm" data-act="adm.demoIsi">${ico('refresh')} Isi ulang data contoh</button><button class="btn btn-sm" data-act="adm.demoKosong">${ico('x')} Kosongkan demo</button>`}
         </div>
       </div>
     </div></div>`;
@@ -3806,7 +4392,7 @@ ${rows.map((r, i) => `<tr><td class="n">${i + 1}</td><td class="no">${esc(r.nomo
             ${u ? `<button type="button" class="btn btn-xs btn-danger" data-act="adm.mediaHapus" data-k="${k}">${ico('trash')} Hapus</button>` : ''}
           </div></div></div>`;
     };
-    return `<div class="panel" id="set-tampilan"><div class="panel-h"><h3>Tampilan halaman peserta</h3><a class="btn btn-xs" href="#daftar" target="_blank" rel="noopener">${ico('globe')} Lihat</a></div>
+    return `<div class="panel" id="set-tampilan"><div class="panel-h"><h3>Tampilan halaman peserta</h3><a class="btn btn-xs" href="${hrefEv('daftar')}" target="_blank" rel="noopener">${ico('globe')} Lihat</a></div>
       ${baris('logo', 'Logo', 'Tampil di atas nama event. PNG transparan paling bagus.')}
       ${baris('bg', 'Gambar latar', 'Latar bagian atas halaman. Gambar mendatar (landscape), dibuat sedikit gelap agar tulisan terbaca.')}
       <p class="hint" style="margin:0">Kosongkan untuk memakai tampilan bawaan. Gambar otomatis diperkecil sebelum diunggah.</p></div>`;
@@ -4493,7 +5079,9 @@ SUB['adm.setEvent'] = (form) => {
   if (!v('nama_event')) return toast('Nama event wajib diisi.', 'bad');
   const wa = v('wa_admin');
   if (wa && !normWA(wa)) return toast('Nomor WA panitia tidak valid.', 'bad');
-  return simpanPengaturanForm(form, { nama_event: v('nama_event'), penyelenggara: v('penyelenggara'), lokasi: v('lokasi'), wa_admin: wa ? normWA(wa) : '', info: v('info') });
+  const mulai = v('tanggal_mulai') || null, akhir = v('tanggal_selesai') || mulai;
+  if (mulai && akhir < mulai) return toast('Tanggal selesai tidak boleh sebelum tanggal mulai.', 'bad');
+  return simpanPengaturanForm(form, { nama_event: v('nama_event'), penyelenggara: v('penyelenggara'), lokasi: v('lokasi'), tanggal_mulai: mulai, tanggal_selesai: akhir, wa_admin: wa ? normWA(wa) : '', info: v('info') });
 };
 SUB['adm.setDaftar'] = (form) => {
   const b = String(form.batas_daftar.value).trim();
@@ -4526,8 +5114,7 @@ ACT['adm.reset'] = async () => {
 };
 ACT['adm.yatim'] = (el) => sibuk(el, async () => {
   try {
-    await Adm.muat({ diam: true });
-    const n = await api.bersihkanFileYatim(Adm.s.data.daftar.map((r) => r.bukti_path).filter(Boolean));
+    const n = await api.bersihkanFileYatim();
     toast(n ? `${n} file tak terpakai dihapus` : 'Tidak ada file tak terpakai', 'good');
   }
   catch (e) { toast(pesanError(e), 'bad', 6000); }
@@ -4561,13 +5148,672 @@ SUB['adm.tolakMassal'] = async (form) => {
   });
 };
 /* =====================================================================
+   6b) MULTI-EVENT — konteks event, halaman depan & ruang panitia
+   ===================================================================== */
+const Ev = { slug: '', ada: false };
+const hrefEv = (sub = '') => `#e/${encodeURIComponent(Ev.slug || '')}${sub ? '/' + sub : ''}`;
+const PUB_AWAL = JSON.parse(JSON.stringify(Pub.s));
+/* buka event lain: data halaman peserta & dashboard event sebelumnya dikosongkan */
+async function gantiEvent(slug) {
+  if (slug === Ev.slug && Ev.ada) return true;
+  let meta = null;
+  try { meta = await api.pakaiEvent(slug); } catch (e) { meta = null; }
+  Adm.hentikanLive();
+  Pub.hapusFile();
+  Object.assign(Pub.s, JSON.parse(JSON.stringify(PUB_AWAL)));
+  delete Pub.s.tiket; delete Pub.s.tiketKode;
+  Object.assign(Adm.s, { admin: false, adminEv: null, data: null, loading: false, err: null, tab: 'ringkasan', f: { ...FILTER_AWAL }, detail: null, nav: [], url: {}, idsLama: null, health: null, pratinjau: null, logo: null });
+  Adm.idx = null;
+  Ev.slug = slug; Ev.ada = !!meta;
+  if (meta) Pub.init();
+  return !!meta;
+}
+
+/* ---------- tanggal & status event ---------- */
+function hariIniIso() { const b = bagianWaktu(new Date()); return b ? `${b.y}-${pad2(b.m)}-${pad2(b.d)}` : isoTanggal(new Date()); }
+function selisihHari(a, b) { return Math.round((parseTanggal(b) - parseTanggal(a)) / 86400000); }
+function statusEvent(e, hariIni = hariIniIso()) {
+  const m = e.tanggal_mulai, s = e.tanggal_selesai || m;
+  if (!m) return { k: 'tbd', label: 'Tanggal menyusul', urut: 3 };
+  if (s < hariIni) return { k: 'selesai', label: 'Selesai', urut: 4 };
+  if (m <= hariIni) {
+    const ke = selisihHari(m, hariIni) + 1, total = selisihHari(m, s) + 1;
+    return { k: 'live', label: total > 1 ? `Berlangsung · hari ke-${ke}` : 'Berlangsung hari ini', urut: 0 };
+  }
+  const n = selisihHari(hariIni, m);
+  return { k: n <= 14 ? 'segera' : 'jauh', n, label: n === 1 ? 'Besok' : `${n} hari lagi`, urut: n <= 14 ? 1 : 2 };
+}
+function rentangEvent(e, pendek = false) {
+  const a = parseTanggal(e.tanggal_mulai), b = parseTanggal(e.tanggal_selesai) || a;
+  if (!a) return 'Tanggal menyusul';
+  const B = pendek ? BLN : BULAN;
+  if (a.getTime() === b.getTime()) return `${pendek ? HARI3[a.getDay()] : HARI[a.getDay()]}, ${a.getDate()} ${B[a.getMonth()]} ${a.getFullYear()}`;
+  if (a.getMonth() === b.getMonth() && a.getFullYear() === b.getFullYear()) return `${a.getDate()}–${b.getDate()} ${B[a.getMonth()]} ${a.getFullYear()}`;
+  return `${a.getDate()} ${BLN[a.getMonth()]} – ${b.getDate()} ${BLN[b.getMonth()]} ${b.getFullYear()}`;
+}
+const urutEvent = (a, b) => (a._st.urut - b._st.urut) || (a._st.k === 'selesai'
+  ? String(b.tanggal_mulai).localeCompare(String(a.tanggal_mulai))
+  : String(a.tanggal_mulai || '9999').localeCompare(String(b.tanggal_mulai || '9999')));
+const slugEvent = (t) => String(t || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-+/, '').slice(0, 40).replace(/-+$/, '');
+function hashTeks(t) { let h = 7; for (const c of String(t)) h = (h * 31 + c.charCodeAt(0)) >>> 0; return h; }
+
+/* Poster bawaan bila panitia belum mengunggah gambar latar: langit, matahari & layangan */
+const PALET_POSTER = [
+  ['#0b3d78', '#3a95d8', '#ffd27a', '#ff7a59'], ['#4a2377', '#d9628a', '#ffc56b', '#2ec4b6'], ['#0f5c55', '#37b39a', '#f9e27a', '#ff6b6b'],
+  ['#7a2a18', '#ef8a3c', '#ffe08a', '#2b6cb0'], ['#14365c', '#5aa6c9', '#ffeab0', '#e94f37'], ['#3b2a6b', '#7f6fd6', '#ffd6a0', '#f9c80e'],
+];
+function seniPoster(slug) {
+  const h = hashTeks(slug), [c0, c1, sun, ak] = PALET_POSTER[h % PALET_POSTER.length];
+  const g = `g${h.toString(36)}`;
+  const kite = (x, y, sk, rot, warna) => `<g transform="translate(${x} ${y}) rotate(${rot}) scale(${sk})">
+    <path d="M0 52c-9 16 9 26 0 42s9 26 0 42" fill="none" stroke="${warna}" stroke-width="3" stroke-linecap="round" opacity=".9"/>
+    <path d="M0-44 28 0 0 52-28 0z" fill="${warna}"/><path d="M0-44 28 0H0z" fill="#fff" opacity=".28"/><path d="M0-44V52M-28 0h56" stroke="rgba(0,0,0,.28)" stroke-width="1.6"/></g>`;
+  const x1 = 70 + (h % 50), x2 = 190 + ((h >> 3) % 50), y1 = 120 + ((h >> 5) % 40);
+  return `<svg class="tp-art" viewBox="0 0 300 360" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+    <defs><linearGradient id="${g}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${c0}"/><stop offset="1" stop-color="${c1}"/></linearGradient></defs>
+    <rect width="300" height="360" fill="url(#${g})"/>
+    <circle cx="${230 - (h % 60)}" cy="92" r="44" fill="${sun}" opacity=".92"/><circle cx="${230 - (h % 60)}" cy="92" r="66" fill="${sun}" opacity=".16"/>
+    <path d="M${x1} ${y1 + 50}Q${x1 + 40} 250 150 340M${x2} ${y1 - 10}Q${x2 - 20} 240 150 340" fill="none" stroke="#fff" stroke-width="1" opacity=".45"/>
+    ${kite(x1, y1, 0.9, -14, ak)}${kite(x2, y1 - 60, 0.62, 12, '#fff')}${kite(250 - ((h >> 7) % 30), 215, 0.36, 8, sun)}
+    <path d="M0 300c40-14 70-14 100-4s60 14 100 2 70-10 100 0V360H0z" fill="#fff" opacity=".16"/>
+    <path d="M0 322c50-10 80-6 120 4s80 10 180-6V360H0z" fill="${c0}" opacity=".55"/></svg>`;
+}
+function stEvent(st) { return `<span class="ev-st st-${st.k}">${st.k === 'live' ? '<i></i>' : ''}${esc(st.label)}</span>`; }
+
+/* ---------- HALAMAN DEPAN: semua event ---------- */
+const SITUS_AWAL = {
+  nama: 'Lomba Layangan Bali',
+  judul: 'Semua lomba layangan, satu tempat daftar.',
+  teks: 'Pilih event, isi data layangan, transfer, dan unggah bukti. Nomor & jadwal terbang langsung terlihat.',
+  logo_url: '', bg_url: '',
+};
+const logoSitus = (st, cls = '') => {
+  const u = urlGambarAman(st && st.logo_url);
+  return u ? `<span class="brand-logo has-img ${cls}"><img src="${esc(u)}" alt=""></span>` : `<span class="brand-logo ${cls}">${KITE_LOGO}</span>`;
+};
+const Beranda = {
+  s: { list: null, situs: null, err: null, loading: false },
+  mount() {
+    document.body.classList.remove('is-admin');
+    document.title = 'Lomba Layangan Bali — Semua event';
+    this.render();
+    this.muat();
+  },
+  async muat() {
+    if (this.s.loading) return;
+    this.s.loading = true;
+    try { [this.s.list, this.s.situs] = await Promise.all([api.daftarEvent(), api.infoSitus()]); this.s.err = null; } catch (e) { this.s.err = pesanError(e); }
+    this.s.loading = false;
+    if (this.s.situs) document.title = `${this.s.situs.nama} — Semua event`;
+    this.render();
+  },
+  render() { if (Router.aktif === 'beranda') $('#app').innerHTML = this.halaman(); },
+  vTidakAda(slug) {
+    document.body.classList.remove('is-admin');
+    $('#app').innerHTML = `${demoBar()}<div class="login-wrap"><div class="card login">
+      <h2 class="h2">Event tidak ditemukan</h2>
+      <p class="lead">Alamat <b>${esc(slug)}</b> tidak cocok dengan event mana pun. Mungkin event sudah dihapus atau alamatnya salah ketik.</p>
+      <a class="btn btn-primary btn-block" href="#">${ico('arrow-l')} Lihat semua event</a></div></div>`;
+  },
+  halaman() {
+    const list = (this.s.list || []).map((e) => ({ ...e, _st: statusEvent(e) })).sort(urutEvent);
+    const dekat = list.filter((e) => e._st.k === 'live' || e._st.k === 'segera');
+    const jauh = list.filter((e) => e._st.k === 'jauh' || e._st.k === 'tbd');
+    const selesai = list.filter((e) => e._st.k === 'selesai');
+    let isi;
+    if (!this.s.list && this.s.err) isi = `<div class="card"><div class="note bad">${ico('alert')}<span>${esc(this.s.err)}</span></div><button class="btn btn-primary" data-act="lp.muat">${ico('refresh')} Coba lagi</button></div>`;
+    else if (!this.s.list) isi = `<div class="tiket-grid">${'<div class="tiket skel-tiket"><div class="skel" style="height:100%"></div></div>'.repeat(3)}</div>`;
+    else {
+      isi = `
+      <section class="lp-sec" aria-labelledby="lp-dekat">
+        <div class="lp-h"><h2 id="lp-dekat">Berlangsung & segera</h2><span>Hari ini sampai 2 minggu ke depan</span></div>
+        ${dekat.length ? `<div class="tiket-grid">${dekat.map((e) => this.vTiket(e)).join('')}</div>`
+          : `<div class="lp-kosong">${ico('cal')}<span>Belum ada lomba dalam 2 minggu ke depan. Lihat kalender di bawah.</span></div>`}
+      </section>
+      <section class="lp-sec" aria-labelledby="lp-jauh">
+        <div class="lp-h"><h2 id="lp-jauh">Kalender lomba</h2><span>Lebih dari 2 minggu lagi</span></div>
+        ${jauh.length ? this.vKalender(jauh) : `<div class="lp-kosong">${ico('cal')}<span>Belum ada event lain yang dijadwalkan.</span></div>`}
+      </section>
+      ${selesai.length ? `<section class="lp-sec" aria-labelledby="lp-selesai">
+        <div class="lp-h"><h2 id="lp-selesai">Sudah selesai</h2><span>Jadwal & nomor peserta tetap bisa dilihat</span></div>
+        <div class="kal-card selesai">${selesai.map((e) => this.vBaris(e, true)).join('')}</div>
+      </section>` : ''}`;
+    }
+    const nAktif = list.filter((e) => e._st.k !== 'selesai').length, nBuka = list.filter((e) => e.pendaftaran_buka && e._st.k !== 'selesai').length;
+    const st = this.s.situs || SITUS_AWAL, bg = urlGambarAman(st.bg_url);
+    const gayaBg = bg ? ` style="background-image:linear-gradient(170deg,rgba(6,28,56,.74) 0%,rgba(6,28,56,.42) 55%,rgba(6,28,56,.66) 100%),url('${esc(bg)}')"` : '';
+    return `${demoBar()}<header class="lp-top${bg ? ' has-bg' : ''}"${gayaBg}><div class="lp-in">
+        <div class="lp-bar"><a class="lp-brand" href="#">${logoSitus(st)}<b>${esc(st.nama)}</b></a>
+          <a class="btn btn-sm lp-masuk" href="#panitia">${ico('lock')} Masuk panitia</a></div>
+        <h1>${esc(st.judul)}</h1>
+        ${st.teks ? `<p>${esc(st.teks)}</p>` : ''}
+        ${this.s.list ? `<div class="hero-chips"><span class="chip"><i class="dot"></i>${nBuka} event buka pendaftaran</span><span class="chip">${ico('cal')}${nAktif} event mendatang</span></div>` : ''}
+      </div>${bg ? '' : HERO_ART}${HERO_WAVES}</header>
+      <main class="lp-main" id="main">${isi}
+        <footer class="pub-foot"><div class="foot-s">${esc(st.nama)} · <a href="#panitia">Masuk panitia</a></div></footer>
+      </main>`;
+  },
+  /* poster ala tiket bioskop */
+  vTiket(e) {
+    const st = e._st, a = parseTanggal(e.tanggal_mulai), bg = urlGambarAman(e.bg_url), logo = urlGambarAman(e.logo_url);
+    const href = `#e/${encodeURIComponent(e.slug)}`;
+    const cta = e.pendaftaran_buka ? ['primary', 'Daftar sekarang', ''] : st.k === 'live' ? ['', 'Lihat jadwal terbang', '/jadwal'] : ['', 'Lihat info event', ''];
+    const info = e.pendaftaran_buka
+      ? `<span class="tk-buka">Pendaftaran dibuka</span>${e.ada_jadwal ? `<span>Sisa ${angka(e.sisa_slot)} kotak</span>` : ''}${e.harga_min != null ? `<span>Mulai ${rupiah(e.harga_min)}</span>` : ''}`
+      : `<span class="tk-tutup">${st.k === 'live' ? 'Pendaftaran ditutup' : 'Pendaftaran belum dibuka'}</span>${e.peserta ? `<span>${angka(e.peserta)} layangan terdaftar</span>` : ''}`;
+    return `<a class="tiket" href="${href}${cta[2]}" aria-label="${esc(e.nama_event)}, ${esc(rentangEvent(e))}">
+      <div class="tiket-poster${bg ? ' has-bg' : ''}"${bg ? ` style="background-image:url('${esc(bg)}')"` : ''}>
+        ${bg ? '' : seniPoster(e.slug)}
+        <div class="tp-top">${stEvent(st)}${logo ? `<img class="tp-logo" src="${esc(logo)}" alt="">` : ''}</div>
+        <div class="tp-judul"><small>${esc(e.penyelenggara)}</small><b>${esc(e.nama_event)}</b></div>
+      </div>
+      <div class="tiket-sobek" aria-hidden="true"></div>
+      <div class="tiket-stub">
+        <div class="tk-tgl" aria-hidden="true"><span>${a ? HARI3[a.getDay()] : '—'}</span><b>${a ? a.getDate() : '?'}</b><span>${a ? BLN[a.getMonth()] : ''}</span></div>
+        <div class="tk-info"><span class="tk-lok">${ico('pin')}${esc(e.lokasi || 'Lokasi menyusul')}</span><span class="tk-rentang">${esc(rentangEvent(e))}</span><div class="tk-meta">${info}</div></div>
+        <span class="tk-cta ${cta[0]}">${cta[1]} ${ico('arrow-r')}</span>
+      </div>
+    </a>`;
+  },
+  /* event yang masih jauh: daftar kalender per bulan */
+  vKalender(list) {
+    const grup = new Map();
+    list.forEach((e) => {
+      const a = parseTanggal(e.tanggal_mulai), k = a ? `${BULAN[a.getMonth()]} ${a.getFullYear()}` : 'Tanggal menyusul';
+      if (!grup.has(k)) grup.set(k, []);
+      grup.get(k).push(e);
+    });
+    return [...grup].map(([bulan, rows]) => `<div class="kal-bulan">${esc(bulan)}</div><div class="kal-card">${rows.map((e) => this.vBaris(e, false)).join('')}</div>`).join('');
+  },
+  vBaris(e, selesai) {
+    const a = parseTanggal(e.tanggal_mulai), b = parseTanggal(e.tanggal_selesai);
+    const tgl = a ? (b && b.getTime() !== a.getTime() ? `${a.getDate()}–${b.getDate()}` : String(a.getDate())) : '?';
+    const chip = selesai ? `<span class="ev-st st-selesai">${angka(e.peserta)} layangan ikut</span>`
+      : e.pendaftaran_buka ? '<span class="ev-st st-buka">Pendaftaran dibuka</span>' : '<span class="ev-st st-jauh">Belum dibuka</span>';
+    return `<a class="kal-row" href="#e/${encodeURIComponent(e.slug)}${selesai ? '/jadwal' : ''}">
+      <div class="kal-tgl${tgl.includes('–') ? ' rng' : ''}"><b>${tgl}</b><span>${a ? (selesai ? BLN[a.getMonth()] + ' ' + String(a.getFullYear()).slice(2) : HARI3[a.getDay()]) : ''}</span></div>
+      <div class="kal-info"><b>${esc(e.nama_event)}</b><span>${ico('pin')}${esc(e.lokasi || 'Lokasi menyusul')}${!selesai && e.harga_min != null ? ` · mulai ${rupiah(e.harga_min)}` : ''}</span></div>
+      <div class="kal-kanan">${chip}${!selesai ? `<span class="kal-sisa">${esc(e._st.label)}</span>` : ''}</div>
+      ${ico('chev-r', 'kal-chev')}
+    </a>`;
+  },
+};
+ACT['lp.muat'] = () => Beranda.muat();
+
+/* ---------- RUANG PANITIA: daftar event, buat event (super admin), akses panitia ---------- */
+const AKUN_DEMO = [
+  ['superadmin@demo.id', 'Super admin', 'Membuat event & memberi akses'],
+  ['panitia.sanur@demo.id', 'Panitia Sanur', '3 event'],
+  ['panitia.kusamba@demo.id', 'Panitia Kusamba', '1 event'],
+];
+function akunDemo(act) {
+  return `<div class="akun-demo"><span class="label">Masuk cepat (demo)</span>${AKUN_DEMO.map(([email, nama, ket]) =>
+    `<button type="button" class="akun-btn" data-act="${act}" data-email="${esc(email)}"><b>${esc(nama)}</b><span>${esc(email)} · ${esc(ket)}</span></button>`).join('')}</div>`;
+}
+const Pusat = {
+  s: { sesi: undefined, peran: null, list: null, err: null, loading: false, loginErr: null, loginBusy: false, tab: 'event', situs: null, akses: null, edit: null },
+  async mount(sub) {
+    this.s.tab = ['event', 'akses', 'situs', 'sandi'].includes(sub) ? sub : 'event';
+    this.s.edit = null;
+    document.body.classList.remove('is-admin');
+    document.title = 'Ruang panitia — Lomba Layangan';
+    if (this.s.sesi === undefined) this.render();
+    this.s.sesi = await api.sesi().catch(() => null);
+    if (!this.s.sesi) { this.s.peran = null; this.s.list = null; this.render(); return; }
+    this.s.peran = await api.peran();
+    this.render();
+    this.muat();
+  },
+  async muat() {
+    this.s.loading = true;
+    try {
+      const sup = this.super;
+      const [list, situs, akses] = await Promise.all([api.eventSaya(), sup ? api.infoSitus() : null, sup ? api.daftarAkses() : null]);
+      Object.assign(this.s, { list, situs, akses, err: null });
+    } catch (e) { this.s.err = pesanError(e); }
+    this.s.loading = false;
+    this.render();
+  },
+  get super() { return !!(this.s.peran && this.s.peran.peran === 'super'); },
+  render() {
+    if (Router.aktif !== 'pusat') return;
+    const s = this.s, app = $('#app');
+    if (s.sesi === undefined) { app.innerHTML = Adm.vMemuat('Memeriksa akun…'); return; }
+    if (!s.sesi) { app.innerHTML = this.vLogin(); return; }
+    const isi = s.tab === 'sandi' ? this.vSandi() : !this.super || s.tab === 'event' ? this.vIsi() : s.tab === 'akses' ? this.vAkses() : this.vSitus();
+    app.innerHTML = `${demoBar()}${this.vTop()}<main class="pz-main" id="main">${this.super ? this.vTabs() : ''}${isi}</main>`;
+  },
+  vTabs() {
+    const t = this.s.tab, n = this.s.akses ? this.s.akses.length : 0;
+    const item = (id, label, ikon, c) => `<a class="pz-tab ${t === id ? 'on' : ''}" href="#panitia${id === 'event' ? '' : '/' + id}" ${t === id ? 'aria-current="page"' : ''}>${ico(ikon)}${label}${c ? `<small>${c}</small>` : ''}</a>`;
+    return `<nav class="pz-tabs" aria-label="Menu super admin">${item('event', 'Event', 'cal')}${item('akses', 'Admin event', 'users', n)}${item('situs', 'Pengaturan situs', 'sliders')}</nav>`;
+  },
+  /* ---- tab: admin event (semua panitia & event yang dipegang) ---- */
+  vAkses() {
+    const s = this.s, list = s.akses;
+    const head = `<div class="pz-head"><div><h1>Admin event</h1>
+      <p class="lead">Email yang diberi akses dashboard event. Ganti email atau cabut akses di sini, atau dari tombol ${ico('sliders', 'ico-inline')} di kartu event.</p></div></div>`;
+    if (!list) return head + (s.err ? `<div class="note bad">${ico('alert')}<span>${esc(s.err)}</span></div>` : '<div class="panel"><div class="skel" style="height:140px"></div></div>');
+    if (!list.length) return head + `<div class="lp-kosong">${ico('info')}<span>Belum ada admin event. Tambahkan email dari tombol ${ico('sliders', 'ico-inline')} di kartu event.</span></div>`;
+    return head + `<div class="ak-list">${list.map((p) => {
+      const sedangUbah = s.edit && s.edit.mode === 'orang' && s.edit.email === p.email;
+      return `<article class="ak-card">
+        <div class="ak-top">
+          ${sedangUbah ? this.vFormGanti('orang', '', p.email)
+            : `<div class="ak-who"><span class="ak-av">${esc(p.email[0].toUpperCase())}</span><div><b>${esc(p.email)}</b><span>${p.events.length} event</span></div></div>
+          <div class="ak-aksi"><button class="btn btn-xs" data-act="pusat.ubahOrang" data-email="${esc(p.email)}">${ico('edit')} Ganti email</button>
+            <button class="btn btn-xs btn-danger" data-act="pusat.cabutSemua" data-email="${esc(p.email)}">${ico('x')} Cabut semua akses</button></div>`}
+        </div>
+        <ul class="ak-ev">${p.events.map((e) => `<li><span><b>${esc(e.nama_event)}</b><small>${esc(rentangEvent(e, true))}</small></span>
+          <button class="btn btn-xs btn-ghost" data-act="pusat.cabut" data-id="${e.id}" data-email="${esc(p.email)}" aria-label="Cabut akses ${esc(p.email)} dari ${esc(e.nama_event)}">${ico('x')} Cabut</button></li>`).join('')}</ul>
+      </article>`;
+    }).join('')}</div>`;
+  },
+  vFormGanti(mode, id, email) {
+    return `<div class="ak-ganti" data-mode="${mode}" data-id="${id}" data-email="${esc(email)}">
+      <label class="sr-only" for="ak-baru-${mode}">Email baru untuk ${esc(email)}</label>
+      <input class="input input-sm" type="email" id="ak-baru-${mode}" value="${esc(email)}" autocomplete="off" spellcheck="false" data-enter="pusat.simpanGanti" autofocus>
+      <button type="button" class="btn btn-sm btn-primary" data-act="pusat.simpanGanti">Simpan</button><button type="button" class="btn btn-sm" data-act="pusat.batalGanti">Batal</button></div>`;
+  },
+  /* ---- daftar admin di dalam jendela "Atur event" ---- */
+  vAksesEvent(e) {
+    const ed = this.s.edit;
+    return `<div class="ae-list">${e.panitia.length ? e.panitia.map((m) => (ed && ed.mode === 'event' && ed.id === e.id && ed.email === m)
+      ? `<div class="ae-row">${this.vFormGanti('event', e.id, m)}</div>`
+      : `<div class="ae-row"><span class="ak-av">${esc(m[0].toUpperCase())}</span><b>${esc(m)}</b>
+          ${api.mode === 'supabase' ? `<button type="button" class="btn btn-xs btn-ghost" data-act="pusat.undang" data-email="${esc(m)}" title="Kirim ulang email undangan">${ico('send')}<span class="sr-only">Kirim ulang undangan</span></button>` : ''}
+          <button type="button" class="btn btn-xs" data-act="pusat.ubahAkses" data-id="${e.id}" data-email="${esc(m)}">${ico('edit')} Ganti</button>
+          <button type="button" class="btn btn-xs btn-danger" data-act="pusat.cabut" data-id="${e.id}" data-email="${esc(m)}">${ico('x')} Hapus akses</button></div>`).join('')
+      : '<p class="hint" style="margin:0">Belum ada admin. Hanya super admin yang bisa membuka dashboard event ini.</p>'}</div>
+      <div class="ae-tambah"><label class="sr-only" for="ae-baru">Email admin baru</label>
+        <input class="input input-sm" type="email" id="ae-baru" placeholder="Email admin baru" autocomplete="off" spellcheck="false" data-enter="pusat.tambahAkses" data-id="${e.id}">
+        <button type="button" class="btn btn-sm" data-act="pusat.tambahAkses" data-id="${e.id}">${ico('plus')} Tambah</button></div>`;
+  },
+  segarkanAksesEvent() {
+    const box = $('#ae-box');
+    if (!box) return;
+    const e = (this.s.list || []).find((x) => x.id === Number(box.dataset.id));
+    if (e) box.innerHTML = this.vAksesEvent(e);
+    const f = box.querySelector('.ak-ganti input'); if (f) f.focus();
+  },
+  /* ---- tab: pengaturan situs (halaman depan) ---- */
+  vSitus() {
+    const st = this.s.situs;
+    if (!st) return `<div class="panel"><div class="skel" style="height:220px"></div></div>`;
+    const media = (k, judul, ket) => {
+      const u = urlGambarAman(st[k + '_url']);
+      return `<div class="media-row">
+        <div class="media-prev ${k} ${u ? 'isi' : ''}" ${u ? `style="background-image:url('${esc(u)}')"` : ''}>${u ? '' : 'Bawaan'}</div>
+        <div class="media-info"><b>${judul}</b><span class="hint">${ket}</span>
+          <div class="sa-act">
+            <label class="btn btn-xs">${ico('upload')} ${u ? 'Ganti' : 'Unggah'}<input type="file" class="sr-only" accept="image/png,image/jpeg,image/webp" data-ch="pusat.media" data-k="${k}"></label>
+            ${u ? `<button type="button" class="btn btn-xs btn-danger" data-act="pusat.mediaHapus" data-k="${k}">${ico('trash')} Hapus</button>` : ''}
+          </div></div></div>`;
+    };
+    return `<div class="pz-head"><div><h1>Pengaturan situs</h1><p class="lead">Tampilan halaman depan yang memuat semua event. Tampilan tiap event diatur panitianya di dashboard event.</p></div>
+      <div class="pz-aksi"><a class="btn" href="#" target="_blank" rel="noopener">${ico('globe')} Lihat halaman depan</a></div></div>
+      <div class="set-grid"><div class="set-col">
+        <div class="panel" id="situs-media"><div class="panel-h"><h3>Logo & gambar</h3></div>
+          ${media('logo', 'Logo situs', 'Tampil di samping nama situs di halaman depan dan ruang panitia. PNG transparan paling bagus.')}
+          ${media('bg', 'Gambar halaman utama', 'Latar bagian atas halaman depan. Gambar mendatar (landscape); otomatis dibuat sedikit gelap agar tulisan terbaca.')}
+          <p class="hint" style="margin:0">Gambar otomatis diperkecil sebelum diunggah.</p></div>
+        <form class="panel" data-submit="pusat.simpanSitus" novalidate><div class="panel-h"><h3>Teks halaman depan</h3></div>
+          ${fieldInput({ id: 'st-nama', name: 'nama', label: 'Nama situs', value: st.nama, maxlength: 60 })}
+          ${fieldInput({ id: 'st-judul', name: 'judul', label: 'Judul besar', value: st.judul, maxlength: 90 })}
+          ${fieldInput({ id: 'st-teks', name: 'teks', label: 'Keterangan singkat', value: st.teks, textarea: true, rows: 3, maxlength: 220, opsional: true })}
+          <div class="actions end"><button type="button" class="btn btn-sm" data-act="pusat.situsBawaan">${ico('undo')} Teks bawaan</button><button class="btn btn-primary btn-sm" type="submit">Simpan</button></div></form>
+      </div><div class="set-col">
+        <div class="panel"><div class="panel-h"><h3>Pratinjau</h3></div>
+          <div class="situs-prev${urlGambarAman(st.bg_url) ? ' has-bg' : ''}" ${urlGambarAman(st.bg_url) ? `style="background-image:linear-gradient(170deg,rgba(6,28,56,.74),rgba(6,28,56,.42) 55%,rgba(6,28,56,.66)),url('${esc(urlGambarAman(st.bg_url))}')"` : ''}>
+            <div class="lp-brand">${logoSitus(st)}<b>${esc(st.nama)}</b></div>
+            <b class="sp-judul">${esc(st.judul)}</b>${st.teks ? `<span>${esc(st.teks)}</span>` : ''}</div></div>
+      </div></div>`;
+  },
+  vLogin() {
+    const s = this.s;
+    return `${demoBar()}<div class="login-wrap"><div class="card login">
+      <div class="brand-logo">${KITE_LOGO}</div>
+      <h2 class="h2">Masuk ruang panitia</h2>
+      <p class="lead">Super admin mengelola semua event. Panitia hanya melihat event yang ditugaskan kepadanya.</p>
+      ${api.mode === 'demo' ? akunDemo('pusat.cepat') : ''}
+      <form data-submit="pusat.login" novalidate>
+        ${fieldInput({ id: 'pz-email', name: 'email', label: 'Email', type: 'email', value: bacaLokal('lomba_admin_email', ''), autocomplete: 'username', inputmode: 'email' })}
+        ${fieldInput({ id: 'pz-pw', name: 'password', label: 'Password', type: 'password', value: '', autocomplete: 'current-password' })}
+        ${s.loginErr ? `<div class="note bad" role="alert">${ico('alert')}<span>${esc(s.loginErr)}</span></div>` : ''}
+        <button class="btn btn-primary btn-block btn-lg" type="submit" ${s.loginBusy ? 'disabled' : ''}>${s.loginBusy ? '<span class="spinner"></span> Memeriksa…' : `${ico('lock')} Masuk`}</button>
+      </form>
+      <p class="hint" style="margin:14px 0 0;text-align:center">Belum punya atau lupa password? <button type="button" class="link-btn" data-act="pusat.linkMasuk">Kirim link masuk ke email</button></p>
+      <p class="hint" style="margin:10px 0 0;text-align:center"><a href="#">← Kembali ke semua event</a></p>
+    </div></div>`;
+  },
+  /* setelah masuk lewat link email: buat / ganti password */
+  vSandi() {
+    return `<div class="pz-head"><div><h1>Buat password</h1>
+      <p class="lead">Anda masuk lewat link email. Buat password supaya berikutnya bisa masuk dengan email & password.</p></div></div>
+      <form class="panel" style="max-width:460px" data-submit="pusat.sandi" novalidate>
+        ${fieldInput({ id: 'sd-1', name: 'p1', label: 'Password baru', type: 'password', autocomplete: 'new-password', hint: 'Minimal 8 karakter.' })}
+        ${fieldInput({ id: 'sd-2', name: 'p2', label: 'Ulangi password', type: 'password', autocomplete: 'new-password' })}
+        <div class="actions end"><a class="btn btn-sm" href="#panitia">Nanti saja</a><button class="btn btn-primary btn-sm" type="submit">Simpan password</button></div>
+      </form>`;
+  },
+  vTop() {
+    const p = this.s.peran || {};
+    return `<header class="pz-top"><div class="pz-in">
+      <a class="pz-brand" href="#">${logoSitus(this.s.situs || {})}<span><b>${esc((this.s.situs && this.s.situs.nama) || SITUS_AWAL.nama)}</b><small>Ruang panitia</small></span></a>
+      <span class="pz-who"><b>${esc(p.nama || p.email || '')}</b><small>${this.super ? 'Super admin' : 'Panitia'} · ${esc(p.email || '')}</small></span>
+      <button class="btn btn-sm btn-ghost" data-act="pusat.logout">${ico('logout')}<span class="hide-sm">Keluar</span></button>
+    </div></header>`;
+  },
+  vIsi() {
+    const s = this.s, sup = this.super;
+    const head = `<div class="pz-head"><div><h1>${sup ? 'Semua event' : 'Event saya'}</h1>
+        <p class="lead">${sup ? 'Hanya Anda (super admin) yang bisa membuat event dan memberi akses panitia.' : 'Event yang ditugaskan super admin kepada Anda.'}</p></div>
+      ${sup ? `<div class="pz-aksi"><button class="btn btn-primary" data-act="pusat.formBuat">${ico('plus')} Buat event</button></div>` : ''}</div>`;
+    if (!s.list) return head + (s.err ? `<div class="note bad">${ico('alert')}<span>${esc(s.err)}</span></div>` : `<div class="pe-grid">${'<div class="panel"><div class="skel" style="height:180px"></div></div>'.repeat(3)}</div>`);
+    const list = s.list.map((e) => ({ ...e, _st: statusEvent(e) })).sort(urutEvent);
+    if (!list.length) return head + `<div class="lp-kosong">${ico('info')}<span>${sup ? 'Belum ada event. Tekan <b>Buat event</b> untuk memulai.' : 'Akun Anda belum ditugaskan ke event mana pun. Hubungi super admin.'}</span></div>`;
+    const menunggu = list.reduce((a, e) => a + (e.menunggu || 0), 0);
+    return head + (menunggu ? `<div class="note warn">${ico('clock')}<span><b>${angka(menunggu)} pendaftaran</b> menunggu verifikasi pembayaran di seluruh event Anda.</span></div>` : '')
+      + `<div class="pe-grid">${list.map((e) => this.vKartu(e)).join('')}</div>`
+      + (sup && api.mode === 'demo' ? `<p class="hint" style="margin:28px 0 0;text-align:center"><button class="btn btn-sm btn-ghost" data-act="pusat.resetDemo">${ico('refresh')} Kembalikan demo ke data awal</button></p>` : '');
+  },
+  vKartu(e) {
+    const sup = this.super, slug = encodeURIComponent(e.slug);
+    return `<article class="pe-card">
+      <div class="pe-head">${stEvent(e._st)}${e.pendaftaran_buka ? '<span class="ev-st st-buka">Pendaftaran dibuka</span>' : ''}${e.tampil ? '' : '<span class="ev-st st-hide">Disembunyikan</span>'}${sup ? `<button class="btn btn-sm btn-icon pe-atur" data-act="pusat.formAtur" data-id="${e.id}" title="Atur event & akses panitia" aria-label="Atur event & akses panitia">${ico('sliders')}</button>` : ''}</div>
+      <h3>${esc(e.nama_event)}</h3>
+      <p class="pe-meta"><span>${ico('cal')}${esc(rentangEvent(e))}</span><span>${ico('pin')}${esc(e.lokasi || 'Lokasi menyusul')}</span></p>
+      <div class="pe-kpi">
+        <div class="${e.menunggu ? 'hi' : ''}"><b>${angka(e.menunggu)}</b><span>Menunggu verifikasi</span></div>
+        <div><b>${angka(e.peserta)}</b><span>Terdaftar</span></div>
+        <div><b>${rupiahSingkat(e.pemasukan)}</b><span>Pemasukan</span></div>
+      </div>
+      ${sup ? `<div class="pe-panitia">${ico('users')}<span>${e.panitia.length ? e.panitia.map((m) => `<i>${esc(m)}</i>`).join('') : '<em>Belum ada panitia</em>'}</span></div>` : ''}
+      <div class="pe-act">
+        <a class="btn btn-primary btn-sm" href="#e/${slug}/admin">${ico('home')} Dashboard</a>
+        <a class="btn btn-sm" href="#e/${slug}" target="_blank" rel="noopener">${ico('globe')} Halaman peserta</a>
+      </div>
+    </article>`;
+  },
+  formBuat() {
+    const list = (this.s.list || []).slice().sort((a, b) => String(b.tanggal_mulai).localeCompare(String(a.tanggal_mulai)));
+    Overlay.modal(`<form data-submit="pusat.buat" novalidate>
+      <h3>Buat event baru</h3>
+      <p class="lead">Event baru dimulai dengan pendaftaran <b>tertutup</b>. Panitia melengkapi jadwal, jenis layangan & rekening, lalu membuka pendaftaran dari dashboard event.</p>
+      <div class="field"><label class="label" for="ev-nama">Nama event</label><input class="input" id="ev-nama" name="nama_event" maxlength="120" data-in="pusat.nama" required></div>
+      <div class="field"><label class="label" for="ev-slug">Kode alamat</label>
+        <div class="slug-row"><span>…/#e/</span><input class="input" id="ev-slug" name="slug" maxlength="40" data-in="pusat.slug" autocapitalize="off" spellcheck="false"></div>
+        <span class="hint">Dipakai di link pendaftaran. Huruf kecil, angka, dan tanda strip.</span></div>
+      <div class="g2">
+        <div class="field"><label class="label" for="ev-mulai">Tanggal mulai</label><input class="input" type="date" id="ev-mulai" name="tanggal_mulai" data-ch="pusat.mulai"></div>
+        <div class="field"><label class="label" for="ev-akhir">Tanggal selesai</label><input class="input" type="date" id="ev-akhir" name="tanggal_selesai"></div>
+      </div>
+      <div class="field"><label class="label" for="ev-lok">Lokasi</label><input class="input" id="ev-lok" name="lokasi" maxlength="160"></div>
+      <div class="field"><label class="label" for="ev-org">Penyelenggara</label><input class="input" id="ev-org" name="penyelenggara" maxlength="120"></div>
+      <div class="field"><label class="label" for="ev-pan">Email panitia <span class="opt-lbl">(opsional)</span></label>
+        <textarea class="input" id="ev-pan" name="panitia" rows="3" spellcheck="false"></textarea>
+        <span class="hint">Satu email per baris. Panitia ini hanya bisa membuka dashboard event ini.</span></div>
+      ${list.length ? `<fieldset class="salin"><legend>Salin dari event lain <span class="opt-lbl">(opsional)</span></legend>
+        <select class="input" name="salin_dari" data-ch="pusat.salinDari"><option value="">Tidak menyalin</option>${list.map((e) => `<option value="${e.id}">${esc(e.nama_event)} (${esc(rentangEvent(e, true))})</option>`).join('')}</select>
+        <div class="salin-opsi" hidden>
+          <label class="check-sm"><input type="checkbox" name="s_jenis" checked> Jenis layangan & harga</label>
+          <label class="check-sm"><input type="checkbox" name="s_bank" checked> Rekening pembayaran</label>
+          <label class="check-sm"><input type="checkbox" name="s_pesan" checked> Info lomba & pesan WhatsApp</label>
+          <label class="check-sm"><input type="checkbox" name="s_tampilan"> Logo & gambar latar</label>
+        </div></fieldset>` : ''}
+      <label class="switch"><input type="checkbox" name="tampil" checked><span class="sw"></span>Tampilkan di halaman depan</label>
+      <div class="actions end"><button type="button" class="btn" data-act="ovl.tutup">Batal</button><button type="submit" class="btn btn-primary">${ico('plus')} Buat event</button></div>
+    </form>`);
+  },
+  formAtur(id) {
+    const e = (this.s.list || []).find((x) => x.id === Number(id));
+    if (!e) return;
+    Overlay.modal(`<form data-submit="pusat.simpanAtur" data-id="${e.id}" novalidate>
+      <h3>Atur event</h3>
+      <p class="lead"><b>${esc(e.nama_event)}</b> · ${esc(rentangEvent(e))}</p>
+      <div class="field"><label class="label" for="at-slug">Kode alamat</label>
+        <div class="slug-row"><span>…/#e/</span><input class="input" id="at-slug" name="slug" maxlength="40" value="${esc(e.slug)}" autocapitalize="off" spellcheck="false"></div>
+        <span class="hint">Mengubah kode membuat link lama tidak bisa dibuka lagi.</span></div>
+      <div class="field"><span class="label">Admin event</span>
+        <div id="ae-box" data-id="${e.id}">${this.vAksesEvent(e)}</div>
+        <span class="hint">Perubahan admin langsung tersimpan. Admin hanya bisa membuka dashboard event ini. Admin baru menerima email undangan untuk membuat password sendiri${api.mode === 'demo' ? ' (di demo: masuk dengan password apa saja)' : ''}.</span></div>
+      <label class="switch"><input type="checkbox" name="tampil" ${e.tampil ? 'checked' : ''}><span class="sw"></span>Tampilkan di halaman depan</label>
+      <p class="hint" style="margin:10px 0 0">Nama, tanggal & lokasi event (hanya super admin) dan isi event lainnya diubah dari <a href="#e/${encodeURIComponent(e.slug)}/admin/pengaturan">Pengaturan di dashboard event</a>.</p>
+      <div class="actions">
+        <button type="button" class="btn btn-danger" data-act="pusat.hapus" data-id="${e.id}">${ico('trash')} Hapus event</button><span style="flex:1"></span>
+        <button type="button" class="btn" data-act="ovl.tutup">Batal</button><button type="submit" class="btn btn-primary">Simpan</button></div>
+    </form>`);
+  },
+};
+const emailDariTeks = (t) => String(t || '').split(/[\s,;]+/).map((x) => x.trim()).filter(Boolean);
+async function masukPusat(email, pw) {
+  const s = Pusat.s;
+  s.loginBusy = true; s.loginErr = null; Pusat.render();
+  try {
+    s.sesi = await api.login(email, pw);
+    simpanLokal('lomba_admin_email', email);
+    Adm.s.sesi = s.sesi; Adm.s.adminEv = null;
+    s.loginBusy = false;
+    await Pusat.mount();
+  } catch (e) { s.loginBusy = false; s.loginErr = pesanError(e); Pusat.render(); }
+}
+SUB['pusat.login'] = (form) => {
+  const email = form.email.value.trim(), pw = form.password.value;
+  if (!email || !pw) { Pusat.s.loginErr = 'Isi email dan password.'; Pusat.render(); return; }
+  masukPusat(email, pw);
+};
+ACT['pusat.cepat'] = (el) => masukPusat(el.dataset.email, 'demo');
+ACT['adm.cepat'] = async (el) => {
+  const s = Adm.s;
+  s.loginBusy = true; s.loginErr = null; Adm.render();
+  try { s.sesi = await api.login(el.dataset.email, 'demo'); simpanLokal('lomba_admin_email', el.dataset.email); s.loginBusy = false; await Adm.masuk(); }
+  catch (e) { s.loginBusy = false; s.loginErr = pesanError(e); Adm.render(); }
+};
+ACT['pusat.logout'] = async () => {
+  await api.logout().catch(() => {});
+  Adm.reset();
+  Object.assign(Pusat.s, { sesi: null, peran: null, list: null });
+  Pusat.render();
+};
+ACT['pusat.formBuat'] = () => Pusat.formBuat();
+ACT['pusat.formAtur'] = (el) => Pusat.formAtur(el.dataset.id);
+IN['pusat.nama'] = (el) => {
+  const slug = el.form.slug;
+  if (slug && !slug.dataset.manual) slug.value = slugEvent(el.value);
+};
+IN['pusat.slug'] = (el) => { el.dataset.manual = '1'; };
+CH['pusat.mulai'] = (el) => { const a = el.form.tanggal_selesai; if (a && (!a.value || a.value < el.value)) a.value = el.value; };
+CH['pusat.salinDari'] = (el) => { const o = el.form.querySelector('.salin-opsi'); if (o) o.hidden = !el.value; };
+SUB['pusat.buat'] = async (form) => {
+  const v = (n) => (form[n] ? String(form[n].value).trim() : '');
+  if (!v('nama_event')) return toast('Nama event wajib diisi.', 'bad');
+  const mulai = v('tanggal_mulai') || null, akhir = v('tanggal_selesai') || mulai;
+  if (mulai && akhir < mulai) return toast('Tanggal selesai tidak boleh sebelum tanggal mulai.', 'bad');
+  const btn = form.querySelector('[type=submit]');
+  await sibuk(btn, async () => {
+    try {
+      const e = await api.buatEvent({
+        nama_event: v('nama_event'), slug: v('slug') || slugEvent(v('nama_event')), tanggal_mulai: mulai, tanggal_selesai: akhir,
+        lokasi: v('lokasi'), penyelenggara: v('penyelenggara'), panitia: emailDariTeks(v('panitia')), tampil: form.tampil.checked,
+        salin_dari: v('salin_dari') || null,
+        salin: { jenis: form.s_jenis && form.s_jenis.checked, bank: form.s_bank && form.s_bank.checked, pesan: form.s_pesan && form.s_pesan.checked, tampilan: form.s_tampilan && form.s_tampilan.checked },
+      });
+      Overlay.tutupYangBerisi(form);
+      toast(`Event "${e.nama_event}" dibuat`, 'good');
+      await Pusat.muat();
+    } catch (err) { toast(pesanError(err), 'bad', 6000); }
+  });
+};
+SUB['pusat.simpanAtur'] = async (form) => {
+  const btn = form.querySelector('[type=submit]');
+  await sibuk(btn, async () => {
+    try {
+      await api.ubahEvent(form.dataset.id, { slug: String(form.slug.value).trim(), tampil: form.tampil.checked });
+      Overlay.tutupYangBerisi(form);
+      toast('Pengaturan event disimpan', 'good');
+      await Pusat.muat();
+    } catch (err) { toast(pesanError(err), 'bad', 6000); }
+  });
+};
+ACT['pusat.hapus'] = async (el) => {
+  const e = (Pusat.s.list || []).find((x) => x.id === Number(el.dataset.id));
+  if (!e) return;
+  if (!(await konfirmasiDialog({ judul: `Hapus ${e.nama_event}?`, isi: `Semua jadwal, jenis layangan, dan <b>${angka((e.peserta || 0) + (e.menunggu || 0))} pendaftaran</b> event ini ikut terhapus. Tindakan ini tidak bisa dibatalkan.`, tombol: 'Hapus event', bahaya: true, ketik: 'HAPUS' }))) return;
+  try {
+    await api.hapusEvent(e.id);
+    if (Ev.slug === e.slug) { Ev.slug = ''; Ev.ada = false; }
+    Overlay.tutupSemua();
+    toast('Event dihapus', 'good');
+    await Pusat.muat();
+  } catch (err) { toast(pesanError(err), 'bad', 6000); }
+};
+/* admin event */
+async function aksesBerubah(pesan, undangan) {
+  if (undangan === false && api.mode === 'supabase') toast(`${pesan}. Email undangan gagal dikirim (${api.undanganGagal || 'coba lagi nanti'}); kirim ulang dengan tombol ✈.`, 'bad', 9000);
+  else toast(api.mode === 'supabase' && undangan ? `${pesan} · email undangan terkirim` : pesan, 'good', 5000);
+  const [list, akses] = await Promise.all([api.eventSaya(), api.daftarAkses()]);
+  Object.assign(Pusat.s, { list, akses, edit: null });
+  Pusat.segarkanAksesEvent();
+  Pusat.render();
+}
+ACT['pusat.ubahAkses'] = (el) => { Pusat.s.edit = { mode: 'event', id: Number(el.dataset.id), email: el.dataset.email }; Pusat.segarkanAksesEvent(); };
+ACT['pusat.ubahOrang'] = (el) => { Pusat.s.edit = { mode: 'orang', email: el.dataset.email }; Pusat.render(); const f = $('.ak-ganti input'); if (f) { f.focus(); f.select(); } };
+ACT['pusat.batalGanti'] = () => { const ev = Pusat.s.edit && Pusat.s.edit.mode === 'event'; Pusat.s.edit = null; if (ev) Pusat.segarkanAksesEvent(); else Pusat.render(); };
+ACT['pusat.simpanGanti'] = async (el) => {
+  const box = el.closest('.ak-ganti'), baru = box.querySelector('input').value.trim(), lama = box.dataset.email;
+  if (baru.toLowerCase() === lama) { ACT['pusat.batalGanti'](); return; }
+  try {
+    const kirim = box.dataset.mode === 'event' ? await api.gantiAkses(Number(box.dataset.id), lama, baru) : await api.gantiEmailPanitia(lama, baru);
+    await aksesBerubah(`Email admin diganti menjadi ${baru.toLowerCase()}`, kirim);
+  } catch (e) { toast(pesanError(e), 'bad', 6000); }
+};
+ACT['pusat.tambahAkses'] = async (el) => {
+  const inp = $('#ae-baru'), email = inp ? inp.value.trim() : '';
+  if (!email) { if (inp) inp.focus(); return toast('Isi email admin baru.', 'bad'); }
+  try { const kirim = await api.tambahAkses(Number(el.dataset.id), email); await aksesBerubah(`${email.toLowerCase()} sekarang admin event ini`, kirim); const i = $('#ae-baru'); if (i) i.focus(); }
+  catch (e) { toast(pesanError(e), 'bad', 6000); }
+};
+ACT['pusat.cabut'] = async (el) => {
+  const id = Number(el.dataset.id), email = el.dataset.email;
+  const e = (Pusat.s.list || []).find((x) => x.id === id);
+  if (!(await konfirmasiDialog({ judul: 'Hapus akses admin?', isi: `<b>${esc(email)}</b> tidak bisa lagi membuka dashboard <b>${esc(e ? e.nama_event : 'event ini')}</b>. Data pendaftaran tidak terhapus.`, tombol: 'Hapus akses', bahaya: true }))) return;
+  try { await api.cabutAkses(id, email); await aksesBerubah('Akses admin dihapus'); }
+  catch (err) { toast(pesanError(err), 'bad', 6000); }
+};
+ACT['pusat.cabutSemua'] = async (el) => {
+  const email = el.dataset.email, p = (Pusat.s.akses || []).find((x) => x.email === email);
+  if (!(await konfirmasiDialog({ judul: 'Cabut semua akses?', isi: `<b>${esc(email)}</b> tidak bisa lagi membuka dashboard ${p ? p.events.length : ''} event yang dipegangnya. Data pendaftaran tidak terhapus.`, tombol: 'Cabut semua', bahaya: true }))) return;
+  try { await api.cabutAkses('semua', email); await aksesBerubah('Semua akses dicabut'); }
+  catch (err) { toast(pesanError(err), 'bad', 6000); }
+};
+ACT['pusat.undang'] = (el) => sibuk(el, async () => {
+  const ok = await api.undangUlang(el.dataset.email);
+  toast(ok ? `Email undangan dikirim ulang ke ${el.dataset.email}` : `Gagal mengirim email: ${api.undanganGagal || 'coba lagi nanti'}`, ok ? 'good' : 'bad', 6000);
+});
+ACT['pusat.linkMasuk'] = async () => {
+  const f = $('#pz-email'), email = f ? f.value.trim() : '';
+  if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) { if (f) f.focus(); return toast('Isi email Anda dulu di kolom Email.', 'bad'); }
+  try { await api.kirimLinkMasuk(email); toast(`Link masuk dikirim ke ${email}. Buka email itu lalu klik linknya.`, 'good', 8000); }
+  catch (e) { toast(pesanError(e), 'bad', 6000); }
+};
+SUB['pusat.sandi'] = async (form) => {
+  const a = form.p1.value, b = form.p2.value;
+  if (a.length < 8) return toast('Password minimal 8 karakter.', 'bad');
+  if (a !== b) return toast('Kedua password tidak sama.', 'bad');
+  await sibuk(form.querySelector('[type=submit]'), async () => {
+    try { await api.gantiPassword(a); toast('Password disimpan', 'good'); location.hash = '#panitia'; }
+    catch (e) { toast(pesanError(e), 'bad', 6000); }
+  });
+};
+/* Enter di kolom email = tekan tombol di sebelahnya */
+document.addEventListener('keydown', (e) => {
+  const t = e.target;
+  if (e.key !== 'Enter' || !t.dataset || !t.dataset.enter) return;
+  e.preventDefault();
+  const b = t.parentElement.querySelector(`[data-act="${t.dataset.enter}"]`);
+  if (b) b.click();
+}, true);
+
+/* pengaturan situs */
+async function simpanSitus(patch, pesan) {
+  const hasil = await api.simpanSitus(patch);
+  Pusat.s.situs = hasil;
+  Pusat.render();
+  toast(pesan, 'good');
+}
+CH['pusat.media'] = async (el) => {
+  const file = el.files && el.files[0], k = el.dataset.k;
+  el.value = '';
+  if (!file) return;
+  if (!/^image\/(png|jpeg|webp)$/.test(file.type)) return toast(pesanError(new Error('MEDIA_TIDAK_VALID')), 'bad');
+  const tombol = el.closest('label');
+  if (tombol) { tombol.insertAdjacentHTML('afterbegin', '<span class="spinner"></span>'); tombol.style.pointerEvents = 'none'; }
+  try {
+    const png = k === 'logo' && file.type !== 'image/jpeg';
+    const blob = await kompresGambar(file, k === 'logo' ? 512 : 1920, 0.82, png ? 'image/png' : 'image/jpeg');
+    const url = await api.uploadMedia('situs-' + k, blob, blob.type || (png ? 'image/png' : 'image/jpeg'));
+    await simpanSitus({ [k + '_url']: url }, k === 'logo' ? 'Logo situs diperbarui' : 'Gambar halaman utama diperbarui');
+  } catch (e) { toast(pesanError(e), 'bad', 6000); if (tombol && tombol.isConnected) { const sp = tombol.querySelector('.spinner'); if (sp) sp.remove(); tombol.style.pointerEvents = ''; } }
+};
+ACT['pusat.mediaHapus'] = async (el) => {
+  const k = el.dataset.k, nama = k === 'logo' ? 'logo situs' : 'gambar halaman utama';
+  if (!(await konfirmasiDialog({ judul: `Hapus ${nama}?`, isi: 'Halaman depan kembali memakai tampilan bawaan.', tombol: 'Hapus', bahaya: true }))) return;
+  try { await simpanSitus({ [k + '_url']: '' }, `${nama[0].toUpperCase() + nama.slice(1)} dihapus`); } catch (e) { toast(pesanError(e), 'bad', 6000); }
+};
+SUB['pusat.simpanSitus'] = async (form) => {
+  const v = (n) => String(form[n].value).trim();
+  if (!v('nama')) return toast('Nama situs wajib diisi.', 'bad');
+  if (!v('judul')) return toast('Judul besar wajib diisi.', 'bad');
+  await sibuk(form.querySelector('[type=submit]'), async () => {
+    try { await simpanSitus({ nama: v('nama'), judul: v('judul'), teks: v('teks') }, 'Teks halaman depan disimpan'); } catch (e) { toast(pesanError(e), 'bad', 6000); }
+  });
+};
+ACT['pusat.situsBawaan'] = () => {
+  const f = $('form[data-submit="pusat.simpanSitus"]');
+  if (!f) return;
+  f.nama.value = SITUS_AWAL.nama; f.judul.value = SITUS_AWAL.judul; f.teks.value = SITUS_AWAL.teks;
+  toast('Teks bawaan dipasang — klik Simpan untuk menyimpan', 'info');
+};
+ACT['pusat.resetDemo'] = async () => {
+  if (!(await konfirmasiDialog({ judul: 'Kembalikan demo ke data awal?', isi: 'Semua event & pendaftaran contoh dibuat ulang. Perubahan yang Anda buat di demo akan hilang.', tombol: 'Kembalikan' }))) return;
+  await api.resetDemoSemua();
+  Ev.slug = ''; Ev.ada = false;
+  toast('Demo dikembalikan ke data awal', 'good');
+  await Pusat.muat();
+};
+
+/* =====================================================================
    7) ROUTER, EVENT GLOBAL & START
    ===================================================================== */
-function rute() {
+/* Alamat:  #            → halaman depan (semua event)
+            #panitia     → ruang panitia (super admin: semua event + buat event)
+            #e/<kode>/…  → halaman peserta event (#e/<kode>/jadwal, /cek, /tiket/KODE)
+            #e/<kode>/admin/… → dashboard panitia event itu
+   Link lama di dalam halaman event (#jadwal, #admin/…) otomatis diberi awalan event yang sedang dibuka. */
+async function rute() {
+  if (/(^#?\/?|&)(access_token|error)=/.test(location.hash)) await tangkapLinkEmail();
   let h = location.hash.replace(/^#\/?/, '');
   try { h = decodeURIComponent(h); } catch (e) { /* hash rusak: pakai apa adanya */ }
-  const [bag, sub] = h.split('/');
+  let p = h.split('/');
   Overlay.tutupSemua();
+  if (p[0] === 'e' && p[1]) {
+    const slug = p[1].toLowerCase();
+    p = p.slice(2);
+    if (!(await gantiEvent(slug))) { Router.aktif = 'beranda'; Beranda.vTidakAda(slug); return; }
+  } else if (p[0] === 'panitia') { Router.aktif = 'pusat'; Pusat.mount(p[1]); return; }
+  else if (!p[0] || p[0] === 'semua') { Router.aktif = 'beranda'; Beranda.mount(); return; }
+  else if (p[0] === 'tiket' && p[1]) {           // link konfirmasi lama tanpa kode event
+    const slug = await api.cariEventTiket(p[1]).catch(() => null);
+    if (slug) { location.replace(`#e/${slug}/tiket/${encodeURIComponent(p[1])}`); return; }
+    history.replaceState(null, '', '#'); Router.aktif = 'beranda'; Beranda.mount(); return;
+  } else if (Ev.slug && Ev.ada && (Router.aktif === 'pub' || Router.aktif === 'adm')) {
+    history.replaceState(null, '', hrefEv(h));     // link di dalam halaman event (#jadwal, #admin/…)
+  } else {
+    history.replaceState(null, '', p[0] === 'admin' ? '#panitia' : '#');
+    if (p[0] === 'admin') { Router.aktif = 'pusat'; Pusat.mount(); } else { Router.aktif = 'beranda'; Beranda.mount(); }
+    return;
+  }
+  const [bag, sub] = p;
   if (bag === 'admin') { Router.aktif = 'adm'; Adm.mount(sub); }
   else { Router.aktif = 'pub'; Pub.mount(bag, sub); }
 }
@@ -4624,8 +5870,28 @@ function muatSkrip(src, integrity) {
     document.head.appendChild(sc);
   });
 }
+/* Link dari email Supabase (undangan / link masuk / lupa password) kembali dengan
+   #access_token=…&refresh_token=… atau #error=… — dipasang sebagai sesi lalu diarahkan ke ruang panitia. */
+async function tangkapLinkEmail() {
+  const h = location.hash.replace(/^#\/?/, '');
+  if (!/(^|&)(access_token|error)=/.test(h)) return;
+  const q = new URLSearchParams(h);
+  if (q.get('error')) {
+    history.replaceState(null, '', '#panitia');
+    const kadaluarsa = /expired|otp/i.test(q.get('error_code') || q.get('error_description') || '');
+    setTimeout(() => toast(kadaluarsa ? 'Link email sudah kedaluwarsa atau sudah dipakai. Minta link masuk baru dari halaman login.' : 'Link email tidak bisa dipakai. Minta link masuk baru.', 'bad', 9000), 300);
+    return;
+  }
+  try {
+    if (api.pasangSesiDariLink) await api.pasangSesiDariLink(q.get('access_token'), q.get('refresh_token'));
+    history.replaceState(null, '', '#panitia/sandi');
+  } catch (e) {
+    history.replaceState(null, '', '#panitia');
+    setTimeout(() => toast(pesanError(e), 'bad', 8000), 300);
+  }
+}
 async function mulai() {
-  const perluSupabase = CONFIG.SUPABASE_URL && CONFIG.SUPABASE_KEY;
+  const perluSupabase = !CONFIG.MULTI_EVENT_DEMO && CONFIG.SUPABASE_URL && CONFIG.SUPABASE_KEY;
   if (perluSupabase && !(window.supabase && window.supabase.createClient)) {
     const sumber = [
       'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.116.0/dist/umd/supabase.js',
@@ -4644,6 +5910,7 @@ async function mulai() {
   }
   Pub.init();
   api.onAuth((ev, sesi) => Adm.onAuth(ev, sesi));
+  await tangkapLinkEmail();
   window.addEventListener('hashchange', rute);
   rute();
 }
