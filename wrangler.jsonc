@@ -1,0 +1,22 @@
+// Pengaturan Cloudflare Workers untuk situs pendaftaran lomba layangan.
+// Situs ini hanya file statis (index.html), tanpa kode server.
+{
+  "name": "lomba",
+  "compatibility_date": "2025-09-01",
+  "assets": {
+    "directory": "./"
+  },
+  "observability": {
+    "logs": {
+      "enabled": true,
+      "head_sampling_rate": 1,
+      "invocation_logs": true,
+      "persist": true
+    },
+    "traces": {
+      "enabled": false,
+      "head_sampling_rate": 1,
+      "persist": true
+    }
+  }
+}

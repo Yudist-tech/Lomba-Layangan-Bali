@@ -1,0 +1,7 @@
+# File yang TIDAK ikut di-online-kan (hanya index.html yang dibutuhkan situs)
+.git
+.assetsignore
+wrangler.jsonc
+*.sql
+*.md
+node_modules
