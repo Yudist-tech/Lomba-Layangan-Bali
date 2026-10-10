@@ -947,6 +947,7 @@ fieldset.salin legend { font-weight: 700; font-size: 14px; padding: 0 6px; }
 .lp-top.has-bg h1, .lp-top.has-bg p { text-shadow: 0 1px 12px rgba(0,0,0,.35); }
 .lp-brand .brand-logo.has-img, .pz-brand .brand-logo.has-img { background: #fff; }
 .input[readonly] { background: var(--surface-2); color: var(--ink-2); cursor: not-allowed; }
+.link-btn { background: none; border: 0; padding: 0; font: inherit; color: var(--brand); text-decoration: underline; cursor: pointer; }
 .pz-tabs { display: flex; gap: 4px; border-bottom: 1px solid var(--line); margin: -8px 0 22px; overflow-x: auto; scrollbar-width: none; }
 .pz-tabs::-webkit-scrollbar { display: none; }
 .pz-tab { display: inline-flex; align-items: center; gap: 7px; padding: 10px 14px; font-weight: 700; font-size: 14.5px; color: var(--ink-2); text-decoration: none; border-bottom: 2.5px solid transparent; margin-bottom: -1px; white-space: nowrap; }
@@ -1002,9 +1003,9 @@ fieldset.salin legend { font-weight: 700; font-size: 14px; padding: 0 6px; }
       (data hanya tersimpan di browser ini, cocok untuk mencoba).
    ===================================================================== */
 const CONFIG = {
-  /* Versi MULTI-EVENT masih tahap demo: selalu berjalan dengan data contoh di browser.
-     Sambungan ke database Supabase multi-event menyusul setelah demo disetujui. */
-  MULTI_EVENT_DEMO: true,
+  /* true = selalu mode demo (data contoh di browser), walaupun kunci Supabase terisi.
+     false = pakai database Supabase multi-event (jalankan multi-event.sql dulu). */
+  MULTI_EVENT_DEMO: false,
   SUPABASE_URL: 'https://igxbxbfbakytxktybdck.supabase.co',   // contoh: ''
   SUPABASE_KEY: 'sb_publishable_wbSax22UaQKnv_X6hM-xYg_rElib4aM',   // Publishable key (- [ ] ) atau anon key
   BUCKET: 'lomba-bukti',
@@ -1290,6 +1291,9 @@ const PESAN_ERROR = {
   EVENT_TIDAK_ADA: 'Event tidak ditemukan.',
   BELUM_MASUK: 'Silakan masuk dulu.',
   EMAIL_TIDAK_VALID: 'Email tidak valid.',
+  TANGGAL_TIDAK_VALID: 'Tanggal selesai tidak boleh sebelum tanggal mulai.',
+  EVENT_TIDAK_BOLEH_DIPINDAH: 'Data tidak bisa dipindah ke event lain.',
+  BUKAN_ADMIN: 'Akun ini tidak punya akses ke event ini.',
   EMAIL_SUDAH_ADA: 'Email ini sudah menjadi admin event tersebut.',
   EMAIL_SUPER: 'Email ini milik super admin, yang sudah bisa membuka semua event.',
   MEDIA_TIDAK_VALID: 'Gunakan gambar JPG, PNG, atau WebP.',
@@ -1327,6 +1331,8 @@ const AKTIF = (s) => s === 'menunggu' || s === 'terkonfirmasi';
 class SupabaseAPI {
   constructor() {
     this.mode = 'supabase';
+    this.eventId = null;
+    this.evCache = new Map();
     this.bucket = CONFIG.BUCKET;
     this.sb = window.supabase.createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_KEY, {
       auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: false, storageKey: 'lomba-layangan-auth' },
@@ -1339,8 +1345,22 @@ class SupabaseAPI {
   }
   _ok({ data, error }) { if (error) throw error; return data; }
 
+  /* ---- event yang sedang dibuka (#e/<kode>) ---- */
+  async pakaiEvent(slug) {
+    slug = String(slug || '').toLowerCase();
+    let e = this.evCache.get(slug);
+    if (!e) {
+      e = await this._rpc('lomba_event_slug', { p_slug: slug });
+      if (e) this.evCache.set(slug, e);
+    }
+    if (!e) return null;
+    this.eventId = e.id;
+    return { ...e };
+  }
+  _ev() { if (!this.eventId) throw new Error('EVENT_TIDAK_ADA'); return this.eventId; }
+
   /* ---- publik ---- */
-  infoPublik() { return this._rpc('lomba_info_publik'); }
+  infoPublik() { return this._rpc('lomba_info_publik', { p_event: this._ev() }); }
   async uploadBukti(path, blob, contentType) {
     const { error } = await this.sb.storage.from(this.bucket).upload(path, blob, { contentType, upsert: false, cacheControl: '3600' });
     if (error && !/already exists|Duplicate|409/i.test(`${error.message} ${error.statusCode || ''}`)) throw error;
@@ -1350,12 +1370,15 @@ class SupabaseAPI {
     return this._rpc('lomba_daftar', {
       p_jenis: p.jenis, p_seri_id: p.seri_id, p_nama_sekha: p.nama_sekha, p_alamat: p.alamat, p_no_wa: p.no_wa,
       p_nama_rekening: p.nama_rekening, p_bukti_path: p.bukti_path, p_bukti_hash: p.bukti_hash || null, p_client_ref: p.client_ref,
-      p_harga: p.harga == null ? null : Number(p.harga), p_nomor_layangan: p.nomor_layangan,
+      p_harga: p.harga == null ? null : Number(p.harga), p_nomor_layangan: p.nomor_layangan, p_event: this._ev(),
     });
   }
-  cekNomor(jenis, nomor) { return this._rpc('lomba_cek_nomor', { p_jenis: jenis, p_nomor: String(nomor || '') }); }
-  cekStatus(wa) { return this._rpc('lomba_cek_status', { p_no_wa: wa }); }
+  cekNomor(jenis, nomor) { return this._rpc('lomba_cek_nomor', { p_jenis: jenis, p_nomor: String(nomor || ''), p_event: this._ev() }); }
+  cekStatus(wa) { return this._rpc('lomba_cek_status', { p_no_wa: wa, p_event: this._ev() }); }
   tiket(kode) { return this._rpc('lomba_tiket', { p_kode: kode }); }
+  cariEventTiket(kode) { return this._rpc('lomba_event_dari_kode', { p_kode: kode }); }
+  daftarEvent() { return this._rpc('lomba_daftar_event'); }
+  infoSitus() { return this._rpc('lomba_info_situs'); }
 
   /* ---- login admin ---- */
   async sesi() { const { data } = await this.sb.auth.getSession(); return data.session ? { email: data.session.user.email } : null; }
@@ -1366,26 +1389,65 @@ class SupabaseAPI {
     return { email: data.user.email };
   }
   async logout() { await this.sb.auth.signOut({ scope: 'local' }); }
-  isAdmin() { return this._rpc('lomba_is_admin'); }
+  isAdmin() { return this._rpc('lomba_boleh_event', { p_event: this._ev() }); }
+  async peran() { const p = await this._rpc('lomba_peran'); return p ? { ...p, nama: p.email } : null; }
+  /* link masuk / undangan lewat email (admin baru membuat password sendiri) */
+  _alamatKembali() { return location.origin + location.pathname; }
+  async kirimLinkMasuk(email, buatAkun = false) {
+    const { error } = await this.sb.auth.signInWithOtp({ email, options: { shouldCreateUser: buatAkun, emailRedirectTo: this._alamatKembali() } });
+    if (error) throw error;
+  }
+  async gantiPassword(password) {
+    const { error } = await this.sb.auth.updateUser({ password });
+    if (error) throw error;
+  }
+  async pasangSesiDariLink(access_token, refresh_token) {
+    const { error } = await this.sb.auth.setSession({ access_token, refresh_token });
+    if (error) throw error;
+  }
 
-  /* ---- data admin ---- */
+  /* ---- ruang panitia & super admin ---- */
+  eventSaya() { return this._rpc('lomba_event_saya'); }
+  async buatEvent(d) { const r = await this._rpc('lomba_buat_event', { p: d }); await this._undangBanyak(d.panitia || []); return r; }
+  async ubahEvent(id, patch) { this.evCache.clear(); return this._rpc('lomba_ubah_event', { p_id: Number(id), p_slug: patch.slug ?? null, p_tampil: patch.tampil ?? null }); }
+  async hapusEvent(id) {
+    const r = await this._rpc('lomba_hapus_event', { p_id: Number(id) });
+    this.evCache.clear();
+    const paths = (r && r.bukti_paths) || [];
+    for (let i = 0; i < paths.length; i += 100) { try { await this.sb.storage.from(this.bucket).remove(paths.slice(i, i + 100)); } catch (e) { /* abaikan */ } }
+  }
+  simpanSitus(patch) { return this._rpc('lomba_simpan_situs', { p: patch }); }
+  daftarAkses() { return this._rpc('lomba_daftar_akses'); }
+  async _undang(email) {
+    try { await this.kirimLinkMasuk(String(email).trim().toLowerCase(), true); return true; }
+    catch (e) { this.undanganGagal = pesanError(e); return false; }
+  }
+  async _undangBanyak(list) { for (const e of list) await this._undang(e); }
+  async tambahAkses(id, email) { await this._rpc('lomba_tambah_akses', { p_event: Number(id), p_email: email }); return this._undang(email); }
+  async gantiAkses(id, lama, baru) { await this._rpc('lomba_ganti_akses', { p_event: Number(id), p_lama: lama, p_baru: baru }); return this._undang(baru); }
+  cabutAkses(id, email) { return this._rpc('lomba_cabut_akses', { p_event: id === 'semua' ? null : Number(id), p_email: email }); }
+  async gantiEmailPanitia(lama, baru) { await this._rpc('lomba_ganti_email_panitia', { p_lama: lama, p_baru: baru }); return this._undang(baru); }
+  undangUlang(email) { return this._undang(email); }
+
+  /* ---- data admin (event yang sedang dibuka) ---- */
   async _semuaPendaftaran() {
     let out = [];
     for (let dari = 0; ; dari += 1000) {
-      const rows = this._ok(await this.sb.from('lomba_pendaftaran').select('*').order('created_at', { ascending: false }).range(dari, dari + 999));
+      const rows = this._ok(await this.sb.from('lomba_pendaftaran').select('*').eq('event_id', this._ev()).order('created_at', { ascending: false }).range(dari, dari + 999));
       out = out.concat(rows);
       if (rows.length < 1000) break;
     }
     return out;
   }
   async muatSemua() {
+    const ev = this._ev();
     const [pengaturan, jenis, seri, daftar, hari, sesi] = await Promise.all([
-      this.sb.from('lomba_pengaturan').select('*').eq('id', 1).maybeSingle().then((r) => this._ok(r)),
-      this.sb.from('lomba_jenis').select('*').order('urutan').order('nama').then((r) => this._ok(r)),
-      this.sb.from('lomba_seri').select('*').order('tanggal', { ascending: true, nullsFirst: false }).order('jam_mulai', { ascending: true, nullsFirst: false }).order('urutan').order('id').then((r) => this._ok(r)),
+      this.sb.from('lomba_pengaturan').select('*').eq('event_id', ev).maybeSingle().then((r) => this._ok(r)),
+      this.sb.from('lomba_jenis').select('*').eq('event_id', ev).order('urutan').order('nama').then((r) => this._ok(r)),
+      this.sb.from('lomba_seri').select('*').eq('event_id', ev).order('tanggal', { ascending: true, nullsFirst: false }).order('jam_mulai', { ascending: true, nullsFirst: false }).order('urutan').order('id').then((r) => this._ok(r)),
       this._semuaPendaftaran(),
-      this.sb.from('lomba_hari').select('*').order('tanggal', { ascending: true, nullsFirst: false }).order('urutan').order('id').then((r) => this._ok(r)),
-      this.sb.from('lomba_sesi').select('*').order('jam_mulai', { ascending: true, nullsFirst: false }).order('urutan').order('id').then((r) => this._ok(r)),
+      this.sb.from('lomba_hari').select('*').eq('event_id', ev).order('tanggal', { ascending: true, nullsFirst: false }).order('urutan').order('id').then((r) => this._ok(r)),
+      this.sb.from('lomba_sesi').select('*').eq('event_id', ev).order('jam_mulai', { ascending: true, nullsFirst: false }).order('urutan').order('id').then((r) => this._ok(r)),
     ]);
     return { pengaturan: pengaturan || {}, jenis, seri, daftar, hari, sesi };
   }
@@ -1397,7 +1459,7 @@ class SupabaseAPI {
     if (!data) throw new Error('DATA_BERUBAH');
     return data;
   }
-  async tambahPendaftaran(row) { return this._ok(await this.sb.from('lomba_pendaftaran').insert(row).select().single()); }
+  async tambahPendaftaran(row) { return this._ok(await this.sb.from('lomba_pendaftaran').insert({ ...row, event_id: this._ev() }).select().single()); }
   async hapusPendaftaran(row) {
     this._ok(await this.sb.from('lomba_pendaftaran').delete().eq('id', row.id));
     if (row.bukti_path) { try { await this.sb.storage.from(this.bucket).remove([row.bukti_path]); } catch (e) { /* abaikan */ } }
@@ -1410,7 +1472,7 @@ class SupabaseAPI {
   async simpanSeri(s) {
     const { id, ...isi } = s;
     if (id) return this._ok(await this.sb.from('lomba_seri').update(isi).eq('id', id).select().single());
-    return this._ok(await this.sb.from('lomba_seri').insert(isi).select().single());
+    return this._ok(await this.sb.from('lomba_seri').insert({ ...isi, event_id: this._ev() }).select().single());
   }
   async hapusSeri(id) { this._ok(await this.sb.from('lomba_seri').delete().eq('id', id)); }
   aturKotak(seriId, kotak, tutup) { return this._rpc('lomba_atur_kotak', { p_seri_id: seriId, p_kotak: kotak, p_tutup: tutup }); }
@@ -1418,12 +1480,12 @@ class SupabaseAPI {
   async simpanHari(h) {
     const { id, ...isi } = h;
     if (id) return this._ok(await this.sb.from('lomba_hari').update(isi).eq('id', id).select().single());
-    return this._ok(await this.sb.from('lomba_hari').insert(isi).select().single());
+    return this._ok(await this.sb.from('lomba_hari').insert({ ...isi, event_id: this._ev() }).select().single());
   }
   async simpanSesi(x) {
     const { id, ...isi } = x;
     if (id) return this._ok(await this.sb.from('lomba_sesi').update(isi).eq('id', id).select().single());
-    return this._ok(await this.sb.from('lomba_sesi').insert(isi).select().single());
+    return this._ok(await this.sb.from('lomba_sesi').insert({ ...isi, event_id: this._ev() }).select().single());
   }
   async hapusSesi(id) {
     // grup kosong ikut dihapus; gagal (foreign key) bila masih ada pendaftar
@@ -1435,15 +1497,16 @@ class SupabaseAPI {
     for (const x of sesi) await this.hapusSesi(x.id);
     this._ok(await this.sb.from('lomba_hari').delete().eq('id', id));
   }
-  async simpanJenis(kode, patch) { return this._ok(await this.sb.from('lomba_jenis').update(patch).eq('kode', kode).select().single()); }
-  async tambahJenis(row) { return this._ok(await this.sb.from('lomba_jenis').insert(row).select().single()); }
+  async simpanJenis(kode, patch) { return this._ok(await this.sb.from('lomba_jenis').update(patch).eq('event_id', this._ev()).eq('kode', kode).select().single()); }
+  async tambahJenis(row) { return this._ok(await this.sb.from('lomba_jenis').insert({ ...row, event_id: this._ev() }).select().single()); }
   async hapusJenis(kode) {
     // seri ikut dihapus; gagal (foreign key) bila masih ada pendaftaran untuk jenis ini
-    this._ok(await this.sb.from('lomba_seri').delete().eq('jenis', kode));
-    this._ok(await this.sb.from('lomba_jenis').delete().eq('kode', kode));
+    const ev = this._ev();
+    this._ok(await this.sb.from('lomba_seri').delete().eq('event_id', ev).eq('jenis', kode));
+    this._ok(await this.sb.from('lomba_jenis').delete().eq('event_id', ev).eq('kode', kode));
   }
   async simpanPengaturan(patch) {
-    return this._ok(await this.sb.from('lomba_pengaturan').update({ ...patch, updated_at: new Date().toISOString() }).eq('id', 1).select().single());
+    return this._ok(await this.sb.from('lomba_pengaturan').update({ ...patch, updated_at: new Date().toISOString() }).eq('event_id', this._ev()).select().single());
   }
   /* logo & gambar latar halaman peserta (bucket publik) */
   async uploadMedia(nama, blob, contentType) {
@@ -1460,16 +1523,16 @@ class SupabaseAPI {
   }
   cekSetup() { return this._rpc('lomba_cek_setup'); }
   async resetData() {
-    const r = await this._rpc('lomba_reset_data');
+    const r = await this._rpc('lomba_reset_data', { p_event: this._ev() });
     const paths = (r && r.bukti_paths) || [];
     for (let i = 0; i < paths.length; i += 100) {
       try { await this.sb.storage.from(this.bucket).remove(paths.slice(i, i + 100)); } catch (e) { /* abaikan */ }
     }
     return r;
   }
-  /* File bukti yang tidak terpakai, > 1 hari */
-  async bersihkanFileYatim(dipakai) {
-    const set = new Set(dipakai), yatim = [], batas = Date.now() - 86400000;
+  /* File bukti yang tidak terpakai di SEMUA event, > 1 hari (hanya super admin) */
+  async bersihkanFileYatim() {
+    const set = new Set(await this._rpc('lomba_bukti_terpakai')), yatim = [], batas = Date.now() - 86400000;
     for (let offset = 0; ; offset += 1000) {
       const { data, error } = await this.sb.storage.from(this.bucket).list('bukti', { limit: 1000, offset, sortBy: { column: 'name', order: 'asc' } });
       if (error) throw error;
@@ -1485,7 +1548,7 @@ class SupabaseAPI {
   langganan(onChange, onStatus) {
     const ch = this.sb
       .channel('lomba-admin-' + Math.random().toString(36).slice(2))
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'lomba_pendaftaran' }, (p) => onChange(p))
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'lomba_pendaftaran', filter: `event_id=eq.${this._ev()}` }, (p) => onChange(p))
       .subscribe((status) => onStatus(status));
     return () => { try { this.sb.removeChannel(ch); } catch (e) { /* abaikan */ } };
   }
@@ -2100,6 +2163,9 @@ class DemoAPI {
     }
     return null;
   }
+  async undangUlang() { return true; }
+  async kirimLinkMasuk() { await this._jeda(300); }
+  async gantiPassword() { await this._jeda(300); }
   async resetDemoSemua() {
     try { Object.keys(localStorage).filter((k) => k.startsWith('lomba_ml_') && k !== this.KEY_SESI).forEach((k) => hapusLokal(k)); } catch (e) { /* abaikan */ }
     this.eventId = null; this.db = null; this.mem = {};
@@ -3339,8 +3405,8 @@ const Adm = {
         if (baru !== this.s.logo) { ingatLogo(baru); if (!this.s.data && Router.aktif === 'adm') this.render(); }
       }).catch(() => {});
     }
-    if (this.s.sesi === undefined) {
-      this.render();
+    if (!this.s.sesi) {                       // belum tahu / belum masuk: cek ulang (mungkin baru masuk dari ruang panitia atau link email)
+      if (this.s.sesi === undefined) this.render();
       this.s.sesi = await api.sesi().catch(() => null);
       if (this.s.sesi) await this.masuk(); else this.render();
       return;
@@ -3553,7 +3619,7 @@ const Adm = {
         ${s.loginErr ? `<div class="note bad" role="alert">${ico('alert')}<span>${esc(s.loginErr)}</span></div>` : ''}
         <button class="btn btn-primary btn-block btn-lg" type="submit" ${s.loginBusy ? 'disabled' : ''}>${s.loginBusy ? '<span class="spinner"></span> Memeriksa…' : `${ico('lock')} Masuk`}</button>
       </form>
-      <p class="hint" style="margin:16px 0 0;text-align:center"><a href="#daftar">← Kembali ke halaman pendaftaran</a></p>
+      <p class="hint" style="margin:16px 0 0;text-align:center"><a href="#daftar">← Kembali ke halaman pendaftaran</a> · <a href="#panitia">Lupa password?</a></p>
     </div></div>`;
   },
   vBukanAdmin() {
@@ -4309,7 +4375,7 @@ ${rows.map((r, i) => `<tr><td class="n">${i + 1}</td><td class="no">${esc(r.nomo
         <p class="hint" style="margin:0 0 12px">Dipakai setelah uji coba, sebelum pendaftaran resmi dibuka.</p>
         <div class="sa-act">
           <button class="btn btn-sm btn-danger" data-act="adm.reset">${ico('trash')} Hapus semua pendaftaran</button>
-          ${api.mode === 'supabase' ? `<button class="btn btn-sm" data-act="adm.yatim">${ico('image')} Bersihkan file bukti tak terpakai</button>` : `<button class="btn btn-sm" data-act="adm.demoIsi">${ico('refresh')} Isi ulang data contoh</button><button class="btn btn-sm" data-act="adm.demoKosong">${ico('x')} Kosongkan demo</button>`}
+          ${api.mode === 'supabase' ? (this.s.super ? `<button class="btn btn-sm" data-act="adm.yatim">${ico('image')} Bersihkan file bukti tak terpakai (semua event)</button>` : '') : `<button class="btn btn-sm" data-act="adm.demoIsi">${ico('refresh')} Isi ulang data contoh</button><button class="btn btn-sm" data-act="adm.demoKosong">${ico('x')} Kosongkan demo</button>`}
         </div>
       </div>
     </div></div>`;
@@ -5048,8 +5114,7 @@ ACT['adm.reset'] = async () => {
 };
 ACT['adm.yatim'] = (el) => sibuk(el, async () => {
   try {
-    await Adm.muat({ diam: true });
-    const n = await api.bersihkanFileYatim(Adm.s.data.daftar.map((r) => r.bukti_path).filter(Boolean));
+    const n = await api.bersihkanFileYatim();
     toast(n ? `${n} file tak terpakai dihapus` : 'Tidak ada file tak terpakai', 'good');
   }
   catch (e) { toast(pesanError(e), 'bad', 6000); }
@@ -5089,9 +5154,10 @@ const Ev = { slug: '', ada: false };
 const hrefEv = (sub = '') => `#e/${encodeURIComponent(Ev.slug || '')}${sub ? '/' + sub : ''}`;
 const PUB_AWAL = JSON.parse(JSON.stringify(Pub.s));
 /* buka event lain: data halaman peserta & dashboard event sebelumnya dikosongkan */
-function gantiEvent(slug) {
+async function gantiEvent(slug) {
   if (slug === Ev.slug && Ev.ada) return true;
-  const meta = api.pakaiEvent(slug);
+  let meta = null;
+  try { meta = await api.pakaiEvent(slug); } catch (e) { meta = null; }
   Adm.hentikanLive();
   Pub.hapusFile();
   Object.assign(Pub.s, JSON.parse(JSON.stringify(PUB_AWAL)));
@@ -5287,7 +5353,7 @@ function akunDemo(act) {
 const Pusat = {
   s: { sesi: undefined, peran: null, list: null, err: null, loading: false, loginErr: null, loginBusy: false, tab: 'event', situs: null, akses: null, edit: null },
   async mount(sub) {
-    this.s.tab = ['event', 'akses', 'situs'].includes(sub) ? sub : 'event';
+    this.s.tab = ['event', 'akses', 'situs', 'sandi'].includes(sub) ? sub : 'event';
     this.s.edit = null;
     document.body.classList.remove('is-admin');
     document.title = 'Ruang panitia — Lomba Layangan';
@@ -5314,7 +5380,7 @@ const Pusat = {
     const s = this.s, app = $('#app');
     if (s.sesi === undefined) { app.innerHTML = Adm.vMemuat('Memeriksa akun…'); return; }
     if (!s.sesi) { app.innerHTML = this.vLogin(); return; }
-    const isi = !this.super || s.tab === 'event' ? this.vIsi() : s.tab === 'akses' ? this.vAkses() : this.vSitus();
+    const isi = s.tab === 'sandi' ? this.vSandi() : !this.super || s.tab === 'event' ? this.vIsi() : s.tab === 'akses' ? this.vAkses() : this.vSitus();
     app.innerHTML = `${demoBar()}${this.vTop()}<main class="pz-main" id="main">${this.super ? this.vTabs() : ''}${isi}</main>`;
   },
   vTabs() {
@@ -5355,6 +5421,7 @@ const Pusat = {
     return `<div class="ae-list">${e.panitia.length ? e.panitia.map((m) => (ed && ed.mode === 'event' && ed.id === e.id && ed.email === m)
       ? `<div class="ae-row">${this.vFormGanti('event', e.id, m)}</div>`
       : `<div class="ae-row"><span class="ak-av">${esc(m[0].toUpperCase())}</span><b>${esc(m)}</b>
+          ${api.mode === 'supabase' ? `<button type="button" class="btn btn-xs btn-ghost" data-act="pusat.undang" data-email="${esc(m)}" title="Kirim ulang email undangan">${ico('send')}<span class="sr-only">Kirim ulang undangan</span></button>` : ''}
           <button type="button" class="btn btn-xs" data-act="pusat.ubahAkses" data-id="${e.id}" data-email="${esc(m)}">${ico('edit')} Ganti</button>
           <button type="button" class="btn btn-xs btn-danger" data-act="pusat.cabut" data-id="${e.id}" data-email="${esc(m)}">${ico('x')} Hapus akses</button></div>`).join('')
       : '<p class="hint" style="margin:0">Belum ada admin. Hanya super admin yang bisa membuka dashboard event ini.</p>'}</div>
@@ -5415,8 +5482,19 @@ const Pusat = {
         ${s.loginErr ? `<div class="note bad" role="alert">${ico('alert')}<span>${esc(s.loginErr)}</span></div>` : ''}
         <button class="btn btn-primary btn-block btn-lg" type="submit" ${s.loginBusy ? 'disabled' : ''}>${s.loginBusy ? '<span class="spinner"></span> Memeriksa…' : `${ico('lock')} Masuk`}</button>
       </form>
-      <p class="hint" style="margin:16px 0 0;text-align:center"><a href="#">← Kembali ke semua event</a></p>
+      <p class="hint" style="margin:14px 0 0;text-align:center">Belum punya atau lupa password? <button type="button" class="link-btn" data-act="pusat.linkMasuk">Kirim link masuk ke email</button></p>
+      <p class="hint" style="margin:10px 0 0;text-align:center"><a href="#">← Kembali ke semua event</a></p>
     </div></div>`;
+  },
+  /* setelah masuk lewat link email: buat / ganti password */
+  vSandi() {
+    return `<div class="pz-head"><div><h1>Buat password</h1>
+      <p class="lead">Anda masuk lewat link email. Buat password supaya berikutnya bisa masuk dengan email & password.</p></div></div>
+      <form class="panel" style="max-width:460px" data-submit="pusat.sandi" novalidate>
+        ${fieldInput({ id: 'sd-1', name: 'p1', label: 'Password baru', type: 'password', autocomplete: 'new-password', hint: 'Minimal 8 karakter.' })}
+        ${fieldInput({ id: 'sd-2', name: 'p2', label: 'Ulangi password', type: 'password', autocomplete: 'new-password' })}
+        <div class="actions end"><a class="btn btn-sm" href="#panitia">Nanti saja</a><button class="btn btn-primary btn-sm" type="submit">Simpan password</button></div>
+      </form>`;
   },
   vTop() {
     const p = this.s.peran || {};
@@ -5590,8 +5668,9 @@ ACT['pusat.hapus'] = async (el) => {
   } catch (err) { toast(pesanError(err), 'bad', 6000); }
 };
 /* admin event */
-async function aksesBerubah(pesan) {
-  toast(pesan, 'good');
+async function aksesBerubah(pesan, undangan) {
+  if (undangan === false && api.mode === 'supabase') toast(`${pesan}. Email undangan gagal dikirim (${api.undanganGagal || 'coba lagi nanti'}); kirim ulang dengan tombol ✈.`, 'bad', 9000);
+  else toast(api.mode === 'supabase' && undangan ? `${pesan} · email undangan terkirim` : pesan, 'good', 5000);
   const [list, akses] = await Promise.all([api.eventSaya(), api.daftarAkses()]);
   Object.assign(Pusat.s, { list, akses, edit: null });
   Pusat.segarkanAksesEvent();
@@ -5604,15 +5683,14 @@ ACT['pusat.simpanGanti'] = async (el) => {
   const box = el.closest('.ak-ganti'), baru = box.querySelector('input').value.trim(), lama = box.dataset.email;
   if (baru.toLowerCase() === lama) { ACT['pusat.batalGanti'](); return; }
   try {
-    if (box.dataset.mode === 'event') await api.gantiAkses(Number(box.dataset.id), lama, baru);
-    else await api.gantiEmailPanitia(lama, baru);
-    await aksesBerubah(`Email admin diganti menjadi ${baru.toLowerCase()}`);
+    const kirim = box.dataset.mode === 'event' ? await api.gantiAkses(Number(box.dataset.id), lama, baru) : await api.gantiEmailPanitia(lama, baru);
+    await aksesBerubah(`Email admin diganti menjadi ${baru.toLowerCase()}`, kirim);
   } catch (e) { toast(pesanError(e), 'bad', 6000); }
 };
 ACT['pusat.tambahAkses'] = async (el) => {
   const inp = $('#ae-baru'), email = inp ? inp.value.trim() : '';
   if (!email) { if (inp) inp.focus(); return toast('Isi email admin baru.', 'bad'); }
-  try { await api.tambahAkses(Number(el.dataset.id), email); await aksesBerubah(`${email.toLowerCase()} sekarang admin event ini`); const i = $('#ae-baru'); if (i) i.focus(); }
+  try { const kirim = await api.tambahAkses(Number(el.dataset.id), email); await aksesBerubah(`${email.toLowerCase()} sekarang admin event ini`, kirim); const i = $('#ae-baru'); if (i) i.focus(); }
   catch (e) { toast(pesanError(e), 'bad', 6000); }
 };
 ACT['pusat.cabut'] = async (el) => {
@@ -5627,6 +5705,25 @@ ACT['pusat.cabutSemua'] = async (el) => {
   if (!(await konfirmasiDialog({ judul: 'Cabut semua akses?', isi: `<b>${esc(email)}</b> tidak bisa lagi membuka dashboard ${p ? p.events.length : ''} event yang dipegangnya. Data pendaftaran tidak terhapus.`, tombol: 'Cabut semua', bahaya: true }))) return;
   try { await api.cabutAkses('semua', email); await aksesBerubah('Semua akses dicabut'); }
   catch (err) { toast(pesanError(err), 'bad', 6000); }
+};
+ACT['pusat.undang'] = (el) => sibuk(el, async () => {
+  const ok = await api.undangUlang(el.dataset.email);
+  toast(ok ? `Email undangan dikirim ulang ke ${el.dataset.email}` : `Gagal mengirim email: ${api.undanganGagal || 'coba lagi nanti'}`, ok ? 'good' : 'bad', 6000);
+});
+ACT['pusat.linkMasuk'] = async () => {
+  const f = $('#pz-email'), email = f ? f.value.trim() : '';
+  if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) { if (f) f.focus(); return toast('Isi email Anda dulu di kolom Email.', 'bad'); }
+  try { await api.kirimLinkMasuk(email); toast(`Link masuk dikirim ke ${email}. Buka email itu lalu klik linknya.`, 'good', 8000); }
+  catch (e) { toast(pesanError(e), 'bad', 6000); }
+};
+SUB['pusat.sandi'] = async (form) => {
+  const a = form.p1.value, b = form.p2.value;
+  if (a.length < 8) return toast('Password minimal 8 karakter.', 'bad');
+  if (a !== b) return toast('Kedua password tidak sama.', 'bad');
+  await sibuk(form.querySelector('[type=submit]'), async () => {
+    try { await api.gantiPassword(a); toast('Password disimpan', 'good'); location.hash = '#panitia'; }
+    catch (e) { toast(pesanError(e), 'bad', 6000); }
+  });
 };
 /* Enter di kolom email = tekan tombol di sebelahnya */
 document.addEventListener('keydown', (e) => {
@@ -5694,6 +5791,7 @@ ACT['pusat.resetDemo'] = async () => {
             #e/<kode>/admin/… → dashboard panitia event itu
    Link lama di dalam halaman event (#jadwal, #admin/…) otomatis diberi awalan event yang sedang dibuka. */
 async function rute() {
+  if (/(^#?\/?|&)(access_token|error)=/.test(location.hash)) await tangkapLinkEmail();
   let h = location.hash.replace(/^#\/?/, '');
   try { h = decodeURIComponent(h); } catch (e) { /* hash rusak: pakai apa adanya */ }
   let p = h.split('/');
@@ -5701,7 +5799,7 @@ async function rute() {
   if (p[0] === 'e' && p[1]) {
     const slug = p[1].toLowerCase();
     p = p.slice(2);
-    if (!gantiEvent(slug)) { Router.aktif = 'beranda'; Beranda.vTidakAda(slug); return; }
+    if (!(await gantiEvent(slug))) { Router.aktif = 'beranda'; Beranda.vTidakAda(slug); return; }
   } else if (p[0] === 'panitia') { Router.aktif = 'pusat'; Pusat.mount(p[1]); return; }
   else if (!p[0] || p[0] === 'semua') { Router.aktif = 'beranda'; Beranda.mount(); return; }
   else if (p[0] === 'tiket' && p[1]) {           // link konfirmasi lama tanpa kode event
@@ -5772,6 +5870,26 @@ function muatSkrip(src, integrity) {
     document.head.appendChild(sc);
   });
 }
+/* Link dari email Supabase (undangan / link masuk / lupa password) kembali dengan
+   #access_token=…&refresh_token=… atau #error=… — dipasang sebagai sesi lalu diarahkan ke ruang panitia. */
+async function tangkapLinkEmail() {
+  const h = location.hash.replace(/^#\/?/, '');
+  if (!/(^|&)(access_token|error)=/.test(h)) return;
+  const q = new URLSearchParams(h);
+  if (q.get('error')) {
+    history.replaceState(null, '', '#panitia');
+    const kadaluarsa = /expired|otp/i.test(q.get('error_code') || q.get('error_description') || '');
+    setTimeout(() => toast(kadaluarsa ? 'Link email sudah kedaluwarsa atau sudah dipakai. Minta link masuk baru dari halaman login.' : 'Link email tidak bisa dipakai. Minta link masuk baru.', 'bad', 9000), 300);
+    return;
+  }
+  try {
+    if (api.pasangSesiDariLink) await api.pasangSesiDariLink(q.get('access_token'), q.get('refresh_token'));
+    history.replaceState(null, '', '#panitia/sandi');
+  } catch (e) {
+    history.replaceState(null, '', '#panitia');
+    setTimeout(() => toast(pesanError(e), 'bad', 8000), 300);
+  }
+}
 async function mulai() {
   const perluSupabase = !CONFIG.MULTI_EVENT_DEMO && CONFIG.SUPABASE_URL && CONFIG.SUPABASE_KEY;
   if (perluSupabase && !(window.supabase && window.supabase.createClient)) {
@@ -5792,6 +5910,7 @@ async function mulai() {
   }
   Pub.init();
   api.onAuth((ev, sesi) => Adm.onAuth(ev, sesi));
+  await tangkapLinkEmail();
   window.addEventListener('hashchange', rute);
   rute();
 }

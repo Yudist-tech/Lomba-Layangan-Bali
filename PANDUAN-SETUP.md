@@ -6,24 +6,79 @@ Isi folder:
 |---|---|
 | `index.html` | Aplikasi lengkap dalam 1 file: halaman peserta + dashboard panitia |
 | `setup.sql` | Dijalankan **sekali** di Supabase (tabel, keamanan, penyimpanan bukti transfer) |
+| `multi-event.sql` | Pembaruan ke multi-event, dijalankan setelah `setup.sql` (lihat *Pindah ke MULTI-EVENT*) |
 | `PANDUAN-SETUP.md` | File ini |
 
 Alamat halaman (setelah online):
 
 - Peserta: `https://NAMA-PROJECT.pages.dev` → tab **Daftar**, **Jadwal**, **Cek Status**
-- Dashboard panitia: `https://NAMA-PROJECT.pages.dev/#admin`
+- Dashboard panitia: `https://NAMA-PROJECT.pages.dev/#admin` (versi multi-event: `#panitia`)
 
 ---
 
-## Cabang `multi-event` (DEMO)
+## Pindah ke MULTI-EVENT (versi 3)
 
-Cabang ini berisi **demo** sistem multi-event. Selama `MULTI_EVENT_DEMO: true` di `CONFIG`, halaman selalu memakai data contoh di browser dan **tidak** tersambung ke Supabase. Jangan online-kan cabang ini sebagai pengganti `main`.
+Versi 3 membuat satu situs berisi banyak event: halaman depan semua event, ruang panitia untuk super admin, dan dashboard per event.
+Data yang sudah ada otomatis menjadi **event pertama**, dan tidak ada yang dihapus.
 
-- `#` → halaman depan semua event (poster tiket untuk event berlangsung & ≤ 2 minggu, kalender untuk event yang masih jauh, daftar event selesai)
-- `#panitia` → ruang panitia (super admin: semua event, buat event, akses panitia; panitia: hanya event yang ditugaskan)
-- `#e/<kode-event>` → halaman peserta event; `#e/<kode-event>/admin` → dashboard event
+| File | Fungsi |
+|---|---|
+| `cadangan-sebelum-multi-event.sql` | Menyalin semua data ke skema cadangan (jalankan **pertama**) |
+| `multi-event.sql` | Mengubah database menjadi multi-event (jalankan **kedua**) |
+| `index.html` (cabang `multi-event`) | Halaman versi multi-event |
 
-Cadangan sistem satu-event: cabang `sebelum-multi-event`. Cadangan data Supabase: jalankan `cadangan-sebelum-multi-event.sql` sebelum memasang versi multi-event.
+### Langkah pemasangan (±15 menit, sebaiknya saat sepi pendaftar)
+
+1. **Cadangkan data.** SQL Editor → New query → paste seluruh `cadangan-sebelum-multi-event.sql` → Run.
+   Angka kolom **asli** dan **cadangan** harus sama di setiap baris.
+2. **Ubah database.** SQL Editor → New query → paste seluruh `multi-event.sql` → Run.
+   Tabel *cek multi-event* di bawah editor: keenam baris harus ✅. Baris 3 menunjukkan jumlah pendaftaran, dan angkanya harus sama dengan sebelumnya.
+   Situs yang sedang online **tetap berjalan normal** setelah langkah ini (memakai event pertama), jadi tidak perlu terburu-buru.
+3. **Atur login lewat email** (supaya undangan admin event bisa terkirim):
+   - **Authentication → URL Configuration**:
+     - **Site URL** = alamat situs, contoh `https://lomba-layangan.pages.dev`.
+     - **Redirect URLs** → Add URL → alamat yang sama.
+   - **Authentication → Sign In / Providers → Email**:
+     - nyalakan **Allow new users to sign up**. Ini dibutuhkan agar undangan bisa membuatkan akun untuk panitia baru. Akun yang tidak ditugaskan ke event mana pun **tidak bisa melihat apa pun**.
+     - Biarkan **Confirm email** menyala.
+   - (Opsional) **Authentication → Emails → Magic Link**: ubah subjek menjadi misalnya `Link masuk Panitia Lomba Layangan`.
+   - Catatan: pengiriman email bawaan Supabase dibatasi hanya beberapa email per jam. Kalau perlu mengundang banyak panitia sekaligus, pasang SMTP sendiri di **Authentication → Emails → SMTP Settings**, atau kirim ulang undangan beberapa saat kemudian (tombol ✈ di daftar admin event).
+4. **Online-kan halaman baru.** Gabungkan cabang `multi-event` ke `main` (Cloudflare otomatis memperbarui), atau upload `index.html` dari cabang `multi-event` ke Cloudflare.
+5. **Periksa:**
+   - Buka halaman depan → event pertama tampil.
+   - Klik **Masuk panitia** → login dengan akun admin yang lama. Anda masuk sebagai **super admin**, dengan tab *Event*, *Admin event*, dan *Pengaturan situs*.
+   - Buka **Dashboard** event pertama → jumlah pendaftar sama seperti sebelumnya.
+   - Tombol ⚙ di kartu event → ubah **kode alamat** event pertama bila mau, lalu tambahkan email admin event (undangan terkirim otomatis).
+
+### Alamat baru
+
+- Halaman depan semua event: `https://NAMA.pages.dev`
+- Ruang panitia: `https://NAMA.pages.dev/#panitia`
+- Halaman peserta satu event: `https://NAMA.pages.dev/#e/<kode-event>` (Jadwal: `/jadwal`, Cek Status: `/cek`)
+- Dashboard satu event: `https://NAMA.pages.dev/#e/<kode-event>/admin`
+
+Link lama tetap aman:
+- `#tiket/KODE`, yaitu link PDF yang sudah terkirim lewat WA, otomatis dibuka di event yang benar.
+- `#admin` diarahkan ke ruang panitia.
+- `#daftar` diarahkan ke halaman depan.
+
+### Peran
+
+- **Super admin** adalah email yang ada di tabel `lomba_admin`. Super admin bisa membuka semua event, membuat event, memberi atau mencabut akses admin event, mengatur halaman depan, serta mengubah nama, tanggal & lokasi event.
+  Semua admin lama otomatis menjadi super admin. Untuk menjadikan seseorang admin event saja:
+  1. hapus emailnya dari super admin lewat SQL: `delete from lomba_admin where email = 'email@contoh.com';`
+  2. tambahkan emailnya lewat ⚙ di kartu event.
+- **Admin event** hanya bisa membuka dashboard event yang ditugaskan, dan tidak bisa mengubah nama, tanggal & lokasi event. Saat ditambahkan, admin event menerima email undangan. Setelah klik link di email itu, ia diminta membuat password sendiri. Kalau lupa password, gunakan **Kirim link masuk ke email** di halaman login.
+
+### Kembali ke versi lama (bila perlu)
+
+Upload `index.html` dari cabang `sebelum-multi-event` ke Cloudflare. Versi lama tetap berjalan dengan database baru dan menampilkan event pertama. Event lain hanya tidak terlihat di versi lama.
+**Jangan** menjalankan `setup.sql` lagi setelah pindah ke multi-event. File itu sudah diberi pengaman yang akan menolak dijalankan.
+Data sebelum pembaruan tetap tersimpan di skema `cadangan_sebelum_multi_event` (Table Editor → pilih schema tersebut).
+
+### Mode demo
+
+Kalau `SUPABASE_URL`/`SUPABASE_KEY` dikosongkan, atau `MULTI_EVENT_DEMO: true` di `CONFIG`, halaman berjalan dengan data contoh di browser. Masuk cepat tersedia sebagai super admin dan panitia contoh.
 
 ---
 
@@ -63,7 +118,7 @@ Double-click `index.html`. Selama `SUPABASE_URL` dan `SUPABASE_KEY` masih kosong
    - Email: harus sama dengan email admin di BAGIAN 10 `setup.sql`
    - Password: buat password yang kuat (jangan ditulis di file yang di-upload ke GitHub)
    - Centang **Auto Confirm User** (wajib — sistem hanya mengakui admin yang emailnya terkonfirmasi)
-5. **Authentication → Sign In / Providers** → matikan **Allow new users to sign up**, supaya orang lain tidak bisa membuat akun.
+5. **Authentication → Sign In / Providers** → untuk versi satu event: matikan **Allow new users to sign up**. Untuk versi multi-event: nyalakan (lihat *Pindah ke MULTI-EVENT* langkah 3).
 6. Ambil 2 nilai ini dari tombol **Connect** di atas dashboard (atau **Project Settings → API Keys**):
    - **Project URL** → contoh `https://abcdefghijk.supabase.co`
    - **Publishable key** → diawali `sb_publishable_...` (kalau project lama: *anon public key*)
@@ -156,7 +211,7 @@ Nama harus berawalan `lomba_bukti_` agar terdeteksi di Dashboard → Pengaturan 
 
 ## Lampiran B — Tanya jawab
 
-- **Tambah admin lain**: SQL Editor → `insert into lomba_admin (email) values ('email@contoh.com');` lalu buat user-nya di Authentication (Auto Confirm User).
+- **Tambah admin lain**: versi multi-event → ruang panitia → ⚙ di kartu event → tambah email (undangan terkirim otomatis). Super admin tambahan: SQL Editor → `insert into lomba_admin (email) values ('email@contoh.com');`.
 - **Lupa password admin**: Authentication → Users → pilih user → kirim reset password, atau hapus & buat ulang user dengan email yang sama.
 - **Menutup pendaftaran**: Pengaturan → Status pendaftaran (manual, atau otomatis pada tanggal & jam WITA tertentu). Per grup: klik nama jenis di Jadwal Terbang → matikan *Grup ini dibuka*. Per jenis: menu Jenis Layangan.
 - **Realtime ⚠️ di cek setup**: dashboard tetap berjalan dan memperbarui data otomatis tiap 30 detik.

@@ -15,6 +15,16 @@
 -- =====================================================================
 
 
+-- Pengaman: database yang sudah MULTI-EVENT tidak boleh dijalankan file ini lagi
+-- (fungsi & aturan keamanan lama akan menimpa versi multi-event).
+do $$
+begin
+  if to_regclass('public.lomba_event') is not null then
+    raise exception 'Database sudah versi MULTI-EVENT. Jangan jalankan setup.sql lagi — jalankan multi-event.sql saja.';
+  end if;
+end $$;
+
+
 -- ---------------------------------------------------------------------
 -- BAGIAN 1 · FUNGSI BANTU (dibuat sebelum tabel)
 -- ---------------------------------------------------------------------
