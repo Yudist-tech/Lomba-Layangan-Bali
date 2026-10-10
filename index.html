@@ -946,6 +946,7 @@ fieldset.salin legend { font-weight: 700; font-size: 14px; padding: 0 6px; }
 .lp-top.has-bg { background-color: #0a3a6d; background-size: cover; background-position: center; }
 .lp-top.has-bg h1, .lp-top.has-bg p { text-shadow: 0 1px 12px rgba(0,0,0,.35); }
 .lp-brand .brand-logo.has-img, .pz-brand .brand-logo.has-img { background: #fff; }
+.input[readonly] { background: var(--surface-2); color: var(--ink-2); cursor: not-allowed; }
 .pz-tabs { display: flex; gap: 4px; border-bottom: 1px solid var(--line); margin: -8px 0 22px; overflow-x: auto; scrollbar-width: none; }
 .pz-tabs::-webkit-scrollbar { display: none; }
 .pz-tab { display: inline-flex; align-items: center; gap: 7px; padding: 10px 14px; font-weight: 700; font-size: 14.5px; color: var(--ink-2); text-decoration: none; border-bottom: 2.5px solid transparent; margin-bottom: -1px; white-space: nowrap; }
@@ -1285,7 +1286,7 @@ const PESAN_ERROR = {
   GAMBAR_GAGAL: 'Foto tidak bisa dibaca. Gunakan format JPG/PNG atau screenshot.',
   KODE_EVENT_TIDAK_VALID: 'Kode alamat event hanya boleh huruf kecil, angka, dan tanda strip (3–40 karakter).',
   KODE_EVENT_DIPAKAI: 'Kode alamat event ini sudah dipakai event lain.',
-  BUKAN_SUPER_ADMIN: 'Hanya super admin yang bisa membuat atau mengatur event.',
+  BUKAN_SUPER_ADMIN: 'Hanya super admin yang bisa melakukan ini (membuat event, mengatur akses, atau mengubah nama, tanggal & lokasi event).',
   EVENT_TIDAK_ADA: 'Event tidak ditemukan.',
   BELUM_MASUK: 'Silakan masuk dulu.',
   EMAIL_TIDAK_VALID: 'Email tidak valid.',
@@ -2264,7 +2265,10 @@ class DemoAPI {
   }
   async simpanPengaturan(patch) {
     await this._jeda(200);
-    Object.assign(this.db.pengaturan, patch, { updated_at: new Date().toISOString() });
+    const st = this.db.pengaturan;
+    // nama, tanggal & lokasi event hanya boleh diubah super admin
+    if (!this._super() && ['nama_event', 'tanggal_mulai', 'tanggal_selesai', 'lokasi'].some((k) => k in patch && (patch[k] || null) !== (st[k] || null))) throw new Error('BUKAN_SUPER_ADMIN');
+    Object.assign(st, patch, { updated_at: new Date().toISOString() });
     this._simpan();
     return this._salin(this.db.pengaturan);
   }
@@ -2511,6 +2515,7 @@ function fieldInput(o) {
     o.maxlength ? `maxlength="${o.maxlength}"` : '',
     o.inputmode ? `inputmode="${o.inputmode}"` : '',
     o.autocomplete ? `autocomplete="${o.autocomplete}"` : '',
+    o.readonly ? 'readonly aria-readonly="true"' : '',
     o.min != null ? `min="${o.min}"` : '', o.max != null ? `max="${o.max}"` : '', o.step ? `step="${o.step}"` : '',
     o.required ? 'required' : '', o.data || '',
     o.hint ? `aria-describedby="${id}-hint"` : '',
@@ -3349,7 +3354,7 @@ const Adm = {
   async masuk() {
     this.s.adminEv = Ev.slug;
     this.s.cekAdmin = true; this.render();
-    try { this.s.admin = await api.isAdmin(); this.s.err = null; }
+    try { this.s.admin = await api.isAdmin(); this.s.super = !!(api.peran && ((await api.peran()) || {}).peran === 'super'); this.s.err = null; }
     catch (e) { this.s.admin = false; this.s.err = pesanError(e); }
     this.s.cekAdmin = false;
     if (!this.s.admin) { this.render(); return; }
@@ -4258,11 +4263,12 @@ ${rows.map((r, i) => `<tr><td class="n">${i + 1}</td><td class="no">${esc(r.nomo
     return `${this.vTopbar('Pengaturan', 'Event, pembayaran, harga & pesan WhatsApp')}
     <div class="set-grid" id="set-root"><div class="set-col">
       <form class="panel" data-submit="adm.setEvent" novalidate><div class="panel-h"><h3>Informasi event</h3></div>
-        ${fieldInput({ id: 'p-nama', name: 'nama_event', label: 'Nama event', value: ev.nama_event, maxlength: 120 })}
+        ${this.s.super ? '' : `<div class="note">${ico('lock')}<span>Nama, tanggal, dan lokasi event diatur oleh super admin. Hubungi super admin bila perlu diubah.</span></div>`}
+        ${fieldInput({ id: 'p-nama', name: 'nama_event', label: 'Nama event', value: ev.nama_event, maxlength: 120, readonly: !this.s.super })}
         ${fieldInput({ id: 'p-org', name: 'penyelenggara', label: 'Penyelenggara', value: ev.penyelenggara, maxlength: 120 })}
-        ${fieldInput({ id: 'p-lokasi', name: 'lokasi', label: 'Lokasi lomba', value: ev.lokasi, maxlength: 160 })}
-        <div class="g2">${fieldInput({ id: 'p-mulai', name: 'tanggal_mulai', label: 'Tanggal mulai', value: ev.tanggal_mulai || '', type: 'date' })}
-        ${fieldInput({ id: 'p-selesai', name: 'tanggal_selesai', label: 'Tanggal selesai', value: ev.tanggal_selesai || '', type: 'date', hint: 'Dipakai di halaman depan semua event.' })}</div>
+        ${fieldInput({ id: 'p-lokasi', name: 'lokasi', label: 'Lokasi lomba', value: ev.lokasi, maxlength: 160, readonly: !this.s.super })}
+        <div class="g2">${fieldInput({ id: 'p-mulai', name: 'tanggal_mulai', label: 'Tanggal mulai', value: ev.tanggal_mulai || '', type: 'date', readonly: !this.s.super })}
+        ${fieldInput({ id: 'p-selesai', name: 'tanggal_selesai', label: 'Tanggal selesai', value: ev.tanggal_selesai || '', type: 'date', readonly: !this.s.super, hint: 'Dipakai di halaman depan semua event.' })}</div>
         ${fieldInput({ id: 'p-wa', name: 'wa_admin', label: 'Nomor WA panitia', value: ev.wa_admin ? fmtWA(ev.wa_admin) : '', type: 'tel', inputmode: 'tel', maxlength: 20, hint: 'Dipakai tombol "Tanya panitia" di halaman peserta.' })}
         ${fieldInput({ id: 'p-info', name: 'info', label: 'Info & ketentuan lomba', value: ev.info, textarea: true, rows: 4, maxlength: 2000, opsional: true, hint: 'Tampil di atas formulir pendaftaran.' })}
         <div class="actions end"><button class="btn btn-primary btn-sm" type="submit">Simpan</button></div></form>
@@ -5492,9 +5498,9 @@ const Pusat = {
         <span class="hint">Mengubah kode membuat link lama tidak bisa dibuka lagi.</span></div>
       <div class="field"><span class="label">Admin event</span>
         <div id="ae-box" data-id="${e.id}">${this.vAksesEvent(e)}</div>
-        <span class="hint">Perubahan admin langsung tersimpan. Admin hanya bisa membuka dashboard event ini.</span></div>
+        <span class="hint">Perubahan admin langsung tersimpan. Admin hanya bisa membuka dashboard event ini. Admin baru menerima email undangan untuk membuat password sendiri${api.mode === 'demo' ? ' (di demo: masuk dengan password apa saja)' : ''}.</span></div>
       <label class="switch"><input type="checkbox" name="tampil" ${e.tampil ? 'checked' : ''}><span class="sw"></span>Tampilkan di halaman depan</label>
-      <p class="hint" style="margin:10px 0 0">Nama, tanggal, lokasi, dan isi event diubah dari <a href="#e/${encodeURIComponent(e.slug)}/admin/pengaturan">Pengaturan di dashboard event</a>.</p>
+      <p class="hint" style="margin:10px 0 0">Nama, tanggal & lokasi event (hanya super admin) dan isi event lainnya diubah dari <a href="#e/${encodeURIComponent(e.slug)}/admin/pengaturan">Pengaturan di dashboard event</a>.</p>
       <div class="actions">
         <button type="button" class="btn btn-danger" data-act="pusat.hapus" data-id="${e.id}">${ico('trash')} Hapus event</button><span style="flex:1"></span>
         <button type="button" class="btn" data-act="ovl.tutup">Batal</button><button type="submit" class="btn btn-primary">Simpan</button></div>
