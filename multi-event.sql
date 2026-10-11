@@ -116,6 +116,8 @@ alter table public.lomba_pengaturan alter column id set default nextval('public.
 create unique index if not exists lomba_pengaturan_event_uidx on public.lomba_pengaturan (event_id);
 alter table public.lomba_pengaturan add column if not exists tanggal_mulai   date;
 alter table public.lomba_pengaturan add column if not exists tanggal_selesai date;
+-- flyer event (gambar A4 tegak) untuk halaman depan
+alter table public.lomba_pengaturan add column if not exists flyer_url text not null default '';
 -- tanggal event pertama diambil dari jadwal yang sudah ada
 update public.lomba_pengaturan st
    set tanggal_mulai   = x.mulai,
@@ -545,7 +547,7 @@ as $$
   select json_build_object(
     'id', e.id, 'slug', e.slug, 'tampil', e.tampil,
     'nama_event', st.nama_event, 'penyelenggara', st.penyelenggara, 'lokasi', st.lokasi,
-    'logo_url', st.logo_url, 'bg_url', st.bg_url,
+    'logo_url', st.logo_url, 'bg_url', st.bg_url, 'flyer_url', st.flyer_url,
     'tanggal_mulai', st.tanggal_mulai, 'tanggal_selesai', coalesce(st.tanggal_selesai, st.tanggal_mulai),
     'pendaftaran_buka', coalesce(st.pendaftaran_buka and (st.batas_daftar is null or now() <= st.batas_daftar), false),
     'ada_jadwal', exists (select 1 from grup),
@@ -598,7 +600,7 @@ begin
         'bank_nama', v_st.bank_nama, 'bank_no_rek', v_st.bank_no_rek, 'bank_atas_nama', v_st.bank_atas_nama,
         'pendaftaran_buka', v_st.pendaftaran_buka and (v_st.batas_daftar is null or now() <= v_st.batas_daftar),
         'batas_daftar', v_st.batas_daftar, 'tampilkan_peserta', v_st.tampilkan_peserta,
-        'logo_url', v_st.logo_url, 'bg_url', v_st.bg_url,
+        'logo_url', v_st.logo_url, 'bg_url', v_st.bg_url, 'flyer_url', v_st.flyer_url,
         'tanggal_mulai', v_st.tanggal_mulai, 'tanggal_selesai', v_st.tanggal_selesai),
     'hari', coalesce((
       select json_agg(json_build_object('id', h.id, 'nama', h.nama, 'tanggal', h.tanggal, 'urutan', h.urutan)
@@ -1084,7 +1086,7 @@ begin
   end if;
   insert into public.lomba_pengaturan
     (event_id, nama_event, penyelenggara, lokasi, tanggal_mulai, tanggal_selesai, pendaftaran_buka,
-     info, wa_admin, bank_nama, bank_no_rek, bank_atas_nama, template_wa_konfirmasi, template_wa_tolak, logo_url, bg_url)
+     info, wa_admin, bank_nama, bank_no_rek, bank_atas_nama, template_wa_konfirmasi, template_wa_tolak, logo_url, bg_url, flyer_url)
   values
     (v_id, btrim(p ->> 'nama_event'),
      coalesce(nullif(btrim(p ->> 'penyelenggara'), ''), 'Panitia Lomba Layangan'),
@@ -1097,7 +1099,8 @@ begin
      case when (v_salin ->> 'pesan')::boolean then coalesce(v_a.template_wa_konfirmasi, '') else '' end,
      case when (v_salin ->> 'pesan')::boolean then coalesce(v_a.template_wa_tolak, '') else '' end,
      case when (v_salin ->> 'tampilan')::boolean then coalesce(v_a.logo_url, '') else '' end,
-     case when (v_salin ->> 'tampilan')::boolean then coalesce(v_a.bg_url, '') else '' end);
+     case when (v_salin ->> 'tampilan')::boolean then coalesce(v_a.bg_url, '') else '' end,
+     '');
 
   if v_src is not null and coalesce((v_salin ->> 'jenis')::boolean, false) then
     insert into public.lomba_jenis (event_id, kode, nama, harga, prefix, urutan, aktif, nomor_terakhir)
