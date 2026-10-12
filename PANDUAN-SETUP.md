@@ -177,9 +177,9 @@ Simpan, buka lagi di browser. Banner kuning **MODE DEMO** hilang = sudah tersamb
 7. Hari-H → Jadwal Terbang → **Cetak** (tabel per hari) atau klik nama jenis → **Cetak daftar** (daftar peserta per grup + kolom hadir). Rekap lengkap → Pendaftaran → **Excel**.
 8. Cari bukti yang dipakai ulang → Pendaftaran → **Periksa bukti** (lihat bagian di bawah).
 
-## Bukti dobel & Bukti Transfer Mirip
+## Bukti Transfer Sama & Bukti Transfer Mirip
 
-- **Bukti dobel** (otomatis): file gambar yang diunggah **persis sama** di lebih dari 1 pendaftaran. Dikelompokkan *Bukti A, Bukti B, …* dengan warna sendiri. Yang dibandingkan hanya file gambarnya — nama sekha, jenis, atau biaya tidak berpengaruh. Dobel belum tentu curang: satu transfer bisa memang untuk beberapa layangan, jadi cek apakah nominal di bukti cukup untuk total tagihan kelompok.
+- **Bukti Transfer Sama** (otomatis): file gambar yang diunggah **persis sama** di lebih dari 1 pendaftaran. Dikelompokkan *Bukti A, Bukti B, …* dengan warna sendiri. Yang dibandingkan hanya file gambarnya — nama sekha, jenis, atau biaya tidak berpengaruh. Dobel belum tentu curang: satu transfer bisa memang untuk beberapa layangan, jadi cek apakah nominal di bukti cukup untuk total tagihan kelompok.
 - **Bukti Transfer Mirip** (perlu klik **Periksa bukti**): dashboard membaca tulisan di gambar bukti (nominal, tanggal & jam, nama pengirim). Pendaftaran ditandai *Mirip 1, Mirip 2, …* bila **nama pengirim sama + nominal sama + waktu di bukti selisih ≤ 1 menit**. Ini menangkap bukti yang sama walau filenya berbeda (screenshot ulang, dikirim ulang lewat WhatsApp, dipotong).
   - Pasang sekali: jalankan **`bukti-mirip.sql`** di SQL Editor (hasil 2 ✅).
   - **Otomatis**: selama dashboard terbuka, bukti yang belum diperiksa dibaca sendiri di latar belakang — saat dashboard dibuka dan setiap ada pendaftaran baru. Tombol berubah menjadi *Memeriksa bukti 3/10*, dan muncul pemberitahuan bila ada Bukti Transfer Mirip baru.
@@ -196,7 +196,7 @@ Simpan, buka lagi di browser. Banner kuning **MODE DEMO** hilang = sudah tersamb
 - **Nomor layangan** diisi peserta (angka, maks 6 digit) dan tidak boleh sama dengan peserta lain **di jenis yang sama**. Nomor dari pendaftaran yang ditolak boleh dipakai lagi.
 - **Nama, tanggal & jam grup** mengikuti hari dan seri; mengubah jam seri langsung memperbarui semua grup di dalamnya.
 - **Harga** tersimpan saat mendaftar. Mengubah harga hanya berlaku untuk pendaftaran baru; peserta yang sedang membayar saat harga berubah diminta cek ulang.
-- **Bukti transfer** wajib benar-benar terunggah; satu bukti yang dipakai >1 pendaftaran ditandai *Bukti dobel*.
+- **Bukti transfer** wajib benar-benar terunggah; satu bukti yang dipakai >1 pendaftaran ditandai *Bukti Transfer Sama*.
 - **Rem spam**: maks 15 pendaftaran per nomor WA per jam dan 30 per jaringan internet per 10 menit.
 - **Data peserta & bukti transfer** hanya bisa dibuka admin. Cek Status hanya menampilkan nama sekha, jenis, seri, status, dan nomor layangan.
 - Dua admin membuka data yang sama → yang terlambat diberi tahu dan datanya dimuat ulang, tidak saling menimpa.
