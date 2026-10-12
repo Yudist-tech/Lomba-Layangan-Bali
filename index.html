@@ -866,13 +866,6 @@ code { font-family: ui-monospace, Menlo, Consolas, monospace; font-size: .92em; 
   .jt-pub .jt th, .jt-pub .jt td { border: 0; border-right: 1px solid var(--line); border-bottom: 1px solid var(--line); }
   .jt-pub .jt .jt-seri, .jt-pub .jt .jt-grup { background: var(--surface-2); }
   .jt-pub .jt .k { width: 42px; min-width: 42px; height: 32px; font-size: 14px; }
-  /* kolom kiri tetap terlihat saat tabel digeser */
-  .jt-pub .jt .jt-seri, .jt-pub .jt .jt-grup, .jt-pub .jt .jt-jenis { position: sticky; z-index: 2; }
-  .jt-pub .jt .jt-seri { left: 0; }
-  .jt-pub .jt .jt-grup { left: 52px; }
-  .jt-pub .jt .jt-jenis { left: 80px; box-shadow: 3px 0 4px -2px rgba(0,0,0,.25); }
-  .jt-pub .jt thead .jt-seri, .jt-pub .jt thead .jt-grup, .jt-pub .jt thead .jt-jenis { z-index: 3; background: var(--surface-3); }
-  .jt-pub .jt td.jt-jenis { background: color-mix(in srgb, var(--jc, var(--surface-3)) 32%, var(--surface)); }
   /* bayangan di sisi kanan: tanda masih ada nomor di sebelah kanan */
   .jt-luar { position: relative; }
   .jt-luar::after { content: ''; position: absolute; top: 1px; right: 1px; bottom: 1px; width: 30px; border-radius: 0 11px 11px 0; pointer-events: none; background: linear-gradient(to right, transparent, color-mix(in srgb, var(--ink) 22%, transparent)); transition: opacity .2s; }
