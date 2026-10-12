@@ -4268,7 +4268,7 @@ const Adm = {
       const isi = per.get(g), nTunggu = g.rows.filter((r) => r.status === 'menunggu').length, sembunyi = g.n - isi.length;
       return `<section class="rows dup-grup dw${g.warna}" aria-label="Bukti ${g.label}">
         <div class="dup-h"><span class="dup-tag dw${g.warna}">${ico('layers')}Bukti ${g.label}</span>
-          <span>${g.n} pendaftaran memakai bukti transfer yang sama · total <b>${rupiah(g.total)}</b>${nTunggu ? ` · <b>${nTunggu} menunggu</b>` : ''}</span>
+          <span>${g.n} pendaftaran mengunggah <b>file bukti yang persis sama</b> · total tagihan <b>${rupiah(g.total)}</b> — cek nominal di bukti cukup${nTunggu ? ` · <b>${nTunggu} menunggu</b>` : ''}</span>
           ${sembunyi > 0 ? `<small>${sembunyi} lainnya tidak tampil karena filter</small>` : ''}</div>
         ${kepala}${isi.map((r) => this.vRow(r)).join('')}
       </section>`;
@@ -4434,7 +4434,7 @@ const Adm = {
       </${tag}>`;
     }).join('');
     return `<section class="kotak-dobel dw${g.warna}" aria-label="Bukti transfer yang sama">
-      <div class="kd-h"><span class="flag dup-tag dw${g.warna}">Bukti ${g.label}</span><span>Bukti sama · ${g.n} pendaftaran</span><b class="num">${rupiah(g.total)}</b></div>
+      <div class="kd-h"><span class="flag dup-tag dw${g.warna}">Bukti ${g.label}</span><span>File bukti sama · ${g.n} pendaftaran</span><b class="num">${rupiah(g.total)}</b></div>
       ${baris}
     </section>`;
   },
