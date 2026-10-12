@@ -514,7 +514,8 @@ details.tbl-toggle { margin-top: 10px; }
 details.tbl-toggle summary { cursor: pointer; font-size: 13px; color: var(--brand); font-weight: 600; }
 
 /* Daftar pendaftaran */
-.filters { display: flex; flex-direction: column; gap: 10px; margin-bottom: 14px; }
+.filters { display: flex; flex-direction: column; gap: 12px; margin-bottom: 16px; }
+#adm-filters { display: flex; flex-direction: column; gap: 12px; }
 .f-row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
 .search { position: relative; flex: 1 1 240px; min-width: 0; }
 .search .ico { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--muted); pointer-events: none; }
@@ -525,6 +526,11 @@ details.tbl-toggle summary { cursor: pointer; font-size: 13px; color: var(--bran
 .seg button small { font-weight: 700; color: var(--muted); font-variant-numeric: tabular-nums; }
 .tgl { display: inline-flex; align-items: center; gap: 7px; border: 1px solid var(--line-strong); background: var(--surface); padding: 0 12px; min-height: 40px; border-radius: 10px; font-size: 13.5px; font-weight: 600; cursor: pointer; white-space: nowrap; }
 .tgl.on { border-color: var(--brand); background: var(--brand-soft); color: var(--brand-soft-ink); }
+.tgl > small { min-width: 22px; padding: 1px 7px; border-radius: 99px; background: var(--surface-3); color: var(--ink-2); font-size: 12px; font-weight: 700; text-align: center; font-variant-numeric: tabular-nums; }
+.tgl.on > small { background: color-mix(in srgb, var(--brand) 18%, var(--surface)); color: inherit; }
+.f-pilih { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr) minmax(0, 1fr); gap: 10px; }
+.f-pilih .input { width: 100%; min-width: 0; }
+.f-tombol { gap: 10px; }
 .res-info { display: flex; align-items: center; gap: 10px; font-size: 13px; color: var(--muted); margin: 0 0 8px; flex-wrap: wrap; }
 .res-info .btn { margin-left: auto; }
 
@@ -576,7 +582,7 @@ button.kd-row:hover { background: var(--surface-2); }
 .mirip-grup .row:not(.head):not(.dup) { box-shadow: inset 4px 0 0 var(--warn); }
 .dup-h .mirip-tag { font-size: 13px; font-weight: 800; padding: 3px 9px; border-radius: 8px; }
 .kotak-mirip { --dup: var(--warn); border-style: dashed; }
-.tgl small.baru { background: var(--warn-soft); color: var(--warn-ink); padding: 0 6px; border-radius: 6px; }
+.tgl small.baru { background: var(--warn-soft); color: var(--warn-ink); }
 .cek-auto { display: flex; gap: 10px; align-items: flex-start; margin: 12px 0 4px; padding: 10px 12px; border: 1px solid var(--line); border-radius: 12px; cursor: pointer; font-size: 14px; }
 .cek-auto input { margin-top: 3px; width: 18px; height: 18px; flex: none; }
 .cek-auto small { display: block; color: var(--muted); font-size: 12.5px; margin-top: 2px; }
@@ -732,6 +738,10 @@ button.kd-row:hover { background: var(--surface-2); }
   .seg button { flex: none; padding: 7px 10px; }
   .f-row.gulir { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; margin: 0 -14px; padding: 0 14px 2px; }
   .f-row.gulir > * { flex: none; }
+  .f-pilih { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 8px; }
+  .f-pilih .f-seri { grid-column: 1 / -1; grid-row: 2; }
+  .f-tombol { gap: 8px; }
+  #adm-filters, .filters { gap: 10px; }
   .hide-sm { display: none; }
   .tbl th, .tbl td { padding: 8px 6px; }
   .todo-item .tt span { display: none; }
@@ -4169,14 +4179,16 @@ const Adm = {
     const seg = [['semua', 'Semua', st.total], ['menunggu', 'Menunggu', st.menunggu], ['terkonfirmasi', 'Terkonfirmasi', st.terkonfirmasi], ['ditolak', 'Ditolak', st.ditolak]];
     const seriOpsi = d.seri.filter((x) => !f.jenis || x.jenis === f.jenis);
     return `<div class="f-row"><div class="seg" role="group" aria-label="Filter status">${seg.map(([v, l, n]) => `<button type="button" class="${f.status === v ? 'on' : ''}" data-act="adm.fStatus" data-v="${v}" aria-pressed="${f.status === v}">${l} <small>${n}</small></button>`).join('')}</div></div>
-      <div class="f-row gulir">
-        <select class="input input-sm" style="width:auto" data-ch="adm.fJenis" aria-label="Filter jenis"><option value="">Semua jenis</option>${d.jenis.map((j) => `<option value="${esc(j.kode)}" ${f.jenis === j.kode ? 'selected' : ''}>${esc(j.nama)}</option>`).join('')}</select>
-        <select class="input input-sm" style="width:auto;max-width:100%" data-ch="adm.fSeri" aria-label="Filter seri"><option value="">Semua seri</option>${seriOpsi.map((x) => `<option value="${x.id}" ${String(f.seri) === String(x.id) ? 'selected' : ''}>${esc(this.namaJenis(x.jenis))} · ${esc(x.nama)}</option>`).join('')}</select>
+      <div class="f-pilih">
+        <select class="input input-sm" data-ch="adm.fJenis" aria-label="Filter jenis"><option value="">Semua jenis</option>${d.jenis.map((j) => `<option value="${esc(j.kode)}" ${f.jenis === j.kode ? 'selected' : ''}>${esc(j.nama)}</option>`).join('')}</select>
+        <select class="input input-sm f-seri" data-ch="adm.fSeri" aria-label="Filter seri"><option value="">Semua seri</option>${seriOpsi.map((x) => `<option value="${x.id}" ${String(f.seri) === String(x.id) ? 'selected' : ''}>${esc(this.namaJenis(x.jenis))} · ${esc(x.nama)}</option>`).join('')}</select>
+        <select class="input input-sm" data-ch="adm.fUrut" aria-label="Urutan">${[['terbaru', 'Terbaru'], ['terlama', 'Terlama'], ['nomor', 'Nomor layangan'], ['sekha', 'Nama sekha'], ['seri', 'Seri']].map(([v, l]) => `<option value="${v}" ${f.urut === v ? 'selected' : ''}>Urut: ${l}</option>`).join('')}</select>
+      </div>
+      <div class="f-row gulir f-tombol">
         <button type="button" class="tgl ${f.wa ? 'on' : ''}" data-act="adm.fWa" aria-pressed="${f.wa}">${ico('chat')} WA belum dikirim <small>${st.waBelum}</small></button>
-        <button type="button" class="tgl ${f.dup ? 'on' : ''}" data-act="adm.fDup" aria-pressed="${f.dup}">${ico('layers')} Bukti dobel</button>
+        <button type="button" class="tgl ${f.dup ? 'on' : ''}" data-act="adm.fDup" aria-pressed="${f.dup}">${ico('layers')} Bukti Transfer Sama${this.idx.dupIds.size ? ` <small>${this.idx.dupIds.size}</small>` : ''}</button>
         <button type="button" class="tgl ${f.mirip ? 'on' : ''}" data-act="adm.fMirip" aria-pressed="${f.mirip}">${ico('search')} Bukti Transfer Mirip${st.mirip ? ` <small>${st.mirip}</small>` : ''}</button>
         ${this.vTombolPeriksa()}
-        <select class="input input-sm" style="width:auto" data-ch="adm.fUrut" aria-label="Urutan">${[['terbaru', 'Terbaru'], ['terlama', 'Terlama'], ['nomor', 'Nomor layangan'], ['sekha', 'Nama sekha'], ['seri', 'Seri']].map(([v, l]) => `<option value="${v}" ${f.urut === v ? 'selected' : ''}>Urut: ${l}</option>`).join('')}</select>
       </div>`;
   },
   hasilFilter() {
@@ -4220,7 +4232,7 @@ const Adm = {
     return info + `${isi}${rows.length > tampil.length ? `<div class="actions"><button class="btn" data-act="adm.lebih">Tampilkan lebih banyak (${rows.length - tampil.length} lagi)</button></div>` : ''}`;
   },
   /* Bukti mirip: nama pengirim sama + nominal sama + waktu di bukti selisih ≤ 1 menit.
-     Pasangan yang file-nya identik sudah masuk "Bukti dobel". */
+     Pasangan yang file-nya identik sudah masuk "Bukti Transfer Sama". */
   indeksMirip(d) {
     const baca = new Map();
     for (const b of d.baca || []) baca.set(b.pendaftaran_id, b);
@@ -4665,7 +4677,7 @@ const Adm = {
       <h3>Tolak massal</h3>
       <p class="lead">Untuk membersihkan pendaftaran palsu, dobel, atau yang tidak membayar. Centang yang akan ditolak — ${rows.length} pendaftaran menunggu sesuai filter saat ini.</p>
       <label class="check" style="margin:0 0 8px"><input type="checkbox" data-ch="adm.pilihSemua"><span><b>Pilih semua</b></span></label>
-      <div class="massal-list">${rows.map((r) => `<label class="massal-item"><input type="checkbox" name="pilih" value="${esc(r.id)}"><span><b>${esc(r.nama_sekha)}</b> · <span class="mono">${esc(r.kode)}</span><br><small>${esc(fmtWA(r.no_wa))} · ${esc(this.namaJenis(r.jenis))} · ${esc(relatif(r.created_at))}${this.idx.dupIds.has(r.id) ? ' · bukti dobel' : ''}</small></span></label>`).join('')}</div>
+      <div class="massal-list">${rows.map((r) => `<label class="massal-item"><input type="checkbox" name="pilih" value="${esc(r.id)}"><span><b>${esc(r.nama_sekha)}</b> · <span class="mono">${esc(r.kode)}</span><br><small>${esc(fmtWA(r.no_wa))} · ${esc(this.namaJenis(r.jenis))} · ${esc(relatif(r.created_at))}${this.idx.dupIds.has(r.id) ? ' · bukti transfer sama' : ''}</small></span></label>`).join('')}</div>
       <div class="field" style="margin-top:14px"><label class="label" for="alasan-massal">Alasan penolakan</label><input class="input" id="alasan-massal" name="alasan" value="Pendaftaran tidak valid" maxlength="300"></div>
       <div class="actions end"><button type="button" class="btn" data-act="ovl.tutup">Batal</button><button type="submit" class="btn btn-danger-solid">${ico('x')} Tolak yang dipilih</button></div>
     </form>`);
