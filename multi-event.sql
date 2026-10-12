@@ -148,6 +148,28 @@ begin
     foreign key (event_id, jenis) references public.lomba_jenis(event_id, kode) on update cascade;
 end $$;
 
+-- Rentang nomor layangan per jenis (diatur panitia), mis. 01–200 atau 1000–1500.
+-- nomor_digit > 0 → nomor ditulis dengan nol di depan (01, 02 …).
+alter table public.lomba_jenis add column if not exists nomor_min   int;
+alter table public.lomba_jenis add column if not exists nomor_max   int;
+alter table public.lomba_jenis add column if not exists nomor_digit int not null default 0;
+do $$ begin
+  alter table public.lomba_jenis add constraint lomba_jenis_rentang_chk
+    check ((nomor_min is null) = (nomor_max is null) and (nomor_min is null or (nomor_min >= 0 and nomor_min <= nomor_max and nomor_max <= 999999))
+           and nomor_digit between 0 and 6);
+exception when duplicate_object then null; end $$;
+
+create or replace function public.lomba_rapikan_nomor(p text, p_digit int)
+returns text
+language sql
+immutable
+set search_path = public
+as $$
+  select case when p ~ '^[0-9]+$'
+              then lpad(coalesce(nullif(ltrim(p, '0'), ''), '0'), greatest(coalesce(p_digit, 0), length(coalesce(nullif(ltrim(p, '0'), ''), '0'))), '0')
+              else p end;
+$$;
+
 -- Nomor layangan unik per JENIS di dalam EVENT yang sama
 drop index if exists public.lomba_pendaftaran_nomor_uidx;
 create unique index if not exists lomba_pendaftaran_nomor_ev_uidx
@@ -271,6 +293,27 @@ drop trigger if exists lomba_pengaturan_bu on public.lomba_pengaturan;
 create trigger lomba_pengaturan_bu before update on public.lomba_pengaturan
   for each row execute function public.lomba_trg_pengaturan();
 
+-- format nomor jenis berubah (01 ↔ 1) → nomor peserta jenis itu ikut ditulis ulang
+create or replace function public.lomba_trg_jenis_nomor()
+returns trigger
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  if coalesce(new.nomor_digit, 0) is distinct from coalesce(old.nomor_digit, 0) then
+    update public.lomba_pendaftaran p
+       set nomor_layangan = public.lomba_rapikan_nomor(p.nomor_layangan, new.nomor_digit)
+     where p.event_id = new.event_id and p.jenis = new.kode and p.nomor_layangan ~ '^[0-9]+$'
+       and p.nomor_layangan is distinct from public.lomba_rapikan_nomor(p.nomor_layangan, new.nomor_digit);
+  end if;
+  return null;
+end;
+$$;
+drop trigger if exists lomba_jenis_nomor_au on public.lomba_jenis;
+create trigger lomba_jenis_nomor_au after update of nomor_digit on public.lomba_jenis
+  for each row execute function public.lomba_trg_jenis_nomor();
+
 -- hari & seri (blok waktu): rapikan nama; seri ikut event hari-nya
 create or replace function public.lomba_trg_sesi_sinkron()
 returns trigger
@@ -365,6 +408,9 @@ declare
   v_terisi  int;
   v_cek     boolean;
   v_k       int;
+  v_min     int;
+  v_max     int;
+  v_dg      int;
 begin
   -- 1) rapikan & validasi data dasar
   new.nama_sekha    := btrim(coalesce(new.nama_sekha, ''));
@@ -447,11 +493,19 @@ begin
     end if;
   end if;
 
-  -- 4) nomor layangan: unik per jenis di event yang sama (angka → tanpa nol di depan)
+  -- 4) nomor layangan: unik per jenis di event yang sama, sesuai rentang & format jenisnya
+  select j.nomor_min, j.nomor_max, coalesce(j.nomor_digit, 0) into v_min, v_max, v_dg
+    from public.lomba_jenis j where j.event_id = new.event_id and j.kode = new.jenis;
   if new.nomor_layangan is not null then
     new.nomor_layangan := nullif(upper(btrim(new.nomor_layangan)), '');
     if new.nomor_layangan ~ '^[0-9]+$' then
-      new.nomor_layangan := coalesce(nullif(ltrim(new.nomor_layangan, '0'), ''), '0');
+      new.nomor_layangan := public.lomba_rapikan_nomor(new.nomor_layangan, v_dg);
+      if v_min is not null and new.status in ('menunggu', 'terkonfirmasi')
+         and (tg_op = 'INSERT' or new.jenis is distinct from old.jenis
+              or ltrim(new.nomor_layangan, '0') is distinct from ltrim(coalesce(old.nomor_layangan, ''), '0'))
+         and new.nomor_layangan::bigint not between v_min and v_max then
+        raise exception 'NOMOR_DILUAR_RENTANG';
+      end if;
     end if;
   end if;
   if tg_op = 'INSERT' or new.nomor_layangan is distinct from old.nomor_layangan then
@@ -482,7 +536,7 @@ begin
      and (new.status is distinct from old.status
           or new.seri_id is distinct from old.seri_id
           or new.jenis is distinct from old.jenis
-          or new.nomor_layangan is distinct from old.nomor_layangan
+          or ltrim(coalesce(new.nomor_layangan, ''), '0') is distinct from ltrim(coalesce(old.nomor_layangan, ''), '0')
           or new.kotak is distinct from old.kotak
           or new.no_wa is distinct from old.no_wa) then
     new.wa_terkirim_at := null;
@@ -612,7 +666,8 @@ begin
              order by s.jam_mulai nulls last, s.urutan, s.id)
       from public.lomba_sesi s where s.event_id = v_ev), '[]'::json),
     'jenis', coalesce((
-      select json_agg(json_build_object('kode', j.kode, 'nama', j.nama, 'harga', j.harga, 'prefix', j.prefix, 'aktif', j.aktif)
+      select json_agg(json_build_object('kode', j.kode, 'nama', j.nama, 'harga', j.harga, 'prefix', j.prefix, 'aktif', j.aktif,
+                                        'nomor_min', j.nomor_min, 'nomor_max', j.nomor_max, 'nomor_digit', j.nomor_digit)
              order by j.urutan, j.nama)
       from public.lomba_jenis j where j.event_id = v_ev), '[]'::json),
     'seri', coalesce((
@@ -708,7 +763,10 @@ begin
   if v_nomor !~ '^[0-9]{1,6}$' then
     raise exception 'NOMOR_TIDAK_VALID';
   end if;
-  v_nomor := coalesce(nullif(ltrim(v_nomor, '0'), ''), '0');
+  v_nomor := public.lomba_rapikan_nomor(v_nomor, v_jenis.nomor_digit);
+  if v_jenis.nomor_min is not null and v_nomor::bigint not between v_jenis.nomor_min and v_jenis.nomor_max then
+    raise exception 'NOMOR_DILUAR_RENTANG';
+  end if;
   if exists (select 1 from public.lomba_pendaftaran
               where event_id = v_ev and jenis = p_jenis and nomor_layangan = v_nomor
                 and status in ('menunggu', 'terkonfirmasi')) then
@@ -804,12 +862,17 @@ security definer
 set search_path = public
 as $$
 declare
-  v text := btrim(coalesce(p_nomor, ''));
+  v  text := btrim(coalesce(p_nomor, ''));
+  j  public.lomba_jenis%rowtype;
 begin
   if v !~ '^[0-9]{1,6}$' then
     return false;
   end if;
-  v := coalesce(nullif(ltrim(v, '0'), ''), '0');
+  select * into j from public.lomba_jenis where event_id = public.lomba_ev(p_event) and kode = p_jenis;
+  v := public.lomba_rapikan_nomor(v, coalesce(j.nomor_digit, 0));
+  if j.nomor_min is not null and v::bigint not between j.nomor_min and j.nomor_max then
+    return false;
+  end if;
   return not exists (select 1 from public.lomba_pendaftaran
                       where event_id = public.lomba_ev(p_event) and jenis = p_jenis and nomor_layangan = v
                         and status in ('menunggu', 'terkonfirmasi'));
@@ -1103,8 +1166,8 @@ begin
      '');
 
   if v_src is not null and coalesce((v_salin ->> 'jenis')::boolean, false) then
-    insert into public.lomba_jenis (event_id, kode, nama, harga, prefix, urutan, aktif, nomor_terakhir)
-    select v_id, kode, nama, harga, prefix, urutan, aktif, 0 from public.lomba_jenis where event_id = v_src;
+    insert into public.lomba_jenis (event_id, kode, nama, harga, prefix, urutan, aktif, nomor_terakhir, nomor_min, nomor_max, nomor_digit)
+    select v_id, kode, nama, harga, prefix, urutan, aktif, 0, nomor_min, nomor_max, nomor_digit from public.lomba_jenis where event_id = v_src;
   end if;
 
   for v_email in select distinct public.lomba_rapikan_email(x) from jsonb_array_elements_text(coalesce(p -> 'panitia', '[]'::jsonb)) x
@@ -1352,6 +1415,7 @@ grant select, insert, update, delete on table public.lomba_event, public.lomba_e
 
 revoke all on function public.lomba_trg_event_tetap() from public, anon, authenticated;
 revoke all on function public.lomba_trg_pengaturan() from public, anon, authenticated;
+revoke all on function public.lomba_trg_jenis_nomor() from public, anon, authenticated;
 revoke all on function public.lomba_trg_pendaftaran() from public, anon, authenticated;
 revoke all on function public.lomba_trg_seri() from public, anon, authenticated;
 revoke all on function public.lomba_trg_sesi_sinkron() from public, anon, authenticated;
