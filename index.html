@@ -554,6 +554,7 @@ details.tbl-toggle summary { cursor: pointer; font-size: 13px; color: var(--bran
 .dw0 { --dup: #d6336c; } .dw1 { --dup: #1c7ed6; } .dw2 { --dup: #7048e8; } .dw3 { --dup: #0c8599; } .dw4 { --dup: #e8590c; } .dw5 { --dup: #5c940d; }
 .dup-tag { display: inline-flex; align-items: center; gap: 4px; background: color-mix(in srgb, var(--dup) 14%, var(--surface)); color: color-mix(in srgb, var(--dup) 82%, var(--ink)); border: 1px solid color-mix(in srgb, var(--dup) 35%, transparent); }
 .dup-tag svg { width: 12px; height: 12px; }
+.dup-tag.mirip { border-style: dashed; background: var(--surface); }
 .row.dup { box-shadow: inset 4px 0 0 var(--dup); }
 .dup-list { display: grid; gap: 16px; }
 .dup-grup { border-color: color-mix(in srgb, var(--dup) 40%, var(--line)); }
@@ -570,12 +571,6 @@ button.kd-row:hover { background: var(--surface-2); }
 .kd-1 { display: flex; gap: 10px; align-items: baseline; min-width: 0; }
 .kd-1 b { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .kd-nomor { margin-left: auto; font-weight: 800; white-space: nowrap; }
-.mirip-tag { display: inline-flex; align-items: center; gap: 4px; background: var(--warn-soft); color: var(--warn-ink); border: 1px dashed color-mix(in srgb, var(--warn) 70%, transparent); }
-.mirip-tag svg { width: 12px; height: 12px; }
-.mirip-grup { --dup: var(--warn); }
-.mirip-grup .row:not(.head):not(.dup) { box-shadow: inset 4px 0 0 var(--warn); }
-.dup-h .mirip-tag { font-size: 13px; font-weight: 800; padding: 3px 9px; border-radius: 8px; }
-.kotak-mirip { --dup: var(--warn); border-style: dashed; }
 .tgl small.baru { background: var(--warn-soft); color: var(--warn-ink); padding: 0 6px; border-radius: 6px; }
 .cek-auto { display: flex; gap: 10px; align-items: flex-start; margin: 12px 0 4px; padding: 10px 12px; border: 1px solid var(--line); border-radius: 12px; cursor: pointer; font-size: 14px; }
 .cek-auto input { margin-top: 3px; width: 18px; height: 18px; flex: none; }
@@ -583,6 +578,10 @@ button.kd-row:hover { background: var(--surface-2); }
 .tgl .spinner { width: 14px; height: 14px; }
 .progres { height: 8px; border-radius: 99px; background: var(--surface-2); overflow: hidden; margin: 14px 0 8px; }
 .progres span { display: block; height: 100%; background: var(--brand); transition: width .2s; }
+.kd-tanda { margin-left: auto; flex: none; font-size: 10.5px; font-weight: 800; padding: 0 6px; border-radius: 5px; background: color-mix(in srgb, var(--dup) 16%, var(--surface)); color: color-mix(in srgb, var(--dup) 80%, var(--ink)); }
+.kd-tanda.mirip { background: transparent; border: 1px dashed color-mix(in srgb, var(--dup) 60%, transparent); }
+.kd-isi { display: flex; align-items: center; gap: 4px; min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+.kd-cat { padding: 6px 12px; border-top: 1px dashed var(--line); font-size: 12px; color: var(--muted); }
 .kd-2 { display: flex; align-items: center; gap: 4px; color: var(--muted); font-size: 12px; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
 .flag.info { background: var(--brand-soft); color: var(--brand-soft-ink); }
 
@@ -2026,6 +2025,12 @@ class DemoAPI {
       b.nama_rekening = a.nama_rekening;
       a.bukti_nominal = b.bukti_nominal = a.harga;
       a.bukti_waktu = b.bukti_waktu = a.created_at;
+    }
+    // gabungan: 1 pendaftaran lagi dengan file berbeda tapi isi bukti sama seperti kelompok dobel pertama
+    const ketiga = rows.filter((r) => r.status === 'menunggu' && !r.bukti_hash && !r.bukti_waktu)[6];
+    if (dua.length === 2 && ketiga) {
+      dua.forEach((r) => { r.bukti_nominal = dua[0].harga; r.bukti_waktu = dua[0].created_at; r.nama_rekening = dua[0].nama_rekening; });
+      ketiga.nama_rekening = dua[0].nama_rekening; ketiga.bukti_nominal = dua[0].harga; ketiga.bukti_waktu = dua[0].created_at;
     }
     db.daftar = rows.reverse();
   }
@@ -3699,7 +3704,7 @@ SUB['pub.cek'] = (form) => Pub.cek(form);
 /* =====================================================================
    6) DASHBOARD ADMIN
    ===================================================================== */
-const FILTER_AWAL = { status: 'semua', jenis: '', seri: '', q: '', wa: false, dup: false, mirip: false, urut: 'terbaru' };
+const FILTER_AWAL = { status: 'semua', jenis: '', seri: '', q: '', wa: false, dup: false, urut: 'terbaru' };
 const ALASAN_TOLAK = ['Bukti transfer tidak jelas / tidak valid', 'Nominal transfer kurang', 'Transfer belum masuk ke rekening panitia', 'Data pendaftaran tidak lengkap', 'Pendaftaran ganda'];
 
 const Adm = {
@@ -3808,18 +3813,31 @@ const Adm = {
       if (r.bukti_hash) { if (!hash.has(r.bukti_hash)) hash.set(r.bukti_hash, []); hash.get(r.bukti_hash).push(r); }
       perWA.set(r.no_wa, (perWA.get(r.no_wa) || 0) + 1);
     }
+    // Kelompok "bukti sama": gabungan file identik (Dobel) + data bukti sangat mirip (Mirip).
+    // Label huruf (A, B, …) + warna, urut dari pendaftaran paling awal agar stabil.
+    const { baca, pasangan, belumDibaca, tidakTerbaca } = this.indeksMirip(d);
+    const induk = new Map(), akar = (x) => { if (!induk.has(x)) induk.set(x, x); while (induk.get(x) !== x) { induk.set(x, induk.get(induk.get(x))); x = induk.get(x); } return x; };
+    const sambung = (a, b) => { const x = akar(a), y = akar(b); if (x !== y) induk.set(y, x); };
+    for (const rows of hash.values()) for (let i = 1; i < rows.length; i++) sambung(rows[0].id, rows[i].id);
+    for (const [a, b] of pasangan) sambung(a, b);
+    const perId = new Map(d.daftar.map((r) => [r.id, r])), kel = new Map();
+    for (const id of induk.keys()) { const z = akar(id); if (!kel.has(z)) kel.set(z, []); kel.get(z).push(perId.get(id)); }
+    const infoMirip = new Map(pasangan.map(([a, b, info]) => [a, info]).concat(pasangan.map(([a, b, info]) => [b, info])));
     const dupIds = new Set(), dupGrup = new Map();
-    // Kelompok bukti dobel: label huruf (A, B, …) + warna, urut dari pendaftaran paling awal agar stabil
-    [...hash.values()].filter((rows) => rows.length > 1)
-      .map((rows) => rows.slice().sort((a, b) => a.created_at.localeCompare(b.created_at)))
+    let nMirip = 0;
+    [...kel.values()].filter((rows) => rows.length > 1)
+      .map((rows) => rows.filter(Boolean).sort((a, b) => a.created_at.localeCompare(b.created_at)))
       .sort((a, b) => a[0].created_at.localeCompare(b[0].created_at))
       .forEach((rows, i) => {
-        const g = { label: hurufGrup(i), warna: i % WARNA_DUP, n: rows.length, total: rows.reduce((t, r) => t + (r.harga || 0), 0), rows, hash: rows[0].bukti_hash };
+        // tanda per baris: Dobel = file-nya identik dengan anggota lain; Mirip = hanya cocok lewat data bukti
+        const tanda = new Map(rows.map((r) => [r.id, r.bukti_hash && (hash.get(r.bukti_hash) || []).length > 1 ? 'dobel' : 'mirip']));
+        const g = { label: hurufGrup(i), warna: i % WARNA_DUP, n: rows.length, total: rows.reduce((t, r) => t + (r.harga || 0), 0), rows, tanda,
+          nDobel: [...tanda.values()].filter((t) => t === 'dobel').length, info: rows.map((r) => infoMirip.get(r.id)).find(Boolean) || null };
+        g.nMirip = g.n - g.nDobel; nMirip += g.nMirip;
         rows.forEach((r) => { dupIds.add(r.id); dupGrup.set(r.id, g); });
       });
     st.dupMenunggu = d.daftar.filter((r) => r.status === 'menunggu' && dupIds.has(r.id)).length;
-    const { baca, miripGrup, belumDibaca, tidakTerbaca } = this.indeksMirip(d);
-    st.belumDibaca = belumDibaca.length; st.tidakTerbaca = tidakTerbaca; st.mirip = miripGrup.size;
+    st.belumDibaca = belumDibaca.length; st.tidakTerbaca = tidakTerbaca; st.mirip = nMirip; st.bukti = dupIds.size;
     d.hari = (d.hari || []).sort(urutHari); d.sesi = (d.sesi || []).sort(urutSesi);
     const hari = new Map(d.hari.map((h) => [h.id, h])), sesi = new Map(d.sesi.map((x) => [x.id, x]));
     const kotak = new Map();
@@ -3828,7 +3846,7 @@ const Adm = {
       if (!kotak.has(r.seri_id)) kotak.set(r.seri_id, new Map());
       kotak.get(r.seri_id).set(r.kotak, { id: r.id, nomor: r.nomor_layangan, status: r.status });
     }
-    this.idx = { jenis, seri, perSeri, hash, perWA, st, dupIds, dupGrup, baca, miripGrup, belumDibaca, hari, sesi, kotak };
+    this.idx = { jenis, seri, perSeri, hash, perWA, st, dupIds, dupGrup, baca, belumDibaca, hari, sesi, kotak };
   },
   baris(id) { return this.s.data && this.s.data.daftar.find((r) => r.id === id); },
   namaJenis(kode) { const j = this.idx && this.idx.jenis.get(kode); return j ? j.nama : kode; },
@@ -4173,8 +4191,7 @@ const Adm = {
         <select class="input input-sm" style="width:auto" data-ch="adm.fJenis" aria-label="Filter jenis"><option value="">Semua jenis</option>${d.jenis.map((j) => `<option value="${esc(j.kode)}" ${f.jenis === j.kode ? 'selected' : ''}>${esc(j.nama)}</option>`).join('')}</select>
         <select class="input input-sm" style="width:auto;max-width:100%" data-ch="adm.fSeri" aria-label="Filter seri"><option value="">Semua seri</option>${seriOpsi.map((x) => `<option value="${x.id}" ${String(f.seri) === String(x.id) ? 'selected' : ''}>${esc(this.namaJenis(x.jenis))} · ${esc(x.nama)}</option>`).join('')}</select>
         <button type="button" class="tgl ${f.wa ? 'on' : ''}" data-act="adm.fWa" aria-pressed="${f.wa}">${ico('chat')} WA belum dikirim <small>${st.waBelum}</small></button>
-        <button type="button" class="tgl ${f.dup ? 'on' : ''}" data-act="adm.fDup" aria-pressed="${f.dup}">${ico('layers')} Bukti dobel</button>
-        <button type="button" class="tgl ${f.mirip ? 'on' : ''}" data-act="adm.fMirip" aria-pressed="${f.mirip}">${ico('search')} Bukti mirip${st.mirip ? ` <small>${st.mirip}</small>` : ''}</button>
+        <button type="button" class="tgl ${f.dup ? 'on' : ''}" data-act="adm.fDup" aria-pressed="${f.dup}">${ico('layers')} Bukti dobel &amp; mirip${st.bukti ? ` <small>${st.bukti}</small>` : ''}</button>
         ${this.vTombolPeriksa()}
         <select class="input input-sm" style="width:auto" data-ch="adm.fUrut" aria-label="Urutan">${[['terbaru', 'Terbaru'], ['terlama', 'Terlama'], ['nomor', 'Nomor layangan'], ['sekha', 'Nama sekha'], ['seri', 'Seri']].map(([v, l]) => `<option value="${v}" ${f.urut === v ? 'selected' : ''}>Urut: ${l}</option>`).join('')}</select>
       </div>`;
@@ -4188,7 +4205,6 @@ const Adm = {
       if (f.seri && String(r.seri_id) !== String(f.seri)) return false;
       if (f.wa && !(r.status === 'terkonfirmasi' && !r.wa_terkirim_at)) return false;
       if (f.dup && !this.idx.dupIds.has(r.id)) return false;
-      if (f.mirip && !this.idx.miripGrup.has(r.id)) return false;
       if (q) {
         const teks = `${r.kode} ${r.nama_sekha} ${r.alamat} ${r.nama_rekening} ${r.nomor_layangan || ''} ${r.catatan_admin || ''}`.toLowerCase();
         const cocokWA = (qWA && r.no_wa === qWA) || (qAngka.length >= 4 && qAngka.length === q.replace(/[\s+().-]/g, '').length && r.no_wa.includes(qAngka.replace(/^0/, '')));
@@ -4210,13 +4226,13 @@ const Adm = {
   vList() {
     const rows = this.hasilFilter(), f = this.s.f, total = this.s.data.daftar.length;
     if (!this.s.detail) this.s.nav = rows.map((r) => r.id);
-    const adaFilter = f.status !== 'semua' || f.jenis || f.seri || f.wa || f.dup || f.mirip || f.q.trim();
+    const adaFilter = f.status !== 'semua' || f.jenis || f.seri || f.wa || f.dup || f.q.trim();
     const nTunggu = rows.filter((r) => r.status === 'menunggu').length;
     const info = `<div class="res-info"><span>Menampilkan <b>${rows.length}</b> dari ${total}</span>${adaFilter ? `<button class="btn btn-xs btn-ghost" data-act="adm.fReset">${ico('x')} Reset filter</button>` : ''}${nTunggu > 1 ? `<button class="btn btn-xs btn-ghost" data-act="adm.tolakMassal" style="${adaFilter ? 'margin-left:0' : ''}">${ico('layers')} Tolak massal…</button>` : ''}</div>`;
     if (!rows.length) return info + `<div class="rows"><div class="empty">${total ? 'Tidak ada pendaftaran yang cocok dengan filter.' : 'Belum ada pendaftaran masuk.'}</div></div>`;
     const tampil = rows.slice(0, this.s.batas);
     const kepala = `<div class="row head" aria-hidden="true"><span>Status · kode</span><span>Sekha</span><span>Jenis</span><span>Seri</span><span>Nomor</span><span class="c-harga">Biaya</span><span></span></div>`;
-    const isi = f.dup ? this.vGrupDobel(tampil, kepala) : f.mirip ? this.vGrupMirip(tampil, kepala) : `<div class="rows">${kepala}${tampil.map((r) => this.vRow(r)).join('')}</div>`;
+    const isi = f.dup ? this.vGrupDobel(tampil, kepala) : `<div class="rows">${kepala}${tampil.map((r) => this.vRow(r)).join('')}</div>`;
     return info + `${isi}${rows.length > tampil.length ? `<div class="actions"><button class="btn" data-act="adm.lebih">Tampilkan lebih banyak (${rows.length - tampil.length} lagi)</button></div>` : ''}`;
   },
   /* Bukti mirip: nama pengirim sama + nominal sama + waktu di bukti selisih ≤ 1 menit.
@@ -4229,34 +4245,37 @@ const Adm = {
     const belumDibaca = d.daftar.filter((r) => perluBaca(r) && !sah(r));
     const tidakTerbaca = d.daftar.filter((r) => perluBaca(r) && sah(r) && sah(r).gagal).length;
     const calon = d.daftar.filter((r) => r.bukti_path && sah(r) && sah(r).nominal && sah(r).waktu);
-    const induk = new Map(calon.map((r) => [r.id, r.id]));
-    const akar = (x) => { while (induk.get(x) !== x) { induk.set(x, induk.get(induk.get(x))); x = induk.get(x); } return x; };
     const ms = (w) => (w ? Date.parse(String(w).slice(0, 19) + 'Z') : NaN);
+    const pasangan = [];
     for (let i = 0; i < calon.length; i++) {
       const r = calon[i], a = sah(r);
       for (let k = i + 1; k < calon.length; k++) {
         const o = calon[k], b = sah(o);
-        if (r.bukti_hash && r.bukti_hash === o.bukti_hash) continue;
+        if (r.bukti_hash && r.bukti_hash === o.bukti_hash) continue;                                   // sudah "Dobel"
         if (a.nominal !== b.nominal || !(Math.abs(ms(a.waktu) - ms(b.waktu)) <= 60000)) continue;   // cek murah dulu
         if (!(cocokNama(r.nama_rekening, o.nama_rekening) || (a.nama && b.nama && cocokNama(a.nama, b.nama)))) continue;
-        const x = akar(r.id), y = akar(o.id);
-        if (x !== y) induk.set(y, x);
+        pasangan.push([r.id, o.id, { nominal: a.nominal, waktu: a.waktu }]);
       }
     }
-    const kel = new Map();
-    for (const r of calon) { const z = akar(r.id); if (!kel.has(z)) kel.set(z, []); kel.get(z).push(r); }
-    const miripGrup = new Map();
-    [...kel.entries()].filter(([, rows]) => rows.length > 1)
-      .map(([z, rows]) => [z, rows.sort((p, q) => p.created_at.localeCompare(q.created_at))])
-      .sort((p, q) => p[1][0].created_at.localeCompare(q[1][0].created_at))
-      .forEach(([z, rows], i) => {
-        const b0 = sah(rows[0]);
-        const g = { label: String(i + 1), n: rows.length, rows, nominal: b0.nominal, waktu: b0.waktu, total: rows.reduce((t, r) => t + (r.harga || 0), 0) };
-        rows.forEach((r) => miripGrup.set(r.id, g));
-      });
-    return { baca, miripGrup, belumDibaca, tidakTerbaca };
+    return { baca, pasangan, belumDibaca, tidakTerbaca };
   },
-  // Filter "Bukti dobel": tiap kelompok bukti yang sama jadi satu kotak terpisah dengan judul & warna sendiri
+  /* teks singkat isi kelompok: "2 file sama · 1 sangat mirip (nominal Rp 75.000 & waktu 30 Sep 08.51 sama)" */
+  ringkasGrup(g) {
+    const bag = [];
+    if (g.nDobel) bag.push(`<b>${g.nDobel} dobel</b> (file bukti persis sama)`);
+    if (g.nMirip) bag.push(`<b>${g.nMirip} sangat mirip</b> (${esc(this.alasanMirip(g.info))})`);
+    return bag.join(' · ');
+  },
+  alasanMirip(info) {
+    if (!info) return 'data bukti sama';
+    const w = info.waktu ? String(info.waktu) : '', jam = w.slice(11, 16).replace(':', '.'), tgl = w ? `${+w.slice(8, 10)} ${BLN[+w.slice(5, 7) - 1]}` : '';
+    return `nama pengirim, ${rupiah(info.nominal)} & ${tgl} ${jam} sama`;
+  },
+  tagBaris(g, id) {
+    const t = g.tanda.get(id);
+    return `<span class="flag dup-tag dw${g.warna}${t === 'mirip' ? ' mirip' : ''}" title="${t === 'dobel' ? 'File bukti persis sama dengan pendaftaran lain di kelompok ini' : 'Perkiraan: nama pengirim, nominal & waktu di bukti sama — cek manual'}">${ico(t === 'dobel' ? 'layers' : 'search')}Bukti ${g.label} · ${t === 'dobel' ? 'Dobel' : 'Mirip'}</span>`;
+  },
+  // Filter "Bukti dobel & mirip": tiap kelompok jadi satu kotak terpisah dengan judul & warna sendiri
   vGrupDobel(rows, kepala) {
     const urutan = [], per = new Map();
     for (const r of rows) {
@@ -4264,56 +4283,21 @@ const Adm = {
       if (!per.has(g)) { per.set(g, []); urutan.push(g); }
       per.get(g).push(r);
     }
-    return `<div class="dup-list">${urutan.map((g) => {
+    const st = this.idx.st, cat = [];
+    if (st.belumDibaca) cat.push(`${st.belumDibaca} bukti belum diperiksa untuk tanda <b>Mirip</b> — klik <b>Periksa bukti</b>.`);
+    if (st.tidakTerbaca) cat.push(`${st.tidakTerbaca} bukti tidak terbaca otomatis (gambar buram/terpotong) — cek manual.`);
+    const info = cat.length ? `<div class="note">${ico('info')}<span>${cat.join('<br>')}</span></div>` : '';
+    if (!urutan.length) return info + `<div class="rows"><div class="empty">Tidak ada bukti dobel atau mirip.</div></div>`;
+    urutan.sort((p, q) => p.rows[0].created_at.localeCompare(q.rows[0].created_at));   // Bukti A, B, C …
+    return info + `<div class="dup-list">${urutan.map((g) => {
       const isi = per.get(g), nTunggu = g.rows.filter((r) => r.status === 'menunggu').length, sembunyi = g.n - isi.length;
       return `<section class="rows dup-grup dw${g.warna}" aria-label="Bukti ${g.label}">
         <div class="dup-h"><span class="dup-tag dw${g.warna}">${ico('layers')}Bukti ${g.label}</span>
-          <span>${g.n} pendaftaran memakai bukti transfer yang sama · total <b>${rupiah(g.total)}</b>${nTunggu ? ` · <b>${nTunggu} menunggu</b>` : ''}</span>
+          <span>${g.n} pendaftaran: ${this.ringkasGrup(g)} · total <b>${rupiah(g.total)}</b>${nTunggu ? ` · <b>${nTunggu} menunggu</b>` : ''}</span>
           ${sembunyi > 0 ? `<small>${sembunyi} lainnya tidak tampil karena filter</small>` : ''}</div>
         ${kepala}${isi.map((r) => this.vRow(r)).join('')}
       </section>`;
     }).join('')}</div>`;
-  },
-  alasanMirip(g) {
-    const w = g.waktu ? String(g.waktu) : '', jam = w.slice(11, 16).replace(':', '.'), tgl = w ? `${+w.slice(8, 10)} ${BLN[+w.slice(5, 7) - 1]}` : '';
-    return `Nama pengirim, nominal ${rupiah(g.nominal)} & waktu ${tgl} ${jam} di bukti sama`;
-  },
-  vGrupMirip(rows, kepala) {
-    const urutan = [], per = new Map();
-    for (const r of rows) {
-      const g = this.idx.miripGrup.get(r.id); if (!g) continue;
-      if (!per.has(g)) { per.set(g, []); urutan.push(g); }
-      per.get(g).push(r);
-    }
-    const st = this.idx.st, cat = [];
-    if (st.belumDibaca) cat.push(`${st.belumDibaca} bukti belum diperiksa — klik <b>Periksa bukti</b> supaya ikut dibandingkan.`);
-    if (st.tidakTerbaca) cat.push(`${st.tidakTerbaca} bukti tidak terbaca otomatis (gambar buram/terpotong) — cek manual.`);
-    const info = cat.length ? `<div class="note">${ico('info')}<span>${cat.join('<br>')}</span></div>` : '';
-    if (!urutan.length) return info + `<div class="rows"><div class="empty">Belum ada bukti mirip.</div></div>`;
-    return info + `<div class="dup-list">${urutan.map((g) => {
-      const isi = per.get(g), sembunyi = g.n - isi.length;
-      return `<section class="rows dup-grup mirip-grup" aria-label="Mirip ${g.label}">
-        <div class="dup-h"><span class="flag mirip-tag">${ico('search')}Mirip ${g.label}</span>
-          <span>${esc(this.alasanMirip(g))}</span>
-          ${sembunyi > 0 ? `<small>${sembunyi} lainnya tidak tampil karena filter</small>` : ''}</div>
-        ${kepala}${isi.map((r) => this.vRow(r)).join('')}
-      </section>`;
-    }).join('')}</div>`;
-  },
-  vKotakMirip(r) {
-    const g = this.idx.miripGrup.get(r.id); if (!g) return '';
-    const dj = this.s.data.jenis;
-    const baris = g.rows.map((o) => {
-      const ini = o.id === r.id, j = this.idx.jenis.get(o.jenis), tag = ini ? 'div' : 'button';
-      return `<${tag} ${ini ? 'aria-current="true"' : `type="button" data-act="adm.nav" data-id="${esc(o.id)}"`} class="kd-row${ini ? ' ini' : ''}" title="${esc(o.kode)}${ini ? ' (sedang dibuka)' : ''}">
-        <span class="kd-1"><b>${esc(o.nama_sekha)}</b><span class="kd-nomor">No. ${esc(o.nomor_layangan || '—')}</span></span>
-        <span class="kd-2">${jdot(o.jenis, dj)}${esc((j && j.nama) || o.jenis)} · ${esc(o.nama_rekening || '—')}</span>
-      </${tag}>`;
-    }).join('');
-    return `<section class="kotak-dobel kotak-mirip" aria-label="Kemungkinan bukti yang sama">
-      <div class="kd-h"><span class="flag mirip-tag">Mirip ${g.label}</span><span>${esc(this.alasanMirip(g))}</span></div>
-      ${baris}
-    </section>`;
   },
   /* ---- Periksa bukti: satu mesin untuk tombol manual & mode otomatis ----
      Otomatis berjalan di latar belakang selama dashboard terbuka (saat dibuka & tiap ada
@@ -4377,7 +4361,7 @@ const Adm = {
     this.indeks();
     this.segarkanSetelahPeriksa();
     this.tampilPeriksa();
-    if (pb.mode === 'auto' && this.idx.st.mirip > pb.miripAwal) toast(`Bukti mirip ditemukan: ${this.idx.st.mirip - pb.miripAwal} pendaftaran ditandai. Lihat filter Bukti mirip.`, 'info', 7000);
+    if (pb.mode === 'auto' && this.idx.st.mirip > pb.miripAwal) toast(`Bukti mirip ditemukan: ${this.idx.st.mirip - pb.miripAwal} pendaftaran ditandai. Lihat filter Bukti dobel & mirip.`, 'info', 7000);
     return pb;
   },
   /* segarkan daftar tanpa mengganggu: tidak dirender ulang saat panitia sedang mengetik */
@@ -4402,7 +4386,7 @@ const Adm = {
     if (btn) { btn.textContent = 'Tutup'; btn.dataset.act = 'ovl.tutup'; btn.classList.add('btn-primary'); }
     const st = this.idx.st;
     status.textContent = pb.ocrError ? 'Pembaca teks gagal dimuat. Periksa koneksi internet, lalu klik Periksa bukti lagi.'
-      : `${pb.batal ? 'Dihentikan. ' : 'Selesai. '}${pb.ok} bukti diperiksa${pb.gagal ? `, ${pb.gagal} gagal diunduh (dicoba lagi lain kali)` : ''}. ${st.mirip ? `${st.mirip} pendaftaran masuk kelompok bukti mirip.` : 'Tidak ada bukti mirip.'}${st.tidakTerbaca ? ` ${st.tidakTerbaca} bukti tidak terbaca otomatis — cek manual.` : ''}`;
+      : `${pb.batal ? 'Dihentikan. ' : 'Selesai. '}${pb.ok} bukti diperiksa${pb.gagal ? `, ${pb.gagal} gagal diunduh (dicoba lagi lain kali)` : ''}. ${st.mirip ? `${st.mirip} pendaftaran ditandai Mirip.` : 'Tidak ada bukti mirip.'}${st.tidakTerbaca ? ` ${st.tidakTerbaca} bukti tidak terbaca otomatis — cek manual.` : ''}`;
   },
   async periksaBukti() {
     const d = this.s.data;
@@ -4430,12 +4414,14 @@ const Adm = {
       const ini = o.id === r.id, j = this.idx.jenis.get(o.jenis), tag = ini ? 'div' : 'button';
       return `<${tag} ${ini ? 'aria-current="true"' : `type="button" data-act="adm.nav" data-id="${esc(o.id)}"`} class="kd-row${ini ? ' ini' : ''}" title="${esc(o.kode)}${ini ? ' (sedang dibuka)' : ''}">
         <span class="kd-1"><b>${esc(o.nama_sekha)}</b><span class="kd-nomor">No. ${esc(o.nomor_layangan || '—')}</span></span>
-        <span class="kd-2">${jdot(o.jenis, dj)}${esc((j && j.nama) || o.jenis)} · ${esc(o.nama_rekening || '—')}</span>
+        <span class="kd-2"><span class="kd-isi">${jdot(o.jenis, dj)}${esc((j && j.nama) || o.jenis)} · ${esc(o.nama_rekening || '—')}</span>${g.tanda.get(o.id) === 'dobel' ? '<span class="kd-tanda">Dobel</span>' : '<span class="kd-tanda mirip">Mirip</span>'}</span>
       </${tag}>`;
     }).join('');
+    const ket = [g.nDobel ? `${g.nDobel} dobel` : '', g.nMirip ? `${g.nMirip} mirip` : ''].filter(Boolean).join(' · ');
     return `<section class="kotak-dobel dw${g.warna}" aria-label="Bukti transfer yang sama">
-      <div class="kd-h"><span class="flag dup-tag dw${g.warna}">Bukti ${g.label}</span><span>Bukti sama · ${g.n} pendaftaran</span><b class="num">${rupiah(g.total)}</b></div>
+      <div class="kd-h"><span class="flag dup-tag dw${g.warna}">Bukti ${g.label}</span><span>${ket}</span><b class="num">${rupiah(g.total)}</b></div>
       ${baris}
+      ${g.nMirip ? `<div class="kd-cat">Mirip = perkiraan: ${esc(this.alasanMirip(g.info))}. Cocokkan gambar buktinya.</div>` : ''}
     </section>`;
   },
   vRow(r, asal = 'daftar') {
@@ -4445,9 +4431,7 @@ const Adm = {
     else if (r.status === 'ditolak' && r.wa_terkirim_at) wa = ['sent', 'WA penolakan sudah dikirim', 'check'];
     const flags = [];
     const g = this.idx.dupGrup.get(r.id);
-    if (g) flags.push(`<span class="flag dup-tag dw${g.warna}" title="Bukti transfer sama dengan ${g.n - 1} pendaftaran lain">${ico('layers')}Bukti ${g.label}</span>`);
-    const gm = this.idx.miripGrup.get(r.id);
-    if (gm) flags.push(`<span class="flag mirip-tag" title="Nama pengirim, nominal &amp; waktu di bukti sama">${ico('search')}Mirip ${gm.label}</span>`);
+    if (g) flags.push(this.tagBaris(g, r.id));
     if (!r.bukti_path) flags.push('<span class="flag info">Manual</span>');
     return `<div class="row${g ? ` dup dw${g.warna}` : ''}" role="button" tabindex="0" data-act="adm.buka" data-id="${esc(r.id)}" data-asal="${asal}">
       <span class="c-st">${badgeStatus(r.status)}<span class="kd">${esc(r.kode)}</span></span>
@@ -4510,7 +4494,7 @@ const Adm = {
         ${r.status === 'ditolak' ? `<div class="note bad">${ico('x')}<span><b>Ditolak:</b> ${esc(r.alasan_tolak || '-')}</span></div>` : ''}
         <div class="sect"><h4>Pembayaran</h4>
           <div class="total" style="margin:0 0 10px"><div><div class="t-l">Tagihan ${esc((j && j.nama) || '')}</div><div class="t-s">Pengirim: <b>${esc(r.nama_rekening)}</b></div></div><div class="amt">${rupiah(r.harga)}</div></div>
-          ${dup.length ? this.vKotakDobel(r) : ''}${this.vKotakMirip(r)}
+          ${this.vKotakDobel(r)}
           ${r.bukti_path ? `<div class="bukti-box" id="bukti-box"><div class="empty"><span class="spinner" style="margin:0 auto"></span></div></div><div class="bukti-tools" id="bukti-tools"></div>` : `<div class="empty-sm">${ico('file')} Tanpa bukti transfer — pendaftaran manual oleh panitia.</div>`}
         </div>
         <div class="sect"><h4>Data pendaftaran</h4>
@@ -4665,7 +4649,7 @@ const Adm = {
       <h3>Tolak massal</h3>
       <p class="lead">Untuk membersihkan pendaftaran palsu, dobel, atau yang tidak membayar. Centang yang akan ditolak — ${rows.length} pendaftaran menunggu sesuai filter saat ini.</p>
       <label class="check" style="margin:0 0 8px"><input type="checkbox" data-ch="adm.pilihSemua"><span><b>Pilih semua</b></span></label>
-      <div class="massal-list">${rows.map((r) => `<label class="massal-item"><input type="checkbox" name="pilih" value="${esc(r.id)}"><span><b>${esc(r.nama_sekha)}</b> · <span class="mono">${esc(r.kode)}</span><br><small>${esc(fmtWA(r.no_wa))} · ${esc(this.namaJenis(r.jenis))} · ${esc(relatif(r.created_at))}${this.idx.dupIds.has(r.id) ? ' · bukti dobel' : ''}</small></span></label>`).join('')}</div>
+      <div class="massal-list">${rows.map((r) => `<label class="massal-item"><input type="checkbox" name="pilih" value="${esc(r.id)}"><span><b>${esc(r.nama_sekha)}</b> · <span class="mono">${esc(r.kode)}</span><br><small>${esc(fmtWA(r.no_wa))} · ${esc(this.namaJenis(r.jenis))} · ${esc(relatif(r.created_at))}${this.idx.dupGrup.has(r.id) ? ` · bukti ${this.idx.dupGrup.get(r.id).label} (${this.idx.dupGrup.get(r.id).tanda.get(r.id)})` : ''}</small></span></label>`).join('')}</div>
       <div class="field" style="margin-top:14px"><label class="label" for="alasan-massal">Alasan penolakan</label><input class="input" id="alasan-massal" name="alasan" value="Pendaftaran tidak valid" maxlength="300"></div>
       <div class="actions end"><button type="button" class="btn" data-act="ovl.tutup">Batal</button><button type="submit" class="btn btn-danger-solid">${ico('x')} Tolak yang dipilih</button></div>
     </form>`);
@@ -5211,8 +5195,7 @@ ACT['adm.filterDup'] = () => { Adm.s.f = { ...FILTER_AWAL, dup: true, urut: 'ter
 ACT['adm.cariWA'] = (el, e) => { e.preventDefault(); Adm.s.f = { ...FILTER_AWAL, q: fmtWA(el.dataset.wa) }; Overlay.tutupSemua(); location.hash = '#admin/pendaftaran'; if (Adm.s.tab === 'pendaftaran') Adm.render(); };
 ACT['adm.fStatus'] = (el) => { Adm.s.f.status = el.dataset.v; Adm.s.batas = 150; Adm.segarkanTampilan(); };
 ACT['adm.fWa'] = () => { Adm.s.f.wa = !Adm.s.f.wa; Adm.segarkanTampilan(); };
-ACT['adm.fDup'] = () => { Adm.s.f.dup = !Adm.s.f.dup; if (Adm.s.f.dup) Adm.s.f.mirip = false; Adm.segarkanTampilan(); };
-ACT['adm.fMirip'] = () => { Adm.s.f.mirip = !Adm.s.f.mirip; if (Adm.s.f.mirip) Adm.s.f.dup = false; Adm.segarkanTampilan(); };
+ACT['adm.fDup'] = () => { Adm.s.f.dup = !Adm.s.f.dup; Adm.segarkanTampilan(); };
 ACT['adm.periksaBukti'] = () => Adm.periksaBukti();
 ACT['adm.periksaBatal'] = () => {
   const pb = Adm.s.pb;
