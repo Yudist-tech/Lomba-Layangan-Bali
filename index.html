@@ -577,6 +577,10 @@ button.kd-row:hover { background: var(--surface-2); }
 .dup-h .mirip-tag { font-size: 13px; font-weight: 800; padding: 3px 9px; border-radius: 8px; }
 .kotak-mirip { --dup: var(--warn); border-style: dashed; }
 .tgl small.baru { background: var(--warn-soft); color: var(--warn-ink); padding: 0 6px; border-radius: 6px; }
+.cek-auto { display: flex; gap: 10px; align-items: flex-start; margin: 12px 0 4px; padding: 10px 12px; border: 1px solid var(--line); border-radius: 12px; cursor: pointer; font-size: 14px; }
+.cek-auto input { margin-top: 3px; width: 18px; height: 18px; flex: none; }
+.cek-auto small { display: block; color: var(--muted); font-size: 12.5px; margin-top: 2px; }
+.tgl .spinner { width: 14px; height: 14px; }
 .progres { height: 8px; border-radius: 99px; background: var(--surface-2); overflow: hidden; margin: 14px 0 8px; }
 .progres span { display: block; height: 100%; background: var(--brand); transition: width .2s; }
 .kd-2 { display: flex; align-items: center; gap: 4px; color: var(--muted); font-size: 12px; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
@@ -3772,6 +3776,7 @@ const Adm = {
       this.s.err = null;
       if (d.pengaturan) ingatLogo(d.pengaturan.logo_url);
       this.indeks();
+      setTimeout(() => this.autoPeriksa(), 1500);
       if (lama && opt.dariLive) {
         const baru = d.daftar.filter((r) => !lama.has(r.id));
         if (baru.length === 1) toast(`Pendaftaran baru: ${baru[0].nama_sekha} (${this.namaJenis(baru[0].jenis)})`, 'info', 5000);
@@ -4170,7 +4175,7 @@ const Adm = {
         <button type="button" class="tgl ${f.wa ? 'on' : ''}" data-act="adm.fWa" aria-pressed="${f.wa}">${ico('chat')} WA belum dikirim <small>${st.waBelum}</small></button>
         <button type="button" class="tgl ${f.dup ? 'on' : ''}" data-act="adm.fDup" aria-pressed="${f.dup}">${ico('layers')} Bukti dobel</button>
         <button type="button" class="tgl ${f.mirip ? 'on' : ''}" data-act="adm.fMirip" aria-pressed="${f.mirip}">${ico('search')} Bukti mirip${st.mirip ? ` <small>${st.mirip}</small>` : ''}</button>
-        <button type="button" class="tgl" data-act="adm.periksaBukti">${ico('eye')} Periksa bukti${st.belumDibaca ? ` <small class="baru">${st.belumDibaca} baru</small>` : ''}</button>
+        ${this.vTombolPeriksa()}
         <select class="input input-sm" style="width:auto" data-ch="adm.fUrut" aria-label="Urutan">${[['terbaru', 'Terbaru'], ['terlama', 'Terlama'], ['nomor', 'Nomor layangan'], ['sekha', 'Nama sekha'], ['seri', 'Seri']].map(([v, l]) => `<option value="${v}" ${f.urut === v ? 'selected' : ''}>Urut: ${l}</option>`).join('')}</select>
       </div>`;
   },
@@ -4232,8 +4237,8 @@ const Adm = {
       for (let k = i + 1; k < calon.length; k++) {
         const o = calon[k], b = sah(o);
         if (r.bukti_hash && r.bukti_hash === o.bukti_hash) continue;
+        if (a.nominal !== b.nominal || !(Math.abs(ms(a.waktu) - ms(b.waktu)) <= 60000)) continue;   // cek murah dulu
         if (!(cocokNama(r.nama_rekening, o.nama_rekening) || (a.nama && b.nama && cocokNama(a.nama, b.nama)))) continue;
-        if (a.nominal !== b.nominal || !(Math.abs(ms(a.waktu) - ms(b.waktu)) <= 60000)) continue;
         const x = akar(r.id), y = akar(o.id);
         if (x !== y) induk.set(y, x);
       }
@@ -4310,35 +4315,47 @@ const Adm = {
       ${baris}
     </section>`;
   },
-  /* Baca semua bukti yang belum dibaca: sidik visual + OCR (nominal, waktu, nama pengirim) */
-  async periksaBukti() {
+  /* ---- Periksa bukti: satu mesin untuk tombol manual & mode otomatis ----
+     Otomatis berjalan di latar belakang selama dashboard terbuka (saat dibuka & tiap ada
+     pendaftaran baru). Pengaturan per perangkat; bawaan: aktif di laptop, mati di HP. */
+  otomatisAktif() {
+    const v = bacaLokal('lomba_periksa_otomatis');
+    if (v === true || v === false) return v;
+    return !(window.matchMedia && matchMedia('(pointer: coarse)').matches);
+  },
+  autoPeriksa() {
     const d = this.s.data;
-    if (d.baca == null) {
-      Overlay.modal(`<h3>Fitur bukti mirip belum aktif</h3><p class="lead">Jalankan file <b>bukti-mirip.sql</b> di Supabase → SQL Editor satu kali, lalu muat ulang halaman ini.</p><div class="actions end"><button type="button" class="btn btn-primary" data-act="ovl.tutup">Mengerti</button></div>`);
-      return;
-    }
-    const daftar = [...this.idx.belumDibaca];
-    if (!daftar.length) { toast('Semua bukti sudah diperiksa', 'good'); return; }
-    const kerja = { batal: false };
-    Overlay.modal(`<h3>Periksa bukti transfer</h3>
-      <p class="lead">Membaca nominal, waktu &amp; nama pengirim dari ${daftar.length} gambar bukti, lalu mencari yang sama. Pertama kali perlu mengunduh pembaca teks (±5 MB). Biarkan halaman ini terbuka.</p>
-      <div class="progres"><span id="pb-bar" style="width:0%"></span></div>
-      <p class="hint" id="pb-status" aria-live="polite">Menyiapkan pembaca teks…</p>
-      <div class="actions end"><button type="button" class="btn" id="pb-tombol" data-act="adm.periksaBatal">Hentikan</button></div>`, { onClose: () => { kerja.batal = true; } });
-    this.s.periksa = kerja;
-    const status = (t) => { const el = $('#pb-status'); if (el) el.textContent = t; };
-    let ok = 0, gagal = 0, ocr = null, ocrError = null;
-    for (let i = 0; i < daftar.length && !kerja.batal; i++) {
-      const r = daftar[i];
-      status(`Membaca ${i + 1} dari ${daftar.length}: ${r.nama_sekha} (${r.kode})…`);
+    if (!d || d.baca == null || !this.otomatisAktif() || this.s.ocrGagalAuto) return;
+    if ((this.s.pb && this.s.pb.jalan) || !this.idx.belumDibaca.length) return;
+    this.jalankanPeriksa('auto');
+  },
+  /* bukti yang belum dibaca, langsung dari data terbaru (ikut menangkap pendaftaran yang baru masuk) */
+  antreanBaca(sudah) {
+    const d = this.s.data; if (!d) return [];
+    const baca = new Map((d.baca || []).map((b) => [b.pendaftaran_id, b]));
+    return d.daftar.filter((r) => r.bukti_path && r.status !== 'ditolak' && !/\.pdf$/i.test(r.bukti_path) && !sudah.has(r.id)
+      && !(baca.get(r.id) && baca.get(r.id).bukti_path === r.bukti_path))
+      .sort((a, b) => b.created_at.localeCompare(a.created_at));     // yang terbaru dulu
+  },
+  async jalankanPeriksa(mode) {
+    if (this.s.pb && this.s.pb.jalan) { if (mode === 'manual') this.s.pb.mode = 'manual'; return this.s.pb; }
+    const pb = this.s.pb = { jalan: true, batal: false, mode, i: 0, n: 0, ok: 0, gagal: 0, ocrError: null, kini: '', miripAwal: this.idx.st.mirip };
+    const sudah = new Set();
+    let ocr = null;
+    this.tampilPeriksa();
+    while (!pb.batal) {
+      const antre = this.antreanBaca(sudah);
+      if (!antre.length) break;
+      const r = antre[0]; sudah.add(r.id);
+      pb.n = pb.i + antre.length; pb.kini = `${r.nama_sekha} (${r.kode})`;
+      this.tampilPeriksa();
       try {
         const contoh = api.bacaContoh ? api.bacaContoh(r.bukti_path) : null;
         let hasil = { nominal: null, waktu: null, nama: null };
         if (contoh) hasil = { nominal: contoh.nominal, waktu: contoh.waktu, nama: contoh.nama };
         else {
           const res = await fetch(await this.urlBukti(r.bukti_path));      // gangguan jaringan → dicoba lagi lain kali
-          if (!ocr && !ocrError) { try { ocr = await siapkanOCR(); } catch (e) { ocrError = e; } }
-          if (ocrError) throw ocrError;
+          if (!ocr) { try { ocr = await siapkanOCR(); } catch (e) { pb.ocrError = e; throw e; } }
           let bmp = null;
           try { bmp = res.ok ? await createImageBitmap(await res.blob()) : null; } catch (e) { bmp = null; }   // file rusak/hilang → "tidak terbaca"
           if (bmp) {
@@ -4346,23 +4363,64 @@ const Adm = {
             if (bmp.close) bmp.close();
           }
         }
-        const row = { pendaftaran_id: r.id, bukti_path: r.bukti_path, ...hasil, gagal: !hasil.nominal || !hasil.waktu };
-        const simpan = await api.simpanBacaan(row);
+        const simpan = await api.simpanBacaan({ pendaftaran_id: r.id, bukti_path: r.bukti_path, ...hasil, gagal: !hasil.nominal || !hasil.waktu });
         const dd = this.s.data;
         if (dd) dd.baca = (dd.baca || []).filter((b) => b.pendaftaran_id !== r.id).concat([simpan]);
-        ok++;
-      } catch (e) { gagal++; if (ocrError) break; }
-      const bar = $('#pb-bar'); if (bar) bar.style.width = `${Math.round(((i + 1) / daftar.length) * 100)}%`;
+        pb.ok++;
+      } catch (e) { pb.gagal++; if (pb.ocrError) break; }
+      pb.i++;
+      if (pb.i % 10 === 0) { this.indeks(); this.segarkanSetelahPeriksa(); }
     }
     try { const segar = await api.muatBacaan(); if (segar && this.s.data) this.s.data.baca = segar; } catch (e) { /* pakai data lokal */ }
+    pb.jalan = false;
+    if (pb.ocrError && pb.mode === 'auto') this.s.ocrGagalAuto = true;   // jangan diulang terus sampai halaman dimuat ulang
     this.indeks();
+    this.segarkanSetelahPeriksa();
+    this.tampilPeriksa();
+    if (pb.mode === 'auto' && this.idx.st.mirip > pb.miripAwal) toast(`Bukti mirip ditemukan: ${this.idx.st.mirip - pb.miripAwal} pendaftaran ditandai. Lihat filter Bukti mirip.`, 'info', 7000);
+    return pb;
+  },
+  /* segarkan daftar tanpa mengganggu: tidak dirender ulang saat panitia sedang mengetik */
+  segarkanSetelahPeriksa() {
+    const a = document.activeElement;
+    if (a && /^(INPUT|TEXTAREA|SELECT)$/.test(a.tagName) && !Overlay.atas()) { const t = $('#pb-chip'); if (t) t.outerHTML = this.vTombolPeriksa(); return; }
     this.segarkanTampilan({ diam: true });
-    const btn = $('#pb-tombol');
+  },
+  vTombolPeriksa() {
+    const pb = this.s.pb, st = this.idx.st, auto = this.otomatisAktif();
+    if (pb && pb.jalan) return `<button type="button" class="tgl on" id="pb-chip" data-act="adm.periksaBukti"><span class="spinner"></span> Memeriksa bukti ${Math.min(pb.i + 1, pb.n)}/${pb.n}</button>`;
+    return `<button type="button" class="tgl" id="pb-chip" data-act="adm.periksaBukti" title="${auto ? 'Periksa otomatis aktif di perangkat ini' : 'Periksa otomatis mati di perangkat ini'}">${ico('eye')} Periksa bukti${st.belumDibaca ? ` <small class="baru">${st.belumDibaca} baru</small>` : auto ? ' <small>otomatis</small>' : ''}</button>`;
+  },
+  /* perbarui tombol di filter + isi jendela (bila terbuka) */
+  tampilPeriksa() {
+    const pb = this.s.pb; if (!pb) return;
+    const chip = $('#pb-chip'); if (chip) chip.outerHTML = this.vTombolPeriksa();
+    const bar = $('#pb-bar'), status = $('#pb-status'), btn = $('#pb-tombol');
+    if (bar) bar.style.width = `${pb.n ? Math.round((pb.i / pb.n) * 100) : 0}%`;
+    if (!status) return;
+    if (pb.jalan) { status.textContent = pb.kini ? `Membaca ${Math.min(pb.i + 1, pb.n)} dari ${pb.n}: ${pb.kini}…` : 'Menyiapkan pembaca teks…'; return; }
     if (btn) { btn.textContent = 'Tutup'; btn.dataset.act = 'ovl.tutup'; btn.classList.add('btn-primary'); }
-    const nMirip = this.idx.st.mirip;
-    const tt = this.idx.st.tidakTerbaca;
-    status(ocrError ? 'Pembaca teks gagal dimuat. Periksa koneksi internet, lalu klik Periksa bukti lagi.'
-      : `${kerja.batal ? 'Dihentikan. ' : 'Selesai. '}${ok} bukti diperiksa${gagal ? `, ${gagal} gagal diunduh (dicoba lagi lain kali)` : ''}. ${nMirip ? `${nMirip} pendaftaran masuk kelompok bukti mirip.` : 'Tidak ada bukti mirip.'}${tt ? ` ${tt} bukti tidak terbaca otomatis — cek manual.` : ''}`);
+    const st = this.idx.st;
+    status.textContent = pb.ocrError ? 'Pembaca teks gagal dimuat. Periksa koneksi internet, lalu klik Periksa bukti lagi.'
+      : `${pb.batal ? 'Dihentikan. ' : 'Selesai. '}${pb.ok} bukti diperiksa${pb.gagal ? `, ${pb.gagal} gagal diunduh (dicoba lagi lain kali)` : ''}. ${st.mirip ? `${st.mirip} pendaftaran masuk kelompok bukti mirip.` : 'Tidak ada bukti mirip.'}${st.tidakTerbaca ? ` ${st.tidakTerbaca} bukti tidak terbaca otomatis — cek manual.` : ''}`;
+  },
+  async periksaBukti() {
+    const d = this.s.data;
+    if (d.baca == null) {
+      Overlay.modal(`<h3>Fitur bukti mirip belum aktif</h3><p class="lead">Jalankan file <b>bukti-mirip.sql</b> di Supabase → SQL Editor satu kali, lalu muat ulang halaman ini.</p><div class="actions end"><button type="button" class="btn btn-primary" data-act="ovl.tutup">Mengerti</button></div>`);
+      return;
+    }
+    const jalan = this.s.pb && this.s.pb.jalan, n = jalan ? this.s.pb.n - this.s.pb.i : this.idx.belumDibaca.length;
+    const auto = this.otomatisAktif();
+    Overlay.modal(`<h3>Periksa bukti transfer</h3>
+      <p class="lead">${n ? `Membaca nominal, waktu &amp; nama pengirim dari ${n} gambar bukti, lalu mencari yang sama. Pertama kali perlu mengunduh pembaca teks (±5 MB).` : 'Semua bukti sudah diperiksa.'}</p>
+      ${n ? `<div class="progres"><span id="pb-bar" style="width:0%"></span></div><p class="hint" id="pb-status" aria-live="polite">Menyiapkan pembaca teks…</p>` : ''}
+      <label class="cek-auto"><input type="checkbox" data-ch="adm.autoPeriksa" ${auto ? 'checked' : ''}><span><b>Periksa otomatis di perangkat ini</b><small>Bukti baru dibaca sendiri selama dashboard terbuka. Disarankan di laptop; di HP memakai kuota &amp; baterai.</small></span></label>
+      <div class="actions end">${n ? `<button type="button" class="btn" id="pb-tombol" data-act="adm.periksaBatal">${jalan && this.s.pb.mode === 'auto' ? 'Sembunyikan' : 'Hentikan'}</button>` : '<button type="button" class="btn btn-primary" data-act="ovl.tutup">Tutup</button>'}</div>`,
+      { onClose: () => { const pb = this.s.pb; if (pb && pb.jalan && pb.mode === 'manual' && !this.otomatisAktif()) pb.batal = true; } });
+    if (!n) return;
+    if (jalan) { this.s.pb.mode = this.s.pb.mode === 'auto' ? 'auto' : 'manual'; this.tampilPeriksa(); return; }
+    this.jalankanPeriksa('manual');
   },
   // Kotak ringkas bukti dobel di panel detail: 2 baris per pendaftaran
   vKotakDobel(r) {
@@ -5156,7 +5214,20 @@ ACT['adm.fWa'] = () => { Adm.s.f.wa = !Adm.s.f.wa; Adm.segarkanTampilan(); };
 ACT['adm.fDup'] = () => { Adm.s.f.dup = !Adm.s.f.dup; if (Adm.s.f.dup) Adm.s.f.mirip = false; Adm.segarkanTampilan(); };
 ACT['adm.fMirip'] = () => { Adm.s.f.mirip = !Adm.s.f.mirip; if (Adm.s.f.mirip) Adm.s.f.dup = false; Adm.segarkanTampilan(); };
 ACT['adm.periksaBukti'] = () => Adm.periksaBukti();
-ACT['adm.periksaBatal'] = () => { if (Adm.s.periksa) Adm.s.periksa.batal = true; const el = $('#pb-status'); if (el) el.textContent = 'Menghentikan…'; };
+ACT['adm.periksaBatal'] = () => {
+  const pb = Adm.s.pb;
+  if (pb && pb.jalan && pb.mode === 'auto') { Overlay.tutup(); return; }        // otomatis: cukup sembunyikan jendela
+  if (pb && pb.jalan) { pb.batal = true; const el = $('#pb-status'); if (el) el.textContent = 'Menghentikan…'; }
+};
+CH['adm.autoPeriksa'] = (el) => {
+  simpanLokal('lomba_periksa_otomatis', el.checked);
+  const pb = Adm.s.pb;
+  if (pb && pb.jalan) pb.mode = el.checked ? 'auto' : 'manual';
+  const b = $('#pb-tombol'); if (b && pb && pb.jalan) b.textContent = el.checked ? 'Sembunyikan' : 'Hentikan';
+  Adm.s.ocrGagalAuto = false;
+  if (el.checked) Adm.autoPeriksa();
+  const chip = $('#pb-chip'); if (chip) chip.outerHTML = Adm.vTombolPeriksa();
+};
 ACT['adm.fReset'] = () => { Adm.s.f = { ...FILTER_AWAL }; const q = $('#adm-search'); if (q) q.value = ''; Adm.segarkanTampilan(); };
 ACT['adm.lebih'] = () => { Adm.s.batas += 300; Adm.segarkanTampilan(); };
 CH['adm.fJenis'] = (el) => { Adm.s.f.jenis = el.value; Adm.s.f.seri = ''; Adm.segarkanTampilan(); };

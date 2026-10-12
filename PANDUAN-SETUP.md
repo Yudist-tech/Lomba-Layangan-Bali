@@ -182,7 +182,10 @@ Simpan, buka lagi di browser. Banner kuning **MODE DEMO** hilang = sudah tersamb
 - **Bukti dobel** (otomatis): file gambar yang diunggah **persis sama** di lebih dari 1 pendaftaran. Dikelompokkan *Bukti A, Bukti B, …* dengan warna sendiri.
 - **Bukti mirip** (perlu klik **Periksa bukti**): dashboard membaca tulisan di gambar bukti (nominal, tanggal & jam, nama pengirim). Pendaftaran ditandai *Mirip 1, Mirip 2, …* bila **nama pengirim sama + nominal sama + waktu di bukti selisih ≤ 1 menit**. Ini menangkap bukti yang sama walau filenya berbeda (screenshot ulang, dikirim ulang lewat WhatsApp, dipotong).
   - Pasang sekali: jalankan **`bukti-mirip.sql`** di SQL Editor (hasil 2 ✅).
-  - Tombol **Periksa bukti** menunjukkan jumlah bukti baru yang belum diperiksa. Tiap gambar cukup dibaca sekali; hasilnya tersimpan di database.
+  - **Otomatis**: selama dashboard terbuka, bukti yang belum diperiksa dibaca sendiri di latar belakang — saat dashboard dibuka dan setiap ada pendaftaran baru. Tombol berubah menjadi *Memeriksa bukti 3/10*, dan muncul pemberitahuan bila ada bukti mirip baru.
+  - Pengaturan otomatis **per perangkat** (centang *Periksa otomatis di perangkat ini* di jendela Periksa bukti). Bawaan: aktif di laptop/komputer, mati di HP (hemat kuota & baterai). Cukup satu panitia yang membiarkan dashboard terbuka di laptop.
+  - Pembacaan berjalan di browser panitia, jadi **tidak berjalan bila tidak ada dashboard yang terbuka**; bukti yang masuk saat itu dibaca begitu dashboard dibuka lagi.
+  - Tombol **Periksa bukti** juga bisa diklik manual; menunjukkan jumlah bukti baru yang belum diperiksa. Tiap gambar cukup dibaca sekali; hasilnya tersimpan di database.
   - Pertama kali, browser mengunduh pembaca teks (±5 MB). Lebih nyaman dijalankan di laptop; ±1–3 detik per gambar.
   - Gambar buram/terpotong yang tidak terbaca dihitung sebagai *tidak terbaca otomatis* — cek manual.
   - Tanda *mirip* adalah petunjuk, bukan keputusan: tetap buka kedua bukti dan cocokkan sebelum menolak.
