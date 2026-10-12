@@ -4174,7 +4174,7 @@ const Adm = {
         <select class="input input-sm" style="width:auto;max-width:100%" data-ch="adm.fSeri" aria-label="Filter seri"><option value="">Semua seri</option>${seriOpsi.map((x) => `<option value="${x.id}" ${String(f.seri) === String(x.id) ? 'selected' : ''}>${esc(this.namaJenis(x.jenis))} · ${esc(x.nama)}</option>`).join('')}</select>
         <button type="button" class="tgl ${f.wa ? 'on' : ''}" data-act="adm.fWa" aria-pressed="${f.wa}">${ico('chat')} WA belum dikirim <small>${st.waBelum}</small></button>
         <button type="button" class="tgl ${f.dup ? 'on' : ''}" data-act="adm.fDup" aria-pressed="${f.dup}">${ico('layers')} Bukti dobel</button>
-        <button type="button" class="tgl ${f.mirip ? 'on' : ''}" data-act="adm.fMirip" aria-pressed="${f.mirip}">${ico('search')} Bukti mirip${st.mirip ? ` <small>${st.mirip}</small>` : ''}</button>
+        <button type="button" class="tgl ${f.mirip ? 'on' : ''}" data-act="adm.fMirip" aria-pressed="${f.mirip}">${ico('search')} Bukti Transfer Mirip${st.mirip ? ` <small>${st.mirip}</small>` : ''}</button>
         ${this.vTombolPeriksa()}
         <select class="input input-sm" style="width:auto" data-ch="adm.fUrut" aria-label="Urutan">${[['terbaru', 'Terbaru'], ['terlama', 'Terlama'], ['nomor', 'Nomor layangan'], ['sekha', 'Nama sekha'], ['seri', 'Seri']].map(([v, l]) => `<option value="${v}" ${f.urut === v ? 'selected' : ''}>Urut: ${l}</option>`).join('')}</select>
       </div>`;
@@ -4289,7 +4289,7 @@ const Adm = {
     if (st.belumDibaca) cat.push(`${st.belumDibaca} bukti belum diperiksa — klik <b>Periksa bukti</b> supaya ikut dibandingkan.`);
     if (st.tidakTerbaca) cat.push(`${st.tidakTerbaca} bukti tidak terbaca otomatis (gambar buram/terpotong) — cek manual.`);
     const info = cat.length ? `<div class="note">${ico('info')}<span>${cat.join('<br>')}</span></div>` : '';
-    if (!urutan.length) return info + `<div class="rows"><div class="empty">Belum ada bukti mirip.</div></div>`;
+    if (!urutan.length) return info + `<div class="rows"><div class="empty">Belum ada Bukti Transfer Mirip.</div></div>`;
     return info + `<div class="dup-list">${urutan.map((g) => {
       const isi = per.get(g), sembunyi = g.n - isi.length;
       return `<section class="rows dup-grup mirip-grup" aria-label="Mirip ${g.label}">
@@ -4377,7 +4377,7 @@ const Adm = {
     this.indeks();
     this.segarkanSetelahPeriksa();
     this.tampilPeriksa();
-    if (pb.mode === 'auto' && this.idx.st.mirip > pb.miripAwal) toast(`Bukti mirip ditemukan: ${this.idx.st.mirip - pb.miripAwal} pendaftaran ditandai. Lihat filter Bukti mirip.`, 'info', 7000);
+    if (pb.mode === 'auto' && this.idx.st.mirip > pb.miripAwal) toast(`Bukti Transfer Mirip ditemukan: ${this.idx.st.mirip - pb.miripAwal} pendaftaran ditandai. Lihat filter Bukti Transfer Mirip.`, 'info', 7000);
     return pb;
   },
   /* segarkan daftar tanpa mengganggu: tidak dirender ulang saat panitia sedang mengetik */
@@ -4402,12 +4402,12 @@ const Adm = {
     if (btn) { btn.textContent = 'Tutup'; btn.dataset.act = 'ovl.tutup'; btn.classList.add('btn-primary'); }
     const st = this.idx.st;
     status.textContent = pb.ocrError ? 'Pembaca teks gagal dimuat. Periksa koneksi internet, lalu klik Periksa bukti lagi.'
-      : `${pb.batal ? 'Dihentikan. ' : 'Selesai. '}${pb.ok} bukti diperiksa${pb.gagal ? `, ${pb.gagal} gagal diunduh (dicoba lagi lain kali)` : ''}. ${st.mirip ? `${st.mirip} pendaftaran masuk kelompok bukti mirip.` : 'Tidak ada bukti mirip.'}${st.tidakTerbaca ? ` ${st.tidakTerbaca} bukti tidak terbaca otomatis — cek manual.` : ''}`;
+      : `${pb.batal ? 'Dihentikan. ' : 'Selesai. '}${pb.ok} bukti diperiksa${pb.gagal ? `, ${pb.gagal} gagal diunduh (dicoba lagi lain kali)` : ''}. ${st.mirip ? `${st.mirip} pendaftaran masuk kelompok Bukti Transfer Mirip.` : 'Tidak ada Bukti Transfer Mirip.'}${st.tidakTerbaca ? ` ${st.tidakTerbaca} bukti tidak terbaca otomatis — cek manual.` : ''}`;
   },
   async periksaBukti() {
     const d = this.s.data;
     if (d.baca == null) {
-      Overlay.modal(`<h3>Fitur bukti mirip belum aktif</h3><p class="lead">Jalankan file <b>bukti-mirip.sql</b> di Supabase → SQL Editor satu kali, lalu muat ulang halaman ini.</p><div class="actions end"><button type="button" class="btn btn-primary" data-act="ovl.tutup">Mengerti</button></div>`);
+      Overlay.modal(`<h3>Fitur Bukti Transfer Mirip belum aktif</h3><p class="lead">Jalankan file <b>bukti-mirip.sql</b> di Supabase → SQL Editor satu kali, lalu muat ulang halaman ini.</p><div class="actions end"><button type="button" class="btn btn-primary" data-act="ovl.tutup">Mengerti</button></div>`);
       return;
     }
     const jalan = this.s.pb && this.s.pb.jalan, n = jalan ? this.s.pb.n - this.s.pb.i : this.idx.belumDibaca.length;
