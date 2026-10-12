@@ -818,6 +818,7 @@ code { font-family: ui-monospace, Menlo, Consolas, monospace; font-size: .92em; 
 .jt .jt-jenis > button:hover { text-decoration: underline; }
 .jt .jt-jenis > button:focus-visible { outline: 2px solid var(--brand); outline-offset: -3px; }
 .jt .jt-jenis small { display: block; font-size: 11px; font-weight: 600; text-transform: none; letter-spacing: 0; color: var(--ink-2); }
+.jt thead th.jt-grup, .jt thead th.jt-seri, .jt thead th.jt-jenis { font-size: 11px; font-weight: 800; padding: 7px 4px; }
 .jt .jt-tot { min-width: 54px; font-weight: 800; font-size: 15px; background: var(--surface-2); }
 .jt .jt-tot small { display: block; font-weight: 600; font-size: 10.5px; color: var(--muted); }
 .jt .k { width: 38px; min-width: 38px; height: 30px; font-size: 12.5px; }
@@ -840,6 +841,31 @@ code { font-family: ui-monospace, Menlo, Consolas, monospace; font-size: .92em; 
 .jt-legend span { display: inline-flex; align-items: center; gap: 6px; }
 .jt-legend i { display: inline-block; width: 16px; height: 16px; border: 1px solid var(--line-strong); border-radius: 3px; }
 .jt-kosong { padding: 18px; text-align: center; color: var(--muted); }
+/* ---- Jadwal peserta: kolom kiri ringkas & tetap di tempat, nomor langsung terlihat ---- */
+.jt-geser { display: none; }
+.nm-pdk { display: none; }
+@media (max-width: 760px) { .jt-pub .nm-pdk { display: inline; } }
+.jt-pub { position: relative; }
+.jt-pub .jt .k.isi { font-weight: 700; }
+@media (max-width: 760px) {
+  .jt-geser { display: flex; align-items: center; justify-content: center; gap: 6px; margin: 0 0 8px; font-size: 12.5px; font-weight: 600; color: var(--muted); }
+  .jt-geser .ico { width: 14px; height: 14px; animation: jtGeser 1.6s ease-in-out infinite; }
+  .jt-geser .ico:first-child { animation-direction: reverse; }
+  @keyframes jtGeser { 0%, 100% { transform: translateX(0); } 50% { transform: translateX(3px); } }
+  .jt-pub .jt .jt-seri { min-width: 52px; width: 52px; max-width: 52px; padding: 4px 3px; }
+  .jt-pub .jt .jt-seri b { font-size: 13px; }
+  .jt-pub .jt .jt-seri span { font-size: 9.5px; white-space: normal; line-height: 1.25; }
+  .jt-pub .jt .jt-grup { width: 28px; min-width: 28px; max-width: 28px; font-size: 12px; }
+  .jt-pub .jt .jt-jenis { min-width: 74px; width: 74px; max-width: 74px; font-size: 9.5px; letter-spacing: 0; line-height: 1.2; }
+  .jt-pub .jt .jt-jenis > span { padding: 4px 4px; overflow-wrap: anywhere; }
+  .jt-pub .jt thead th, .jt-pub .jt thead th.jt-grup, .jt-pub .jt thead th.jt-seri, .jt-pub .jt thead th.jt-jenis { padding: 6px 2px; font-size: 9.5px; letter-spacing: 0; }
+  /* garis terpisah agar kolom yang menempel tidak tembus saat digeser */
+  .jt-pub .jt { border-collapse: separate; border-spacing: 0; }
+  .jt-pub .nm-pjg { display: none; }
+  .jt-pub .jt th, .jt-pub .jt td { border: 0; border-right: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+  .jt-pub .jt .jt-seri, .jt-pub .jt .jt-grup { background: var(--surface-2); }
+  .jt-pub .jt .k { width: 38px; min-width: 38px; height: 30px; font-size: 12.5px; letter-spacing: -.01em; }
+}
 .nomor-cek { display: inline-flex; align-items: center; gap: 6px; }
 .nomor-cek.ok { color: var(--good-ink); }
 .nomor-cek.bad { color: var(--bad-ink); }
@@ -2851,8 +2877,9 @@ function tabelJadwal(o) {
     });
   });
   if (!sesi.length) body = `<tr><td colspan="${KOLOM_JADWAL + 4}" class="jt-kosong">${admin ? `Belum ada seri. <button class="btn btn-xs" data-act="adm.sesiBaru" data-hari="${hari.id}">${ico('plus')} Tambah Seri I</button>` : 'Jadwal menyusul.'}</td></tr>`;
-  return `<div class="jt-wrap"><table class="jt">
-    <thead><tr><th>Seri</th><th>Grup</th><th>Jenis layangan</th>${kol.map((c) => `<th>${c}</th>`).join('')}<th>Total</th></tr></thead>
+  const pub = !admin && !o.cetak;
+  return `${pub ? `<div class="jt-geser" aria-hidden="true">${ico('arrow-l')}<span>Geser tabel untuk melihat semua nomor</span>${ico('arrow-r')}</div>` : ''}<div class="jt-wrap${pub ? ' jt-pub' : ''}"><table class="jt">
+    <thead><tr><th class="jt-seri">Seri</th><th class="jt-grup"><span class="nm-pjg">Grup</span><span class="nm-pdk" aria-hidden="true">Gr</span></th><th class="jt-jenis">Jenis</th>${kol.map((c) => `<th>${c}</th>`).join('')}<th>Total</th></tr></thead>
     <tbody>${body}</tbody></table></div>`;
 }
 /* Keterangan di bawah tabel 1 hari, lengkap dengan jumlah kotak sebenarnya */
@@ -3374,7 +3401,7 @@ const Pub = {
     };
     return `<section class="card">
       <h2 class="h2">Jadwal terbang</h2>
-      <p class="lead">Angka di kotak adalah nomor layangan yang sudah terkonfirmasi. Kotak kuning sudah terisi tetapi masih menunggu konfirmasi panitia.${ev.tampilkan_peserta ? ' Ketuk nomor untuk melihat nama sekha dan alamat.' : ''} Geser tabel ke samping untuk melihat semua kotak.</p>
+      <p class="lead">Angka di kotak adalah nomor layangan yang sudah terkonfirmasi. Kotak kuning sudah terisi tetapi masih menunggu konfirmasi panitia.${ev.tampilkan_peserta ? ' Ketuk nomor untuk melihat nama sekha dan alamat.' : ''} </p>
       ${hari.length ? hari.map((h) => `<div class="jt-hari"><div class="jt-hari-h"><h3>${esc(h.nama)}</h3>${h.tanggal ? `<span class="muted">${esc(fmtTanggal(h.tanggal))}</span>` : ''}</div>
         ${tabelJadwal({ hari: h, sesi: info.sesi || [], grup, jenis: info.jenis, kotakIsi: isi, admin: false })}
         ${legendaJadwal({ hari: h, sesi: info.sesi || [], grup, kotakIsi: isi, admin: false, tampilNomor: !grup.some((g) => (g.isi || []).some((x) => typeof x !== 'object')) })}</div>`).join('')
