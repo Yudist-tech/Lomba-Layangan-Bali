@@ -274,6 +274,22 @@ textarea.input { min-height: 88px; resize: vertical; line-height: 1.45; }
 .kv dt { color: var(--muted); font-size: 14px; }
 .kv dd { margin: 0; font-weight: 600; overflow-wrap: anywhere; }
 .kv .sub { font-weight: 500; font-size: 13px; color: var(--ink-2); }
+/* Ringkasan konfirmasi: padat, 2 kolom juga di HP */
+.ringkas { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); margin: 14px 0 0; border: 1px solid var(--line); border-radius: 14px; overflow: hidden; }
+.ringkas > div { padding: 10px 14px; border-top: 1px solid var(--line); min-width: 0; }
+.ringkas > div:nth-child(odd):not(.rk-penuh):not(.rk-atas) { border-right: 1px solid var(--line); }
+.ringkas .rk-atas, .ringkas .rk-penuh { grid-column: 1 / -1; }
+.ringkas .rk-atas { border-top: 0; display: flex; align-items: center; justify-content: space-between; gap: 12px; background: var(--surface-2); }
+.ringkas dt { font-size: 12px; color: var(--muted); font-weight: 600; margin-bottom: 1px; }
+.ringkas dd { margin: 0; font-weight: 650; overflow-wrap: anywhere; line-height: 1.35; }
+.ringkas dd small { display: block; font-weight: 500; font-size: 12.5px; color: var(--ink-2); }
+.ringkas .rk-atas .jtag { font-weight: 700; }
+.ringkas .rk-no { font-size: 22px; font-weight: 800; letter-spacing: -.01em; white-space: nowrap; font-variant-numeric: tabular-nums; }
+.ringkas .rk-no small { display: inline; font-size: 12px; font-weight: 700; color: var(--muted); margin-right: 4px; }
+.ringkas .nw { white-space: nowrap; }
+.total-ringkas { padding: 12px 16px; margin: 12px 0; }
+.total-ringkas + .check { margin-top: 0; padding: 12px 14px; }
+.total-ringkas .amt { font-size: 24px; }
 
 .actions { display: flex; gap: 10px; margin-top: 20px; flex-wrap: wrap; }
 .actions > .btn { flex: 1 1 auto; white-space: normal; text-align: center; }
@@ -728,6 +744,10 @@ button.kd-row:hover { background: var(--surface-2); }
   .st.on span { display: inline; }
   .total { flex-direction: column; align-items: flex-start; }
   .total .amt { font-size: 30px; }
+  .total-ringkas { flex-direction: row; align-items: center; }
+  .total-ringkas .amt { font-size: 22px; }
+  .aksi-konf { display: grid; grid-template-columns: auto minmax(0, 1fr); }
+  .aksi-konf > .btn { padding-left: 14px; padding-right: 14px; }
   .bank-kv { flex-direction: column; align-items: flex-start; gap: 1px; }
   .bank-kv > span { width: auto; font-size: 12.5px; }
   .tab { font-size: 13.5px; gap: 5px; }
@@ -3266,20 +3286,20 @@ const Pub = {
     return `<section class="card" aria-labelledby="judul-step">
       ${this.vStepper(2)}
       <h2 class="h2" id="judul-step" tabindex="-1">Konfirmasi data pendaftaran</h2>
-      <p class="lead">Periksa kembali. Pastikan semua data sudah benar sebelum membayar.</p>
+      <p class="lead">Periksa kembali sebelum membayar.</p>
       ${s.catatanHarga ? `<div class="note warn" role="alert">${ico('alert')}<span>${esc(s.catatanHarga)}</span></div>` : ''}
-      <dl class="kv">
-        <dt>Jenis layangan</dt><dd><span class="jtag">${jdot(j.kode, s.info.jenis)}${esc(j.nama)}</span></dd>
-        <dt>Nomor layangan</dt><dd><b>${esc(rapikanNomor(f.nomor_layangan, j) || '-')}</b></dd>
-        <dt>Seri & grup</dt><dd>${esc(this.labelGrup(x))}<div class="sub">${esc(jadwalText(x))}</div></dd>
-        <dt>Nama sekha</dt><dd>${esc(f.nama_sekha.trim())}</dd>
-        <dt>Alamat</dt><dd>${nl2br(f.alamat.trim())}</dd>
-        <dt>Nomor WhatsApp</dt><dd>${esc(fmtWA(f.no_wa))}</dd>
+      <dl class="ringkas">
+        <div class="rk-atas"><dt class="sr-only">Jenis layangan</dt><dd><span class="jtag">${jdot(j.kode, s.info.jenis)}${esc(j.nama)}</span></dd>
+          <dt class="sr-only">Nomor layangan</dt><dd class="rk-no"><small>No.</small>${esc(rapikanNomor(f.nomor_layangan, j) || '-')}</dd></div>
+        <div class="rk-penuh"><dt>Seri &amp; grup</dt><dd>${esc(this.labelGrup(x))}<small>${esc(jadwalText(x))}</small></dd></div>
+        <div><dt>Nama sekha</dt><dd>${esc(f.nama_sekha.trim())}</dd></div>
+        <div><dt>WhatsApp</dt><dd class="nw">${esc(fmtWA(f.no_wa))}</dd></div>
+        <div class="rk-penuh"><dt>Alamat</dt><dd>${nl2br(f.alamat.trim())}</dd></div>
       </dl>
-      <div class="total"><div><div class="t-l">Total yang harus dibayar</div><div class="t-s">Biaya pendaftaran 1 layangan ${esc(j.nama)}</div></div><div class="amt">${rupiah(j.harga)}</div></div>
+      <div class="total total-ringkas"><div><div class="t-l">Total bayar</div><div class="t-s">1 layangan ${esc(j.nama)}</div></div><div class="amt">${rupiah(j.harga)}</div></div>
       <label class="check ${e.setuju ? 'err' : ''}"><input type="checkbox" data-ch="pub.setuju" ${f.setuju ? 'checked' : ''}><span>Data di atas sudah benar dan saya akan mentransfer <b>${rupiah(j.harga)}</b>.</span></label>
       ${errMsg(e.setuju)}
-      <div class="actions"><button type="button" class="btn" data-act="pub.kembali">${ico('arrow-l')} Ubah data</button>
+      <div class="actions aksi-konf"><button type="button" class="btn" data-act="pub.kembali">${ico('arrow-l')} Ubah</button>
       <button type="button" class="btn btn-primary" data-act="pub.lanjutBayar">Lanjut ke pembayaran ${ico('arrow-r')}</button></div>
     </section>`;
   },
