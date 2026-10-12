@@ -561,33 +561,16 @@ details.tbl-toggle summary { cursor: pointer; font-size: 13px; color: var(--bran
 .dup-h .dup-tag { font-size: 13px; font-weight: 800; padding: 3px 9px; border-radius: 8px; }
 .dup-h small { flex-basis: 100%; color: var(--muted); }
 .dup-grup .row.head { border-top: 0; }
-.kotak-dobel { margin: 14px 0; border: 1.5px solid color-mix(in srgb, var(--warn) 55%, var(--line)); border-radius: 14px; overflow: hidden; background: var(--surface); }
-.kd-h { display: flex; gap: 10px; align-items: flex-start; padding: 12px 14px; background: var(--warn-soft); color: var(--warn-ink); font-size: 14px; }
-.kd-h .ico { margin-top: 2px; flex: none; }
-.kd-h small { display: block; margin-top: 3px; font-size: 12.5px; opacity: .9; }
-.kd-list { display: grid; }
-.kd-row { display: grid; grid-template-columns: 26px minmax(0, 1fr) auto; gap: 10px; align-items: start; padding: 11px 14px; border: 0; border-top: 1px solid var(--line); background: transparent; color: inherit; font: inherit; text-align: left; width: 100%; cursor: pointer; box-shadow: inset 4px 0 0 var(--dup); }
+.kotak-dobel { margin: 12px 0; border: 1px solid color-mix(in srgb, var(--warn) 55%, var(--line)); border-radius: 12px; overflow: hidden; background: var(--surface); font-size: 13px; }
+.kd-h { display: flex; align-items: center; gap: 8px; padding: 7px 12px; background: var(--warn-soft); color: var(--warn-ink); font-weight: 600; }
+.kd-h b { margin-left: auto; color: var(--ink); }
+.kd-row { display: grid; gap: 1px; width: 100%; padding: 6px 12px 6px 14px; border: 0; border-top: 1px solid var(--line); background: transparent; color: inherit; font: inherit; text-align: left; cursor: pointer; box-shadow: inset 3px 0 0 var(--dup); }
 button.kd-row:hover { background: var(--surface-2); }
-.kd-row.ini { background: color-mix(in srgb, var(--dup) 7%, var(--surface)); cursor: default; }
-.kd-row.tolak { opacity: .6; }
-.kd-no { width: 22px; height: 22px; border-radius: 50%; display: grid; place-items: center; font-size: 12px; font-weight: 800; background: color-mix(in srgb, var(--dup) 15%, var(--surface)); color: color-mix(in srgb, var(--dup) 80%, var(--ink)); margin-top: 1px; }
-.kd-main { display: grid; gap: 2px; min-width: 0; }
-.kd-main small { color: var(--muted); font-size: 12.5px; overflow-wrap: anywhere; }
-.kd-main small b { color: var(--ink); }
-.kd-top { display: flex; gap: 6px; align-items: center; font-size: 12.5px; color: var(--ink-2); }
-.kd-ini { font-size: 11px; font-weight: 800; padding: 0 6px; border-radius: 6px; background: var(--dup); color: #fff; }
-.kd-side { display: grid; justify-items: end; gap: 6px; }
-.kd-f { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 6px 14px; padding: 11px 14px; border-top: 1.5px dashed color-mix(in srgb, var(--warn) 55%, var(--line)); background: var(--surface-2); }
-.kd-total { display: flex; align-items: baseline; gap: 10px; }
-.kd-total span { font-size: 13px; color: var(--muted); font-weight: 700; }
-.kd-total b { font-size: 18px; }
-.kd-rinci { display: flex; flex-wrap: wrap; gap: 4px 12px; font-size: 12.5px; color: var(--muted); }
-.kd-rinci b { color: var(--ink-2); }
-.kd-top { flex-wrap: wrap; } .kd-top .mono { white-space: nowrap; }
-@media (max-width: 520px) {
-  .kd-row { grid-template-columns: 26px minmax(0, 1fr); }
-  .kd-side { grid-column: 2; display: flex; justify-content: space-between; align-items: center; }
-}
+.kd-row.ini { background: color-mix(in srgb, var(--dup) 8%, var(--surface)); cursor: default; }
+.kd-1 { display: flex; gap: 10px; align-items: baseline; min-width: 0; }
+.kd-1 b { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.kd-nomor { margin-left: auto; font-weight: 800; white-space: nowrap; }
+.kd-2 { display: flex; align-items: center; gap: 4px; color: var(--muted); font-size: 12px; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
 .flag.info { background: var(--brand-soft); color: var(--brand-soft-ink); }
 
 /* Seri (admin) */
@@ -4103,31 +4086,20 @@ const Adm = {
       </section>`;
     }).join('')}</div>`;
   },
-  // Kotak detail bukti dobel di panel detail: semua pendaftaran yang memakai bukti yang sama
+  // Kotak ringkas bukti dobel di panel detail: 2 baris per pendaftaran
   vKotakDobel(r) {
     const g = this.idx.dupGrup.get(r.id); if (!g) return '';
     const dj = this.s.data.jenis;
-    const jml = (st) => g.rows.filter((o) => o.status === st).reduce((t, o) => t + (o.harga || 0), 0);
-    const ok = jml('terkonfirmasi'), tunggu = jml('menunggu'), tolak = g.rows.filter((o) => o.status === 'ditolak').length;
-    const baris = g.rows.map((o, i) => {
-      const ini = o.id === r.id, j = this.idx.jenis.get(o.jenis), x = this.idx.seri.get(o.seri_id);
-      const tag = ini ? 'div' : 'button';
-      return `<${tag} ${ini ? 'aria-current="true"' : `type="button" data-act="adm.nav" data-id="${esc(o.id)}"`} class="kd-row${ini ? ' ini' : ''}${o.status === 'ditolak' ? ' tolak' : ''}">
-        <span class="kd-no">${i + 1}</span>
-        <span class="kd-main"><span class="kd-top"><span class="mono">${esc(o.kode)}</span>${ini ? '<span class="kd-ini">Sedang dibuka</span>' : ''}</span>
-          <b>${esc(o.nama_sekha)}</b>
-          <small><span class="jtag">${jdot(o.jenis, dj)}${esc((j && j.nama) || o.jenis)}</span> · No. <b>${esc(o.nomor_layangan || '—')}</b>${x ? ` · ${esc(x.nama)}` : ''}</small>
-          <small>Pengirim: ${esc(o.nama_rekening || '—')} · ${esc(fmtWaktu(o.created_at))}</small></span>
-        <span class="kd-side">${badgeStatus(o.status)}<b class="num">${rupiah(o.harga)}</b></span>
+    const baris = g.rows.map((o) => {
+      const ini = o.id === r.id, j = this.idx.jenis.get(o.jenis), tag = ini ? 'div' : 'button';
+      return `<${tag} ${ini ? 'aria-current="true"' : `type="button" data-act="adm.nav" data-id="${esc(o.id)}"`} class="kd-row${ini ? ' ini' : ''}" title="${esc(o.kode)}${ini ? ' (sedang dibuka)' : ''}">
+        <span class="kd-1"><b>${esc(o.nama_sekha)}</b><span class="kd-nomor">No. ${esc(o.nomor_layangan || '—')}</span></span>
+        <span class="kd-2">${jdot(o.jenis, dj)}${esc((j && j.nama) || o.jenis)} · ${esc(o.nama_rekening || '—')}</span>
       </${tag}>`;
     }).join('');
     return `<section class="kotak-dobel dw${g.warna}" aria-label="Bukti transfer yang sama">
-      <div class="kd-h">${ico('layers')}<div><span class="flag dup-tag dw${g.warna}">Bukti ${g.label}</span> <b>Bukti transfer yang sama</b><small>Dipakai ${g.n} pendaftaran — cocokkan nominal di gambar bukti dengan total di bawah.</small></div></div>
-      <div class="kd-list">${baris}</div>
-      <div class="kd-f">
-        <div class="kd-total"><span>Total gabungan</span><b class="num">${rupiah(g.total)}</b></div>
-        <div class="kd-rinci">${ok ? `<span>Terkonfirmasi <b>${rupiah(ok)}</b></span>` : ''}${tunggu ? `<span>Menunggu <b>${rupiah(tunggu)}</b></span>` : ''}${tolak ? `<span>${tolak} ditolak</span>` : ''}</div>
-      </div>
+      <div class="kd-h"><span class="flag dup-tag dw${g.warna}">Bukti ${g.label}</span><span>Bukti sama · ${g.n} pendaftaran</span><b class="num">${rupiah(g.total)}</b></div>
+      ${baris}
     </section>`;
   },
   vRow(r, asal = 'daftar') {
