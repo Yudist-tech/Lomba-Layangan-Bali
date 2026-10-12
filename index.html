@@ -846,8 +846,7 @@ code { font-family: ui-monospace, Menlo, Consolas, monospace; font-size: .92em; 
 .nm-pdk { display: none; }
 @media (max-width: 760px) { .jt-pub .nm-pdk { display: inline; } }
 .jt-pub { position: relative; }
-.jt-pub .jt .k { font-size: 13.5px; }
-.jt-pub .jt .k.isi { font-weight: 800; }
+.jt-pub .jt .k.isi { font-weight: 700; }
 @media (max-width: 760px) {
   .jt-geser { display: flex; align-items: center; justify-content: center; gap: 6px; margin: 0 0 8px; font-size: 12.5px; font-weight: 600; color: var(--muted); }
   .jt-geser .ico { width: 14px; height: 14px; animation: jtGeser 1.6s ease-in-out infinite; }
@@ -865,11 +864,7 @@ code { font-family: ui-monospace, Menlo, Consolas, monospace; font-size: .92em; 
   .jt-pub .nm-pjg { display: none; }
   .jt-pub .jt th, .jt-pub .jt td { border: 0; border-right: 1px solid var(--line); border-bottom: 1px solid var(--line); }
   .jt-pub .jt .jt-seri, .jt-pub .jt .jt-grup { background: var(--surface-2); }
-  .jt-pub .jt .k { width: 42px; min-width: 42px; height: 32px; font-size: 14px; }
-  /* bayangan di sisi kanan: tanda masih ada nomor di sebelah kanan */
-  .jt-luar { position: relative; }
-  .jt-luar::after { content: ''; position: absolute; top: 1px; right: 1px; bottom: 1px; width: 30px; border-radius: 0 11px 11px 0; pointer-events: none; background: linear-gradient(to right, transparent, color-mix(in srgb, var(--ink) 22%, transparent)); transition: opacity .2s; }
-  .jt-luar.ujung::after { opacity: 0; }
+  .jt-pub .jt .k { width: 38px; min-width: 38px; height: 30px; font-size: 12.5px; letter-spacing: -.01em; }
 }
 .nomor-cek { display: inline-flex; align-items: center; gap: 6px; }
 .nomor-cek.ok { color: var(--good-ink); }
@@ -2883,9 +2878,9 @@ function tabelJadwal(o) {
   });
   if (!sesi.length) body = `<tr><td colspan="${KOLOM_JADWAL + 4}" class="jt-kosong">${admin ? `Belum ada seri. <button class="btn btn-xs" data-act="adm.sesiBaru" data-hari="${hari.id}">${ico('plus')} Tambah Seri I</button>` : 'Jadwal menyusul.'}</td></tr>`;
   const pub = !admin && !o.cetak;
-  return `${pub ? `<div class="jt-geser" aria-hidden="true">${ico('arrow-l')}<span>Geser tabel untuk melihat semua nomor</span>${ico('arrow-r')}</div>` : ''}${pub ? '<div class="jt-luar">' : ''}<div class="jt-wrap${pub ? ' jt-pub' : ''}"${pub ? ' data-geser' : ''}><table class="jt">
+  return `${pub ? `<div class="jt-geser" aria-hidden="true">${ico('arrow-l')}<span>Geser tabel untuk melihat semua nomor</span>${ico('arrow-r')}</div>` : ''}<div class="jt-wrap${pub ? ' jt-pub' : ''}"><table class="jt">
     <thead><tr><th class="jt-seri">Seri</th><th class="jt-grup"><span class="nm-pjg">Grup</span><span class="nm-pdk" aria-hidden="true">Gr</span></th><th class="jt-jenis">Jenis</th>${kol.map((c) => `<th>${c}</th>`).join('')}<th>Total</th></tr></thead>
-    <tbody>${body}</tbody></table></div>${pub ? '</div>' : ''}`;
+    <tbody>${body}</tbody></table></div>`;
 }
 /* Keterangan di bawah tabel 1 hari, lengkap dengan jumlah kotak sebenarnya */
 function legendaJadwal(o) {
@@ -3125,7 +3120,6 @@ const Pub = {
     if (Router.aktif !== 'pub') return;
     this.s.tundaRender = false;
     $('#app').innerHTML = this.halaman();
-    document.querySelectorAll('[data-geser]').forEach(cekUjungJadwal);
   },
   fokusJudul() {
     const h = $('#judul-step');
@@ -3680,9 +3674,6 @@ document.addEventListener('pointerdown', (e) => {
   if (pop && !pop.contains(e.target) && !(e.target.closest && e.target.closest('[data-act="pub.peserta"]'))) tutupPopPeserta();
 }, true);
 document.addEventListener('scroll', posisiPopPeserta, true);
-/* tabel jadwal peserta: sembunyikan bayangan kanan bila sudah digeser sampai ujung */
-function cekUjungJadwal(el) { const luar = el.parentElement; if (luar) luar.classList.toggle('ujung', el.scrollLeft + el.clientWidth >= el.scrollWidth - 4); }
-document.addEventListener('scroll', (e) => { if (e.target && e.target.matches && e.target.matches('[data-geser]')) cekUjungJadwal(e.target); }, true);
 window.addEventListener('resize', posisiPopPeserta);
 document.addEventListener('keydown', (e) => { if (e.key === 'Escape') tutupPopPeserta(); });
 window.addEventListener('hashchange', tutupPopPeserta);
