@@ -1003,6 +1003,11 @@ fieldset.salin legend { font-weight: 700; font-size: 14px; padding: 0 6px; }
 .lp-top.has-bg h1, .lp-top.has-bg p { text-shadow: 0 1px 12px rgba(0,0,0,.35); }
 .lp-brand .brand-logo.has-img, .pz-brand .brand-logo.has-img { background: #fff; }
 .input[readonly] { background: var(--surface-2); color: var(--ink-2); cursor: not-allowed; }
+fieldset.rentang { border: 1px solid var(--line); border-radius: 12px; padding: 10px 14px 12px; margin: 0 0 14px; }
+fieldset.rentang legend { font-weight: 700; font-size: 14px; padding: 0 6px; }
+.rentang-isi { display: flex; align-items: center; gap: 10px; margin-bottom: 6px; }
+.rentang-isi .input { width: 110px; text-align: center; font-variant-numeric: tabular-nums; }
+.rentang-isi span { color: var(--muted); font-size: 14px; }
 .link-btn { background: none; border: 0; padding: 0; font: inherit; color: var(--brand); text-decoration: underline; cursor: pointer; }
 .pz-tabs { display: flex; gap: 4px; border-bottom: 1px solid var(--line); margin: -8px 0 22px; overflow-x: auto; scrollbar-width: none; }
 .pz-tabs::-webkit-scrollbar { display: none; }
@@ -1347,6 +1352,7 @@ const PESAN_ERROR = {
   EVENT_TIDAK_ADA: 'Event tidak ditemukan.',
   BELUM_MASUK: 'Silakan masuk dulu.',
   EMAIL_TIDAK_VALID: 'Email tidak valid.',
+  NOMOR_DILUAR_RENTANG: 'Nomor layangan di luar rentang yang ditentukan panitia untuk jenis ini.',
   TANGGAL_TIDAK_VALID: 'Tanggal selesai tidak boleh sebelum tanggal mulai.',
   EVENT_TIDAK_BOLEH_DIPINDAH: 'Data tidak bisa dipindah ke event lain.',
   BUKAN_ADMIN: 'Akun ini tidak punya akses ke event ini.',
@@ -1365,6 +1371,7 @@ function pesanError(e) {
   if (/kotak_uidx/i.test(msg)) return PESAN_ERROR.KUOTA_PENUH;
   if (/foreign key/i.test(msg)) return 'Data ini masih dipakai (masih ada grup atau pendaftar di dalamnya).';
   if (/lomba_seri_sesi_huruf/i.test(msg)) return 'Huruf grup itu sudah dipakai di seri ini.';
+  if (/lomba_jenis_rentang_chk/i.test(msg)) return 'Rentang nomor tidak valid. Nomor awal harus lebih kecil dari nomor akhir.';
   if (/duplicate key|unique constraint/i.test(msg)) return 'Data yang sama sudah ada.';
   if (/Failed to fetch|NetworkError|Load failed|network|fetch/i.test(msg)) return 'Koneksi internet bermasalah. Periksa sinyal lalu coba lagi.';
   if (/Invalid login credentials/i.test(msg)) return 'Email atau password salah.';
@@ -1615,8 +1622,8 @@ class DemoAPI {
      Semua fungsi lama bekerja pada this.db = data event yang sedang dibuka (pakaiEvent). */
   constructor() {
     this.mode = 'demo';
-    this.KEY = 'lomba_ml_index_v2';
-    this.KEY_EV = 'lomba_ml_event_v2_';
+    this.KEY = 'lomba_ml_index_v3';
+    this.KEY_EV = 'lomba_ml_event_v3_';
     this.KEY_SESI = 'lomba_ml_sesi_v1';
     this.subs = new Set();
     this.eventId = null;
@@ -1791,7 +1798,8 @@ class DemoAPI {
       ['bebean-big-plastik', 'Bebean Big Plastik', 75000], ['bebean-remaja', 'Bebean Remaja', 100000], ['pecukan-remaja', 'Pecukan Remaja', 100000],
       ['buntut-remaja', 'Buntut Remaja', 100000], ['janggan-remaja', 'Janggan Remaja', 125000], ['bebean-dewasa', 'Bebean Dewasa', 150000],
     ];
-    J.forEach(([kode, nama, harga], i) => db.jenis.push({ kode, nama, harga, prefix: kode.split('-').map((k) => k[0]).join('').toUpperCase().slice(0, 5) + (i + 1), urutan: i + 1, aktif: true, nomor_terakhir: 0 }));
+    J.forEach(([kode, nama, harga], i) => db.jenis.push({ kode, nama, harga, prefix: kode.split('-').map((k) => k[0]).join('').toUpperCase().slice(0, 5) + (i + 1), urutan: i + 1, aktif: true, nomor_terakhir: 0,
+      ...(kode === 'bebean-big-plastik' ? { nomor_min: 1000, nomor_max: 2200, nomor_digit: 0 } : {}) }));
     const tglH = parseTanggal(tglMinggu);
     const h = { id: db.nextHariId++, nama: tglH ? `Hari ${HARI[tglH.getDay()]}` : 'Hari Minggu', tanggal: tglMinggu, urutan: 1 };
     db.hari.push(h);
@@ -1917,10 +1925,12 @@ class DemoAPI {
         if (r.kotak == null) throw new Error('KUOTA_PENUH');
       }
     }
+    const jn = this._jenis(r.jenis);
     if (r.nomor_layangan != null) {
       r.nomor_layangan = String(r.nomor_layangan).trim().toUpperCase() || null;
-      if (r.nomor_layangan && /^\d+$/.test(r.nomor_layangan)) r.nomor_layangan = r.nomor_layangan.replace(/^0+(?=\d)/, '');
+      if (r.nomor_layangan && /^\d+$/.test(r.nomor_layangan)) r.nomor_layangan = rapikanNomor(r.nomor_layangan, jn) || r.nomor_layangan;
     }
+    if (r.nomor_layangan && /^\d+$/.test(r.nomor_layangan) && (!lama || r.jenis !== lama.jenis || normNomor(r.nomor_layangan) !== normNomor(lama.nomor_layangan)) && !dalamRentang(r.nomor_layangan, jn)) throw new Error('NOMOR_DILUAR_RENTANG');
     if (!lama || r.nomor_layangan !== lama.nomor_layangan) {
       const dg = String(r.nomor_layangan || '').replace(/\D/g, '').slice(0, 9);
       r.nomor_urut = dg ? parseInt(dg, 10) : null;
@@ -1955,7 +1965,7 @@ class DemoAPI {
       },
       hari: [...db.hari].sort(urutHari),
       sesi: [...db.sesi].sort(urutSesi),
-      jenis: [...db.jenis].sort((a, b) => a.urutan - b.urutan).map(({ kode, nama, harga, prefix, aktif }) => ({ kode, nama, harga, prefix, aktif })),
+      jenis: [...db.jenis].sort((a, b) => a.urutan - b.urutan).map(({ kode, nama, harga, prefix, aktif, nomor_min, nomor_max, nomor_digit }) => ({ kode, nama, harga, prefix, aktif, nomor_min: nomor_min ?? null, nomor_max: nomor_max ?? null, nomor_digit: nomor_digit || 0 })),
       seri: seri.map((s) => ({
         ...s,
         terisi: db.daftar.filter((d) => d.seri_id === s.id && AKTIF(d.status)).length,
@@ -2013,9 +2023,8 @@ class DemoAPI {
   }
   async cekNomor(jenis, nomor) {
     await this._jeda(120);
-    let v = String(nomor || '').trim();
-    if (!/^\d{1,6}$/.test(v)) return false;
-    v = v.replace(/^0+(?=\d)/, '');
+    const jn = this._jenis(jenis), v = rapikanNomor(nomor, jn);
+    if (!v || !dalamRentang(v, jn)) return false;
     return !this.db.daftar.some((d) => d.jenis === jenis && AKTIF(d.status) && d.nomor_layangan === v);
   }
   async tiket(kode) {
@@ -2406,8 +2415,11 @@ class DemoAPI {
   }
   async simpanJenis(kode, patch) {
     await this._jeda(150);
-    const j = this._jenis(kode);
+    const j = this._jenis(kode), dgLama = j.nomor_digit || 0;
     Object.assign(j, patch);
+    if ((j.nomor_digit || 0) !== dgLama) {   // tiruan trigger: nomor peserta jenis ini ditulis ulang dengan/tanpa nol di depan
+      this.db.daftar.forEach((d) => { if (d.jenis === kode && /^\d+$/.test(d.nomor_layangan || '')) d.nomor_layangan = rapikanNomor(d.nomor_layangan, j); });
+    }
     this._simpan();
     return this._salin(j);
   }
@@ -2550,6 +2562,32 @@ function normNomor(v) {
   const t = String(v || '').trim();
   return /^\d{1,6}$/.test(t) ? t.replace(/^0+(?=\d)/, '') : null;
 }
+/* Rentang nomor per jenis layangan: j = { nomor_min, nomor_max, nomor_digit }.
+   nomor_digit > 0 → nomor ditulis dengan nol di depan (01, 02 … bila rentang 01–200). */
+const adaRentang = (j) => !!j && j.nomor_min != null && j.nomor_max != null;
+function rapikanNomor(v, j) {
+  const n = normNomor(v);
+  if (!n) return null;
+  const dg = (j && j.nomor_digit) || 0;
+  return dg > n.length ? n.padStart(dg, '0') : n;
+}
+const dalamRentang = (nomor, j) => !adaRentang(j) || (parseInt(nomor, 10) >= j.nomor_min && parseInt(nomor, 10) <= j.nomor_max);
+function teksRentang(j) {
+  if (!adaRentang(j)) return '';
+  const p = (n) => String(n).padStart(j.nomor_digit || 0, '0');
+  return `${p(j.nomor_min)}–${p(j.nomor_max)}`;
+}
+/* baca isian "Dari" & "Sampai" panitia → { nomor_min, nomor_max, nomor_digit } (kosong = bebas) */
+function bacaRentang(dari, sampai) {
+  dari = String(dari || '').trim(); sampai = String(sampai || '').trim();
+  if (!dari && !sampai) return { nomor_min: null, nomor_max: null, nomor_digit: 0 };
+  if (!/^\d{1,6}$/.test(dari) || !/^\d{1,6}$/.test(sampai)) throw new Error('Rentang nomor harus angka, misalnya 01 sampai 200.');
+  const a = parseInt(dari, 10), b = parseInt(sampai, 10);
+  if (a > b) throw new Error('Nomor awal rentang harus lebih kecil dari nomor akhir.');
+  const dg = dari.length > 1 && dari[0] === '0' ? dari.length : 0;   // "01" → 2 digit: 01, 02 … 09, 10 … 200
+  return { nomor_min: a, nomor_max: b, nomor_digit: dg };
+}
+const isianRentang = (j) => (adaRentang(j) ? { dari: String(j.nomor_min).padStart(j.nomor_digit || 0, '0'), sampai: String(j.nomor_max) } : { dari: '', sampai: '' });
 /* Tabel jadwal 1 hari, mirip lembar jadwal panitia.
    o = { hari, sesi[], grup[], jenis[], kotakIsi(g) → Map(kotak → {nomor, status, id}), admin, tampilNomor } */
 function tabelJadwal(o) {
@@ -2761,6 +2799,14 @@ ACT['lb.zoom'] = (el) => el.closest('.lightbox').classList.toggle('zoom');
 ACT['ovl.tutup'] = () => Overlay.tutup();
 ACT['salin'] = (el) => salin(el.dataset.teks || '', el.dataset.label || 'Disalin');
 
+/* isian rentang nomor (form grup & form jenis) */
+function vIsianRentang(pre, j, namaJenis) {
+  const v = isianRentang(j);
+  return `<fieldset class="rentang" id="${pre}-rentang"><legend>Rentang nomor layangan <span class="opt-lbl">(opsional)</span></legend>
+    <div class="rentang-isi"><input class="input" id="${pre}-dari" name="nomor_dari" value="${esc(v.dari)}" inputmode="numeric" maxlength="6" aria-label="Nomor dari">
+      <span>sampai</span><input class="input" id="${pre}-sampai" name="nomor_sampai" value="${esc(v.sampai)}" inputmode="numeric" maxlength="6" aria-label="Nomor sampai"></div>
+    <span class="hint" id="${pre}-rentang-hint">Berlaku untuk semua grup ${namaJenis ? `<b>${esc(namaJenis)}</b>` : 'jenis ini'}. Tulis 01 bila nomor kecil memakai nol di depan (01, 02 …). Kosongkan bila nomor bebas.</span></fieldset>`;
+}
 /* Isi template pesan WA */
 function dataTemplate(r, seri, jenis, ev) {
   return {
@@ -2942,10 +2988,13 @@ const Pub = {
     return n ? `<span class="ok-msg">${ico('check')} Konfirmasi dikirim ke ${esc(fmtWA(n))}</span>` : 'Konfirmasi pendaftaran akan dikirim ke nomor ini lewat WhatsApp.';
   },
   hintNomor() {
-    const c = this.s.nomorCek, f = this.s.form;
+    const c = this.s.nomorCek, f = this.s.form, j = this.jenisDipilih(), r = teksRentang(j);
     if (!f.jenis) return 'Pilih jenis layangan dulu. Nomor tidak boleh sama dengan peserta lain di jenis yang sama.';
-    if (this.s.errors.nomor_layangan) return 'Angka saja, maksimal 6 digit.';
-    if (!c || c.nomor !== normNomor(f.nomor_layangan) || c.jenis !== f.jenis) return 'Angka saja, maksimal 6 digit. Nomor ini dipasang pada layangan saat lomba.';
+    const dasar = r ? `Nomor ${esc(j.nama)}: <b>${esc(r)}</b>. Nomor ini dipasang pada layangan saat lomba.` : 'Angka saja, maksimal 6 digit. Nomor ini dipasang pada layangan saat lomba.';
+    if (this.s.errors.nomor_layangan) return r ? `Nomor ${esc(j.nama)}: ${esc(r)}.` : 'Angka saja, maksimal 6 digit.';
+    const n = rapikanNomor(f.nomor_layangan, j);
+    if (n && !dalamRentang(n, j)) return `<span class="nomor-cek bad">${ico('x')} Nomor ${esc(j.nama)} harus ${esc(r)}</span>`;
+    if (!c || c.nomor !== n || c.jenis !== f.jenis) return dasar;
     if (c.memeriksa) return '<span class="nomor-cek"><span class="spinner"></span> Memeriksa nomor…</span>';
     return c.ok ? `<span class="nomor-cek ok">${ico('check')} Nomor ${esc(c.nomor)} masih tersedia</span>` : `<span class="nomor-cek bad">${ico('x')} Nomor ${esc(c.nomor)} sudah dipakai peserta lain</span>`;
   },
@@ -2984,7 +3033,7 @@ const Pub = {
       <span class="radio" aria-hidden="true"></span>
       <span class="opt-body"><span class="opt-t">${jdot(j.kode, this.s.info.jenis)}${esc(j.nama)}</span>
         <span class="opt-p">${rupiah(j.harga)}</span>
-        <span class="opt-s">${off ? '<b class="full">Kuota habis</b>' : `Sisa ${angka(sisa)} slot`}</span></span>
+        <span class="opt-s">${off ? '<b class="full">Kuota habis</b>' : `Sisa ${angka(sisa)} slot`}${adaRentang(j) ? ` · Nomor ${esc(teksRentang(j))}` : ''}</span></span>
     </label>`;
   },
   vListSeri() {
@@ -3039,7 +3088,7 @@ const Pub = {
       ${s.catatanHarga ? `<div class="note warn" role="alert">${ico('alert')}<span>${esc(s.catatanHarga)}</span></div>` : ''}
       <dl class="kv">
         <dt>Jenis layangan</dt><dd><span class="jtag">${jdot(j.kode, s.info.jenis)}${esc(j.nama)}</span></dd>
-        <dt>Nomor layangan</dt><dd><b>${esc(normNomor(f.nomor_layangan) || '-')}</b></dd>
+        <dt>Nomor layangan</dt><dd><b>${esc(rapikanNomor(f.nomor_layangan, j) || '-')}</b></dd>
         <dt>Seri & grup</dt><dd>${esc(this.labelGrup(x))}<div class="sub">${esc(jadwalText(x))}</div></dd>
         <dt>Nama sekha</dt><dd>${esc(f.nama_sekha.trim())}</dd>
         <dt>Alamat</dt><dd>${nl2br(f.alamat.trim())}</dd>
@@ -3068,7 +3117,7 @@ const Pub = {
     return `<section class="card" aria-labelledby="judul-step">
       ${this.vStepper(3)}
       <h2 class="h2" id="judul-step" tabindex="-1">Pembayaran</h2>
-      <p class="lead">Transfer <b>${rupiah(j.harga)}</b> untuk layangan ${esc(j.nama)} nomor <b>${esc(normNomor(f.nomor_layangan) || '-')}</b> · ${esc(this.labelGrup(x))}, lalu unggah bukti transfernya.</p>
+      <p class="lead">Transfer <b>${rupiah(j.harga)}</b> untuk layangan ${esc(j.nama)} nomor <b>${esc(rapikanNomor(f.nomor_layangan, j) || '-')}</b> · ${esc(this.labelGrup(x))}, lalu unggah bukti transfernya.</p>
       ${this.vKotakBank(j.harga)}
       <form data-submit="pub.kirim" novalidate style="margin-top:20px">
         ${fieldInput({ name: 'nama_rekening', label: 'Nama pemilik rekening (pengirim)', value: f.nama_rekening, placeholder: 'Nama sesuai rekening yang dipakai transfer', maxlength: 120, autocomplete: 'name', err: e.nama_rekening, data: 'data-in="pub.f"' })}
@@ -3206,6 +3255,7 @@ const Pub = {
     if (!f.seri_id) e.seri_id = f.jenis ? 'Pilih seri dan grup.' : 'Pilih jenis layangan dulu, lalu pilih seri dan grup.';
     if (!String(f.nomor_layangan || '').trim()) e.nomor_layangan = 'Isi nomor layangan.';
     else if (!normNomor(f.nomor_layangan)) e.nomor_layangan = 'Nomor layangan harus angka, maksimal 6 digit.';
+    else if (!dalamRentang(rapikanNomor(f.nomor_layangan, this.jenisDipilih()), this.jenisDipilih())) e.nomor_layangan = `Nomor ${this.jenisDipilih().nama} harus di antara ${teksRentang(this.jenisDipilih())}.`;
     if (f.nama_sekha.trim().length < 2) e.nama_sekha = 'Isi nama sekha.';
     if (f.alamat.trim().length < 3) e.alamat = 'Isi alamat sekha.';
     if (!f.no_wa.trim()) e.no_wa = 'Isi nomor WhatsApp.';
@@ -3226,7 +3276,7 @@ const Pub = {
       s.errors = { seri_id: 'Grup ini baru saja penuh atau ditutup. Silakan pilih grup lain.' };
       this.render(); this.fokusError(); return;
     }
-    const nomor = normNomor(s.form.nomor_layangan);
+    const nomor = rapikanNomor(s.form.nomor_layangan, this.jenisDipilih());
     let tersedia = true;
     try { tersedia = await api.cekNomor(s.form.jenis, nomor); } catch (err) { /* dicek ulang saat menyimpan */ }
     s.nomorCek = { jenis: s.form.jenis, nomor, ok: tersedia };
@@ -3271,10 +3321,10 @@ const Pub = {
       const hasil = await api.daftar({
         jenis: f.jenis, seri_id: f.seri_id, nama_sekha: f.nama_sekha.trim(), alamat: f.alamat.trim(), no_wa: f.no_wa,
         nama_rekening: f.nama_rekening.trim(), bukti_path: path, bukti_hash: hash, client_ref: s.ref, harga: hargaDilihat,
-        nomor_layangan: normNomor(f.nomor_layangan),
+        nomor_layangan: rapikanNomor(f.nomor_layangan, this.jenisDipilih()),
       });
       s.catatanHarga = null;
-      s.hasil = { ...hasil, jenis: hasil.jenis || f.jenis, seri_id: hasil.seri_id || f.seri_id, nama_sekha: hasil.nama_sekha || f.nama_sekha.trim(), no_wa: hasil.no_wa || normWA(f.no_wa), nomor_layangan: hasil.nomor_layangan || normNomor(f.nomor_layangan) };
+      s.hasil = { ...hasil, jenis: hasil.jenis || f.jenis, seri_id: hasil.seri_id || f.seri_id, nama_sekha: hasil.nama_sekha || f.nama_sekha.trim(), no_wa: hasil.no_wa || normWA(f.no_wa), nomor_layangan: hasil.nomor_layangan || rapikanNomor(f.nomor_layangan, this.jenisDipilih()) };
       s.lastSekha = { nama_sekha: f.nama_sekha, alamat: f.alamat, no_wa: f.no_wa, nama_rekening: f.nama_rekening };
       s.cekWa = f.no_wa;
       s.step = 4; s.sending = false; s.ref = null; s.errors = {};
@@ -3400,6 +3450,7 @@ document.addEventListener('keydown', (e) => { if (e.key === 'Escape') tutupPopPe
 window.addEventListener('hashchange', tutupPopPeserta);
 IN['pub.nomor'] = (el) => {
   Pub.s.form.nomor_layangan = el.value; Pub.s.ref = null;
+  Pub.tampilHintNomor();
   if (Pub.s.errors.nomor_layangan && normNomor(el.value)) {
     delete Pub.s.errors.nomor_layangan;
     const w = $('#wrap-nomor_layangan'); if (w) { w.classList.remove('err'); const m = w.querySelector('.err-msg'); if (m) m.remove(); }
@@ -3410,13 +3461,13 @@ IN['pub.nomor'] = (el) => {
 };
 Pub.tampilHintNomor = () => { const h = $('#f-nomor_layangan-hint'); if (h) h.innerHTML = Pub.hintNomor(); };
 Pub.periksaNomor = debounce(async () => {
-  const s = Pub.s, f = s.form, nomor = normNomor(f.nomor_layangan);
-  if (!nomor || !f.jenis) { s.nomorCek = null; Pub.tampilHintNomor(); return; }
+  const s = Pub.s, f = s.form, j = Pub.jenisDipilih(), nomor = rapikanNomor(f.nomor_layangan, j);
+  if (!nomor || !f.jenis || !dalamRentang(nomor, j)) { s.nomorCek = null; Pub.tampilHintNomor(); return; }
   s.nomorCek = { jenis: f.jenis, nomor, memeriksa: true };
   Pub.tampilHintNomor();
   try {
     const ok = await api.cekNomor(f.jenis, nomor);
-    if (normNomor(f.nomor_layangan) === nomor && f.jenis === s.nomorCek.jenis) s.nomorCek = { jenis: f.jenis, nomor, ok };
+    if (rapikanNomor(f.nomor_layangan, Pub.jenisDipilih()) === nomor && f.jenis === s.nomorCek.jenis) s.nomorCek = { jenis: f.jenis, nomor, ok };
   } catch (e) { s.nomorCek = null; }
   Pub.tampilHintNomor();
 }, 450);
@@ -4248,7 +4299,7 @@ const Adm = {
     const siapTampil = j.aktif && c.seriAktif > 0;
     return `<div class="sa-card ${j.aktif ? '' : 'nonaktif'}">
       <div class="sa-top"><div style="min-width:0"><b class="jk-nama">${jdot(j.kode, d.jenis)}${esc(j.nama)}</b>
-          <div class="sc-when"><span>${rupiah(j.harga)}</span></div></div>
+          <div class="sc-when"><span>${rupiah(j.harga)}</span>${adaRentang(j) ? `<span>Nomor ${esc(teksRentang(j))}</span>` : ''}</div></div>
         <label class="switch" title="${j.aktif ? 'Jenis dibuka' : 'Jenis ditutup'}"><input type="checkbox" ${j.aktif ? 'checked' : ''} data-ch="adm.jenisAktif" data-kode="${esc(j.kode)}"><span class="sw"></span><span class="sr-only">Jenis ${esc(j.nama)} dibuka</span></label></div>
       <div class="sa-stat"><div><b>${c.terkonfirmasi}</b><span>Konfirmasi</span></div><div><b>${c.menunggu}</b><span>Menunggu</span></div><div><b>${c.seriAktif}/${c.seri}</b><span>Grup dibuka</span></div></div>
       <div class="hint">Kuota ${c.kuota} kotak${siapTampil ? '' : ` · <span class="jk-warn">${j.aktif ? 'belum ada grup dibuka di jadwal — belum tampil di formulir' : 'ditutup, tidak tampil di formulir'}</span>`}</div>
@@ -4268,6 +4319,7 @@ const Adm = {
         <div class="field"><label class="label" for="jn-harga">Harga</label>${inputRupiah('jn-harga', j.harga)}</div>
         <div class="field"><label class="label" for="jn-urut">Urutan tampil</label><input class="input" type="number" inputmode="numeric" min="0" max="999" id="jn-urut" name="urutan" value="${esc(j.urutan)}"></div>
       </div>
+      ${vIsianRentang('jn', j, j.nama)}
       <label class="switch"><input type="checkbox" name="aktif" ${j.aktif ? 'checked' : ''}><span class="sw"></span>Jenis ini dibuka untuk pendaftaran</label>
       <div class="actions end"><button type="button" class="btn" data-act="ovl.tutup">Batal</button><button type="submit" class="btn btn-primary">Simpan</button></div>
     </form>`);
@@ -4351,6 +4403,7 @@ const Adm = {
         <datalist id="g-jenis-list">${d.jenis.map((y) => `<option value="${esc(y.nama)}">`).join('')}</datalist>
         <span class="hint" id="g-jenis-hint">${adaPeserta ? 'Terkunci: grup ini sudah punya pendaftar.' : 'Pilih dari daftar atau ketik jenis baru.'}</span></div>
       <div class="field" id="g-harga-wrap" hidden><label class="label" for="g-harga">Harga jenis baru</label>${inputRupiah('g-harga', '')}<span class="hint">Jenis baru akan dibuat. Harga bisa diubah nanti di menu Jenis Layangan.</span></div>
+      ${vIsianRentang('g', j, j ? j.nama : '')}
       <div class="g2">
         <div class="field"><label class="label" for="g-huruf">Grup</label><input class="input" id="g-huruf" name="huruf" value="${esc(v.huruf)}" maxlength="3" style="text-transform:uppercase"></div>
         <div class="field"><label class="label" for="g-kotak">Jumlah kotak</label><input class="input" type="number" inputmode="numeric" min="1" max="200" id="g-kotak" name="kotak" value="${esc(v.kotak)}"><span class="hint">${KOLOM_JADWAL} kotak per baris. Kotak ditutup: ${g && g.tutup.length ? g.tutup.join(', ') : 'tidak ada'}</span></div>
@@ -4897,8 +4950,10 @@ SUB['adm.simpanPendaftaran'] = async (form) => {
   const no = v('nomor_layangan');
   if (!no) { if (!r || r.nomor_layangan) return toast('Isi nomor layangan.', 'bad'); }
   else {
-    const n = normNomor(no) || (r && no.toUpperCase() === r.nomor_layangan ? r.nomor_layangan : null);
+    const jn = Adm.idx.jenis.get(data.jenis);
+    const n = rapikanNomor(no, jn) || (r && no.toUpperCase() === r.nomor_layangan ? r.nomor_layangan : null);
     if (!n) return toast('Nomor layangan harus angka, maksimal 6 digit.', 'bad');
+    if (/^\d+$/.test(n) && !dalamRentang(n, jn) && (!r || n !== r.nomor_layangan || data.jenis !== r.jenis)) return toast(`Nomor ${jn.nama} harus di antara ${teksRentang(jn)}.`, 'bad', 5000);
     if (!r || n !== r.nomor_layangan) data.nomor_layangan = n;
   }
   if (!r) data.status = form.querySelector('input[name=status]:checked').value;
@@ -4943,14 +4998,17 @@ CH['adm.jenisAktif'] = async (el) => {
 SUB['adm.simpanJenis'] = async (form) => {
   const kode = form.dataset.kode, d = Adm.s.data, v = (n) => String(form[n].value).trim();
   const isi = { nama: v('nama'), harga: angkaRupiah(v('harga')), urutan: v('urutan') === '' ? 0 : Number(v('urutan')), aktif: form.aktif.checked };
+  try { Object.assign(isi, bacaRentang(v('nomor_dari'), v('nomor_sampai'))); } catch (e) { return toast(e.message, 'bad', 5000); }
   if (!isi.nama) return toast('Isi nama jenis layangan.', 'bad');
   if (!Number.isInteger(isi.harga) || isi.harga < 0) return toast('Harga harus berupa angka (Rp).', 'bad');
   if (!Number.isInteger(isi.urutan) || isi.urutan < 0 || isi.urutan > 999) return toast('Urutan harus angka 0–999.', 'bad');
   if (d.jenis.some((j) => j.kode !== kode && j.nama.toLowerCase() === isi.nama.toLowerCase())) return toast(`Nama "${isi.nama}" sudah ada.`, 'bad');
   await sibuk(form.querySelector('[type=submit]'), async () => {
     try {
+      const lamaDg = (Adm.idx.jenis.get(kode) || {}).nomor_digit || 0;
       const hasil = await api.simpanJenis(kode, isi);
       Adm.tandaiUbah(); Object.assign(Adm.idx.jenis.get(kode), hasil);
+      if ((hasil.nomor_digit || 0) !== lamaDg) Adm.muat({ diam: true });   // nomor peserta lama ikut dirapikan
       d.jenis.sort((a, b) => a.urutan - b.urutan || a.nama.localeCompare(b.nama));
       Adm.indeks(); Overlay.tutupYangBerisi(form); Adm.segarkanTampilan();
       toast('Jenis layangan diperbarui', 'good');
@@ -5046,6 +5104,10 @@ IN['adm.grupJenis'] = (el) => {
   const baru = !!el.value.trim() && !ada;
   if (wrap) wrap.hidden = !baru;
   if (hint) hint.innerHTML = baru ? `<b>${esc(el.value.trim())}</b> belum ada — akan dibuat sebagai jenis baru.` : ada ? `Harga ${esc(ada.nama)}: ${rupiah(ada.harga)}` : 'Pilih dari daftar atau ketik jenis baru.';
+  // rentang nomor ikut jenis yang dipilih
+  const f = el.form, v = isianRentang(ada), rh = $('#g-rentang-hint');
+  if (f && f.nomor_dari && f.dataset.jenisTerakhir !== (ada ? ada.kode : '')) { f.nomor_dari.value = v.dari; f.nomor_sampai.value = v.sampai; f.dataset.jenisTerakhir = ada ? ada.kode : ''; }
+  if (rh) rh.innerHTML = `Berlaku untuk semua grup ${el.value.trim() ? `<b>${esc(el.value.trim())}</b>` : 'jenis ini'}. Tulis 01 bila nomor kecil memakai nol di depan (01, 02 …). Kosongkan bila nomor bebas.`;
 };
 SUB['adm.simpanGrup'] = async (form) => {
   const id = Number(form.dataset.id) || null, sesi_id = Number(form.dataset.sesi), lama = id ? Adm.idx.seri.get(id) : null, d = Adm.s.data;
@@ -5056,6 +5118,8 @@ SUB['adm.simpanGrup'] = async (form) => {
   if (!/^[A-Z0-9]{1,3}$/.test(isi.huruf)) return toast('Grup diisi huruf, misalnya A atau B.', 'bad');
   if (!Number.isInteger(isi.kotak) || isi.kotak < 1 || isi.kotak > 200) return toast('Jumlah kotak harus 1–200.', 'bad');
   if (d.seri.some((g) => g.sesi_id === sesi_id && g.id !== id && g.huruf === isi.huruf)) return toast(`Grup ${isi.huruf} sudah ada di seri ini.`, 'bad');
+  let rentang;
+  try { rentang = bacaRentang(v('nomor_dari'), v('nomor_sampai')); } catch (e) { $('#g-dari') && $('#g-dari').focus(); return toast(e.message, 'bad', 5000); }
   let jenis = namaJenis ? cariJenisNama(namaJenis) : null;
   let hargaBaru = null;
   if (namaJenis && !jenis) {
@@ -5072,9 +5136,18 @@ SUB['adm.simpanGrup'] = async (form) => {
       if (namaJenis && !jenis) {
         let kode = slugJenis(namaJenis) || 'jenis';
         for (let i = 2; d.jenis.some((j) => j.kode === kode); i++) kode = (slugJenis(namaJenis) || 'jenis').slice(0, 26) + '-' + i;
-        jenis = await api.tambahJenis({ kode, nama: namaJenis, harga: hargaBaru, prefix: awalanJenis(namaJenis, new Set(d.jenis.map((j) => j.prefix))), urutan: d.jenis.reduce((m, x) => Math.max(m, x.urutan || 0), 0) + 1, aktif: true });
+        jenis = await api.tambahJenis({ kode, nama: namaJenis, harga: hargaBaru, prefix: awalanJenis(namaJenis, new Set(d.jenis.map((j) => j.prefix))), urutan: d.jenis.reduce((m, x) => Math.max(m, x.urutan || 0), 0) + 1, aktif: true, ...rentang });
         d.jenis.push(jenis);
         Adm.tandaiUbah(); Adm.indeks();
+      } else {
+        const jn = jenis || (lama && Adm.idx.jenis.get(lama.jenis));
+        const beda = jn && ((jn.nomor_min ?? null) !== rentang.nomor_min || (jn.nomor_max ?? null) !== rentang.nomor_max || (jn.nomor_digit || 0) !== rentang.nomor_digit);
+        if (beda) {
+          const dgLama = jn.nomor_digit || 0;
+          const hasilJ = await api.simpanJenis(jn.kode, rentang);
+          Object.assign(jn, hasilJ); Adm.tandaiUbah(); Adm.indeks();
+          if ((hasilJ.nomor_digit || 0) !== dgLama) Adm.muat({ diam: true });   // nomor peserta lama ikut dirapikan
+        }
       }
       const data = { ...isi, sesi_id };
       if (jenis) data.jenis = jenis.kode;
