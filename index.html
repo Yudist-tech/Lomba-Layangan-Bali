@@ -550,6 +550,27 @@ details.tbl-toggle summary { cursor: pointer; font-size: 13px; color: var(--bran
 .c-meta { display: none; }
 .flags { display: flex; gap: 5px; flex-wrap: wrap; }
 .flag { font-size: 11px; font-weight: 800; padding: 1px 7px; border-radius: 6px; background: var(--bad-soft); color: var(--bad-ink); white-space: nowrap; }
+/* Kelompok bukti dobel: warna per kelompok */
+.dw0 { --dup: #d6336c; } .dw1 { --dup: #1c7ed6; } .dw2 { --dup: #7048e8; } .dw3 { --dup: #0c8599; } .dw4 { --dup: #e8590c; } .dw5 { --dup: #5c940d; }
+.dup-tag { display: inline-flex; align-items: center; gap: 4px; background: color-mix(in srgb, var(--dup) 14%, var(--surface)); color: color-mix(in srgb, var(--dup) 82%, var(--ink)); border: 1px solid color-mix(in srgb, var(--dup) 35%, transparent); }
+.dup-tag svg { width: 12px; height: 12px; }
+.row.dup { box-shadow: inset 4px 0 0 var(--dup); }
+.dup-list { display: grid; gap: 16px; }
+.dup-grup { border-color: color-mix(in srgb, var(--dup) 40%, var(--line)); }
+.dup-h { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; padding: 11px 16px; font-size: 13.5px; color: var(--ink-2); background: color-mix(in srgb, var(--dup) 8%, var(--surface)); border-bottom: 1px solid color-mix(in srgb, var(--dup) 25%, var(--line)); }
+.dup-h .dup-tag { font-size: 13px; font-weight: 800; padding: 3px 9px; border-radius: 8px; }
+.dup-h small { flex-basis: 100%; color: var(--muted); }
+.dup-grup .row.head { border-top: 0; }
+.kotak-dobel { margin: 12px 0; border: 1px solid color-mix(in srgb, var(--warn) 55%, var(--line)); border-radius: 12px; overflow: hidden; background: var(--surface); font-size: 13px; }
+.kd-h { display: flex; align-items: center; gap: 8px; padding: 7px 12px; background: var(--warn-soft); color: var(--warn-ink); font-weight: 600; }
+.kd-h b { margin-left: auto; color: var(--ink); }
+.kd-row { display: grid; gap: 1px; width: 100%; padding: 6px 12px 6px 14px; border: 0; border-top: 1px solid var(--line); background: transparent; color: inherit; font: inherit; text-align: left; cursor: pointer; box-shadow: inset 3px 0 0 var(--dup); }
+button.kd-row:hover { background: var(--surface-2); }
+.kd-row.ini { background: color-mix(in srgb, var(--dup) 8%, var(--surface)); cursor: default; }
+.kd-1 { display: flex; gap: 10px; align-items: baseline; min-width: 0; }
+.kd-1 b { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.kd-nomor { margin-left: auto; font-weight: 800; white-space: nowrap; }
+.kd-2 { display: flex; align-items: center; gap: 4px; color: var(--muted); font-size: 12px; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
 .flag.info { background: var(--brand-soft); color: var(--brand-soft-ink); }
 
 /* Seri (admin) */
@@ -651,6 +672,7 @@ details.tbl-toggle summary { cursor: pointer; font-size: 13px; color: var(--bran
   .grid2, .set-grid { grid-template-columns: minmax(0, 1fr); }
   .row { grid-template-columns: minmax(0, 1fr) auto; grid-template-areas: "st wa" "sekha no" "meta meta"; gap: 4px 12px; padding: 12px 14px; }
   .row.head { display: none; }
+  .dup-grup .row.head + .row { border-top: 0; }
   .c-st { grid-area: st; flex-direction: row; align-items: center; gap: 8px; }
   .c-sekha { grid-area: sekha; }
   .c-no { grid-area: no; justify-self: end; align-self: start; }
@@ -1872,6 +1894,9 @@ class DemoAPI {
     // 2 pendaftaran memakai bukti transfer yang sama (contoh deteksi bukti dobel)
     const dua = rows.filter((r) => r.status === 'menunggu').slice(0, 2);
     if (dua.length === 2) { dua[1].nama_sekha = dua[0].nama_sekha; dua[1].no_wa = dua[0].no_wa; dua[1].alamat = dua[0].alamat; dua[0].bukti_hash = dua[1].bukti_hash = 'contoh-hash-sama'; }
+    // kelompok kedua: 3 pendaftaran (1 terkonfirmasi + 2 menunggu) dari sekha yang sama
+    const tiga = [rows.find((r) => r.status === 'terkonfirmasi'), ...rows.filter((r) => r.status === 'menunggu').slice(2, 4)].filter(Boolean);
+    if (tiga.length === 3) tiga.forEach((r) => { r.nama_sekha = tiga[0].nama_sekha; r.no_wa = tiga[0].no_wa; r.alamat = tiga[0].alamat; r.bukti_hash = 'contoh-hash-sama-2'; });
     db.daftar = rows.reverse();
   }
   _kode(rows) {
@@ -2558,6 +2583,8 @@ function hurufBerikut(list) {
 }
 const jamSesi = (x) => (x && x.jam_mulai ? fmtJam(x.jam_mulai) + (x.jam_selesai ? '–' + fmtJam(x.jam_selesai) : '') : 'Jam menyusul');
 /* Nomor layangan milik peserta: angka 1–6 digit, nol di depan dibuang */
+const WARNA_DUP = 6;
+const hurufGrup = (i) => { let t = ''; i++; while (i > 0) { i--; t = String.fromCharCode(65 + (i % 26)) + t; i = Math.floor(i / 26); } return t; };
 function normNomor(v) {
   const t = String(v || '').trim();
   return /^\d{1,6}$/.test(t) ? t.replace(/^0+(?=\d)/, '') : null;
@@ -3635,8 +3662,15 @@ const Adm = {
       if (r.bukti_hash) { if (!hash.has(r.bukti_hash)) hash.set(r.bukti_hash, []); hash.get(r.bukti_hash).push(r); }
       perWA.set(r.no_wa, (perWA.get(r.no_wa) || 0) + 1);
     }
-    const dupIds = new Set();
-    for (const rows of hash.values()) if (rows.length > 1) rows.forEach((r) => dupIds.add(r.id));
+    const dupIds = new Set(), dupGrup = new Map();
+    // Kelompok bukti dobel: label huruf (A, B, …) + warna, urut dari pendaftaran paling awal agar stabil
+    [...hash.values()].filter((rows) => rows.length > 1)
+      .map((rows) => rows.slice().sort((a, b) => a.created_at.localeCompare(b.created_at)))
+      .sort((a, b) => a[0].created_at.localeCompare(b[0].created_at))
+      .forEach((rows, i) => {
+        const g = { label: hurufGrup(i), warna: i % WARNA_DUP, n: rows.length, total: rows.reduce((t, r) => t + (r.harga || 0), 0), rows, hash: rows[0].bukti_hash };
+        rows.forEach((r) => { dupIds.add(r.id); dupGrup.set(r.id, g); });
+      });
     st.dupMenunggu = d.daftar.filter((r) => r.status === 'menunggu' && dupIds.has(r.id)).length;
     d.hari = (d.hari || []).sort(urutHari); d.sesi = (d.sesi || []).sort(urutSesi);
     const hari = new Map(d.hari.map((h) => [h.id, h])), sesi = new Map(d.sesi.map((x) => [x.id, x]));
@@ -3646,7 +3680,7 @@ const Adm = {
       if (!kotak.has(r.seri_id)) kotak.set(r.seri_id, new Map());
       kotak.get(r.seri_id).set(r.kotak, { id: r.id, nomor: r.nomor_layangan, status: r.status });
     }
-    this.idx = { jenis, seri, perSeri, hash, perWA, st, dupIds, hari, sesi, kotak };
+    this.idx = { jenis, seri, perSeri, hash, perWA, st, dupIds, dupGrup, hari, sesi, kotak };
   },
   baris(id) { return this.s.data && this.s.data.daftar.find((r) => r.id === id); },
   namaJenis(kode) { const j = this.idx && this.idx.jenis.get(kode); return j ? j.nama : kode; },
@@ -4030,10 +4064,43 @@ const Adm = {
     const info = `<div class="res-info"><span>Menampilkan <b>${rows.length}</b> dari ${total}</span>${adaFilter ? `<button class="btn btn-xs btn-ghost" data-act="adm.fReset">${ico('x')} Reset filter</button>` : ''}${nTunggu > 1 ? `<button class="btn btn-xs btn-ghost" data-act="adm.tolakMassal" style="${adaFilter ? 'margin-left:0' : ''}">${ico('layers')} Tolak massal…</button>` : ''}</div>`;
     if (!rows.length) return info + `<div class="rows"><div class="empty">${total ? 'Tidak ada pendaftaran yang cocok dengan filter.' : 'Belum ada pendaftaran masuk.'}</div></div>`;
     const tampil = rows.slice(0, this.s.batas);
-    return info + `<div class="rows">
-      <div class="row head" aria-hidden="true"><span>Status · kode</span><span>Sekha</span><span>Jenis</span><span>Seri</span><span>Nomor</span><span class="c-harga">Biaya</span><span></span></div>
-      ${tampil.map((r) => this.vRow(r)).join('')}
-    </div>${rows.length > tampil.length ? `<div class="actions"><button class="btn" data-act="adm.lebih">Tampilkan lebih banyak (${rows.length - tampil.length} lagi)</button></div>` : ''}`;
+    const kepala = `<div class="row head" aria-hidden="true"><span>Status · kode</span><span>Sekha</span><span>Jenis</span><span>Seri</span><span>Nomor</span><span class="c-harga">Biaya</span><span></span></div>`;
+    const isi = f.dup ? this.vGrupDobel(tampil, kepala) : `<div class="rows">${kepala}${tampil.map((r) => this.vRow(r)).join('')}</div>`;
+    return info + `${isi}${rows.length > tampil.length ? `<div class="actions"><button class="btn" data-act="adm.lebih">Tampilkan lebih banyak (${rows.length - tampil.length} lagi)</button></div>` : ''}`;
+  },
+  // Filter "Bukti dobel": tiap kelompok bukti yang sama jadi satu kotak terpisah dengan judul & warna sendiri
+  vGrupDobel(rows, kepala) {
+    const urutan = [], per = new Map();
+    for (const r of rows) {
+      const g = this.idx.dupGrup.get(r.id); if (!g) continue;
+      if (!per.has(g)) { per.set(g, []); urutan.push(g); }
+      per.get(g).push(r);
+    }
+    return `<div class="dup-list">${urutan.map((g) => {
+      const isi = per.get(g), nTunggu = g.rows.filter((r) => r.status === 'menunggu').length, sembunyi = g.n - isi.length;
+      return `<section class="rows dup-grup dw${g.warna}" aria-label="Bukti ${g.label}">
+        <div class="dup-h"><span class="dup-tag dw${g.warna}">${ico('layers')}Bukti ${g.label}</span>
+          <span>${g.n} pendaftaran memakai bukti transfer yang sama · total <b>${rupiah(g.total)}</b>${nTunggu ? ` · <b>${nTunggu} menunggu</b>` : ''}</span>
+          ${sembunyi > 0 ? `<small>${sembunyi} lainnya tidak tampil karena filter</small>` : ''}</div>
+        ${kepala}${isi.map((r) => this.vRow(r)).join('')}
+      </section>`;
+    }).join('')}</div>`;
+  },
+  // Kotak ringkas bukti dobel di panel detail: 2 baris per pendaftaran
+  vKotakDobel(r) {
+    const g = this.idx.dupGrup.get(r.id); if (!g) return '';
+    const dj = this.s.data.jenis;
+    const baris = g.rows.map((o) => {
+      const ini = o.id === r.id, j = this.idx.jenis.get(o.jenis), tag = ini ? 'div' : 'button';
+      return `<${tag} ${ini ? 'aria-current="true"' : `type="button" data-act="adm.nav" data-id="${esc(o.id)}"`} class="kd-row${ini ? ' ini' : ''}" title="${esc(o.kode)}${ini ? ' (sedang dibuka)' : ''}">
+        <span class="kd-1"><b>${esc(o.nama_sekha)}</b><span class="kd-nomor">No. ${esc(o.nomor_layangan || '—')}</span></span>
+        <span class="kd-2">${jdot(o.jenis, dj)}${esc((j && j.nama) || o.jenis)} · ${esc(o.nama_rekening || '—')}</span>
+      </${tag}>`;
+    }).join('');
+    return `<section class="kotak-dobel dw${g.warna}" aria-label="Bukti transfer yang sama">
+      <div class="kd-h"><span class="flag dup-tag dw${g.warna}">Bukti ${g.label}</span><span>Bukti sama · ${g.n} pendaftaran</span><b class="num">${rupiah(g.total)}</b></div>
+      ${baris}
+    </section>`;
   },
   vRow(r, asal = 'daftar') {
     const x = this.idx.seri.get(r.seri_id), j = this.idx.jenis.get(r.jenis), dj = this.s.data.jenis;
@@ -4041,9 +4108,10 @@ const Adm = {
     if (r.status === 'terkonfirmasi') wa = r.wa_terkirim_at ? ['sent', 'WA konfirmasi sudah dikirim', 'check'] : ['need', 'WA konfirmasi belum dikirim', 'chat'];
     else if (r.status === 'ditolak' && r.wa_terkirim_at) wa = ['sent', 'WA penolakan sudah dikirim', 'check'];
     const flags = [];
-    if (this.idx.dupIds.has(r.id)) flags.push('<span class="flag">Bukti dobel</span>');
+    const g = this.idx.dupGrup.get(r.id);
+    if (g) flags.push(`<span class="flag dup-tag dw${g.warna}" title="Bukti transfer sama dengan ${g.n - 1} pendaftaran lain">${ico('layers')}Bukti ${g.label}</span>`);
     if (!r.bukti_path) flags.push('<span class="flag info">Manual</span>');
-    return `<div class="row" role="button" tabindex="0" data-act="adm.buka" data-id="${esc(r.id)}" data-asal="${asal}">
+    return `<div class="row${g ? ` dup dw${g.warna}` : ''}" role="button" tabindex="0" data-act="adm.buka" data-id="${esc(r.id)}" data-asal="${asal}">
       <span class="c-st">${badgeStatus(r.status)}<span class="kd">${esc(r.kode)}</span></span>
       <span class="c-sekha"><b>${esc(r.nama_sekha)}</b><span>${esc(r.alamat)}</span>${flags.length ? `<span class="flags">${flags.join('')}</span>` : ''}</span>
       <span class="c-jenis"><span class="jtag">${jdot(r.jenis, dj)}${esc((j && j.nama) || r.jenis)}</span></span>
@@ -4104,7 +4172,7 @@ const Adm = {
         ${r.status === 'ditolak' ? `<div class="note bad">${ico('x')}<span><b>Ditolak:</b> ${esc(r.alasan_tolak || '-')}</span></div>` : ''}
         <div class="sect"><h4>Pembayaran</h4>
           <div class="total" style="margin:0 0 10px"><div><div class="t-l">Tagihan ${esc((j && j.nama) || '')}</div><div class="t-s">Pengirim: <b>${esc(r.nama_rekening)}</b></div></div><div class="amt">${rupiah(r.harga)}</div></div>
-          ${dup.length ? `<div class="note warn">${ico('layers')}<span><b>Bukti transfer yang sama</b> juga dipakai ${dup.map((o) => `<a href="#" data-act="adm.nav" data-id="${esc(o.id)}">${esc(o.kode)}</a> (${esc(o.nama_sekha)}, ${rupiah(o.harga)}, ${STATUS[o.status].label.toLowerCase()})`).join(', ')}. Total gabungan <b>${rupiah(r.harga + dup.reduce((a, o) => a + o.harga, 0))}</b> — pastikan nominal transfer cukup.</span></div>` : ''}
+          ${dup.length ? this.vKotakDobel(r) : ''}
           ${r.bukti_path ? `<div class="bukti-box" id="bukti-box"><div class="empty"><span class="spinner" style="margin:0 auto"></span></div></div><div class="bukti-tools" id="bukti-tools"></div>` : `<div class="empty-sm">${ico('file')} Tanpa bukti transfer — pendaftaran manual oleh panitia.</div>`}
         </div>
         <div class="sect"><h4>Data pendaftaran</h4>
