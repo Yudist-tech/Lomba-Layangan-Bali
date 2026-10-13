@@ -181,14 +181,14 @@ Simpan, buka lagi di browser. Banner kuning **MODE DEMO** hilang = sudah tersamb
 
 Pasang sekali: jalankan **`login-id.sql`** di SQL Editor (hasil 3 ✅).
 
-1. Super admin → Ruang panitia → kartu event → **Atur** → bagian **Tambah panitia dengan ID** → ketik ID (mis. `sanurkaja01`) → **Buat ID**.
+1. Super admin → Ruang panitia → kartu event → **Atur** → bagian **Tambah panitia baru** → ketik **nama lengkap** (mis. `I Made Sudarma`) → **Buat ID**. Sistem membuat ID 5 huruf dari nama + 3 angka acak, mis. `madsu482` (3 huruf nama depan + 2 huruf nama belakang; awalan I/Ni dilewati). Butuh **`login-nama.sql`** (jalankan sekali setelah `login-id.sql`, hasil 3 ✅).
 2. Muncul ID + password acak. Tekan **Kirim lewat WA** atau **Salin**. Password hanya ditampilkan sekali.
 3. Panitia membuka `…/#panitia`, isi kolom **Email atau ID** dengan ID-nya, lalu password.
 
 - ID: huruf kecil, angka, titik, strip, garis bawah; 3–30 karakter; huruf besar otomatis jadi kecil.
 - Ganti password sendiri → tombol **Ganti password** (ikon gembok) di ruang panitia atau di sidebar dashboard event → isi password lama + password baru.
 - Lupa password → super admin → tab **Admin event** (atau Atur event) → **Reset password** → password baru tampil untuk dikirim.
-- ID yang sudah ada bisa ditambahkan ke event lain dengan **Buat ID** lagi; password lamanya tetap.
+- ID yang sudah ada bisa ditambahkan ke event lain lewat **Tambahkan ID yang sudah ada** di jendela Atur event; password lamanya tetap.
 - **Super admin juga mau login dengan ID?** Buka `super-admin-id.sql`, ganti ID, password, dan email super admin Anda, lalu Run sekali di SQL Editor. Login email super admin tetap berlaku.
 - Akun email lama tetap bisa login seperti biasa. Di balik layar ID disimpan sebagai `<id>@id.panitia.lomba` (tidak pernah dikirimi email).
 
