@@ -3,7 +3,7 @@
 -- Jalankan SETELAH login-id.sql. Aman dijalankan ulang (idempotent).
 --
 -- Super admin cukup mengetik nama lengkap panitia; sistem membuat ID
--- 5 huruf dari nama + 3 angka acak, mis. "I Made Sudarma" → madsu482.
+-- 5 huruf dari setiap kata nama + 3 angka acak, mis. "I Made Darma Wiguna Artha" → Mdwia587.
 -- Nama lengkap disimpan supaya tampil di daftar admin & di dashboard.
 -- =====================================================================
 
@@ -15,7 +15,9 @@ create table if not exists public.lomba_panitia (
 alter table public.lomba_panitia enable row level security;
 revoke all on table public.lomba_panitia from anon, authenticated;
 
--- 5 huruf dari nama: 3 huruf nama depan + 2 huruf nama belakang (awalan I / Ni dilewati)
+-- 5 huruf dari nama, sesuai urutan nama: huruf awal SETIAP kata (awalan I / Ni dilewati);
+-- bila kata < 5, sisanya huruf acak dari dalam nama (urutan tetap). Contoh:
+-- "I Made Darma Wiguna Artha" → m d w (i) a → mdwia
 create or replace function public.lomba_huruf_nama(p_nama text)
 returns text
 language plpgsql
@@ -24,30 +26,63 @@ set search_path = public
 as $$
 declare
   w     text[];
+  n     int;
+  idx   int[];
   hasil text;
-  semua text;
 begin
   w := array_remove(regexp_split_to_array(lower(regexp_replace(translate(coalesce(p_nama, ''),
          'ÁÀÂÄÃÉÈÊËÍÌÎÏÓÒÔÖÕÚÙÛÜáàâäãéèêëíìîïóòôöõúùûü', 'AAAAAEEEEIIIIOOOOOUUUUaaaaaeeeeiiiiooooouuuu'),
          '[^A-Za-z ]', ' ', 'g')), '\s+'), '');
-  if array_length(w, 1) > 1 and w[1] in ('i', 'ni') then
+  n := coalesce(array_length(w, 1), 0);
+  if n > 1 and w[1] in ('i', 'ni') then
     w := w[2:];
+    n := n - 1;
   end if;
-  semua := array_to_string(w, '');
-  if coalesce(array_length(w, 1), 0) = 0 then
+  if n = 0 then
     hasil := '';
-  elsif array_length(w, 1) = 1 then
-    hasil := left(w[1], 5);
   else
-    hasil := left(w[1], 3) || left(w[array_length(w, 1)], 2);
-    if length(hasil) < 5 then
-      hasil := left(hasil || substr(semua, length(hasil) + 1), 5);
+    -- kata yang dipakai: semua (≤ 5 kata), atau kata pertama + 3 kata tengah acak + kata terakhir
+    if n <= 5 then
+      idx := array(select generate_series(1, n));
+    else
+      idx := array[1] || array(select i from (select i from generate_series(2, n - 1) i order by random() limit 3) x order by i) || array[n];
     end if;
+    with kata as (
+      select u.urut, w[u.k] as t from unnest(idx) with ordinality as u(k, urut)
+    ), awal as (
+      select urut, 1 as pos from kata
+    ), tambah as (
+      select urut, pos from kata, generate_series(2, length(t)) as pos
+       order by random() limit greatest(0, 5 - (select count(*) from kata))
+    )
+    select string_agg(substr(k.t, x.pos, 1), '' order by x.urut, x.pos) into hasil
+      from (select * from awal union all select * from tambah) x join kata k on k.urut = x.urut;
   end if;
+  hasil := coalesce(hasil, '');
   while length(hasil) < 5 loop
     hasil := hasil || chr(97 + floor(random() * 26)::int);
   end loop;
-  return hasil;
+  return left(hasil, 5);
+end;
+$$;
+
+-- 3 angka acak tanpa pola mudah (000, 111, 123, 321, …)
+create or replace function public.lomba_angka_acak()
+returns text
+language plpgsql
+volatile
+set search_path = public
+as $$
+declare
+  a text;
+begin
+  loop
+    a := lpad(floor(random() * 1000)::int::text, 3, '0');
+    exit when not (substr(a, 1, 1) = substr(a, 2, 1) and substr(a, 2, 1) = substr(a, 3, 1))
+          and a not in ('012', '123', '234', '345', '456', '567', '678', '789', '890',
+                        '098', '987', '876', '765', '654', '543', '432', '321', '210');
+  end loop;
+  return a;
 end;
 $$;
 
@@ -69,10 +104,10 @@ begin
   if length(v_nama) < 3 or v_nama !~ '[A-Za-z]' then
     raise exception 'NAMA_TIDAK_VALID';
   end if;
-  v_huruf := public.lomba_huruf_nama(v_nama);
   loop
     v_coba := v_coba + 1;
-    v_id := v_huruf || lpad(floor(random() * 1000)::int::text, 3, '0');
+    v_huruf := public.lomba_huruf_nama(v_nama);
+    v_id := v_huruf || public.lomba_angka_acak();
     exit when not exists (select 1 from auth.users where lower(email) = public.lomba_email_id(v_id));
     if v_coba > 200 then
       raise exception 'ID_PENUH';
@@ -121,6 +156,7 @@ end;
 $$;
 
 revoke all on function public.lomba_huruf_nama(text) from public, anon, authenticated;
+revoke all on function public.lomba_angka_acak() from public, anon, authenticated;
 revoke all on function public.lomba_buat_akun_nama(bigint, text, text) from public, anon;
 revoke all on function public.lomba_nama_panitia() from public, anon;
 revoke all on function public.lomba_ubah_nama_panitia(text, text) from public, anon;
@@ -135,5 +171,5 @@ union all
 select '✅ Buat ID dari nama siap'
 where exists (select 1 from pg_proc where proname = 'lomba_buat_akun_nama')
 union all
-select '✅ Contoh: "I Made Sudarma" → ' || public.lomba_huruf_nama('I Made Sudarma') || '123'
+select '✅ Contoh: "I Made Darma Wiguna Artha" → ' || initcap(public.lomba_huruf_nama('I Made Darma Wiguna Artha')) || public.lomba_angka_acak()
 where exists (select 1 from pg_proc where proname = 'lomba_huruf_nama');

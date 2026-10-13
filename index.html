@@ -1536,16 +1536,34 @@ function toast(pesan, jenis = 'info', ms = 3200) {
 /* Akun panitia dengan ID: di Supabase disimpan sebagai <id>@id.panitia.lomba (tidak pernah dikirimi email) */
 const ID_DOMAIN = '@id.panitia.lomba';
 const akunId = (e) => String(e || '').toLowerCase().endsWith(ID_DOMAIN);
-const namaAkun = (e) => (akunId(e) ? String(e).slice(0, -ID_DOMAIN.length) : String(e || ''));
+const kapital = (t) => (t ? t[0].toUpperCase() + t.slice(1) : t);
+const namaAkun = (e) => (akunId(e) ? kapital(String(e).slice(0, -ID_DOMAIN.length).toLowerCase()) : String(e || ''));
 const emailLogin = (v) => { v = String(v || '').trim().toLowerCase(); return v && !v.includes('@') ? v + ID_DOMAIN : v; };
-/* 5 huruf dari nama lengkap: 3 huruf nama depan + 2 huruf nama belakang (awalan I / Ni dilewati) — sama dengan lomba_huruf_nama di SQL */
+/* 5 huruf dari nama, sesuai urutan nama: huruf awal SETIAP kata (awalan I / Ni dilewati);
+   bila kata < 5, sisanya huruf acak dari dalam nama (urutan tetap) — sama dengan lomba_huruf_nama di SQL.
+   "I Made Darma Wiguna Artha" → m d w (i) a → mdwia */
 function hurufNama(nama) {
   let w = String(nama || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z ]/g, ' ').split(/\s+/).filter(Boolean);
   if (w.length > 1 && (w[0] === 'i' || w[0] === 'ni')) w = w.slice(1);
-  let h = !w.length ? '' : w.length === 1 ? w[0].slice(0, 5) : w[0].slice(0, 3) + w[w.length - 1].slice(0, 2);
-  if (h.length < 5) h = (h + w.join('').slice(h.length)).slice(0, 5);
+  const acak = (arr) => arr.map((x) => [Math.random(), x]).sort((a, b) => a[0] - b[0]).map((x) => x[1]);
+  let kata = w;
+  if (w.length > 5) {
+    const tengah = acak(w.slice(1, -1).map((t, i) => i + 1)).slice(0, 3).sort((a, b) => a - b);
+    kata = [w[0], ...tengah.map((i) => w[i]), w[w.length - 1]];
+  }
+  let pilih = kata.map((t, k) => [k, 0]);
+  const kurang = 5 - pilih.length;
+  if (kurang > 0) pilih = pilih.concat(acak(kata.flatMap((t, k) => [...t].slice(1).map((c, p) => [k, p + 1]))).slice(0, kurang));
+  let h = pilih.sort((a, b) => a[0] - b[0] || a[1] - b[1]).map(([k, p]) => kata[k][p]).join('');
   while (h.length < 5) h += String.fromCharCode(97 + Math.floor(Math.random() * 26));
-  return h;
+  return h.slice(0, 5);
+}
+/* 3 angka acak tanpa pola mudah (000, 111, 123, 321, …) */
+function angkaAcak() {
+  const pola = ['012', '123', '234', '345', '456', '567', '678', '789', '890', '098', '987', '876', '765', '654', '543', '432', '321', '210'];
+  let a;
+  do { a = String(Math.floor(Math.random() * 1000)).padStart(3, '0'); } while ((a[0] === a[1] && a[1] === a[2]) || pola.includes(a));
+  return a;
 }
 /* nama lengkap panitia (bila ada) untuk sebuah akun */
 const namaLengkap = (email) => ((Pusat.s && Pusat.s.nama) || {})[String(email || '').toLowerCase()] || '';
@@ -2495,9 +2513,9 @@ class DemoAPI {
     this._wajibSuper();
     nama = String(nama || '').trim().replace(/\s+/g, ' ');
     if (nama.length < 3 || !/[a-z]/i.test(nama)) throw new Error('NAMA_TIDAK_VALID');
-    const huruf = hurufNama(nama), sandi = this.ix.sandi || (this.ix.sandi = {});
+    const sandi = this.ix.sandi || (this.ix.sandi = {});
     let akun, n = 0;
-    do { akun = huruf + String(Math.floor(Math.random() * 1000)).padStart(3, '0'); if (++n > 200) throw new Error('ID_PENUH'); } while (sandi[akun + ID_DOMAIN]);
+    do { akun = hurufNama(nama) + angkaAcak(); if (++n > 200) throw new Error('ID_PENUH'); } while (sandi[akun + ID_DOMAIN]);
     const r = await this.buatAkunId(id, akun, password);
     (this.ix.namaPanitia || (this.ix.namaPanitia = {}))[r.email] = nama;
     const p = this.ix.pengguna.find((x) => x.email === r.email); if (p) p.nama = nama;
@@ -5576,7 +5594,7 @@ SUB['adm.simpanPendaftaran'] = async (form) => {
 };
 
 /* jenis layangan */
-const slugJenis = (s) => String(s || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 30);
+const slugJenis = (s) => String(s || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 30);
 function awalanJenis(nama, terpakai) {
   const huruf = String(nama || '').toUpperCase().replace(/[^A-Z0-9 ]/g, '').trim();
   if (!huruf) return 'J';
@@ -6234,12 +6252,12 @@ const Pusat = {
       : '<p class="hint" style="margin:0">Belum ada admin. Hanya super admin yang bisa membuka dashboard event ini.</p>'}</div>
       <div class="ae-cara"><b>Tambah panitia baru</b> <span class="hint">— ketik nama lengkapnya; ID &amp; password dibuat otomatis lalu dikirim lewat WA.</span></div>
       <div class="ae-tambah"><label class="sr-only" for="ae-nama">Nama lengkap panitia</label>
-        <input class="input input-sm" type="text" id="ae-nama" placeholder="Nama lengkap, mis. I Made Sudarma" autocomplete="off" maxlength="80" data-in="pusat.pratinjauId" data-enter="pusat.buatNama" data-id="${e.id}">
+        <input class="input input-sm" type="text" id="ae-nama" placeholder="Nama lengkap, mis. I Made Darma Wiguna Artha" autocomplete="off" maxlength="80" data-in="pusat.pratinjauId" data-enter="pusat.buatNama" data-id="${e.id}">
         <button type="button" class="btn btn-sm btn-primary" data-act="pusat.buatNama" data-id="${e.id}">${ico('plus')} Buat ID</button></div>
       <p class="hint ae-pratinjau" id="ae-pratinjau" aria-live="polite"></p>
       <details class="ae-lain"><summary>Tambahkan ID yang sudah ada</summary>
         <div class="ae-tambah"><label class="sr-only" for="ae-id">ID yang sudah ada</label>
-          <input class="input input-sm" type="text" id="ae-id" placeholder="ID, mis. madsu482" autocomplete="off" autocapitalize="none" spellcheck="false" maxlength="30" data-enter="pusat.buatId" data-id="${e.id}">
+          <input class="input input-sm" type="text" id="ae-id" placeholder="ID, mis. Mdwia587" autocomplete="off" autocapitalize="none" spellcheck="false" maxlength="30" data-enter="pusat.buatId" data-id="${e.id}">
           <button type="button" class="btn btn-sm" data-act="pusat.buatId" data-id="${e.id}">${ico('plus')} Tambahkan</button></div></details>
       <div class="ae-cara"><b>Atau dengan email</b> <span class="hint">— panitia menerima email undangan untuk membuat password.</span></div>
       <div class="ae-tambah"><label class="sr-only" for="ae-baru">Email admin baru</label>
@@ -6516,7 +6534,8 @@ ACT['pusat.tambahAkses'] = async (el) => {
 };
 /* tampilkan ID + password untuk diberikan ke panitia (hanya sekali) */
 function tampilKredensial(judul, akun, password, nama) {
-  nama = nama || namaLengkap(akun + ID_DOMAIN);
+  nama = nama || namaLengkap(String(akun).toLowerCase() + ID_DOMAIN);
+  akun = kapital(String(akun).toLowerCase());
   const alamat = location.origin + location.pathname + '#panitia';
   const teks = `Akun panitia lomba layangan${nama ? `\nNama: ${nama}` : ''}\nMasuk di: ${alamat}\nID: ${akun}\nPassword: ${password}`;
   Overlay.modal(`<h3>${esc(judul)}</h3>
@@ -6534,7 +6553,7 @@ function tampilKredensial(judul, akun, password, nama) {
 ACT['pusat.salinKred'] = (el) => salin(el.dataset.teks, 'ID & password disalin');
 IN['pusat.pratinjauId'] = (el) => {
   const p = $('#ae-pratinjau'), v = el.value.trim();
-  if (p) p.innerHTML = v.length >= 3 && /[a-z]/i.test(v) ? `ID akan berbentuk <b class="mono">${esc(hurufNama(v))}</b> + 3 angka acak, mis. <b class="mono">${esc(hurufNama(v))}482</b>` : '';
+  if (p) p.innerHTML = v.length >= 3 && /[a-z]/i.test(v) ? `ID diambil dari huruf setiap kata nama + 3 angka acak, contoh: <b class="mono">${esc(kapital(hurufNama(v)) + angkaAcak())}</b>` : '';
 };
 ACT['pusat.buatNama'] = (el) => sibuk(el, async () => {
   const inp = $('#ae-nama'), nama = inp ? inp.value.trim() : '';
@@ -6542,7 +6561,7 @@ ACT['pusat.buatNama'] = (el) => sibuk(el, async () => {
   const pw = passwordAcak();
   try {
     const r = await api.buatAkunNama(Number(el.dataset.id), nama, pw);
-    await aksesBerubah(`ID ${r.id} dibuat untuk ${r.nama}`);
+    await aksesBerubah(`ID ${kapital(r.id)} dibuat untuk ${r.nama}`);
     tampilKredensial('Akun panitia siap', r.id, pw, r.nama);
   } catch (e) { toast(pesanError(e), 'bad', 7000); }
 });
