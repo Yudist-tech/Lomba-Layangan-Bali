@@ -1623,7 +1623,7 @@ function pesanError(e) {
   if (/Failed to fetch|NetworkError|Load failed|network|fetch/i.test(msg)) return 'Koneksi internet bermasalah. Periksa sinyal lalu coba lagi.';
   if (/lomba_buat_akun_nama|lomba_nama_panitia|lomba_ubah_nama_panitia/i.test(msg)) return 'Fitur ID dari nama belum aktif: jalankan login-nama.sql di Supabase → SQL Editor.';
   if (/lomba_buat_akun_id|lomba_reset_password_id/i.test(msg)) return 'Fitur login ID belum aktif: jalankan login-id.sql di Supabase → SQL Editor.';
-  if (/Invalid login credentials/i.test(msg)) return 'Email/ID atau password salah.';
+  if (/Invalid login credentials/i.test(msg)) return 'ID atau password salah.';
   if (/reauthenticat|nonce/i.test(msg)) return 'Supabase meminta verifikasi ulang lewat email. Matikan "Secure password change" di Supabase → Authentication → Providers → Email, atau minta super admin reset password.';
   if (/should be different|same.*password/i.test(msg)) return 'Password baru harus berbeda dari password lama.';
   if (/Email not confirmed/i.test(msg)) return 'Email admin belum dikonfirmasi di Supabase.';
@@ -4136,10 +4136,10 @@ const Adm = {
     return `${demoBar()}<div class="login-wrap"><div class="card login">
       ${logoMerek()}
       <h2 class="h2">Masuk dashboard panitia</h2>
-      <p class="lead">${api.mode === 'demo' ? 'Mode demo: pilih akun contoh di bawah, atau isi email dan password apa saja.' : 'Gunakan akun admin yang dibuat di Supabase.'}</p>
+      <p class="lead">${api.mode === 'demo' ? 'Mode demo: pilih akun contoh di bawah, atau masuk dengan ID contoh.' : 'Masuk dengan ID dan password yang diberikan super admin.'}</p>
       ${api.mode === 'demo' ? akunDemo('adm.cepat') : ''}
       <form data-submit="adm.login" novalidate>
-        ${fieldInput({ name: 'email', label: 'Email atau ID', type: 'text', value: s.loginEmail != null ? s.loginEmail : bacaLokal('lomba_admin_email', ''), autocomplete: 'username', placeholder: 'email@contoh.com atau ID panitia' })}
+        ${fieldInput({ name: 'email', label: 'ID', type: 'text', value: s.loginEmail != null ? s.loginEmail : bacaLokal('lomba_admin_email', ''), autocomplete: 'username', placeholder: 'ID panitia' })}
         ${fieldInput({ name: 'password', label: 'Password', type: 'password', value: '', autocomplete: 'current-password' })}
         ${s.loginErr ? `<div class="note bad" role="alert">${ico('alert')}<span>${esc(s.loginErr)}</span></div>` : ''}
         <button class="btn btn-primary btn-block btn-lg" type="submit" ${s.loginBusy ? 'disabled' : ''}>${s.loginBusy ? '<span class="spinner"></span> Memeriksa…' : `${ico('lock')} Masuk`}</button>
@@ -5380,7 +5380,7 @@ async function sibuk(el, fn) {
 SUB['adm.login'] = async (form) => {
   const s = Adm.s, email = form.email.value.trim(), pw = form.password.value;
   s.loginEmail = email;
-  if (!email || !pw) { s.loginErr = 'Isi email/ID dan password.'; Adm.render(); return; }
+  if (!email || !pw) { s.loginErr = 'Isi ID dan password.'; Adm.render(); return; }
   s.loginBusy = true; s.loginErr = null; Adm.render();
   try {
     s.sesi = await api.login(email, pw);
@@ -6257,12 +6257,9 @@ const Pusat = {
       <p class="hint ae-pratinjau" id="ae-pratinjau" aria-live="polite"></p>
       <details class="ae-lain"><summary>Tambahkan ID yang sudah ada</summary>
         <div class="ae-tambah"><label class="sr-only" for="ae-id">ID yang sudah ada</label>
-          <input class="input input-sm" type="text" id="ae-id" placeholder="ID, mis. Mdwia587" autocomplete="off" autocapitalize="none" spellcheck="false" maxlength="30" data-enter="pusat.buatId" data-id="${e.id}">
+          <input class="input input-sm" type="text" id="ae-id" placeholder="ID panitia" autocomplete="off" autocapitalize="none" spellcheck="false" maxlength="30" data-enter="pusat.buatId" data-id="${e.id}">
           <button type="button" class="btn btn-sm" data-act="pusat.buatId" data-id="${e.id}">${ico('plus')} Tambahkan</button></div></details>
-      <div class="ae-cara"><b>Atau dengan email</b> <span class="hint">— panitia menerima email undangan untuk membuat password.</span></div>
-      <div class="ae-tambah"><label class="sr-only" for="ae-baru">Email admin baru</label>
-        <input class="input input-sm" type="email" id="ae-baru" placeholder="Email admin baru" autocomplete="off" spellcheck="false" data-enter="pusat.tambahAkses" data-id="${e.id}">
-        <button type="button" class="btn btn-sm" data-act="pusat.tambahAkses" data-id="${e.id}">${ico('plus')} Tambah</button></div>`;
+`;
   },
   segarkanAksesEvent() {
     const box = $('#ae-box');
@@ -6312,12 +6309,13 @@ const Pusat = {
       <p class="lead">Super admin mengelola semua event. Panitia hanya melihat event yang ditugaskan kepadanya.</p>
       ${api.mode === 'demo' ? akunDemo('pusat.cepat') : ''}${api.mode === 'demo' ? '<p class="hint" style="margin:-4px 0 14px">Coba login dengan ID: <b class="mono">sanur01</b> · password <b class="mono">layangan123</b></p>' : ''}
       <form data-submit="pusat.login" novalidate>
-        ${fieldInput({ id: 'pz-email', name: 'email', label: 'Email atau ID', type: 'text', value: s.loginEmail != null ? s.loginEmail : bacaLokal('lomba_admin_email', ''), autocomplete: 'username', placeholder: 'email@contoh.com atau ID panitia' })}
+        ${fieldInput({ id: 'pz-email', name: 'email', label: 'ID', type: 'text', value: s.loginEmail != null ? s.loginEmail : bacaLokal('lomba_admin_email', ''), autocomplete: 'username', placeholder: 'ID panitia' })}
         ${fieldInput({ id: 'pz-pw', name: 'password', label: 'Password', type: 'password', value: '', autocomplete: 'current-password' })}
         ${s.loginErr ? `<div class="note bad" role="alert">${ico('alert')}<span>${esc(s.loginErr)}</span></div>` : ''}
         <button class="btn btn-primary btn-block btn-lg" type="submit" ${s.loginBusy ? 'disabled' : ''}>${s.loginBusy ? '<span class="spinner"></span> Memeriksa…' : `${ico('lock')} Masuk`}</button>
       </form>
-      <p class="hint" style="margin:14px 0 0;text-align:center">Belum punya atau lupa password? <button type="button" class="link-btn" data-act="pusat.linkMasuk">Kirim link masuk ke email</button></p>
+      <p class="hint" style="margin:14px 0 0;text-align:center">Lupa password? Minta super admin mereset password Anda.</p>
+      <p class="hint" style="margin:6px 0 0;text-align:center;font-size:12px">Super admin: <button type="button" class="link-btn" data-act="pusat.linkMasuk">kirim link masuk ke email</button></p>
       <p class="hint" style="margin:10px 0 0;text-align:center"><a href="#">← Kembali ke semua event</a></p>
     </div></div>`;
   },
@@ -6388,9 +6386,7 @@ const Pusat = {
       </div>
       <div class="field"><label class="label" for="ev-lok">Lokasi</label><input class="input" id="ev-lok" name="lokasi" maxlength="160"></div>
       <div class="field"><label class="label" for="ev-org">Penyelenggara</label><input class="input" id="ev-org" name="penyelenggara" maxlength="120"></div>
-      <div class="field"><label class="label" for="ev-pan">Email panitia <span class="opt-lbl">(opsional)</span></label>
-        <textarea class="input" id="ev-pan" name="panitia" rows="3" spellcheck="false"></textarea>
-        <span class="hint">Satu email per baris. Panitia ini hanya bisa membuka dashboard event ini.</span></div>
+      <p class="hint" style="margin:0">Panitia ditambahkan setelah event dibuat: kartu event → <b>Atur</b> → <b>Tambah panitia baru</b> (cukup nama lengkap).</p>
       ${list.length ? `<fieldset class="salin"><legend>Salin dari event lain <span class="opt-lbl">(opsional)</span></legend>
         <select class="input" name="salin_dari" data-ch="pusat.salinDari"><option value="">Tidak menyalin</option>${list.map((e) => `<option value="${e.id}">${esc(e.nama_event)} (${esc(rentangEvent(e, true))})</option>`).join('')}</select>
         <div class="salin-opsi" hidden>
@@ -6438,7 +6434,7 @@ async function masukPusat(email, pw) {
 SUB['pusat.login'] = (form) => {
   const email = form.email.value.trim(), pw = form.password.value;
   Pusat.s.loginEmail = email;
-  if (!email || !pw) { Pusat.s.loginErr = 'Isi email/ID dan password.'; Pusat.render(); return; }
+  if (!email || !pw) { Pusat.s.loginErr = 'Isi ID dan password.'; Pusat.render(); return; }
   masukPusat(email, pw);
 };
 ACT['pusat.cepat'] = (el) => masukPusat(el.dataset.email, 'demo');
@@ -6473,7 +6469,7 @@ SUB['pusat.buat'] = async (form) => {
     try {
       const e = await api.buatEvent({
         nama_event: v('nama_event'), slug: v('slug') || slugEvent(v('nama_event')), tanggal_mulai: mulai, tanggal_selesai: akhir,
-        lokasi: v('lokasi'), penyelenggara: v('penyelenggara'), panitia: emailDariTeks(v('panitia')), tampil: form.tampil.checked,
+        lokasi: v('lokasi'), penyelenggara: v('penyelenggara'), panitia: [], tampil: form.tampil.checked,
         salin_dari: v('salin_dari') || null,
         salin: { jenis: form.s_jenis && form.s_jenis.checked, bank: form.s_bank && form.s_bank.checked, pesan: form.s_pesan && form.s_pesan.checked, tampilan: form.s_tampilan && form.s_tampilan.checked },
       });
@@ -6603,7 +6599,7 @@ ACT['pusat.undang'] = (el) => sibuk(el, async () => {
 ACT['pusat.linkMasuk'] = async () => {
   const f = $('#pz-email'), email = f ? f.value.trim() : '';
   if (email && !email.includes('@')) return toast('Akun ID tidak memakai email. Minta super admin mereset password Anda.', 'info', 7000);
-  if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) { if (f) f.focus(); return toast('Isi email Anda dulu di kolom Email atau ID.', 'bad'); }
+  if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) { if (f) f.focus(); return toast('Super admin: ketik email Anda di kolom ID dulu, lalu tekan link ini lagi.', 'bad', 6000); }
   try { await api.kirimLinkMasuk(email); toast(`Link masuk dikirim ke ${email}. Buka email itu lalu klik linknya.`, 'good', 8000); }
   catch (e) { toast(pesanError(e), 'bad', 6000); }
 };
