@@ -187,6 +187,7 @@ Pasang sekali: jalankan **`login-id.sql`** di SQL Editor (hasil 3 ✅).
 
 - ID: huruf kecil, angka, titik, strip, garis bawah; 3–30 karakter; huruf besar otomatis jadi kecil.
 - Ganti password sendiri → tombol **Ganti password** (ikon gembok) di ruang panitia atau di sidebar dashboard event → isi password lama + password baru.
+- **Hapus akun** (ikon tempat sampah di Atur event, atau tombol di tab Admin event) → ID, password, nama & semua akses dihapus permanen; ID itu tidak bisa login lagi. Data pendaftaran tetap aman. Butuh **`hapus-akun.sql`** (jalankan sekali). Untuk orang yang sama, buat ID baru lewat **Tambah panitia baru**. Akun super admin & akun Anda sendiri tidak bisa dihapus.
 - Lupa password → super admin → tab **Admin event** (atau Atur event) → **Reset password** → password baru tampil untuk dikirim.
 - ID yang sudah ada bisa ditambahkan ke event lain lewat **Tambahkan ID yang sudah ada** di jendela Atur event; password lamanya tetap.
 - **Super admin juga mau login dengan ID?** Buka `super-admin-id.sql`, ganti ID, password, dan email super admin Anda, lalu Run sekali di SQL Editor. Login email super admin tetap berlaku.
