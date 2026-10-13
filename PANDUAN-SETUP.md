@@ -189,6 +189,7 @@ Pasang sekali: jalankan **`login-id.sql`** di SQL Editor (hasil 3 ✅).
 - Ganti password sendiri → tombol **Ganti password** (ikon gembok) di ruang panitia atau di sidebar dashboard event → isi password lama + password baru.
 - Lupa password → super admin → tab **Admin event** (atau Atur event) → **Reset password** → password baru tampil untuk dikirim.
 - ID yang sudah ada bisa ditambahkan ke event lain dengan **Buat ID** lagi; password lamanya tetap.
+- **Super admin juga mau login dengan ID?** Buka `super-admin-id.sql`, ganti ID, password, dan email super admin Anda, lalu Run sekali di SQL Editor. Login email super admin tetap berlaku.
 - Akun email lama tetap bisa login seperti biasa. Di balik layar ID disimpan sebagai `<id>@id.panitia.lomba` (tidak pernah dikirimi email).
 
 ## Bukti Transfer Sama & Bukti Transfer Mirip
