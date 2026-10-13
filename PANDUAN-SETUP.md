@@ -177,6 +177,19 @@ Simpan, buka lagi di browser. Banner kuning **MODE DEMO** hilang = sudah tersamb
 7. Hari-H → Jadwal Terbang → **Cetak** (tabel per hari) atau klik nama jenis → **Cetak daftar** (daftar peserta per grup + kolom hadir). Rekap lengkap → Pendaftaran → **Excel**.
 8. Cari bukti yang dipakai ulang → Pendaftaran → **Periksa bukti** (lihat bagian di bawah).
 
+## Login panitia dengan ID (tanpa email)
+
+Pasang sekali: jalankan **`login-id.sql`** di SQL Editor (hasil 3 ✅).
+
+1. Super admin → Ruang panitia → kartu event → **Atur** → bagian **Tambah panitia dengan ID** → ketik ID (mis. `sanurkaja01`) → **Buat ID**.
+2. Muncul ID + password acak. Tekan **Kirim lewat WA** atau **Salin**. Password hanya ditampilkan sekali.
+3. Panitia membuka `…/#panitia`, isi kolom **Email atau ID** dengan ID-nya, lalu password.
+
+- ID: huruf kecil, angka, titik, strip, garis bawah; 3–30 karakter; huruf besar otomatis jadi kecil.
+- Lupa password → super admin → tab **Admin event** (atau Atur event) → **Reset password** → password baru tampil untuk dikirim.
+- ID yang sudah ada bisa ditambahkan ke event lain dengan **Buat ID** lagi; password lamanya tetap.
+- Akun email lama tetap bisa login seperti biasa. Di balik layar ID disimpan sebagai `<id>@id.panitia.lomba` (tidak pernah dikirimi email).
+
 ## Bukti Transfer Sama & Bukti Transfer Mirip
 
 - **Bukti Transfer Sama** (otomatis): file gambar yang diunggah **persis sama** di lebih dari 1 pendaftaran. Dikelompokkan *Bukti A, Bukti B, …* dengan warna sendiri. Yang dibandingkan hanya file gambarnya — nama sekha, jenis, atau biaya tidak berpengaruh. Dobel belum tentu curang: satu transfer bisa memang untuk beberapa layangan, jadi cek apakah nominal di bukti cukup untuk total tagihan kelompok.

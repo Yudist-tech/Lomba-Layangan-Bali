@@ -1132,6 +1132,15 @@ fieldset.rentang legend { font-weight: 700; font-size: 14px; padding: 0 6px; }
 .ae-row .ak-av { width: 28px; height: 28px; font-size: 12.5px; }
 .ae-tambah { display: flex; gap: 6px; margin-top: 8px; }
 .ae-tambah .input { flex: 1; min-width: 0; }
+.ae-cara { margin-top: 14px; font-size: 13.5px; }
+.ae-cara .hint { font-size: 12.5px; }
+.ak-av.id { border-radius: 8px; font-size: 11px; letter-spacing: .04em; background: var(--accent-soft, var(--warn-soft)); color: var(--ink); }
+.kred { display: grid; gap: 0; margin: 12px 0 4px; border: 1px solid var(--line); border-radius: 12px; overflow: hidden; }
+.kred > div { padding: 10px 14px; border-top: 1px solid var(--line); }
+.kred > div:first-child { border-top: 0; }
+.kred dt { font-size: 12px; color: var(--muted); font-weight: 600; }
+.kred dd { margin: 2px 0 0; font-weight: 650; overflow-wrap: anywhere; }
+.kred dd.big { font-size: 20px; font-weight: 800; letter-spacing: .02em; }
 .situs-prev { border-radius: 14px; padding: 16px 18px 22px; color: #fff; background: linear-gradient(165deg, #0a3a6d 0%, #0e5aa7 52%, #3b93d6 100%); background-size: cover; background-position: center; display: flex; flex-direction: column; gap: 8px; }
 .situs-prev .lp-brand { margin-bottom: 14px; font-size: 14px; }
 .situs-prev .sp-judul { font-size: 22px; line-height: 1.15; letter-spacing: -.02em; max-width: 16ch; }
@@ -1516,7 +1525,19 @@ function toast(pesan, jenis = 'info', ms = 3200) {
   root.appendChild(el);
   setTimeout(() => { el.style.transition = 'opacity .25s'; el.style.opacity = '0'; setTimeout(() => el.remove(), 260); }, ms);
 }
+/* Akun panitia dengan ID: di Supabase disimpan sebagai <id>@id.panitia.lomba (tidak pernah dikirimi email) */
+const ID_DOMAIN = '@id.panitia.lomba';
+const akunId = (e) => String(e || '').toLowerCase().endsWith(ID_DOMAIN);
+const namaAkun = (e) => (akunId(e) ? String(e).slice(0, -ID_DOMAIN.length) : String(e || ''));
+const emailLogin = (v) => { v = String(v || '').trim().toLowerCase(); return v && !v.includes('@') ? v + ID_DOMAIN : v; };
+function passwordAcak() {
+  const abc = 'abcdefghjkmnpqrstuvwxyz23456789';
+  return Array.from(crypto.getRandomValues(new Uint8Array(10)), (b) => abc[b % abc.length]).join('');
+}
 const PESAN_ERROR = {
+  ID_TIDAK_VALID: 'ID hanya boleh huruf kecil, angka, titik, strip, atau garis bawah (3–30 karakter), tanpa spasi.',
+  ID_TIDAK_ADA: 'Akun ID tersebut tidak ditemukan.',
+  PASSWORD_PENDEK: 'Password minimal 8 karakter.',
   PENDAFTARAN_DITUTUP: 'Pendaftaran sedang ditutup.',
   KUOTA_PENUH: 'Grup ini sudah penuh. Silakan pilih seri atau grup lain.',
   NOMOR_TIDAK_VALID: 'Nomor layangan harus berupa angka (maksimal 6 digit).',
@@ -1560,7 +1581,8 @@ function pesanError(e) {
   if (/lomba_jenis_rentang_chk/i.test(msg)) return 'Rentang nomor tidak valid. Nomor awal harus lebih kecil dari nomor akhir.';
   if (/duplicate key|unique constraint/i.test(msg)) return 'Data yang sama sudah ada.';
   if (/Failed to fetch|NetworkError|Load failed|network|fetch/i.test(msg)) return 'Koneksi internet bermasalah. Periksa sinyal lalu coba lagi.';
-  if (/Invalid login credentials/i.test(msg)) return 'Email atau password salah.';
+  if (/lomba_buat_akun_id|lomba_reset_password_id/i.test(msg)) return 'Fitur login ID belum aktif: jalankan login-id.sql di Supabase → SQL Editor.';
+  if (/Invalid login credentials/i.test(msg)) return 'Email/ID atau password salah.';
   if (/Email not confirmed/i.test(msg)) return 'Email admin belum dikonfirmasi di Supabase.';
   if (/JWT expired|refresh token/i.test(msg)) return 'Sesi login habis, silakan masuk lagi.';
   if (/row-level security|permission denied|not authorized|Unauthorized/i.test(msg)) return 'Akses ditolak. Pastikan setup database sudah lengkap.';
@@ -1633,7 +1655,7 @@ class SupabaseAPI {
   async sesi() { const { data } = await this.sb.auth.getSession(); return data.session ? { email: data.session.user.email } : null; }
   onAuth(cb) { this.sb.auth.onAuthStateChange((ev, s) => cb(ev, s ? { email: s.user.email } : null)); }
   async login(email, password) {
-    const { data, error } = await this.sb.auth.signInWithPassword({ email, password });
+    const { data, error } = await this.sb.auth.signInWithPassword({ email: emailLogin(email), password });
     if (error) throw error;
     return { email: data.user.email };
   }
@@ -1677,6 +1699,8 @@ class SupabaseAPI {
   cabutAkses(id, email) { return this._rpc('lomba_cabut_akses', { p_event: id === 'semua' ? null : Number(id), p_email: email }); }
   async gantiEmailPanitia(lama, baru) { await this._rpc('lomba_ganti_email_panitia', { p_lama: lama, p_baru: baru }); return this._undang(baru); }
   undangUlang(email) { return this._undang(email); }
+  buatAkunId(id, akunId, password) { return this._rpc('lomba_buat_akun_id', { p_event: Number(id), p_id: akunId, p_password: password }); }
+  resetPasswordId(akunId, password) { return this._rpc('lomba_reset_password_id', { p_id: akunId, p_password: password }); }
 
   /* ---- data admin (event yang sedang dibuka) ---- */
   async _semuaPendaftaran() {
@@ -1986,6 +2010,11 @@ class DemoAPI {
       }
       try { this._simpanEv(id, db); } catch (e) { /* abaikan */ }
     });
+    // contoh akun ID (login tanpa email): ID "sanur01", password "layangan123", memegang event pertama
+    const idContoh = 'sanur01' + ID_DOMAIN;
+    ix.sandi = { [idContoh]: 'layangan123' };
+    if (ix.events[0]) ix.akses[ix.events[0].id] = [...(ix.akses[ix.events[0].id] || []), idContoh];
+    ix.pengguna.push({ email: idContoh, nama: 'sanur01', peran: 'panitia' });
     this.ix = ix;
     this._tulisIndex();
     return ix;
@@ -2268,7 +2297,10 @@ class DemoAPI {
   async login(email, password) {
     await this._jeda(300);
     if (!email || !password) throw new Error('Isi email dan password.');
-    const s = { email: String(email).trim().toLowerCase() };
+    email = emailLogin(email);
+    const sandi = (this.ix.sandi || {})[email];
+    if (sandi && sandi !== password) throw new Error('Invalid login credentials');
+    const s = { email };
     simpanLokal(this.KEY_SESI, s);
     this.sesiMem = s;
     return s;
@@ -2406,6 +2438,29 @@ class DemoAPI {
     if (this._super(email)) throw new Error('EMAIL_SUPER');
     list.push(email);
     this._daftarkanPengguna([email]);
+    this._tulisIndex();
+  }
+  async buatAkunId(id, akun, password) {
+    await this._jeda(250);
+    this._wajibSuper();
+    akun = String(akun || '').trim().toLowerCase();
+    if (!/^[a-z0-9][a-z0-9._-]{2,29}$/.test(akun)) throw new Error('ID_TIDAK_VALID');
+    const email = akun + ID_DOMAIN, sandi = this.ix.sandi || (this.ix.sandi = {});
+    const baru = !sandi[email];
+    if (baru) { if (String(password || '').length < 8) throw new Error('PASSWORD_PENDEK'); sandi[email] = password; }
+    const list = this.ix.akses[id] || (this.ix.akses[id] = []);
+    if (!list.includes(email)) list.push(email);
+    this._daftarkanPengguna([email]);
+    this._tulisIndex();
+    return { id: akun, email, baru };
+  }
+  async resetPasswordId(akun, password) {
+    await this._jeda(200);
+    this._wajibSuper();
+    const email = String(akun || '').replace(ID_DOMAIN, '').trim().toLowerCase() + ID_DOMAIN;
+    if (!(this.ix.sandi || {})[email]) throw new Error('ID_TIDAK_ADA');
+    if (String(password || '').length < 8) throw new Error('PASSWORD_PENDEK');
+    this.ix.sandi[email] = password;
     this._tulisIndex();
   }
   async gantiAkses(id, lama, baru) {
@@ -4002,7 +4057,7 @@ const Adm = {
       <p class="lead">${api.mode === 'demo' ? 'Mode demo: pilih akun contoh di bawah, atau isi email dan password apa saja.' : 'Gunakan akun admin yang dibuat di Supabase.'}</p>
       ${api.mode === 'demo' ? akunDemo('adm.cepat') : ''}
       <form data-submit="adm.login" novalidate>
-        ${fieldInput({ name: 'email', label: 'Email', type: 'email', value: bacaLokal('lomba_admin_email', ''), autocomplete: 'username', inputmode: 'email', placeholder: 'email@contoh.com' })}
+        ${fieldInput({ name: 'email', label: 'Email atau ID', type: 'text', value: s.loginEmail != null ? s.loginEmail : bacaLokal('lomba_admin_email', ''), autocomplete: 'username', placeholder: 'email@contoh.com atau ID panitia' })}
         ${fieldInput({ name: 'password', label: 'Password', type: 'password', value: '', autocomplete: 'current-password' })}
         ${s.loginErr ? `<div class="note bad" role="alert">${ico('alert')}<span>${esc(s.loginErr)}</span></div>` : ''}
         <button class="btn btn-primary btn-block btn-lg" type="submit" ${s.loginBusy ? 'disabled' : ''}>${s.loginBusy ? '<span class="spinner"></span> Memeriksa…' : `${ico('lock')} Masuk`}</button>
@@ -4014,7 +4069,7 @@ const Adm = {
     return `${demoBar()}<div class="login-wrap"><div class="card login">
       ${logoMerek()}
       <h2 class="h2">Belum punya akses ke event ini</h2>
-      <p class="lead"><b>${esc(this.s.sesi && this.s.sesi.email)}</b> tidak ditugaskan sebagai panitia event ini.</p>
+      <p class="lead"><b>${esc(namaAkun(this.s.sesi && this.s.sesi.email))}</b> tidak ditugaskan sebagai panitia event ini.</p>
       ${this.s.err ? `<div class="note bad">${ico('alert')}<span>${esc(this.s.err)}</span></div>` : ''}
       <div class="note">${ico('info')}<span>Hanya super admin yang bisa memberi akses panitia. Minta super admin menambahkan email Anda pada event ini.</span></div>
       <div class="actions"><button class="btn" data-act="adm.logout">${ico('logout')} Keluar</button><a class="btn btn-primary" href="#panitia">${ico('list')} Lihat event saya</a></div>
@@ -4034,7 +4089,7 @@ const Adm = {
       <div class="side-foot">
         ${this.vLive()}
         <a href="${hrefEv('daftar')}" target="_blank" rel="noopener" class="btn btn-sm">${ico('globe')} Halaman pendaftaran</a>
-        <div class="who" title="${esc(this.s.sesi && this.s.sesi.email)}">${esc(this.s.sesi && this.s.sesi.email)}</div>
+        <div class="who" title="${esc(this.s.sesi && this.s.sesi.email)}">${esc(namaAkun(this.s.sesi && this.s.sesi.email))}</div>
         <button class="btn btn-sm btn-ghost" data-act="adm.logout">${ico('logout')} Keluar</button>
       </div>
     </aside>`;
@@ -5241,7 +5296,8 @@ async function sibuk(el, fn) {
 /* ---------------- handler admin ---------------- */
 SUB['adm.login'] = async (form) => {
   const s = Adm.s, email = form.email.value.trim(), pw = form.password.value;
-  if (!email || !pw) { s.loginErr = 'Isi email dan password.'; Adm.render(); return; }
+  s.loginEmail = email;
+  if (!email || !pw) { s.loginErr = 'Isi email/ID dan password.'; Adm.render(); return; }
   s.loginBusy = true; s.loginErr = null; Adm.render();
   try {
     s.sesi = await api.login(email, pw);
@@ -6074,7 +6130,7 @@ const Pusat = {
   vAkses() {
     const s = this.s, list = s.akses;
     const head = `<div class="pz-head"><div><h1>Admin event</h1>
-      <p class="lead">Email yang diberi akses dashboard event. Ganti email atau cabut akses di sini, atau dari tombol ${ico('sliders', 'ico-inline')} di kartu event.</p></div></div>`;
+      <p class="lead">ID dan email yang diberi akses dashboard event. Reset password, ganti email, atau cabut akses di sini, atau dari tombol ${ico('sliders', 'ico-inline')} di kartu event.</p></div></div>`;
     if (!list) return head + (s.err ? `<div class="note bad">${ico('alert')}<span>${esc(s.err)}</span></div>` : '<div class="panel"><div class="skel" style="height:140px"></div></div>');
     if (!list.length) return head + `<div class="lp-kosong">${ico('info')}<span>Belum ada admin event. Tambahkan email dari tombol ${ico('sliders', 'ico-inline')} di kartu event.</span></div>`;
     return head + `<div class="ak-list">${list.map((p) => {
@@ -6082,8 +6138,8 @@ const Pusat = {
       return `<article class="ak-card">
         <div class="ak-top">
           ${sedangUbah ? this.vFormGanti('orang', '', p.email)
-            : `<div class="ak-who"><span class="ak-av">${esc(p.email[0].toUpperCase())}</span><div><b>${esc(p.email)}</b><span>${p.events.length} event</span></div></div>
-          <div class="ak-aksi"><button class="btn btn-xs" data-act="pusat.ubahOrang" data-email="${esc(p.email)}">${ico('edit')} Ganti email</button>
+            : `<div class="ak-who">${akunId(p.email) ? '<span class="ak-av id">ID</span>' : `<span class="ak-av">${esc(p.email[0].toUpperCase())}</span>`}<div><b${akunId(p.email) ? ' class="mono"' : ''}>${esc(namaAkun(p.email))}</b><span>${akunId(p.email) ? 'Akun ID · ' : ''}${p.events.length} event</span></div></div>
+          <div class="ak-aksi">${akunId(p.email) ? `<button class="btn btn-xs" data-act="pusat.resetId" data-email="${esc(p.email)}">${ico('lock')} Reset password</button>` : `<button class="btn btn-xs" data-act="pusat.ubahOrang" data-email="${esc(p.email)}">${ico('edit')} Ganti email</button>`}
             <button class="btn btn-xs btn-danger" data-act="pusat.cabutSemua" data-email="${esc(p.email)}">${ico('x')} Cabut semua akses</button></div>`}
         </div>
         <ul class="ak-ev">${p.events.map((e) => `<li><span><b>${esc(e.nama_event)}</b><small>${esc(rentangEvent(e, true))}</small></span>
@@ -6102,11 +6158,20 @@ const Pusat = {
     const ed = this.s.edit;
     return `<div class="ae-list">${e.panitia.length ? e.panitia.map((m) => (ed && ed.mode === 'event' && ed.id === e.id && ed.email === m)
       ? `<div class="ae-row">${this.vFormGanti('event', e.id, m)}</div>`
-      : `<div class="ae-row"><span class="ak-av">${esc(m[0].toUpperCase())}</span><b>${esc(m)}</b>
+      : akunId(m)
+        ? `<div class="ae-row"><span class="ak-av id">ID</span><b class="mono">${esc(namaAkun(m))}</b>
+          <button type="button" class="btn btn-xs" data-act="pusat.resetId" data-email="${esc(m)}">${ico('lock')} Reset password</button>
+          <button type="button" class="btn btn-xs btn-danger" data-act="pusat.cabut" data-id="${e.id}" data-email="${esc(m)}">${ico('x')} Hapus akses</button></div>`
+        : `<div class="ae-row"><span class="ak-av">${esc(m[0].toUpperCase())}</span><b>${esc(m)}</b>
           ${api.mode === 'supabase' ? `<button type="button" class="btn btn-xs btn-ghost" data-act="pusat.undang" data-email="${esc(m)}" title="Kirim ulang email undangan">${ico('send')}<span class="sr-only">Kirim ulang undangan</span></button>` : ''}
           <button type="button" class="btn btn-xs" data-act="pusat.ubahAkses" data-id="${e.id}" data-email="${esc(m)}">${ico('edit')} Ganti</button>
           <button type="button" class="btn btn-xs btn-danger" data-act="pusat.cabut" data-id="${e.id}" data-email="${esc(m)}">${ico('x')} Hapus akses</button></div>`).join('')
       : '<p class="hint" style="margin:0">Belum ada admin. Hanya super admin yang bisa membuka dashboard event ini.</p>'}</div>
+      <div class="ae-cara"><b>Tambah panitia dengan ID</b> <span class="hint">— tanpa email; password dibuat otomatis lalu dikirim lewat WA.</span></div>
+      <div class="ae-tambah"><label class="sr-only" for="ae-id">ID panitia baru</label>
+        <input class="input input-sm" type="text" id="ae-id" placeholder="ID baru, mis. sanurkaja01" autocomplete="off" autocapitalize="none" spellcheck="false" maxlength="30" data-enter="pusat.buatId" data-id="${e.id}">
+        <button type="button" class="btn btn-sm btn-primary" data-act="pusat.buatId" data-id="${e.id}">${ico('plus')} Buat ID</button></div>
+      <div class="ae-cara"><b>Atau dengan email</b> <span class="hint">— panitia menerima email undangan untuk membuat password.</span></div>
       <div class="ae-tambah"><label class="sr-only" for="ae-baru">Email admin baru</label>
         <input class="input input-sm" type="email" id="ae-baru" placeholder="Email admin baru" autocomplete="off" spellcheck="false" data-enter="pusat.tambahAkses" data-id="${e.id}">
         <button type="button" class="btn btn-sm" data-act="pusat.tambahAkses" data-id="${e.id}">${ico('plus')} Tambah</button></div>`;
@@ -6157,9 +6222,9 @@ const Pusat = {
       <div class="brand-logo">${KITE_LOGO}</div>
       <h2 class="h2">Masuk ruang panitia</h2>
       <p class="lead">Super admin mengelola semua event. Panitia hanya melihat event yang ditugaskan kepadanya.</p>
-      ${api.mode === 'demo' ? akunDemo('pusat.cepat') : ''}
+      ${api.mode === 'demo' ? akunDemo('pusat.cepat') : ''}${api.mode === 'demo' ? '<p class="hint" style="margin:-4px 0 14px">Coba login dengan ID: <b class="mono">sanur01</b> · password <b class="mono">layangan123</b></p>' : ''}
       <form data-submit="pusat.login" novalidate>
-        ${fieldInput({ id: 'pz-email', name: 'email', label: 'Email', type: 'email', value: bacaLokal('lomba_admin_email', ''), autocomplete: 'username', inputmode: 'email' })}
+        ${fieldInput({ id: 'pz-email', name: 'email', label: 'Email atau ID', type: 'text', value: s.loginEmail != null ? s.loginEmail : bacaLokal('lomba_admin_email', ''), autocomplete: 'username', placeholder: 'email@contoh.com atau ID panitia' })}
         ${fieldInput({ id: 'pz-pw', name: 'password', label: 'Password', type: 'password', value: '', autocomplete: 'current-password' })}
         ${s.loginErr ? `<div class="note bad" role="alert">${ico('alert')}<span>${esc(s.loginErr)}</span></div>` : ''}
         <button class="btn btn-primary btn-block btn-lg" type="submit" ${s.loginBusy ? 'disabled' : ''}>${s.loginBusy ? '<span class="spinner"></span> Memeriksa…' : `${ico('lock')} Masuk`}</button>
@@ -6182,7 +6247,7 @@ const Pusat = {
     const p = this.s.peran || {};
     return `<header class="pz-top"><div class="pz-in">
       <a class="pz-brand" href="#">${logoSitus(this.s.situs || {})}<span><b>${esc((this.s.situs && this.s.situs.nama) || SITUS_AWAL.nama)}</b><small>Ruang panitia</small></span></a>
-      <span class="pz-who"><b>${esc(p.nama || p.email || '')}</b><small>${this.super ? 'Super admin' : 'Panitia'} · ${esc(p.email || '')}</small></span>
+      <span class="pz-who"><b>${esc(namaAkun(p.nama || p.email || ''))}</b><small>${this.super ? 'Super admin' : 'Panitia'} · ${esc(akunId(p.email) ? 'ID ' + namaAkun(p.email) : p.email || '')}</small></span>
       <button class="btn btn-sm btn-ghost" data-act="pusat.logout">${ico('logout')}<span class="hide-sm">Keluar</span></button>
     </div></header>`;
   },
@@ -6281,7 +6346,8 @@ async function masukPusat(email, pw) {
 }
 SUB['pusat.login'] = (form) => {
   const email = form.email.value.trim(), pw = form.password.value;
-  if (!email || !pw) { Pusat.s.loginErr = 'Isi email dan password.'; Pusat.render(); return; }
+  Pusat.s.loginEmail = email;
+  if (!email || !pw) { Pusat.s.loginErr = 'Isi email/ID dan password.'; Pusat.render(); return; }
   masukPusat(email, pw);
 };
 ACT['pusat.cepat'] = (el) => masukPusat(el.dataset.email, 'demo');
@@ -6375,16 +6441,49 @@ ACT['pusat.tambahAkses'] = async (el) => {
   try { const kirim = await api.tambahAkses(Number(el.dataset.id), email); await aksesBerubah(`${email.toLowerCase()} sekarang admin event ini`, kirim); const i = $('#ae-baru'); if (i) i.focus(); }
   catch (e) { toast(pesanError(e), 'bad', 6000); }
 };
+/* tampilkan ID + password untuk diberikan ke panitia (hanya sekali) */
+function tampilKredensial(judul, akun, password) {
+  const alamat = location.origin + location.pathname + '#panitia';
+  const teks = `Akun panitia lomba layangan\nMasuk di: ${alamat}\nID: ${akun}\nPassword: ${password}`;
+  Overlay.modal(`<h3>${esc(judul)}</h3>
+    <p class="lead">Berikan data ini ke panitia. Password hanya ditampilkan sekali — kalau lupa, gunakan <b>Reset password</b>.</p>
+    <dl class="kred">
+      <div><dt>Alamat masuk</dt><dd>${esc(alamat)}</dd></div>
+      <div><dt>ID</dt><dd class="mono big">${esc(akun)}</dd></div>
+      <div><dt>Password</dt><dd class="mono big">${esc(password)}</dd></div>
+    </dl>
+    <div class="actions"><button type="button" class="btn" data-act="pusat.salinKred" data-teks="${esc(teks)}">${ico('copy')} Salin</button>
+      <a class="btn" href="${esc('https://wa.me/?text=' + encodeURIComponent(teks))}" target="_blank" rel="noopener">${ico('chat')} Kirim lewat WA</a>
+      <button type="button" class="btn btn-primary" data-act="ovl.tutup">Selesai</button></div>`);
+}
+ACT['pusat.salinKred'] = (el) => salin(el.dataset.teks, 'ID & password disalin');
+ACT['pusat.buatId'] = (el) => sibuk(el, async () => {
+  const inp = $('#ae-id'), akun = inp ? inp.value.trim().toLowerCase() : '';
+  if (!akun) { if (inp) inp.focus(); return toast('Isi ID panitia baru.', 'bad'); }
+  const pw = passwordAcak();
+  try {
+    const r = await api.buatAkunId(Number(el.dataset.id), akun, pw);
+    await aksesBerubah(r.baru ? `ID ${r.id} dibuat dan diberi akses event ini` : `ID ${r.id} sudah ada — ditambahkan ke event ini (password lama tetap berlaku)`);
+    if (r.baru) tampilKredensial('Akun panitia siap', r.id, pw);
+  } catch (e) { toast(pesanError(e), 'bad', 7000); }
+});
+ACT['pusat.resetId'] = async (el) => {
+  const akun = namaAkun(el.dataset.email);
+  if (!(await konfirmasiDialog({ judul: 'Reset password?', isi: `Password baru akan dibuat untuk ID <b>${esc(akun)}</b>. Password lama langsung tidak berlaku.`, tombol: 'Buat password baru' }))) return;
+  const pw = passwordAcak();
+  try { await api.resetPasswordId(akun, pw); tampilKredensial('Password baru', akun, pw); }
+  catch (e) { toast(pesanError(e), 'bad', 7000); }
+};
 ACT['pusat.cabut'] = async (el) => {
   const id = Number(el.dataset.id), email = el.dataset.email;
   const e = (Pusat.s.list || []).find((x) => x.id === id);
-  if (!(await konfirmasiDialog({ judul: 'Hapus akses admin?', isi: `<b>${esc(email)}</b> tidak bisa lagi membuka dashboard <b>${esc(e ? e.nama_event : 'event ini')}</b>. Data pendaftaran tidak terhapus.`, tombol: 'Hapus akses', bahaya: true }))) return;
+  if (!(await konfirmasiDialog({ judul: 'Hapus akses admin?', isi: `<b>${esc(namaAkun(email))}</b> tidak bisa lagi membuka dashboard <b>${esc(e ? e.nama_event : 'event ini')}</b>. Data pendaftaran tidak terhapus.`, tombol: 'Hapus akses', bahaya: true }))) return;
   try { await api.cabutAkses(id, email); await aksesBerubah('Akses admin dihapus'); }
   catch (err) { toast(pesanError(err), 'bad', 6000); }
 };
 ACT['pusat.cabutSemua'] = async (el) => {
   const email = el.dataset.email, p = (Pusat.s.akses || []).find((x) => x.email === email);
-  if (!(await konfirmasiDialog({ judul: 'Cabut semua akses?', isi: `<b>${esc(email)}</b> tidak bisa lagi membuka dashboard ${p ? p.events.length : ''} event yang dipegangnya. Data pendaftaran tidak terhapus.`, tombol: 'Cabut semua', bahaya: true }))) return;
+  if (!(await konfirmasiDialog({ judul: 'Cabut semua akses?', isi: `<b>${esc(namaAkun(email))}</b> tidak bisa lagi membuka dashboard ${p ? p.events.length : ''} event yang dipegangnya. Data pendaftaran tidak terhapus.`, tombol: 'Cabut semua', bahaya: true }))) return;
   try { await api.cabutAkses('semua', email); await aksesBerubah('Semua akses dicabut'); }
   catch (err) { toast(pesanError(err), 'bad', 6000); }
 };
@@ -6394,7 +6493,8 @@ ACT['pusat.undang'] = (el) => sibuk(el, async () => {
 });
 ACT['pusat.linkMasuk'] = async () => {
   const f = $('#pz-email'), email = f ? f.value.trim() : '';
-  if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) { if (f) f.focus(); return toast('Isi email Anda dulu di kolom Email.', 'bad'); }
+  if (email && !email.includes('@')) return toast('Akun ID tidak memakai email. Minta super admin mereset password Anda.', 'info', 7000);
+  if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) { if (f) f.focus(); return toast('Isi email Anda dulu di kolom Email atau ID.', 'bad'); }
   try { await api.kirimLinkMasuk(email); toast(`Link masuk dikirim ke ${email}. Buka email itu lalu klik linknya.`, 'good', 8000); }
   catch (e) { toast(pesanError(e), 'bad', 6000); }
 };
