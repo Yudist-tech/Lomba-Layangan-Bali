@@ -1538,6 +1538,7 @@ const PESAN_ERROR = {
   ID_TIDAK_VALID: 'ID hanya boleh huruf kecil, angka, titik, strip, atau garis bawah (3–30 karakter), tanpa spasi.',
   ID_TIDAK_ADA: 'Akun ID tersebut tidak ditemukan.',
   PASSWORD_PENDEK: 'Password minimal 8 karakter.',
+  PASSWORD_LAMA_SALAH: 'Password lama salah.',
   PENDAFTARAN_DITUTUP: 'Pendaftaran sedang ditutup.',
   KUOTA_PENUH: 'Grup ini sudah penuh. Silakan pilih seri atau grup lain.',
   NOMOR_TIDAK_VALID: 'Nomor layangan harus berupa angka (maksimal 6 digit).',
@@ -1583,6 +1584,8 @@ function pesanError(e) {
   if (/Failed to fetch|NetworkError|Load failed|network|fetch/i.test(msg)) return 'Koneksi internet bermasalah. Periksa sinyal lalu coba lagi.';
   if (/lomba_buat_akun_id|lomba_reset_password_id/i.test(msg)) return 'Fitur login ID belum aktif: jalankan login-id.sql di Supabase → SQL Editor.';
   if (/Invalid login credentials/i.test(msg)) return 'Email/ID atau password salah.';
+  if (/reauthenticat|nonce/i.test(msg)) return 'Supabase meminta verifikasi ulang lewat email. Matikan "Secure password change" di Supabase → Authentication → Providers → Email, atau minta super admin reset password.';
+  if (/should be different|same.*password/i.test(msg)) return 'Password baru harus berbeda dari password lama.';
   if (/Email not confirmed/i.test(msg)) return 'Email admin belum dikonfirmasi di Supabase.';
   if (/JWT expired|refresh token/i.test(msg)) return 'Sesi login habis, silakan masuk lagi.';
   if (/row-level security|permission denied|not authorized|Unauthorized/i.test(msg)) return 'Akses ditolak. Pastikan setup database sudah lengkap.';
@@ -1671,6 +1674,14 @@ class SupabaseAPI {
   async gantiPassword(password) {
     const { error } = await this.sb.auth.updateUser({ password });
     if (error) throw error;
+  }
+  /* pastikan password lama benar sebelum diganti */
+  async cekPassword(password) {
+    const { data } = await this.sb.auth.getSession();
+    const email = data.session && data.session.user.email;
+    if (!email) throw new Error('BELUM_MASUK');
+    const { error } = await this.sb.auth.signInWithPassword({ email, password });
+    if (error) throw new Error(/Invalid login/i.test(error.message) ? 'PASSWORD_LAMA_SALAH' : error.message);
   }
   async pasangSesiDariLink(access_token, refresh_token) {
     const { error } = await this.sb.auth.setSession({ access_token, refresh_token });
@@ -2538,7 +2549,17 @@ class DemoAPI {
   }
   async undangUlang() { return true; }
   async kirimLinkMasuk() { await this._jeda(300); }
-  async gantiPassword() { await this._jeda(300); }
+  async cekPassword(password) {
+    await this._jeda(200);
+    const email = this._email(), sandi = (this.ix.sandi || {})[email];
+    if (!email) throw new Error('BELUM_MASUK');
+    if (sandi && sandi !== password) throw new Error('PASSWORD_LAMA_SALAH');
+  }
+  async gantiPassword(password) {
+    await this._jeda(300);
+    const email = this._email();
+    if (email && password) { this.ix.sandi = this.ix.sandi || {}; this.ix.sandi[email] = password; this._tulisIndex(); }
+  }
   async resetDemoSemua() {
     try { Object.keys(localStorage).filter((k) => k.startsWith('lomba_ml_') && k !== this.KEY_SESI).forEach((k) => hapusLokal(k)); } catch (e) { /* abaikan */ }
     this.eventId = null; this.db = null; this.mem = {};
@@ -4090,6 +4111,7 @@ const Adm = {
         ${this.vLive()}
         <a href="${hrefEv('daftar')}" target="_blank" rel="noopener" class="btn btn-sm">${ico('globe')} Halaman pendaftaran</a>
         <div class="who" title="${esc(this.s.sesi && this.s.sesi.email)}">${esc(namaAkun(this.s.sesi && this.s.sesi.email))}</div>
+        <a class="btn btn-sm btn-ghost" href="#panitia/sandi">${ico('lock')} Ganti password</a>
         <button class="btn btn-sm btn-ghost" data-act="adm.logout">${ico('logout')} Keluar</button>
       </div>
     </aside>`;
@@ -6235,12 +6257,14 @@ const Pusat = {
   },
   /* setelah masuk lewat link email: buat / ganti password */
   vSandi() {
-    return `<div class="pz-head"><div><h1>Buat password</h1>
-      <p class="lead">Anda masuk lewat link email. Buat password supaya berikutnya bisa masuk dengan email & password.</p></div></div>
+    const link = this.s.dariLink;
+    return `<div class="pz-head"><div><h1>${link ? 'Buat password' : 'Ganti password'}</h1>
+      <p class="lead">${link ? 'Anda masuk lewat link email. Buat password supaya berikutnya bisa masuk dengan email & password.' : 'Masukkan password lama, lalu password baru minimal 8 karakter.'}</p></div></div>
       <form class="panel" style="max-width:460px" data-submit="pusat.sandi" novalidate>
+        ${link ? '' : fieldInput({ id: 'sd-0', name: 'p0', label: 'Password lama', type: 'password', autocomplete: 'current-password' })}
         ${fieldInput({ id: 'sd-1', name: 'p1', label: 'Password baru', type: 'password', autocomplete: 'new-password', hint: 'Minimal 8 karakter.' })}
-        ${fieldInput({ id: 'sd-2', name: 'p2', label: 'Ulangi password', type: 'password', autocomplete: 'new-password' })}
-        <div class="actions end"><a class="btn btn-sm" href="#panitia">Nanti saja</a><button class="btn btn-primary btn-sm" type="submit">Simpan password</button></div>
+        ${fieldInput({ id: 'sd-2', name: 'p2', label: 'Ulangi password baru', type: 'password', autocomplete: 'new-password' })}
+        <div class="actions end"><a class="btn btn-sm" href="#panitia">${link ? 'Nanti saja' : 'Batal'}</a><button class="btn btn-primary btn-sm" type="submit">Simpan password</button></div>
       </form>`;
   },
   vTop() {
@@ -6248,6 +6272,7 @@ const Pusat = {
     return `<header class="pz-top"><div class="pz-in">
       <a class="pz-brand" href="#">${logoSitus(this.s.situs || {})}<span><b>${esc((this.s.situs && this.s.situs.nama) || SITUS_AWAL.nama)}</b><small>Ruang panitia</small></span></a>
       <span class="pz-who"><b>${esc(namaAkun(p.nama || p.email || ''))}</b><small>${this.super ? 'Super admin' : 'Panitia'} · ${esc(akunId(p.email) ? 'ID ' + namaAkun(p.email) : p.email || '')}</small></span>
+      <a class="btn btn-sm btn-ghost" href="#panitia/sandi" title="Ganti password">${ico('lock')}<span class="hide-sm">Ganti password</span></a>
       <button class="btn btn-sm btn-ghost" data-act="pusat.logout">${ico('logout')}<span class="hide-sm">Keluar</span></button>
     </div></header>`;
   },
@@ -6499,11 +6524,17 @@ ACT['pusat.linkMasuk'] = async () => {
   catch (e) { toast(pesanError(e), 'bad', 6000); }
 };
 SUB['pusat.sandi'] = async (form) => {
-  const a = form.p1.value, b = form.p2.value;
+  const lama = form.p0 ? form.p0.value : null, a = form.p1.value, b = form.p2.value;
+  if (form.p0 && !lama) return toast('Isi password lama.', 'bad');
   if (a.length < 8) return toast('Password minimal 8 karakter.', 'bad');
-  if (a !== b) return toast('Kedua password tidak sama.', 'bad');
+  if (a !== b) return toast('Kedua password baru tidak sama.', 'bad');
   await sibuk(form.querySelector('[type=submit]'), async () => {
-    try { await api.gantiPassword(a); toast('Password disimpan', 'good'); location.hash = '#panitia'; }
+    try {
+      if (lama != null) await api.cekPassword(lama);
+      await api.gantiPassword(a);
+      Pusat.s.dariLink = false;
+      toast('Password baru disimpan. Gunakan password ini saat login berikutnya.', 'good', 6000); location.hash = '#panitia';
+    }
     catch (e) { toast(pesanError(e), 'bad', 6000); }
   });
 };
@@ -6666,6 +6697,7 @@ async function tangkapLinkEmail() {
   }
   try {
     if (api.pasangSesiDariLink) await api.pasangSesiDariLink(q.get('access_token'), q.get('refresh_token'));
+    Pusat.s.dariLink = true;
     history.replaceState(null, '', '#panitia/sandi');
   } catch (e) {
     history.replaceState(null, '', '#panitia');

@@ -186,6 +186,7 @@ Pasang sekali: jalankan **`login-id.sql`** di SQL Editor (hasil 3 ✅).
 3. Panitia membuka `…/#panitia`, isi kolom **Email atau ID** dengan ID-nya, lalu password.
 
 - ID: huruf kecil, angka, titik, strip, garis bawah; 3–30 karakter; huruf besar otomatis jadi kecil.
+- Ganti password sendiri → tombol **Ganti password** (ikon gembok) di ruang panitia atau di sidebar dashboard event → isi password lama + password baru.
 - Lupa password → super admin → tab **Admin event** (atau Atur event) → **Reset password** → password baru tampil untuk dikirim.
 - ID yang sudah ada bisa ditambahkan ke event lain dengan **Buat ID** lagi; password lamanya tetap.
 - Akun email lama tetap bisa login seperti biasa. Di balik layar ID disimpan sebagai `<id>@id.panitia.lomba` (tidak pernah dikirimi email).
