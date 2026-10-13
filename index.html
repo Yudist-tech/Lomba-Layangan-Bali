@@ -1576,6 +1576,7 @@ const PESAN_ERROR = {
   ID_TIDAK_ADA: 'Akun ID tersebut tidak ditemukan.',
   PASSWORD_PENDEK: 'Password minimal 8 karakter.',
   PASSWORD_LAMA_SALAH: 'Password lama salah.',
+  AKUN_SENDIRI: 'Anda tidak bisa menghapus akun yang sedang Anda pakai.',
   NAMA_TIDAK_VALID: 'Isi nama lengkap panitia (minimal 3 huruf).',
   ID_PENUH: 'Tidak bisa membuat ID unik dari nama ini. Coba tambahkan nama belakang.',
   PENDAFTARAN_DITUTUP: 'Pendaftaran sedang ditutup.',
@@ -1621,6 +1622,7 @@ function pesanError(e) {
   if (/lomba_jenis_rentang_chk/i.test(msg)) return 'Rentang nomor tidak valid. Nomor awal harus lebih kecil dari nomor akhir.';
   if (/duplicate key|unique constraint/i.test(msg)) return 'Data yang sama sudah ada.';
   if (/Failed to fetch|NetworkError|Load failed|network|fetch/i.test(msg)) return 'Koneksi internet bermasalah. Periksa sinyal lalu coba lagi.';
+  if (/lomba_hapus_akun_id/i.test(msg)) return 'Fitur hapus akun belum aktif: jalankan hapus-akun.sql di Supabase → SQL Editor.';
   if (/lomba_buat_akun_nama|lomba_nama_panitia|lomba_ubah_nama_panitia/i.test(msg)) return 'Fitur ID dari nama belum aktif: jalankan login-nama.sql di Supabase → SQL Editor.';
   if (/lomba_buat_akun_id|lomba_reset_password_id/i.test(msg)) return 'Fitur login ID belum aktif: jalankan login-id.sql di Supabase → SQL Editor.';
   if (/Invalid login credentials/i.test(msg)) return 'ID atau password salah.';
@@ -1752,6 +1754,7 @@ class SupabaseAPI {
   undangUlang(email) { return this._undang(email); }
   buatAkunId(id, akunId, password) { return this._rpc('lomba_buat_akun_id', { p_event: Number(id), p_id: akunId, p_password: password }); }
   resetPasswordId(akunId, password) { return this._rpc('lomba_reset_password_id', { p_id: akunId, p_password: password }); }
+  hapusAkunId(akun) { return this._rpc('lomba_hapus_akun_id', { p_id: akun }); }
   buatAkunNama(id, nama, password) { return this._rpc('lomba_buat_akun_nama', { p_event: Number(id), p_nama: nama, p_password: password }); }
   async namaPanitia() { try { return (await this._rpc('lomba_nama_panitia')) || {}; } catch (e) { return {}; } }
 
@@ -2354,6 +2357,7 @@ class DemoAPI {
     email = emailLogin(email);
     const sandi = (this.ix.sandi || {})[email];
     if (sandi && sandi !== password) throw new Error('Invalid login credentials');
+    if (!sandi && akunId(email)) throw new Error('Invalid login credentials');   // akun ID yang tidak ada / sudah dihapus
     const s = { email };
     simpanLokal(this.KEY_SESI, s);
     this.sesiMem = s;
@@ -2521,6 +2525,18 @@ class DemoAPI {
     const p = this.ix.pengguna.find((x) => x.email === r.email); if (p) p.nama = nama;
     this._tulisIndex();
     return { ...r, nama };
+  }
+  async hapusAkunId(akun) {
+    await this._jeda(250);
+    this._wajibSuper();
+    const email = String(akun || '').toLowerCase().replace(ID_DOMAIN, '').trim() + ID_DOMAIN;
+    if (email === this._email()) throw new Error('AKUN_SENDIRI');
+    if (this._super(email)) throw new Error('EMAIL_SUPER');
+    Object.keys(this.ix.akses).forEach((id) => { this.ix.akses[id] = this.ix.akses[id].filter((e) => e !== email); });
+    if (this.ix.sandi) delete this.ix.sandi[email];
+    if (this.ix.namaPanitia) delete this.ix.namaPanitia[email];
+    this.ix.pengguna = this.ix.pengguna.filter((p) => p.email !== email);
+    this._tulisIndex();
   }
   async namaPanitia() {
     const semua = this.ix.namaPanitia || {}, e = this._email();
@@ -6223,7 +6239,7 @@ const Pusat = {
           ${sedangUbah ? this.vFormGanti('orang', '', p.email)
             : `<div class="ak-who">${akunId(p.email) ? '<span class="ak-av id">ID</span>' : `<span class="ak-av">${esc(p.email[0].toUpperCase())}</span>`}<div><b${akunId(p.email) ? ' class="mono"' : ''}>${esc(namaAkun(p.email))}</b><span>${namaLengkap(p.email) ? `${esc(namaLengkap(p.email))} · ` : akunId(p.email) ? 'Akun ID · ' : ''}${p.events.length} event</span></div></div>
           <div class="ak-aksi">${akunId(p.email) ? `<button class="btn btn-xs" data-act="pusat.resetId" data-email="${esc(p.email)}">${ico('lock')} Reset password</button>` : `<button class="btn btn-xs" data-act="pusat.ubahOrang" data-email="${esc(p.email)}">${ico('edit')} Ganti email</button>`}
-            <button class="btn btn-xs btn-danger" data-act="pusat.cabutSemua" data-email="${esc(p.email)}">${ico('x')} Cabut semua akses</button></div>`}
+            ${akunId(p.email) ? `<button class="btn btn-xs btn-danger" data-act="pusat.hapusAkun" data-email="${esc(p.email)}">${ico('trash')} Hapus akun</button>` : `<button class="btn btn-xs btn-danger" data-act="pusat.cabutSemua" data-email="${esc(p.email)}">${ico('x')} Cabut semua akses</button>`}</div>`}
         </div>
         <ul class="ak-ev">${p.events.map((e) => `<li><span><b>${esc(e.nama_event)}</b><small>${esc(rentangEvent(e, true))}</small></span>
           <button class="btn btn-xs btn-ghost" data-act="pusat.cabut" data-id="${e.id}" data-email="${esc(p.email)}" aria-label="Cabut akses ${esc(p.email)} dari ${esc(e.nama_event)}">${ico('x')} Cabut</button></li>`).join('')}</ul>
@@ -6244,7 +6260,8 @@ const Pusat = {
       : akunId(m)
         ? `<div class="ae-row"><span class="ak-av id">ID</span><span class="ae-nama"><b class="mono">${esc(namaAkun(m))}</b>${namaLengkap(m) ? `<small>${esc(namaLengkap(m))}</small>` : ''}</span>
           <button type="button" class="btn btn-xs" data-act="pusat.resetId" data-email="${esc(m)}">${ico('lock')} Reset password</button>
-          <button type="button" class="btn btn-xs btn-danger" data-act="pusat.cabut" data-id="${e.id}" data-email="${esc(m)}">${ico('x')} Hapus akses</button></div>`
+          <button type="button" class="btn btn-xs btn-danger" data-act="pusat.cabut" data-id="${e.id}" data-email="${esc(m)}">${ico('x')} Hapus akses</button>
+          <button type="button" class="btn btn-xs btn-icon btn-danger" data-act="pusat.hapusAkun" data-email="${esc(m)}" title="Hapus akun ${esc(namaAkun(m))}" aria-label="Hapus akun ${esc(namaAkun(m))}">${ico('trash')}</button></div>`
         : `<div class="ae-row"><span class="ak-av">${esc(m[0].toUpperCase())}</span><b>${esc(m)}</b>
           ${api.mode === 'supabase' ? `<button type="button" class="btn btn-xs btn-ghost" data-act="pusat.undang" data-email="${esc(m)}" title="Kirim ulang email undangan">${ico('send')}<span class="sr-only">Kirim ulang undangan</span></button>` : ''}
           <button type="button" class="btn btn-xs" data-act="pusat.ubahAkses" data-id="${e.id}" data-email="${esc(m)}">${ico('edit')} Ganti</button>
@@ -6577,6 +6594,16 @@ ACT['pusat.resetId'] = async (el) => {
   if (!(await konfirmasiDialog({ judul: 'Reset password?', isi: `Password baru akan dibuat untuk ID <b>${esc(akun)}</b>. Password lama langsung tidak berlaku.`, tombol: 'Buat password baru' }))) return;
   const pw = passwordAcak();
   try { await api.resetPasswordId(akun, pw); tampilKredensial('Password baru', akun, pw); }
+  catch (e) { toast(pesanError(e), 'bad', 7000); }
+};
+ACT['pusat.hapusAkun'] = async (el) => {
+  const email = el.dataset.email, akun = namaAkun(email), nama = namaLengkap(email);
+  const p = (Pusat.s.akses || []).find((x) => x.email === email), nEv = p ? p.events.length : 0;
+  if (!(await konfirmasiDialog({
+    judul: 'Hapus akun panitia?',
+    isi: `Akun <b>${esc(akun)}</b>${nama ? ` (${esc(nama)})` : ''} dihapus permanen: ID, password, nama, dan akses ke ${nEv || 'semua'} event. ID ini tidak bisa dipakai login lagi.<br><br>Data pendaftaran yang pernah diurus tetap aman. Bila orang ini masih bertugas, buat ID baru lewat <b>Tambah panitia baru</b>.`,
+    tombol: 'Hapus akun', bahaya: true }))) return;
+  try { await api.hapusAkunId(akun); await aksesBerubah(`Akun ${akun} dihapus`); }
   catch (e) { toast(pesanError(e), 'bad', 7000); }
 };
 ACT['pusat.cabut'] = async (el) => {
