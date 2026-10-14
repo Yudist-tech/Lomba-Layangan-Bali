@@ -216,6 +216,16 @@ Pasang sekali: jalankan **`riwayat.sql`** di SQL Editor (hasil 3 ✅).
   - Gambar buram/terpotong yang tidak terbaca dihitung sebagai *tidak terbaca otomatis* — cek manual.
   - Tanda *mirip* adalah petunjuk, bukan keputusan: tetap buka kedua bukti dan cocokkan sebelum menolak.
 
+### Tab Terbaru & Selesai
+
+Pasang sekali: jalankan **`bukti-selesai.sql`** di SQL Editor (hasil 2 ✅). Sebelum dipasang, dashboard menampilkan catatan untuk menjalankannya.
+
+- Di filter **Bukti Transfer Sama** dan **Bukti Transfer Mirip** ada tab **Terbaru** (perlu dicek) dan **Selesai** (sudah dicek). Angka merah di tombol filter = jumlah kelompok di Terbaru.
+- Setelah mengecek satu kelompok, klik **Tandai selesai** → kelompok pindah ke Selesai. Tercatat siapa (ID panitia) dan kapan.
+- Bila kemudian masuk pendaftaran baru dengan bukti yang sama/mirip, **seluruh kelompok kembali ke Terbaru**: pendaftaran baru diberi label **BARU** dan ada catatan siapa yang sebelumnya menandai selesai. Periksa ulang semuanya, lalu tandai selesai lagi.
+- **Buka lagi** mengembalikan kelompok dari Selesai ke Terbaru.
+- Semua panitia event bisa menandai & membuka lagi. Pengingat di Ringkasan hanya menghitung kelompok yang belum selesai.
+
 ## Aturan yang dijaga otomatis oleh database
 
 - **Kuota per grup** = jumlah kotak dikurangi kotak yang ditutup; dihitung dari pendaftaran *menunggu + terkonfirmasi*. Aman walau banyak orang mendaftar bersamaan — tiap peserta mendapat kotak sendiri, berurutan dari kotak 1.

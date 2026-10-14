@@ -1134,6 +1134,17 @@ fieldset.rentang legend { font-weight: 700; font-size: 14px; padding: 0 6px; }
 .ae-tambah .input { flex: 1; min-width: 0; }
 .ae-cara { margin-top: 14px; font-size: 13.5px; }
 .ae-pratinjau { margin: 6px 2px 0; font-size: 12.5px; }
+.tab-bukti { margin: 0 0 12px; }
+.titik-merah { width: 8px; height: 8px; border-radius: 50%; background: var(--bad); display: inline-block; }
+.tgl small.perlu { background: var(--bad); color: #fff; }
+.dup-h .dup-t { flex: 1 1 260px; }
+.dup-h .btn-good { margin-left: auto; }
+.dup-grup .cek-ok { display: flex; align-items: center; gap: 6px; padding: 7px 16px; font-size: 12.5px; color: var(--good-ink, #1a7f37); border-bottom: 1px solid var(--line); }
+.dup-grup .cek-ok .ico { width: 14px; height: 14px; }
+.dup-grup .cek-ulang { margin: 10px 14px; }
+.dup-grup.selesai { opacity: .92; }
+.flag.baru-tag { background: var(--bad); color: #fff; }
+.row.baru-cek { background: color-mix(in srgb, var(--bad) 6%, var(--surface)); }
 .timeline li small { display: block; color: var(--muted); font-size: 12px; margin-top: 1px; }
 .timeline li small.muted { display: inline; }
 .timeline li.ok .ico { color: var(--good-ink, #1a7f37); }
@@ -1794,8 +1805,8 @@ class SupabaseAPI {
       this.sb.from('lomba_hari').select('*').eq('event_id', ev).order('tanggal', { ascending: true, nullsFirst: false }).order('urutan').order('id').then((r) => this._ok(r)),
       this.sb.from('lomba_sesi').select('*').eq('event_id', ev).order('jam_mulai', { ascending: true, nullsFirst: false }).order('urutan').order('id').then((r) => this._ok(r)),
     ]);
-    const baca = await this.muatBacaan();
-    return { pengaturan: pengaturan || {}, jenis, seri, daftar, hari, sesi, baca };
+    const [baca, selesai] = await Promise.all([this.muatBacaan(), this.muatSelesai()]);
+    return { pengaturan: pengaturan || {}, jenis, seri, daftar, hari, sesi, baca, selesai };
   }
   /* hasil baca bukti (bukti-mirip.sql); null = tabel belum dipasang */
   async muatBacaan() {
@@ -1809,6 +1820,13 @@ class SupabaseAPI {
     } catch (e) { return null; }
     return out;
   }
+  /* kelompok bukti yang sudah selesai dicek (bukti-selesai.sql); null = tabel belum dipasang */
+  async muatSelesai() {
+    try { return this._ok(await this.sb.from('lomba_bukti_selesai').select('*').eq('event_id', this._ev()).order('created_at')); }
+    catch (e) { return null; }
+  }
+  async tandaiSelesai(jenis, anggota) { return this._ok(await this.sb.from('lomba_bukti_selesai').insert({ event_id: this._ev(), jenis, anggota }).select().single()); }
+  async bukaLagi(ids) { for (const id of ids) this._ok(await this.sb.from('lomba_bukti_selesai').delete().eq('id', id)); }
   async simpanBacaan(row) { return this._ok(await this.sb.from('lomba_bukti_baca').upsert({ ...row, event_id: this._ev(), dibaca_at: new Date().toISOString() }).select().single()); }
   /* versi = updated_at yang dilihat admin; bila baris sudah berubah, update ditolak (DATA_BERUBAH) */
   async ubahPendaftaran(id, patch, versi) {
@@ -2187,6 +2205,15 @@ class DemoAPI {
     // kelompok kedua: 3 pendaftaran (1 terkonfirmasi + 2 menunggu) dari sekha yang sama
     const tiga = [rows.find((r) => r.status === 'terkonfirmasi'), ...rows.filter((r) => r.status === 'menunggu').slice(2, 4)].filter(Boolean);
     if (tiga.length === 3) tiga.forEach((r) => { r.nama_sekha = tiga[0].nama_sekha; r.no_wa = tiga[0].no_wa; r.alamat = tiga[0].alamat; r.bukti_hash = 'contoh-hash-sama-2'; });
+    // kelompok ketiga: 2 pendaftaran terkonfirmasi yang sudah selesai dicek panitia
+    const sudah = rows.filter((r) => r.status === 'terkonfirmasi' && !r.bukti_hash).slice(3, 5);
+    if (sudah.length === 2) sudah.forEach((r) => { r.nama_sekha = sudah[0].nama_sekha; r.no_wa = sudah[0].no_wa; r.alamat = sudah[0].alamat; r.bukti_hash = 'contoh-hash-sama-3'; });
+    // contoh tab Selesai: kelompok ketiga selesai dicek; kelompok kedua pernah selesai (2 dari 3),
+    // lalu masuk 1 pendaftaran baru dengan bukti sama → kembali ke Terbaru untuk dicek ulang
+    const jam = (j) => new Date(Date.now() - j * 3600e3).toISOString();
+    db.selesai = [];
+    if (sudah.length === 2) db.selesai.push({ id: 1, jenis: 'sama', anggota: sudah.map((r) => r.id), oleh: 'lpsar214' + ID_DOMAIN, created_at: jam(5) });
+    if (tiga.length === 3) db.selesai.push({ id: 2, jenis: 'sama', anggota: [tiga[0].id, tiga[1].id], oleh: 'mdwia587' + ID_DOMAIN, created_at: jam(20) });
     // contoh bukti mirip: file berbeda (mis. screenshot ulang), tapi nama pengirim, nominal & waktu di bukti sama
     const mirip = rows.filter((r) => r.status === 'menunggu' && !r.bukti_hash).slice(4, 6);
     if (mirip.length === 2) {
@@ -2676,9 +2703,17 @@ class DemoAPI {
   /* ---- data admin ---- */
   async muatSemua() {
     await this._jeda(250);
-    return this._salin({ pengaturan: this.db.pengaturan, jenis: this.db.jenis, seri: this.db.seri, daftar: this.db.daftar, hari: [...this.db.hari].sort(urutHari), sesi: [...this.db.sesi].sort(urutSesi), baca: Object.values(this.db.baca || {}) });
+    return this._salin({ pengaturan: this.db.pengaturan, jenis: this.db.jenis, seri: this.db.seri, daftar: this.db.daftar, hari: [...this.db.hari].sort(urutHari), sesi: [...this.db.sesi].sort(urutSesi), baca: Object.values(this.db.baca || {}), selesai: this.db.selesai || [] });
   }
   async muatBacaan() { return this._salin(Object.values(this.db.baca || {})); }
+  async tandaiSelesai(jenis, anggota) {
+    await this._jeda(200);
+    const list = this.db.selesai || (this.db.selesai = []);
+    const row = { id: (list.reduce((m, x) => Math.max(m, x.id), 0) || 0) + 1, jenis, anggota: [...anggota], oleh: this._email(), created_at: new Date().toISOString() };
+    list.push(row); this._simpan();
+    return this._salin(row);
+  }
+  async bukaLagi(ids) { await this._jeda(150); this.db.selesai = (this.db.selesai || []).filter((x) => !ids.includes(x.id)); this._simpan(); }
   async simpanBacaan(row) {
     this.db.baca = this.db.baca || {};
     this.db.baca[row.pendaftaran_id] = { ...row, dibaca_at: new Date().toISOString() };
@@ -3973,7 +4008,7 @@ SUB['pub.cek'] = (form) => Pub.cek(form);
 /* =====================================================================
    6) DASHBOARD ADMIN
    ===================================================================== */
-const FILTER_AWAL = { status: 'semua', jenis: '', seri: '', q: '', wa: false, dup: false, mirip: false, urut: 'terbaru' };
+const FILTER_AWAL = { status: 'semua', jenis: '', seri: '', q: '', wa: false, dup: false, mirip: false, tabBukti: 'terbaru', urut: 'terbaru' };
 const ALASAN_TOLAK = ['Bukti transfer tidak jelas / tidak valid', 'Nominal transfer kurang', 'Transfer belum masuk ke rekening panitia', 'Data pendaftaran tidak lengkap', 'Pendaftaran ganda'];
 
 const Adm = {
@@ -4092,7 +4127,6 @@ const Adm = {
         const g = { label: hurufGrup(i), warna: i % WARNA_DUP, n: rows.length, total: rows.reduce((t, r) => t + (r.harga || 0), 0), rows, hash: rows[0].bukti_hash };
         rows.forEach((r) => { dupIds.add(r.id); dupGrup.set(r.id, g); });
       });
-    st.dupMenunggu = d.daftar.filter((r) => r.status === 'menunggu' && dupIds.has(r.id)).length;
     const { baca, miripGrup, belumDibaca, tidakTerbaca } = this.indeksMirip(d);
     st.belumDibaca = belumDibaca.length; st.tidakTerbaca = tidakTerbaca; st.mirip = miripGrup.size;
     d.hari = (d.hari || []).sort(urutHari); d.sesi = (d.sesi || []).sort(urutSesi);
@@ -4103,7 +4137,27 @@ const Adm = {
       if (!kotak.has(r.seri_id)) kotak.set(r.seri_id, new Map());
       kotak.get(r.seri_id).set(r.kotak, { id: r.id, nomor: r.nomor_layangan, status: r.status });
     }
-    this.idx = { jenis, seri, perSeri, hash, perWA, st, dupIds, dupGrup, baca, miripGrup, belumDibaca, hari, sesi, kotak };
+    // status "selesai dicek" per kelompok (bukti-selesai.sql)
+    const baruIds = new Set();
+    const tandai = (peta, jenis) => {
+      const catatan = (d.selesai || []).filter((x) => x.jenis === jenis).sort((a, b) => String(a.created_at).localeCompare(String(b.created_at)) || a.id - b.id);
+      new Set(peta.values()).forEach((g) => {
+        const ids = g.rows.map((r) => r.id);
+        const cocok = catatan.filter((c) => c.anggota.some((a) => ids.includes(a)));
+        g.catatan = cocok;                                     // semua catatan yang menyentuh kelompok ini
+        g.rec = cocok.length ? cocok[cocok.length - 1] : null; // catatan terbaru
+        const sudah = new Set(cocok.flatMap((c) => c.anggota));
+        g.baru = g.rec ? ids.filter((x) => !sudah.has(x)) : [];
+        g.selesai = !!g.rec && !g.baru.length;
+        g.baru.forEach((x) => baruIds.add(x));
+      });
+    };
+    tandai(dupGrup, 'sama'); tandai(miripGrup, 'mirip');
+    const hitung = (peta) => { let t = 0, s = 0; new Set(peta.values()).forEach((g) => (g.selesai ? s++ : t++)); return { terbaru: t, selesai: s }; };
+    st.samaTab = hitung(dupGrup); st.miripTab = hitung(miripGrup);
+    // pengingat di Ringkasan: hanya kelompok yang belum selesai dicek
+    st.dupMenunggu = d.daftar.filter((r) => r.status === 'menunggu' && dupIds.has(r.id) && !dupGrup.get(r.id).selesai).length;
+    this.idx = { jenis, seri, perSeri, hash, perWA, st, dupIds, dupGrup, baca, miripGrup, belumDibaca, baruIds, hari, sesi, kotak };
   },
   baris(id) { return this.s.data && this.s.data.daftar.find((r) => r.id === id); },
   namaJenis(kode) { const j = this.idx && this.idx.jenis.get(kode); return j ? j.nama : kode; },
@@ -4453,8 +4507,8 @@ const Adm = {
       </div>
       <div class="f-row gulir f-tombol">
         <button type="button" class="tgl ${f.wa ? 'on' : ''}" data-act="adm.fWa" aria-pressed="${f.wa}">${ico('chat')} WA belum dikirim <small>${st.waBelum}</small></button>
-        <button type="button" class="tgl ${f.dup ? 'on' : ''}" data-act="adm.fDup" aria-pressed="${f.dup}">${ico('layers')} Bukti Transfer Sama${this.idx.dupIds.size ? ` <small>${this.idx.dupIds.size}</small>` : ''}</button>
-        <button type="button" class="tgl ${f.mirip ? 'on' : ''}" data-act="adm.fMirip" aria-pressed="${f.mirip}">${ico('search')} Bukti Transfer Mirip${st.mirip ? ` <small>${st.mirip}</small>` : ''}</button>
+        <button type="button" class="tgl ${f.dup ? 'on' : ''}" data-act="adm.fDup" aria-pressed="${f.dup}">${ico('layers')} Bukti Transfer Sama${st.samaTab && st.samaTab.terbaru ? ` <small class="perlu">${st.samaTab.terbaru}</small>` : ''}</button>
+        <button type="button" class="tgl ${f.mirip ? 'on' : ''}" data-act="adm.fMirip" aria-pressed="${f.mirip}">${ico('search')} Bukti Transfer Mirip${st.miripTab && st.miripTab.terbaru ? ` <small class="perlu">${st.miripTab.terbaru}</small>` : ''}</button>
         ${this.vTombolPeriksa()}
       </div>`;
   },
@@ -4468,6 +4522,10 @@ const Adm = {
       if (f.wa && !(r.status === 'terkonfirmasi' && !r.wa_terkirim_at)) return false;
       if (f.dup && !this.idx.dupIds.has(r.id)) return false;
       if (f.mirip && !this.idx.miripGrup.has(r.id)) return false;
+      if (f.dup || f.mirip) {
+        const g = (f.dup ? this.idx.dupGrup : this.idx.miripGrup).get(r.id);
+        if (!!(g && g.selesai) !== (f.tabBukti === 'selesai')) return false;
+      }
       if (q) {
         const teks = `${r.kode} ${r.nama_sekha} ${r.alamat} ${r.nama_rekening} ${r.nomor_layangan || ''} ${r.catatan_admin || ''}`.toLowerCase();
         const cocokWA = (qWA && r.no_wa === qWA) || (qAngka.length >= 4 && qAngka.length === q.replace(/[\s+().-]/g, '').length && r.no_wa.includes(qAngka.replace(/^0/, '')));
@@ -4492,10 +4550,10 @@ const Adm = {
     const adaFilter = f.status !== 'semua' || f.jenis || f.seri || f.wa || f.dup || f.mirip || f.q.trim();
     const nTunggu = rows.filter((r) => r.status === 'menunggu').length;
     const info = `<div class="res-info"><span>Menampilkan <b>${rows.length}</b> dari ${total}</span>${adaFilter ? `<button class="btn btn-xs btn-ghost" data-act="adm.fReset">${ico('x')} Reset filter</button>` : ''}${nTunggu > 1 ? `<button class="btn btn-xs btn-ghost" data-act="adm.tolakMassal" style="${adaFilter ? 'margin-left:0' : ''}">${ico('layers')} Tolak massal…</button>` : ''}</div>`;
-    if (!rows.length) return info + `<div class="rows"><div class="empty">${total ? 'Tidak ada pendaftaran yang cocok dengan filter.' : 'Belum ada pendaftaran masuk.'}</div></div>`;
+    if (!rows.length && !f.dup && !f.mirip) return info + `<div class="rows"><div class="empty">${total ? 'Tidak ada pendaftaran yang cocok dengan filter.' : 'Belum ada pendaftaran masuk.'}</div></div>`;
     const tampil = rows.slice(0, this.s.batas);
     const kepala = `<div class="row head" aria-hidden="true"><span>Status · kode</span><span>Sekha</span><span>Jenis</span><span>Seri</span><span>Nomor</span><span class="c-harga">Biaya</span><span></span></div>`;
-    const isi = f.dup ? this.vGrupDobel(tampil, kepala) : f.mirip ? this.vGrupMirip(tampil, kepala) : `<div class="rows">${kepala}${tampil.map((r) => this.vRow(r)).join('')}</div>`;
+    const isi = f.dup ? this.vTabBukti('sama') + this.vGrupDobel(tampil, kepala) : f.mirip ? this.vTabBukti('mirip') + this.vGrupMirip(tampil, kepala) : `<div class="rows">${kepala}${tampil.map((r) => this.vRow(r)).join('')}</div>`;
     return info + `${isi}${rows.length > tampil.length ? `<div class="actions"><button class="btn" data-act="adm.lebih">Tampilkan lebih banyak (${rows.length - tampil.length} lagi)</button></div>` : ''}`;
   },
   /* Bukti mirip: nama pengirim sama + nominal sama + waktu di bukti selisih ≤ 1 menit.
@@ -4536,6 +4594,26 @@ const Adm = {
     return { baca, miripGrup, belumDibaca, tidakTerbaca };
   },
   // Filter "Bukti dobel": tiap kelompok bukti yang sama jadi satu kotak terpisah dengan judul & warna sendiri
+  /* tab Terbaru / Selesai untuk Bukti Transfer Sama & Mirip */
+  vTabBukti(jenis) {
+    if (this.s.data.selesai == null) return `<div class="note">${ico('info')}<span>Tab <b>Terbaru / Selesai</b> belum aktif: jalankan <b>bukti-selesai.sql</b> di Supabase.</span></div>`;
+    const c = jenis === 'sama' ? this.idx.st.samaTab : this.idx.st.miripTab, t = this.s.f.tabBukti || 'terbaru';
+    return `<div class="seg tab-bukti" role="group" aria-label="Status pengecekan">
+      <button type="button" class="${t === 'terbaru' ? 'on' : ''}" data-act="adm.tabBukti" data-v="terbaru" aria-pressed="${t === 'terbaru'}">${c.terbaru ? '<i class="titik-merah" aria-hidden="true"></i>' : ''}Terbaru <small>${c.terbaru}</small></button>
+      <button type="button" class="${t === 'selesai' ? 'on' : ''}" data-act="adm.tabBukti" data-v="selesai" aria-pressed="${t === 'selesai'}">Selesai <small>${c.selesai}</small></button></div>`;
+  },
+  /* tombol & keterangan "selesai dicek" di judul kelompok */
+  vCekBukti(g, jenis) {
+    if (this.s.data.selesai == null) return { tombol: '', ket: '' };
+    const kunci = `${jenis}:${g.rows.map((r) => r.id).join(',')}`;
+    const siapa = (c) => `<b>${esc(labelOleh(c.oleh) || 'panitia')}</b> · ${esc(fmtWaktu(c.created_at))}`;
+    if (g.selesai) return {
+      tombol: `<button type="button" class="btn btn-xs" data-act="adm.bukaLagi" data-jenis="${jenis}" data-kunci="${esc(kunci)}">${ico('undo')} Buka lagi</button>`,
+      ket: `<div class="cek-ok">${ico('check')}<span>Selesai dicek oleh ${siapa(g.rec)}</span></div>` };
+    return {
+      tombol: `<button type="button" class="btn btn-xs btn-good" data-act="adm.tandaiSelesai" data-jenis="${jenis}" data-kunci="${esc(kunci)}">${ico('check')} Tandai selesai</button>`,
+      ket: g.rec ? `<div class="note bad cek-ulang">${ico('alert')}<span><b>Ada pendaftaran baru</b> dengan bukti yang sama. Kelompok ini sebelumnya sudah selesai dicek oleh ${siapa(g.rec)} — periksa ulang semuanya.</span></div>` : '' };
+  },
   vGrupDobel(rows, kepala) {
     const urutan = [], per = new Map();
     for (const r of rows) {
@@ -4543,12 +4621,15 @@ const Adm = {
       if (!per.has(g)) { per.set(g, []); urutan.push(g); }
       per.get(g).push(r);
     }
+    if (!urutan.length) return `<div class="rows"><div class="empty">${(this.s.f.tabBukti || 'terbaru') === 'selesai' ? 'Belum ada kelompok yang ditandai selesai.' : 'Semua Bukti Transfer Sama sudah dicek.'}</div></div>`;
     return `<div class="dup-list">${urutan.map((g) => {
-      const isi = per.get(g), nTunggu = g.rows.filter((r) => r.status === 'menunggu').length, sembunyi = g.n - isi.length;
-      return `<section class="rows dup-grup dw${g.warna}" aria-label="Bukti ${g.label}">
+      const isi = per.get(g), nTunggu = g.rows.filter((r) => r.status === 'menunggu').length, sembunyi = g.n - isi.length, cek = this.vCekBukti(g, 'sama');
+      return `<section class="rows dup-grup dw${g.warna}${g.selesai ? ' selesai' : ''}" aria-label="Bukti ${g.label}">
         <div class="dup-h"><span class="dup-tag dw${g.warna}">${ico('layers')}Bukti ${g.label}</span>
-          <span>${g.n} pendaftaran mengunggah <b>file bukti yang persis sama</b> · total tagihan <b>${rupiah(g.total)}</b> — cek nominal di bukti cukup${nTunggu ? ` · <b>${nTunggu} menunggu</b>` : ''}</span>
+          <span class="dup-t">${g.n} pendaftaran mengunggah <b>file bukti yang persis sama</b> · total tagihan <b>${rupiah(g.total)}</b> — cek nominal di bukti cukup${nTunggu ? ` · <b>${nTunggu} menunggu</b>` : ''}</span>
+          ${cek.tombol}
           ${sembunyi > 0 ? `<small>${sembunyi} lainnya tidak tampil karena filter</small>` : ''}</div>
+        ${cek.ket}
         ${kepala}${isi.map((r) => this.vRow(r)).join('')}
       </section>`;
     }).join('')}</div>`;
@@ -4568,13 +4649,15 @@ const Adm = {
     if (st.belumDibaca) cat.push(`${st.belumDibaca} bukti belum diperiksa — klik <b>Periksa bukti</b> supaya ikut dibandingkan.`);
     if (st.tidakTerbaca) cat.push(`${st.tidakTerbaca} bukti tidak terbaca otomatis (gambar buram/terpotong) — cek manual.`);
     const info = cat.length ? `<div class="note">${ico('info')}<span>${cat.join('<br>')}</span></div>` : '';
-    if (!urutan.length) return info + `<div class="rows"><div class="empty">Belum ada Bukti Transfer Mirip.</div></div>`;
+    if (!urutan.length) return info + `<div class="rows"><div class="empty">${(this.s.f.tabBukti || 'terbaru') === 'selesai' ? 'Belum ada kelompok yang ditandai selesai.' : 'Belum ada Bukti Transfer Mirip yang perlu dicek.'}</div></div>`;
     return info + `<div class="dup-list">${urutan.map((g) => {
-      const isi = per.get(g), sembunyi = g.n - isi.length;
-      return `<section class="rows dup-grup mirip-grup" aria-label="Mirip ${g.label}">
+      const isi = per.get(g), sembunyi = g.n - isi.length, cek = this.vCekBukti(g, 'mirip');
+      return `<section class="rows dup-grup mirip-grup${g.selesai ? ' selesai' : ''}" aria-label="Mirip ${g.label}">
         <div class="dup-h"><span class="flag mirip-tag">${ico('search')}Mirip ${g.label}</span>
-          <span>${esc(this.alasanMirip(g))}</span>
+          <span class="dup-t">${esc(this.alasanMirip(g))}</span>
+          ${cek.tombol}
           ${sembunyi > 0 ? `<small>${sembunyi} lainnya tidak tampil karena filter</small>` : ''}</div>
+        ${cek.ket}
         ${kepala}${isi.map((r) => this.vRow(r)).join('')}
       </section>`;
     }).join('')}</div>`;
@@ -4727,8 +4810,10 @@ const Adm = {
     if (g) flags.push(`<span class="flag dup-tag dw${g.warna}" title="Bukti transfer sama dengan ${g.n - 1} pendaftaran lain">${ico('layers')}Bukti ${g.label}</span>`);
     const gm = this.idx.miripGrup.get(r.id);
     if (gm) flags.push(`<span class="flag mirip-tag" title="Nama pengirim, nominal &amp; waktu di bukti sama">${ico('search')}Mirip ${gm.label}</span>`);
+    if (this.idx.baruIds && this.idx.baruIds.has(r.id)) flags.push('<span class="flag baru-tag" title="Pendaftaran baru di kelompok yang sebelumnya sudah selesai dicek">BARU</span>');
     if (!r.bukti_path) flags.push('<span class="flag info">Manual</span>');
-    return `<div class="row${g ? ` dup dw${g.warna}` : ''}" role="button" tabindex="0" data-act="adm.buka" data-id="${esc(r.id)}" data-asal="${asal}">
+    const baru = this.idx.baruIds && this.idx.baruIds.has(r.id);
+    return `<div class="row${g ? ` dup dw${g.warna}` : ''}${baru ? ' baru-cek' : ''}" role="button" tabindex="0" data-act="adm.buka" data-id="${esc(r.id)}" data-asal="${asal}">
       <span class="c-st">${badgeStatus(r.status)}<span class="kd">${esc(r.kode)}</span></span>
       <span class="c-sekha"><b>${esc(r.nama_sekha)}</b><span>${esc(r.alamat)}</span>${flags.length ? `<span class="flags">${flags.join('')}</span>` : ''}</span>
       <span class="c-jenis"><span class="jtag">${jdot(r.jenis, dj)}${esc((j && j.nama) || r.jenis)}</span></span>
@@ -5551,6 +5636,31 @@ ACT['adm.cariWA'] = (el, e) => { e.preventDefault(); Adm.s.f = { ...FILTER_AWAL,
 ACT['adm.fStatus'] = (el) => { Adm.s.f.status = el.dataset.v; Adm.s.batas = 150; Adm.segarkanTampilan(); };
 ACT['adm.fWa'] = () => { Adm.s.f.wa = !Adm.s.f.wa; Adm.segarkanTampilan(); };
 ACT['adm.fDup'] = () => { Adm.s.f.dup = !Adm.s.f.dup; if (Adm.s.f.dup) Adm.s.f.mirip = false; Adm.segarkanTampilan(); };
+ACT['adm.tabBukti'] = (el) => { Adm.s.f.tabBukti = el.dataset.v; Adm.segarkanTampilan(); };
+/* kelompok dicari ulang dari kuncinya (jenis + anggota saat tombol ditampilkan) */
+function grupDariKunci(jenis, kunci) {
+  const id = String(kunci).split(':')[1].split(',')[0];
+  return (jenis === 'sama' ? Adm.idx.dupGrup : Adm.idx.miripGrup).get(id);
+}
+ACT['adm.tandaiSelesai'] = (el) => sibuk(el, async () => {
+  const g = grupDariKunci(el.dataset.jenis, el.dataset.kunci); if (!g) return;
+  try {
+    const row = await api.tandaiSelesai(el.dataset.jenis, g.rows.map((r) => r.id));
+    Adm.s.data.selesai = (Adm.s.data.selesai || []).concat([row]);
+    Adm.indeks(); Adm.segarkanTampilan({ diam: true });
+    toast(`${el.dataset.jenis === 'sama' ? 'Bukti' : 'Mirip'} ${g.label} ditandai selesai — pindah ke tab Selesai`, 'good');
+  } catch (e) { toast(pesanError(e), 'bad', 6000); }
+});
+ACT['adm.bukaLagi'] = (el) => sibuk(el, async () => {
+  const g = grupDariKunci(el.dataset.jenis, el.dataset.kunci); if (!g) return;
+  try {
+    const ids = (g.catatan || []).map((c) => c.id);
+    await api.bukaLagi(ids);
+    Adm.s.data.selesai = (Adm.s.data.selesai || []).filter((x) => !ids.includes(x.id));
+    Adm.indeks(); Adm.segarkanTampilan({ diam: true });
+    toast(`${el.dataset.jenis === 'sama' ? 'Bukti' : 'Mirip'} ${g.label} dibuka lagi — kembali ke tab Terbaru`, 'good');
+  } catch (e) { toast(pesanError(e), 'bad', 6000); }
+});
 ACT['adm.fMirip'] = () => { Adm.s.f.mirip = !Adm.s.f.mirip; if (Adm.s.f.mirip) Adm.s.f.dup = false; Adm.segarkanTampilan(); };
 ACT['adm.periksaBukti'] = () => Adm.periksaBukti();
 ACT['adm.periksaBatal'] = () => {
