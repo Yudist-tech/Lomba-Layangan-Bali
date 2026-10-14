@@ -1189,6 +1189,36 @@ fieldset.rentang legend { font-weight: 700; font-size: 14px; padding: 0 6px; }
   .ae-row .ae-nama { flex-basis: calc(100% - 40px); }
   .ae-row .ae-nama b { flex-basis: auto; }
 }
+/* ===== Halaman peserta: skala huruf seragam =====
+   12 keterangan · 13 teks pendukung · 14 label · 15 isi · 16 isian · 17 sub-judul · 20/22 judul · 22/26 angka penting */
+.pub-main, .hero { --fs-ket: 12px; --fs-pdk: 13px; --fs-lbl: 14px; --fs-isi: 15px; --fs-sub: 17px; --fs-jdl: 22px; --fs-ang: 26px; }
+@media (max-width: 600px) { .pub-main, .hero { --fs-jdl: 20px; --fs-ang: 22px; } }
+/* judul */
+.pub-main .h2 { font-size: var(--fs-jdl); font-weight: 800; line-height: 1.25; }
+.pub-main .jt-hari-h h3 { font-size: var(--fs-sub); font-weight: 800; letter-spacing: .04em; }
+.pub-main .jt-hari-h .muted { font-size: var(--fs-lbl); }
+/* angka penting: total, nomor layangan, kode, rekening */
+.pub-main .total .amt, .pub-main .ringkas .rk-no, .pub-main .kode-box b, .pub-main .cek-nomor b, .pub-main .big-no b { font-size: var(--fs-ang); font-weight: 800; letter-spacing: -.01em; line-height: 1.15; }
+.pub-main .kode-box b { letter-spacing: .05em; }
+.pub-main .bank-kv > b.big { font-size: var(--fs-sub); font-weight: 800; }
+.pub-main .opt-p { font-size: var(--fs-sub); font-weight: 800; }
+/* isi */
+.pub-main .kv dd, .pub-main .ringkas dd { font-size: var(--fs-isi); font-weight: 600; }
+.pub-main .kv dt, .pub-main .ringkas dt { font-size: var(--fs-pdk); font-weight: 500; color: var(--muted); }
+.pub-main .ringkas .rk-no small { font-size: var(--fs-ket); }
+.pub-main .kv .sub, .pub-main .ringkas dd small { font-size: var(--fs-pdk); font-weight: 400; color: var(--ink-2); }
+.pub-main .bank-kv > span { font-size: var(--fs-pdk); }
+.pub-main .big-no span { font-size: var(--fs-pdk); }
+/* teks pendukung & keterangan */
+.pub-main .sc-when, .pub-main .drop-alt, .pub-main .jt-legend { font-size: var(--fs-pdk); }
+.pub-main .grup-hari { font-size: var(--fs-ket); font-weight: 700; letter-spacing: .06em; }
+.pub-main .badge, .pub-main .jt-geser, .pub-main .foot-s { font-size: var(--fs-ket); }
+.pub-main .st b { font-size: var(--fs-pdk); font-weight: 800; }
+.pub-main .tab { font-size: var(--fs-lbl); }
+.hero .meta { font-size: var(--fs-lbl); }
+.hero .org { font-size: var(--fs-ket); }
+.hero-back { font-size: var(--fs-pdk); }
+
 </style>
 </head>
 <body>
