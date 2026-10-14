@@ -1261,6 +1261,17 @@ fieldset.rentang legend { font-weight: 700; font-size: 14px; padding: 0 6px; }
 @media (max-width: 600px) { .muat-art { width: 150px; height: 163px; } .muat-t { font-size: 20px; } .muat-s { font-size: 13px; } }
 @media (prefers-reduced-motion: reduce) { .muat-layang, .muat-ekor, .muat-tali, .muat-jauh, .muat-dots i, .muat-wrap.sambut .muat-t { animation: none; } }
 
+/* Kotak rekening panitia: kepala biru lembut, sorot no. rekening (biru) & jumlah (kuning) */
+.bank { border-color: #cfe0f6; }
+.bank-h { background: #e9f2fc; color: #0b4a8a; border-bottom-color: #d6e5f6; }
+.bank-h .ico { color: #0e5aa7; }
+.bank-row.br-rek { background: #f6fafe; }
+.bank-row.br-rek .bank-kv > b { color: #0b4a8a; }
+.bank-row.br-rek .btn { border-color: #cfe0f6; color: #0e5aa7; }
+.bank-row.br-jml { background: #fffaec; border-top-color: #f3e6bf; }
+.bank-row.br-jml .bank-kv > b { color: #7a5a00; }
+.bank-row.br-jml .btn { border-color: #efdca6; color: #7a5a00; }
+
 </style>
 </head>
 <body>
@@ -3664,13 +3675,13 @@ const Pub = {
   vKotakBank(harga) {
     const ev = this.s.info.event;
     if (!ev.bank_no_rek) return `<div class="note warn">${ico('alert')}<span>Rekening panitia belum diumumkan. Hubungi panitia sebelum transfer.</span></div>`;
-    const baris = (label, nilai, salinTeks, salinLabel, cls = '') => `<div class="bank-row"><div class="bank-kv"><span>${label}</span><b class="${cls}">${nilai}</b></div>${salinTeks != null ? `<button type="button" class="btn btn-xs" data-act="salin" data-teks="${esc(salinTeks)}" data-label="${salinLabel}">${ico('copy')}Salin</button>` : ''}</div>`;
+    const baris = (label, nilai, salinTeks, salinLabel, cls = '', baru = '') => `<div class="bank-row${baru ? ' ' + baru : ''}"><div class="bank-kv"><span>${label}</span><b class="${cls}">${nilai}</b></div>${salinTeks != null ? `<button type="button" class="btn btn-xs" data-act="salin" data-teks="${esc(salinTeks)}" data-label="${salinLabel}">${ico('copy')}Salin</button>` : ''}</div>`;
     return `<div class="bank" role="group" aria-label="Rekening tujuan transfer">
       <div class="bank-h">${ico('bank')} Transfer ke rekening panitia</div>
       ${baris('Bank', esc(ev.bank_nama), null)}
-      ${baris('No. rekening', esc(ev.bank_no_rek), String(ev.bank_no_rek).replace(/[\s.-]/g, ''), 'Nomor rekening disalin', 'mono big nw')}
+      ${baris('No. rekening', esc(ev.bank_no_rek), String(ev.bank_no_rek).replace(/[\s.-]/g, ''), 'Nomor rekening disalin', 'mono big nw', 'br-rek')}
       ${baris('Atas nama', esc(ev.bank_atas_nama), null)}
-      ${baris('Jumlah', rupiah(harga), String(Number(harga) || 0), 'Jumlah transfer disalin', 'big nw')}
+      ${baris('Jumlah', rupiah(harga), String(Number(harga) || 0), 'Jumlah transfer disalin', 'big nw', 'br-jml')}
     </div>`;
   },
   vKonfirmasi() {
