@@ -1282,6 +1282,24 @@ fieldset.rentang legend { font-weight: 700; font-size: 14px; padding: 0 6px; }
 .bank-row.br-jml .bank-kv > b { color: #7a5a00; }
 .bank-row.br-jml .btn { border-color: #efdca6; color: #7a5a00; }
 
+/* Pemasukan per cara bayar: angka lengkap (tidak dibulatkan) & proporsional di HP */
+.kpis-bayar .kpi .v { white-space: nowrap; font-variant-numeric: tabular-nums; }
+@media (max-width: 600px) {
+  /* di HP: tiga baris rapi — keterangan kiri, jumlah kanan */
+  .kpis.kpis-bayar { grid-template-columns: minmax(0, 1fr); gap: 8px; }
+  .kpis-bayar .kpi, .kpis-bayar .kpi.hi { grid-column: auto; display: grid; grid-template-columns: minmax(0, 1fr) auto; grid-template-areas: "l v" "s v"; align-items: center; column-gap: 12px; padding: 11px 14px; }
+  .kpis-bayar .kpi .l { grid-area: l; font-size: 14px; }
+  .kpis-bayar .kpi .s { grid-area: s; font-size: 12px; margin-top: 1px; }
+  .kpis-bayar .kpi .v { grid-area: v; font-size: 18px; margin: 0; text-align: right; }
+  .kpis-bayar .kpi.hi .v { font-size: 21px; }
+}
+
+@media (max-width: 600px) {
+  .tbl-bayar th, .tbl-bayar td { padding-left: 6px; padding-right: 6px; font-size: 13.5px; }
+  .tbl-bayar td:first-child .jtag { white-space: normal; }
+  .tbl-bayar .hint { font-size: 12px; }
+}
+
 </style>
 </head>
 <body>
@@ -4595,15 +4613,15 @@ const Adm = {
     const total = tot.tf.rp + tot.cash.rp;
     const pct = (x) => (total ? Math.round((x / total) * 100) : 0);
     return `<div class="panel" style="margin-top:16px"><div class="panel-h"><h3>Pemasukan per cara bayar</h3><span class="hint">Hanya pendaftaran terkonfirmasi</span></div>
-      <div class="kpis kpis-3" style="margin-bottom:14px">
-        <div class="kpi"><div class="l">${ico('bank')} Transfer</div><div class="v">${rupiahSingkat(tot.tf.rp)}</div><div class="s">${tot.tf.n} layangan · ${pct(tot.tf.rp)}%</div></div>
-        <div class="kpi"><div class="l">${ico('wallet')} Tunai (daftar manual)</div><div class="v">${rupiahSingkat(tot.cash.rp)}</div><div class="s">${tot.cash.n} layangan · ${pct(tot.cash.rp)}%</div></div>
-        <div class="kpi hi"><div class="l">Total pemasukan</div><div class="v">${rupiahSingkat(total)}</div><div class="s">${rupiah(total)}</div></div>
+      <div class="kpis kpis-3 kpis-bayar" style="margin-bottom:14px">
+        <div class="kpi"><div class="l">${ico('bank')} Transfer</div><div class="v">${rupiah(tot.tf.rp)}</div><div class="s">${tot.tf.n} layangan · ${pct(tot.tf.rp)}%</div></div>
+        <div class="kpi"><div class="l">${ico('wallet')} Tunai</div><div class="v">${rupiah(tot.cash.rp)}</div><div class="s">${tot.cash.n} layangan · ${pct(tot.cash.rp)}% · manual</div></div>
+        <div class="kpi hi"><div class="l">Total pemasukan</div><div class="v">${rupiah(total)}</div><div class="s">${tot.tf.n + tot.cash.n} layangan</div></div>
       </div>
-      ${baris.length ? `<div class="tbl-wrap"><table class="tbl">
-        <thead><tr><th>Jenis</th><th class="r">Transfer</th><th class="r">Tunai</th><th class="r">Total</th></tr></thead>
-        <tbody>${baris.map((x) => `<tr><td><span class="jtag">${jdot(x.j.kode, d.jenis)}${esc(x.j.nama)}</span></td>${sel(x.tf)}${sel(x.cash)}<td class="r"><b>${rupiah(x.tf.rp + x.cash.rp)}</b><div class="hint">${x.tf.n + x.cash.n} layangan</div></td></tr>`).join('')}</tbody>
-        <tfoot><tr><td>Total</td>${sel(tot.tf)}${sel(tot.cash)}<td class="r">${rupiah(total)}<div class="hint">${tot.tf.n + tot.cash.n} layangan</div></td></tr></tfoot>
+      ${baris.length ? `<div class="tbl-wrap"><table class="tbl tbl-bayar">
+        <thead><tr><th>Jenis</th><th class="r">Transfer</th><th class="r">Tunai</th><th class="r hide-sm">Total</th></tr></thead>
+        <tbody>${baris.map((x) => `<tr><td><span class="jtag">${jdot(x.j.kode, d.jenis)}${esc(x.j.nama)}</span></td>${sel(x.tf)}${sel(x.cash)}<td class="r hide-sm"><b>${rupiah(x.tf.rp + x.cash.rp)}</b><div class="hint">${x.tf.n + x.cash.n} layangan</div></td></tr>`).join('')}</tbody>
+        <tfoot><tr><td>Total</td>${sel(tot.tf)}${sel(tot.cash)}<td class="r hide-sm">${rupiah(total)}<div class="hint">${tot.tf.n + tot.cash.n} layangan</div></td></tr></tfoot>
       </table></div>` : '<div class="empty">Belum ada pemasukan terkonfirmasi.</div>'}
       ${tot.tfTunggu.n || tot.cashTunggu.n ? `<p class="hint" style="margin:12px 0 0">Belum dihitung (masih menunggu verifikasi): transfer ${rupiah(tot.tfTunggu.rp)} (${tot.tfTunggu.n})${tot.cashTunggu.n ? ` · tunai ${rupiah(tot.cashTunggu.rp)} (${tot.cashTunggu.n})` : ''}.</p>` : ''}
     </div>`;
