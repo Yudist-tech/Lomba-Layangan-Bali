@@ -1219,6 +1219,22 @@ fieldset.rentang legend { font-weight: 700; font-size: 14px; padding: 0 6px; }
 .hero .org { font-size: var(--fs-ket); }
 .hero-back { font-size: var(--fs-pdk); }
 
+/* pilihan jenis & grup di HP: lebih ringkas, tetap 1 kolom */
+.opt-s .nw { white-space: nowrap; }
+.opt-s .sep { font-style: normal; }
+.opt-grid.jenis .opt-s { flex-direction: column; align-items: flex-start; gap: 0; }
+.opt-grid.jenis .opt-s .sep { display: none; }
+@media (max-width: 600px) {
+  .pub-main .opt-grid { gap: 8px; }
+  .pub-main .opt { padding: 11px 12px; gap: 10px; border-radius: 12px; }
+  .pub-main .opt .radio { width: 18px; height: 18px; margin-top: 1px; }
+  .pub-main .opt.on .radio::after { width: 8px; height: 8px; }
+  .pub-main .opt-body { gap: 2px; }
+  .pub-main .opt-grid.jenis .opt-p { font-size: var(--fs-isi); }
+  .pub-main .opt-grid.jenis .opt-s { font-size: var(--fs-ket); flex-direction: row; align-items: center; column-gap: 4px; }
+  .pub-main .opt-grid.jenis .opt-s .sep { display: inline; }
+}
+
 </style>
 </head>
 <body>
@@ -2010,10 +2026,16 @@ class DemoAPI {
   }
   _muatEvent(id) {
     const db = bacaLokal(this.KEY_EV + id) || this.mem[id];
-    if (db && db.versi === 2) { this.mem[id] = db; return db; }
-    const baru = this._benih(false);
+    if (db && db.versi === 2) { this.mem[id] = this._duaDigit(db); return db; }
+    const baru = this._duaDigit(this._benih(false));
     try { this._simpanEv(id, baru); } catch (e) { /* abaikan */ }
     return baru;
+  }
+  /* tiruan nomor-2-digit.sql: nomor 1–9 ditulis 01–09 */
+  _duaDigit(db) {
+    (db.jenis || []).forEach((j) => { if ((j.nomor_digit || 0) < DIGIT_MIN) j.nomor_digit = DIGIT_MIN; });
+    (db.daftar || []).forEach((d) => { if (/^\d+$/.test(d.nomor_layangan || '')) d.nomor_layangan = rapikanNomor(d.nomor_layangan, (db.jenis || []).find((j) => j.kode === d.jenis)); });
+    return db;
   }
   _tulis(db) { this._simpanEv(this.eventId, db); }
   /* pilih event yang sedang dibuka (alamat #e/<kode-event>/…) */
@@ -3000,7 +3022,7 @@ class DemoAPI {
     return () => this.subs.delete(onChange);
   }
   /* khusus demo */
-  async isiContoh() { this.db = this._benih(true, this.db.pengaturan, { skala: 0.7 }); this._simpan(); }
+  async isiContoh() { this.db = this._duaDigit(this._benih(true, this.db.pengaturan, { skala: 0.7 })); this._simpan(); }
   async kosongkanDemo() { this.db = this._benih(false, this.db.pengaturan); this._simpan(); }
 }
 
@@ -3087,31 +3109,33 @@ function normNomor(v) {
   return /^\d{1,6}$/.test(t) ? t.replace(/^0+(?=\d)/, '') : null;
 }
 /* Rentang nomor per jenis layangan: j = { nomor_min, nomor_max, nomor_digit }.
-   nomor_digit > 0 → nomor ditulis dengan nol di depan (01, 02 … bila rentang 01–200). */
+   Nomor selalu minimal 2 angka: 1 → 01, 2 → 02 … (nomor-2-digit.sql). nomor_digit > 2 → lebih banyak nol (001). */
+const DIGIT_MIN = 2;
+const digitNomor = (j) => Math.max(DIGIT_MIN, (j && j.nomor_digit) || 0);
 const adaRentang = (j) => !!j && j.nomor_min != null && j.nomor_max != null;
 function rapikanNomor(v, j) {
   const n = normNomor(v);
   if (!n) return null;
-  const dg = (j && j.nomor_digit) || 0;
+  const dg = digitNomor(j);
   return dg > n.length ? n.padStart(dg, '0') : n;
 }
 const dalamRentang = (nomor, j) => !adaRentang(j) || (parseInt(nomor, 10) >= j.nomor_min && parseInt(nomor, 10) <= j.nomor_max);
 function teksRentang(j) {
   if (!adaRentang(j)) return '';
-  const p = (n) => String(n).padStart(j.nomor_digit || 0, '0');
+  const p = (n) => String(n).padStart(digitNomor(j), '0');
   return `${p(j.nomor_min)}–${p(j.nomor_max)}`;
 }
 /* baca isian "Dari" & "Sampai" panitia → { nomor_min, nomor_max, nomor_digit } (kosong = bebas) */
 function bacaRentang(dari, sampai) {
   dari = String(dari || '').trim(); sampai = String(sampai || '').trim();
-  if (!dari && !sampai) return { nomor_min: null, nomor_max: null, nomor_digit: 0 };
+  if (!dari && !sampai) return { nomor_min: null, nomor_max: null, nomor_digit: DIGIT_MIN };
   if (!/^\d{1,6}$/.test(dari) || !/^\d{1,6}$/.test(sampai)) throw new Error('Rentang nomor harus angka, misalnya 01 sampai 200.');
   const a = parseInt(dari, 10), b = parseInt(sampai, 10);
   if (a > b) throw new Error('Nomor awal rentang harus lebih kecil dari nomor akhir.');
-  const dg = dari.length > 1 && dari[0] === '0' ? dari.length : 0;   // "01" → 2 digit: 01, 02 … 09, 10 … 200
+  const dg = Math.max(DIGIT_MIN, dari.length > 1 && dari[0] === '0' ? dari.length : 0);   // minimal 2 angka: 01, 02 … 09, 10 … 200; "001" → 3 angka
   return { nomor_min: a, nomor_max: b, nomor_digit: dg };
 }
-const isianRentang = (j) => (adaRentang(j) ? { dari: String(j.nomor_min).padStart(j.nomor_digit || 0, '0'), sampai: String(j.nomor_max) } : { dari: '', sampai: '' });
+const isianRentang = (j) => (adaRentang(j) ? { dari: String(j.nomor_min).padStart(digitNomor(j), '0'), sampai: String(j.nomor_max) } : { dari: '', sampai: '' });
 /* Tabel jadwal 1 hari, mirip lembar jadwal panitia.
    o = { hari, sesi[], grup[], jenis[], kotakIsi(g) → Map(kotak → {nomor, status, id}), admin, tampilNomor } */
 function tabelJadwal(o) {
@@ -3330,7 +3354,7 @@ function vIsianRentang(pre, j, namaJenis) {
   return `<fieldset class="rentang" id="${pre}-rentang"><legend>Rentang nomor layangan <span class="opt-lbl">(opsional)</span></legend>
     <div class="rentang-isi"><input class="input" id="${pre}-dari" name="nomor_dari" value="${esc(v.dari)}" inputmode="numeric" maxlength="6" aria-label="Nomor dari">
       <span>sampai</span><input class="input" id="${pre}-sampai" name="nomor_sampai" value="${esc(v.sampai)}" inputmode="numeric" maxlength="6" aria-label="Nomor sampai"></div>
-    <span class="hint" id="${pre}-rentang-hint">Berlaku untuk semua grup ${namaJenis ? `<b>${esc(namaJenis)}</b>` : 'jenis ini'}. Tulis 01 bila nomor kecil memakai nol di depan (01, 02 …). Kosongkan bila nomor bebas.</span></fieldset>`;
+    <span class="hint" id="${pre}-rentang-hint">Berlaku untuk semua grup ${namaJenis ? `<b>${esc(namaJenis)}</b>` : 'jenis ini'}. Nomor 1–9 otomatis ditulis 2 angka (01, 02 …). Kosongkan bila nomor bebas.</span></fieldset>`;
 }
 /* Isi template pesan WA */
 function dataTemplate(r, seri, jenis, ev) {
@@ -3558,7 +3582,7 @@ const Pub = {
       <span class="radio" aria-hidden="true"></span>
       <span class="opt-body"><span class="opt-t">${jdot(j.kode, this.s.info.jenis)}${esc(j.nama)}</span>
         <span class="opt-p">${rupiah(j.harga)}</span>
-        <span class="opt-s">${off ? '<b class="full">Kuota habis</b>' : `Sisa ${angka(sisa)} slot`}${adaRentang(j) ? ` · Nomor ${esc(teksRentang(j))}` : ''}</span></span>
+        <span class="opt-s"><span>${off ? '<b class="full">Kuota habis</b>' : `Sisa ${angka(sisa)} slot`}</span>${adaRentang(j) ? `<span class="nw"><i class="sep" aria-hidden="true">· </i>Nomor ${esc(teksRentang(j))}</span>` : ''}</span></span>
     </label>`;
   },
   vListSeri() {
@@ -6045,7 +6069,7 @@ IN['adm.grupJenis'] = (el) => {
   // rentang nomor ikut jenis yang dipilih
   const f = el.form, v = isianRentang(ada), rh = $('#g-rentang-hint');
   if (f && f.nomor_dari && f.dataset.jenisTerakhir !== (ada ? ada.kode : '')) { f.nomor_dari.value = v.dari; f.nomor_sampai.value = v.sampai; f.dataset.jenisTerakhir = ada ? ada.kode : ''; }
-  if (rh) rh.innerHTML = `Berlaku untuk semua grup ${el.value.trim() ? `<b>${esc(el.value.trim())}</b>` : 'jenis ini'}. Tulis 01 bila nomor kecil memakai nol di depan (01, 02 …). Kosongkan bila nomor bebas.`;
+  if (rh) rh.innerHTML = `Berlaku untuk semua grup ${el.value.trim() ? `<b>${esc(el.value.trim())}</b>` : 'jenis ini'}. Nomor 1–9 otomatis ditulis 2 angka (01, 02 …). Kosongkan bila nomor bebas.`;
 };
 SUB['adm.simpanGrup'] = async (form) => {
   const id = Number(form.dataset.id) || null, sesi_id = Number(form.dataset.sesi), lama = id ? Adm.idx.seri.get(id) : null, d = Adm.s.data;
