@@ -3145,7 +3145,7 @@ function tabelJadwal(o) {
   if (!sesi.length) body = `<tr><td colspan="${KOLOM_JADWAL + 4}" class="jt-kosong">${admin ? `Belum ada seri. <button class="btn btn-xs" data-act="adm.sesiBaru" data-hari="${hari.id}">${ico('plus')} Tambah Seri I</button>` : 'Jadwal menyusul.'}</td></tr>`;
   const pub = !admin && !o.cetak;
   return `${pub ? `<div class="jt-geser" aria-hidden="true">${ico('arrow-l')}<span>Geser tabel untuk melihat semua nomor</span>${ico('arrow-r')}</div>` : ''}<div class="jt-wrap${pub ? ' jt-pub' : ''}"><table class="jt">
-    <thead><tr><th class="jt-seri">Seri</th><th class="jt-grup"><span class="nm-pjg">Grup</span><span class="nm-pdk" aria-hidden="true">Gr</span></th><th class="jt-jenis">Jenis</th>${kol.map((c) => `<th>${c}</th>`).join('')}<th>Total</th></tr></thead>
+    <thead><tr><th class="jt-seri">Seri</th><th class="jt-grup">${o.cetak ? 'Grup' : '<span class="nm-pjg">Grup</span><span class="nm-pdk" aria-hidden="true">Gr</span>'}</th><th class="jt-jenis">Jenis</th>${kol.map((c) => `<th${o.cetak ? ' class="jt-no"' : ''}>${c}</th>`).join('')}<th${o.cetak ? ' class="jt-tot"' : ''}>Total</th></tr></thead>
     <tbody>${body}</tbody></table></div>`;
 }
 /* Keterangan di bawah tabel 1 hari, lengkap dengan jumlah kotak sebenarnya */
@@ -5276,20 +5276,32 @@ const Adm = {
       return m;
     };
     const tabel = tabelJadwal({ hari: h, sesi: d.sesi, grup: d.seri.filter((x) => x.sesi_id), jenis: d.jenis, kotakIsi: isi, admin: false, cetak: true });
+    const oleh = labelOleh(this.s.sesi && this.s.sesi.email);
     const warna = getComputedStyle(document.documentElement);
     const cat = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((i) => `--cat-${i}:${warna.getPropertyValue('--cat-' + i)}`).join(';');
     const html = `<!doctype html><html lang="id"><head><meta charset="utf-8"><title>Jadwal ${esc(h.nama)}</title>
-<style>:root{${cat};--surface:#fff;--surface-2:#f6f6f6;--surface-3:#e8e8e8;--ink:#111;--ink-2:#333;--muted:#555;--line:#999;--line-strong:#666;--warn-soft:#fff;--warn-ink:#111}
-body{font:11px/1.3 system-ui,-apple-system,'Segoe UI',sans-serif;margin:16px;color:#111}h1{font-size:22px;margin:0;text-align:center;letter-spacing:.06em}.meta{text-align:center;color:#444;margin:2px 0 10px}
-.jt{border-collapse:collapse;width:100%}.jt th,.jt td{border:1px solid #888;padding:0;text-align:center}.jt thead th{background:#e8e8e8;font-size:9.5px;padding:4px 2px}
-.jt .jt-seri{padding:4px}.jt .jt-seri b{display:block;font-size:14px}.jt .jt-seri span{display:block;font-size:10px}.jt .jt-grup{font-weight:800;width:22px}
-.jt .jt-jenis{font-weight:700;text-transform:uppercase;font-size:10px;background:color-mix(in srgb,var(--jc) 35%,#fff);min-width:110px}.jt .jt-jenis span{display:block;padding:3px 6px}.jt .jt-jenis small{display:block;font-weight:400;text-transform:none}
-*{-webkit-print-color-adjust:exact;print-color-adjust:exact;color-adjust:exact}
-.jt .k{width:26px;height:20px;font-size:10.5px;font-weight:600}.jt .k.tutup{background:#000!important;border-color:#000;padding:0}
-.jt .k.tutup svg.hitam{display:block;width:100%;height:20px}.jt .k.na{background:#eee}.jt .jt-tot{font-weight:800;font-size:12px}.jt .jt-tot small{display:block;font-weight:400;font-size:9px}
-.jt-wrap{overflow:visible}@page{size:A4 landscape;margin:8mm}@media print{body{margin:0}}</style></head><body>
+<style>:root{${cat};--surface:#fff;--surface-2:#f6f6f6;--surface-3:#e6e6e6;--ink:#111;--ink-2:#333;--muted:#555;--line:#999;--line-strong:#666;--warn-soft:#fff;--warn-ink:#111}
+*{-webkit-print-color-adjust:exact;print-color-adjust:exact;color-adjust:exact;box-sizing:border-box}
+body{font:10px/1.25 system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;margin:16px;color:#111;font-variant-numeric:tabular-nums}
+h1{font-size:17px;font-weight:800;margin:0;text-align:center;letter-spacing:.08em}
+.meta{text-align:center;color:#444;font-size:10px;margin:3px 0 8px}
+.jt{border-collapse:collapse;width:100%;table-layout:fixed}
+.jt th,.jt td{border:1px solid #8a8a8a;padding:0;text-align:center;vertical-align:middle;overflow:hidden}
+.jt thead th{background:#e6e6e6;font-size:8.5px;font-weight:800;text-transform:uppercase;letter-spacing:.04em;height:18px;padding:0 2px}
+.jt thead th.jt-no{letter-spacing:0;font-size:9px}
+.jt thead .jt-seri{width:62px}.jt thead .jt-grup{width:36px}.jt thead .jt-jenis{width:112px}.jt thead .jt-tot{width:38px}
+.jt tbody .jt-seri{padding:4px 3px;background:#fff}.jt .jt-seri b{display:block;font-size:12px;font-weight:800}.jt .jt-seri span{display:block;font-size:8.5px;color:#444;margin-top:1px}
+.jt tbody .jt-grup{font-size:11px;font-weight:800;background:#fff}
+.jt tbody .jt-jenis{font-weight:800;text-transform:uppercase;font-size:8.5px;letter-spacing:.02em;background:color-mix(in srgb,var(--jc) 35%,#fff)}
+.jt .jt-jenis span{display:block;padding:2px 5px}.jt .jt-jenis small{display:block;font-weight:400;text-transform:none;font-size:8px}
+.jt .k{height:17px;font-size:9.5px;font-weight:600;white-space:nowrap}.jt .k.na{background:#eee}
+.jt .k.tutup{background:#000!important;border-color:#000;padding:0}.jt .k.tutup svg.hitam{display:block;width:100%;height:17px}
+.jt tbody .jt-tot{font-weight:800;font-size:11px}.jt .jt-tot small{display:block;font-weight:400;font-size:8px;color:#444}
+.jt-pemisah td{height:6px!important}.nm-pdk{display:none}
+.jt-wrap{overflow:visible}.kaki{margin-top:6px;font-size:8.5px;color:#555;text-align:right}
+@page{size:A4 landscape;margin:8mm}@media print{body{margin:0}}</style></head><body>
 <h1>${esc(String(h.nama).toUpperCase())}</h1><div class="meta">${esc(ev.nama_event || '')}${h.tanggal ? ' · ' + esc(fmtTanggal(h.tanggal)) : ''}${ev.lokasi ? ' · ' + esc(ev.lokasi) : ''}</div>
-${tabel}<div class="meta" style="text-align:left;margin-top:8px">Hanya nomor layangan yang sudah terkonfirmasi yang dicetak. Kotak hitam = ditutup panitia. Dicetak ${esc(fmtWaktu(new Date().toISOString()))}.</div>
+${tabel}<div class="kaki">Dicetak${oleh ? ` oleh ${esc(oleh)}` : ''} · ${esc(fmtWaktu(new Date().toISOString()))}</div>
 <script>window.onload=function(){setTimeout(function(){window.print()},300)}<\/script></body></html>`;
     const url = URL.createObjectURL(new Blob([html], { type: 'text/html' }));
     const w = window.open(url, '_blank');
