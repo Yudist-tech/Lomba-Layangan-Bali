@@ -231,6 +231,7 @@ Pasang sekali: jalankan **`bukti-selesai.sql`** di SQL Editor (hasil 2 ✅). Seb
 
 - **Kuota per grup** = jumlah kotak dikurangi kotak yang ditutup; dihitung dari pendaftaran *menunggu + terkonfirmasi*. Aman walau banyak orang mendaftar bersamaan — tiap peserta mendapat kotak sendiri, berurutan dari kotak 1.
 - **Nomor layangan** diisi peserta (angka, maks 6 digit) dan tidak boleh sama dengan peserta lain **di jenis yang sama**. Nomor dari pendaftaran yang ditolak boleh dipakai lagi.
+- **Nomor minimal 2 angka**: 1 → 01, 2 → 02 … 9 → 09 untuk semua jenis (pasang sekali: jalankan **`nomor-2-digit.sql`**, hasil 2 ✅ — nomor peserta yang sudah terdaftar ikut dirapikan). Rentang yang ditulis 001 tetap 3 angka.
 - **Nama, tanggal & jam grup** mengikuti hari dan seri; mengubah jam seri langsung memperbarui semua grup di dalamnya.
 - **Harga** tersimpan saat mendaftar. Mengubah harga hanya berlaku untuk pendaftaran baru; peserta yang sedang membayar saat harga berubah diminta cek ulang.
 - **Bukti transfer** wajib benar-benar terunggah; satu bukti yang dipakai >1 pendaftaran ditandai *Bukti Transfer Sama*.
