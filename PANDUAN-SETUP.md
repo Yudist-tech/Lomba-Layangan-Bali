@@ -224,7 +224,8 @@ Pasang sekali: jalankan **`bukti-selesai.sql`** di SQL Editor (hasil 2 ✅). Seb
 - Setelah mengecek satu kelompok, klik **Tandai selesai** → kelompok pindah ke Selesai. Tercatat siapa (ID panitia) dan kapan.
 - Bila kemudian masuk pendaftaran baru dengan bukti yang sama/mirip, **seluruh kelompok kembali ke Terbaru**: pendaftaran baru diberi label **BARU** dan ada catatan siapa yang sebelumnya menandai selesai. Periksa ulang semuanya, lalu tandai selesai lagi.
 - **Buka lagi** mengembalikan kelompok dari Selesai ke Terbaru.
-- Semua panitia event bisa menandai & membuka lagi. Pengingat di Ringkasan hanya menghitung kelompok yang belum selesai.
+- Semua panitia event bisa menandai & membuka lagi.
+- Di **Ringkasan** ada satu pengingat *"N kelompok bukti perlu dicek"* (Sama + Mirip di tab Terbaru). Klik **Sama** / **Mirip** untuk langsung membuka filternya; keterangan muncul bila ada kelompok yang kembali karena pendaftaran baru. Pengingat hilang sendiri setelah semua ditandai selesai.
 
 ## Aturan yang dijaga otomatis oleh database
 

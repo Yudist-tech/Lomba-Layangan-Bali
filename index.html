@@ -487,6 +487,19 @@ button.kpi:hover { border-color: var(--line-strong); }
 .todo-item .tt { flex: 1; min-width: 0; }
 .todo-item .tt b { display: block; }
 .todo-item .tt span { font-size: 13px; color: var(--muted); }
+.bk-chips { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 7px; }
+.bk-chip { display: inline-flex; align-items: center; gap: 5px; border: 1px solid; border-radius: 99px; padding: 3px 10px 3px 8px; font: inherit; font-size: 12.5px; font-weight: 700; cursor: pointer; }
+.bk-chip .ico { width: 14px; height: 14px; }
+.bk-chip em { font-style: normal; background: var(--bad); color: #fff; border-radius: 99px; padding: 0 6px; font-size: 11.5px; min-width: 18px; text-align: center; }
+.bk-chip.sama { border-color: color-mix(in srgb, #d6336c 40%, var(--line)); background: color-mix(in srgb, #d6336c 7%, var(--surface)); color: color-mix(in srgb, #d6336c 75%, #000); }
+.bk-chip.mirip { border-color: color-mix(in srgb, var(--warn) 70%, transparent); border-style: dashed; background: var(--warn-soft); color: var(--warn-ink); }
+.bk-chip.nol { border-color: var(--line); border-style: solid; background: var(--surface); color: var(--muted); }
+.bk-chip.nol em { background: var(--line); color: var(--muted); }
+.bk-chip:hover { filter: brightness(.97); }
+.bk-kembali { margin-top: 6px; font-size: 12.5px; line-height: 1.4; color: var(--bad-ink); }
+.bk-kembali .ico { width: 14px; height: 14px; vertical-align: -2px; margin-right: 5px; }
+.todo-bukti { align-items: flex-start; }
+.todo-bukti > .btn { margin-top: 2px; }
 
 .grid2 { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 16px; }
 .grid2 > * { min-width: 0; }
@@ -765,6 +778,7 @@ button.kd-row:hover { background: var(--surface-2); }
   .hide-sm { display: none; }
   .tbl th, .tbl td { padding: 8px 6px; }
   .todo-item .tt span { display: none; }
+  .todo-bukti > .btn { display: none; }   /* di HP: chip Sama / Mirip jadi tombolnya */
   .todo-item { padding: 10px 12px; gap: 10px; }
   .kv { grid-template-columns: minmax(0, 1fr); gap: 2px 0; }
   .kv dt { margin-top: 8px; }
@@ -4155,8 +4169,7 @@ const Adm = {
     tandai(dupGrup, 'sama'); tandai(miripGrup, 'mirip');
     const hitung = (peta) => { let t = 0, s = 0; new Set(peta.values()).forEach((g) => (g.selesai ? s++ : t++)); return { terbaru: t, selesai: s }; };
     st.samaTab = hitung(dupGrup); st.miripTab = hitung(miripGrup);
-    // pengingat di Ringkasan: hanya kelompok yang belum selesai dicek
-    st.dupMenunggu = d.daftar.filter((r) => r.status === 'menunggu' && dupIds.has(r.id) && !dupGrup.get(r.id).selesai).length;
+    st.buktiKembali = [...new Set(dupGrup.values()), ...new Set(miripGrup.values())].filter((g) => !g.selesai && g.rec).length;
     this.idx = { jenis, seri, perSeri, hash, perWA, st, dupIds, dupGrup, baca, miripGrup, belumDibaca, baruIds, hari, sesi, kotak };
   },
   baris(id) { return this.s.data && this.s.data.daftar.find((r) => r.id === id); },
@@ -4349,7 +4362,14 @@ const Adm = {
     const item = (kls, ikon, judul, sub, tombol) => `<div class="todo-item"><div class="ti ${kls}">${ico(ikon)}</div><div class="tt"><b>${judul}</b><span>${sub}</span></div>${tombol}</div>`;
     if (st.menunggu) todo.push(item('warn', 'clock', `${st.menunggu} pendaftaran menunggu verifikasi`, 'Cek bukti transfer, lalu konfirmasi atau tolak.', `<button class="btn btn-sm btn-primary" data-act="adm.verifikasi">Verifikasi ${ico('arrow-r')}</button>`));
     if (st.waBelum) todo.push(item('info', 'chat', `${st.waBelum} konfirmasi WhatsApp belum dikirim`, 'Sudah terkonfirmasi tapi peserta belum menerima pesan WA.', `<button class="btn btn-sm" data-act="adm.filterWa">Kirim</button>`));
-    if (st.dupMenunggu) todo.push(item('bad', 'layers', `${st.dupMenunggu} pendaftaran memakai bukti transfer yang sama`, 'Pastikan nominal transfer cukup untuk semua layangan.', `<button class="btn btn-sm" data-act="adm.filterDup">Periksa</button>`));
+    const nSama = st.samaTab.terbaru, nMirip = st.miripTab.terbaru;
+    if (nSama + nMirip) {
+      const chip = (jenis, ikon, label, n) => `<button type="button" class="bk-chip ${jenis}${n ? '' : ' nol'}" data-act="adm.filterBukti" data-v="${jenis}" aria-label="${label}: ${n} kelompok perlu dicek">${ico(ikon)}${label} <em>${n}</em></button>`;
+      todo.push(`<div class="todo-item todo-bukti"><div class="ti bad">${ico('layers')}</div><div class="tt"><b>${nSama + nMirip} kelompok bukti perlu dicek</b><span>Bukti yang sama atau mirip dipakai lebih dari satu pendaftaran.</span>
+        <div class="bk-chips">${chip('sama', 'layers', 'Sama', nSama)}${chip('mirip', 'search', 'Mirip', nMirip)}</div>
+        ${st.buktiKembali ? `<div class="bk-kembali">${ico('alert')}${st.buktiKembali} kelompok kembali karena ada pendaftaran <strong>BARU</strong></div>` : ''}</div>
+        <button class="btn btn-sm" data-act="adm.filterBukti" data-v="${nSama ? 'sama' : 'mirip'}">Periksa ${ico('arrow-r')}</button></div>`);
+    }
     if (!ev.bank_no_rek) todo.push(item('bad', 'bank', 'Rekening panitia belum diisi', 'Peserta belum bisa melihat tujuan transfer.', `<a class="btn btn-sm" href="#admin/pengaturan">Isi</a>`));
     if (!d.hari.length) todo.push(item('bad', 'cal', 'Jadwal terbang belum dibuat', 'Peserta baru bisa mendaftar setelah ada hari, seri, dan grup di jadwal terbang.', `<a class="btn btn-sm" href="#admin/seri">Buat</a>`));
     const tanpaTgl = d.hari.filter((h) => !h.tanggal).length;
@@ -5631,6 +5651,11 @@ ACT['adm.nav'] = (el, e) => { if (e) e.preventDefault(); if (el.dataset.id) { Ad
 ACT['adm.zoom'] = (el) => lightbox(el.dataset.url);
 ACT['adm.verifikasi'] = () => Adm.mulaiVerifikasi();
 ACT['adm.filterWa'] = () => { Adm.s.f = { ...FILTER_AWAL, status: 'terkonfirmasi', wa: true, urut: 'terlama' }; location.hash = '#admin/pendaftaran'; if (Adm.s.tab === 'pendaftaran') Adm.segarkanTampilan(); };
+ACT['adm.filterBukti'] = (el) => {
+  const mirip = el.dataset.v === 'mirip';
+  Adm.s.f = { ...FILTER_AWAL, dup: !mirip, mirip, urut: 'terlama', tabBukti: 'terbaru' };
+  location.hash = '#admin/pendaftaran'; if (Adm.s.tab === 'pendaftaran') Adm.segarkanTampilan();
+};
 ACT['adm.filterDup'] = () => { Adm.s.f = { ...FILTER_AWAL, dup: true, urut: 'terlama' }; location.hash = '#admin/pendaftaran'; if (Adm.s.tab === 'pendaftaran') Adm.segarkanTampilan(); };
 ACT['adm.cariWA'] = (el, e) => { e.preventDefault(); Adm.s.f = { ...FILTER_AWAL, q: fmtWA(el.dataset.wa) }; Overlay.tutupSemua(); location.hash = '#admin/pendaftaran'; if (Adm.s.tab === 'pendaftaran') Adm.render(); };
 ACT['adm.fStatus'] = (el) => { Adm.s.f.status = el.dataset.v; Adm.s.batas = 150; Adm.segarkanTampilan(); };
