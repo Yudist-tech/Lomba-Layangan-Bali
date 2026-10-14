@@ -193,6 +193,16 @@ Pasang sekali: jalankan **`login-id.sql`** di SQL Editor (hasil 3 ✅).
 - **Super admin juga mau login dengan ID?** Buka `super-admin-id.sql`, ganti ID, password, dan email super admin Anda, lalu Run sekali di SQL Editor. Login email super admin tetap berlaku.
 - Akun email lama tetap bisa login seperti biasa. Di balik layar ID disimpan sebagai `<id>@id.panitia.lomba` (tidak pernah dikirimi email).
 
+## Riwayat & kinerja panitia
+
+Pasang sekali: jalankan **`riwayat.sql`** di SQL Editor (hasil 3 ✅).
+
+- Database mencatat **otomatis** akun yang mengonfirmasi, menolak, mengirim WA, menambah, mengubah, atau menghapus pendaftaran — tidak bisa dipalsukan dari aplikasi.
+- **Panel detail pendaftaran → Riwayat**: mis. *Dikonfirmasi oleh Mdwia587 (I Made Darma Wiguna Artha) · 14 Okt 08.52*, *Data diubah: nomor layangan 901 → 902*.
+- **Ringkasan → Kinerja panitia**: jumlah dikonfirmasi, ditolak, dan WA dikirim per panitia.
+- **Excel**: kolom *Dikonfirmasi oleh*, *Ditolak oleh*, *WA dikirim oleh*.
+- Pendaftaran yang dikonfirmasi sebelum `riwayat.sql` dipasang ditandai *sebelum pencatatan aktif*.
+
 ## Bukti Transfer Sama & Bukti Transfer Mirip
 
 - **Bukti Transfer Sama** (otomatis): file gambar yang diunggah **persis sama** di lebih dari 1 pendaftaran. Dikelompokkan *Bukti A, Bukti B, …* dengan warna sendiri. Yang dibandingkan hanya file gambarnya — nama sekha, jenis, atau biaya tidak berpengaruh. Dobel belum tentu curang: satu transfer bisa memang untuk beberapa layangan, jadi cek apakah nominal di bukti cukup untuk total tagihan kelompok.

@@ -1134,6 +1134,12 @@ fieldset.rentang legend { font-weight: 700; font-size: 14px; padding: 0 6px; }
 .ae-tambah .input { flex: 1; min-width: 0; }
 .ae-cara { margin-top: 14px; font-size: 13.5px; }
 .ae-pratinjau { margin: 6px 2px 0; font-size: 12.5px; }
+.timeline li small { display: block; color: var(--muted); font-size: 12px; margin-top: 1px; }
+.timeline li small.muted { display: inline; }
+.timeline li.ok .ico { color: var(--good-ink, #1a7f37); }
+.timeline li.bad .ico { color: var(--bad-ink); }
+.timeline s { color: var(--muted); }
+.tbl.kinerja td small { display: block; color: var(--muted); font-size: 12px; font-weight: 500; }
 .ae-pratinjau:empty { display: none; }
 .ae-lain { margin-top: 10px; font-size: 13.5px; }
 .ae-lain summary { cursor: pointer; color: var(--brand); font-weight: 600; }
@@ -1565,6 +1571,12 @@ function angkaAcak() {
   do { a = String(Math.floor(Math.random() * 1000)).padStart(3, '0'); } while ((a[0] === a[1] && a[1] === a[2]) || pola.includes(a));
   return a;
 }
+/* label pelaku untuk riwayat & rekap: "Mdwia587 (I Made Darma…)" atau email */
+function labelOleh(email, pendek = false) {
+  if (!email) return '';
+  const nama = namaLengkap(email), id = akunId(email) ? namaAkun(email) : email;
+  return pendek || !nama ? id : `${id} (${nama})`;
+}
 /* nama lengkap panitia (bila ada) untuk sebuah akun */
 const namaLengkap = (email) => ((Pusat.s && Pusat.s.nama) || {})[String(email || '').toLowerCase()] || '';
 function passwordAcak() {
@@ -1755,6 +1767,11 @@ class SupabaseAPI {
   buatAkunId(id, akunId, password) { return this._rpc('lomba_buat_akun_id', { p_event: Number(id), p_id: akunId, p_password: password }); }
   resetPasswordId(akunId, password) { return this._rpc('lomba_reset_password_id', { p_id: akunId, p_password: password }); }
   hapusAkunId(akun) { return this._rpc('lomba_hapus_akun_id', { p_id: akun }); }
+  /* riwayat satu pendaftaran (riwayat.sql); null = tabel belum dipasang */
+  async riwayat(pid) {
+    try { return this._ok(await this.sb.from('lomba_riwayat').select('*').eq('pendaftaran_id', pid).order('created_at').order('id')); }
+    catch (e) { return null; }
+  }
   buatAkunNama(id, nama, password) { return this._rpc('lomba_buat_akun_nama', { p_event: Number(id), p_nama: nama, p_password: password }); }
   async namaPanitia() { try { return (await this._rpc('lomba_nama_panitia')) || {}; } catch (e) { return {}; } }
 
@@ -2071,7 +2088,11 @@ class DemoAPI {
     ix.sandi = { [idContoh]: 'layangan123' };
     if (ix.events[0]) ix.akses[ix.events[0].id] = [...(ix.akses[ix.events[0].id] || []), idContoh];
     ix.pengguna.push({ email: idContoh, nama: 'sanur01', peran: 'panitia' });
-    ix.namaPanitia = { [idContoh]: 'Panitia Contoh Sanur' };
+    const idContoh2 = 'mdwia587' + ID_DOMAIN;
+    ix.sandi[idContoh2] = 'layangan123';
+    if (ix.events[0]) ix.akses[ix.events[0].id].push(idContoh2);
+    ix.pengguna.push({ email: idContoh2, nama: 'mdwia587', peran: 'panitia' });
+    ix.namaPanitia = { [idContoh]: 'Panitia Contoh Sanur', [idContoh2]: 'I Made Darma Wiguna Artha' };
     this.ix = ix;
     this._tulisIndex();
     return ix;
@@ -2143,6 +2164,12 @@ class DemoAPI {
         if (Math.random() < 0.82) r.wa_terkirim_at = r.dikonfirmasi_at;
       }
       if (status === 'ditolak') { r.kotak = null; r.nomor_layangan = null; r.nomor_urut = null; }
+      // contoh pencatatan panitia (sebagian dianggap "sebelum pencatatan aktif")
+      const petugas = ['sanur01' + ID_DOMAIN, 'mdwia587' + ID_DOMAIN, 'panitia.sanur@demo.id', 'superadmin@demo.id'];
+      const siapa = Math.random() < 0.85 ? pilih(petugas) : null;
+      r.dikonfirmasi_oleh = status === 'terkonfirmasi' ? siapa : null;
+      r.ditolak_oleh = status === 'ditolak' ? pilih(petugas) : null;
+      r.wa_oleh = r.wa_terkirim_at ? (siapa || null) : null;
       rows.push(r);
     };
     db.seri.forEach((g) => {
@@ -2314,6 +2341,7 @@ class DemoAPI {
       bukti_hash: p.bukti_hash || null, harga: j.harga, status: 'menunggu', nomor_urut: null, nomor_layangan: nomor, kotak: null,
       alasan_tolak: null, catatan_admin: '', wa_terkirim_at: null, dikonfirmasi_at: null, created_at: now, updated_at: now,
     }, null);
+    this._catat(null, row, null);   // dari formulir peserta
     db.daftar.unshift(row);
     this._simpan();
     return { kode: row.kode, status: row.status, harga: row.harga, created_at: row.created_at, no_wa: row.no_wa, jenis: row.jenis, seri_id: row.seri_id, nama_sekha: row.nama_sekha, nomor_layangan: row.nomor_layangan, kotak: row.kotak };
@@ -2540,7 +2568,10 @@ class DemoAPI {
   }
   async namaPanitia() {
     const semua = this.ix.namaPanitia || {}, e = this._email();
-    return this._super() ? { ...semua } : (semua[e] ? { [e]: semua[e] } : {});
+    if (this._super()) return { ...semua };
+    const rekan = new Set([e]);
+    Object.entries(this.ix.akses).forEach(([id, list]) => { if (this._bolehEvent(Number(id), e)) list.forEach((x) => rekan.add(x)); });
+    return Object.fromEntries(Object.entries(semua).filter(([k]) => rekan.has(k)));
   }
   async resetPasswordId(akun, password) {
     await this._jeda(200);
@@ -2663,13 +2694,44 @@ class DemoAPI {
     return { gambar: this._gambarContoh(path), nominal: r.bukti_nominal || r.harga, nama: String(r.nama_rekening || '').toUpperCase(),
       waktu: `${w.getFullYear()}-${p(w.getMonth() + 1)}-${p(w.getDate())}T${p(w.getHours())}:${p(w.getMinutes())}:00` };
   }
+  /* tiruan riwayat.sql: isi kolom "oleh" & tulis riwayat */
+  _catat(lama, baru, saya = this._email()) {
+    const rw = this.db.riwayat || (this.db.riwayat = []), now = new Date().toISOString();
+    const tulis = (r, aksi, detail = {}, oleh = saya) => rw.push({ id: rw.length + 1, pendaftaran_id: r.id, kode: r.kode, aksi, detail, oleh, created_at: now });
+    if (!lama) {
+      baru.dikonfirmasi_oleh = baru.status === 'terkonfirmasi' ? saya : null;
+      baru.ditolak_oleh = null; baru.wa_oleh = null;
+      tulis(baru, saya ? 'tambah' : 'daftar', { status: baru.status, nomor: baru.nomor_layangan, jenis: baru.jenis }, saya);
+      if (baru.status === 'terkonfirmasi' && saya) tulis(baru, 'konfirmasi');
+      return baru;
+    }
+    if (!baru) { tulis(lama, 'hapus', { sekha: lama.nama_sekha, nomor: lama.nomor_layangan, status: lama.status }); return null; }
+    baru.dikonfirmasi_oleh = lama.dikonfirmasi_oleh || null; baru.ditolak_oleh = lama.ditolak_oleh || null; baru.wa_oleh = lama.wa_oleh || null;
+    if (baru.status !== lama.status) {
+      baru.dikonfirmasi_oleh = baru.status === 'terkonfirmasi' ? saya : null;
+      baru.ditolak_oleh = baru.status === 'ditolak' ? saya : null;
+      tulis(baru, { terkonfirmasi: 'konfirmasi', ditolak: 'tolak' }[baru.status] || 'menunggu', baru.status === 'ditolak' ? { alasan: baru.alasan_tolak } : {});
+    }
+    if (!baru.wa_terkirim_at) baru.wa_oleh = null;
+    else if (baru.wa_terkirim_at !== lama.wa_terkirim_at) { baru.wa_oleh = saya; tulis(baru, 'wa', { jenis: baru.status === 'ditolak' ? 'penolakan' : 'konfirmasi' }); }
+    const ubah = {};
+    ['nama_sekha', 'alamat', 'no_wa', 'nama_rekening', 'jenis', 'seri_id', 'kotak', 'nomor_layangan', 'harga', 'catatan_admin'].forEach((k) => {
+      if ((lama[k] ?? null) === (baru[k] ?? null)) return;
+      if (k === 'nomor_layangan' && String(lama[k] || '').replace(/^0+/, '') === String(baru[k] || '').replace(/^0+/, '')) return;
+      if ((k === 'kotak' || k === 'harga') && baru.status !== lama.status) return;
+      ubah[k] = [lama[k] ?? null, baru[k] ?? null];
+    });
+    if (Object.keys(ubah).length) tulis(baru, 'ubah', ubah);
+    return baru;
+  }
+  async riwayat(pid) { await this._jeda(120); return this._salin((this.db.riwayat || []).filter((x) => x.pendaftaran_id === pid)); }
   async ubahPendaftaran(id, patch, versi) {
     await this._jeda(200);
     const i = this.db.daftar.findIndex((d) => d.id === id);
     if (i < 0 || (versi && this.db.daftar[i].updated_at !== versi)) throw new Error('DATA_BERUBAH');
     const jenisSebelum = this._salin(this.db.jenis);
     try {
-      const row = this._terapkan({ ...this.db.daftar[i], ...patch }, this.db.daftar[i]);
+      const row = this._catat(this.db.daftar[i], this._terapkan({ ...this.db.daftar[i], ...patch }, this.db.daftar[i]));
       this.db.daftar[i] = row;
       this._simpan();
       return this._salin(row);
@@ -2685,6 +2747,7 @@ class DemoAPI {
         nomor_urut: null, nomor_layangan: null, kotak: null, alasan_tolak: null, catatan_admin: '', wa_terkirim_at: null, dikonfirmasi_at: null,
         created_at: now, updated_at: now, ...data,
       }, null);
+      this._catat(null, row);
       this.db.daftar.unshift(row);
       this._simpan();
       return this._salin(row);
@@ -2692,6 +2755,8 @@ class DemoAPI {
   }
   async hapusPendaftaran(row) {
     await this._jeda(200);
+    const lama = this.db.daftar.find((d) => d.id === row.id);
+    if (lama) this._catat(lama, null);
     this.db.daftar = this.db.daftar.filter((d) => d.id !== row.id);
     if (row.bukti_path) delete this.db.files[row.bukti_path];
     this._simpan();
@@ -3985,6 +4050,7 @@ const Adm = {
       this.s.data = d;
       this.s.err = null;
       if (d.pengaturan) ingatLogo(d.pengaturan.logo_url);
+      if (api.namaPanitia && !Pusat.s.nama) api.namaPanitia().then((n) => { Pusat.s.nama = n || {}; if (this.s.tab === 'ringkasan') this.segarkanTampilan({ diam: true }); }).catch(() => {});
       this.indeks();
       setTimeout(() => this.autoPeriksa(), 1500);
       if (lama && opt.dariLive) {
@@ -4252,6 +4318,7 @@ const Adm = {
         <div>${this.vPerJenis()}<div class="panel">${this.vGrafik()}</div></div>
       </div>
       ${this.vPemasukan()}
+      ${this.vKinerja()}
       <div class="panel" style="margin-top:16px"><div class="panel-h"><h3>Pendaftaran terbaru</h3><a class="btn btn-sm" href="#admin/pendaftaran">Lihat semua ${ico('arrow-r')}</a></div>
         ${d.daftar.length ? `<div class="rows">${d.daftar.slice(0, 6).map((r) => this.vRow(r, 'baru')).join('')}</div>` : '<div class="empty">Belum ada pendaftaran. Bagikan link pendaftaran dari menu Pengaturan.</div>'}
       </div>`;
@@ -4703,6 +4770,7 @@ const Adm = {
     this.s.lapisDetail.versi = r.updated_at;
     this.s.lapisDetail.id = r.id;
     this.muatBukti(r);
+    this.muatRiwayat(r);
   },
   vDetail(r) {
     const x = this.idx.seri.get(r.seri_id), j = this.idx.jenis.get(r.jenis), dj = this.s.data.jenis;
@@ -4737,11 +4805,7 @@ const Adm = {
             <dt>Kode</dt><dd class="mono">${esc(r.kode)}</dd>
           </dl>
         </div>
-        <div class="sect"><h4>Riwayat</h4><ul class="timeline">
-          <li>${ico('edit')}<span>Didaftarkan <b>${esc(fmtWaktu(r.created_at))}</b></span></li>
-          ${r.dikonfirmasi_at ? `<li>${ico('check')}<span>Dikonfirmasi <b>${esc(fmtWaktu(r.dikonfirmasi_at))}</b></span></li>` : ''}
-          ${r.wa_terkirim_at ? `<li>${ico('chat')}<span>WA ${r.status === 'ditolak' ? 'penolakan' : 'konfirmasi'} dibuka <b>${esc(fmtWaktu(r.wa_terkirim_at))}</b></span></li>` : ''}
-        </ul></div>
+        <div class="sect"><h4>Riwayat</h4><div id="riwayat-box">${this.vRiwayat(r, null)}</div></div>
         <div class="sect"><h4>Catatan admin</h4>
           <textarea class="input" rows="2" id="catatan-admin" placeholder="Catatan internal, tidak terlihat peserta" aria-label="Catatan admin">${esc(r.catatan_admin || '')}</textarea>
           <div class="actions end" style="margin-top:8px"><button class="btn btn-sm" data-act="adm.simpanCatatan" data-id="${esc(r.id)}">Simpan catatan</button></div>
@@ -4759,6 +4823,67 @@ const Adm = {
         </div></div>
       </div>
       ${this.vAksiDetail(r, next)}`;
+  },
+  /* riwayat lengkap dari database (riwayat.sql); list = null → ringkasan dari kolom waktu */
+  vRiwayat(r, list) {
+    const oleh = (e) => (e ? ` oleh <b>${esc(labelOleh(e))}</b>` : '');
+    const waktu = (t) => `<small>${esc(fmtWaktu(t))}</small>`;
+    const NAMA_KOL = { nama_sekha: 'nama sekha', alamat: 'alamat', no_wa: 'nomor WA', nama_rekening: 'nama rekening', jenis: 'jenis', seri_id: 'grup', kotak: 'kotak', nomor_layangan: 'nomor layangan', harga: 'biaya', catatan_admin: 'catatan' };
+    const nilai = (k, v) => (v == null || v === '' ? '–' : k === 'seri_id' ? ((this.idx.seri.get(Number(v)) || {}).nama || v) : k === 'jenis' ? this.namaJenis(v) : k === 'harga' ? rupiah(v) : k === 'no_wa' ? fmtWA(v) : String(v));
+    if (!list) {
+      return `<ul class="timeline">
+        <li>${ico('edit')}<span>Didaftarkan ${waktu(r.created_at)}</span></li>
+        ${r.dikonfirmasi_at ? `<li>${ico('check')}<span>Dikonfirmasi${oleh(r.dikonfirmasi_oleh)} ${waktu(r.dikonfirmasi_at)}</span></li>` : ''}
+        ${r.status === 'ditolak' && r.ditolak_oleh ? `<li>${ico('x')}<span>Ditolak${oleh(r.ditolak_oleh)}${r.ditolak_at ? ' ' + waktu(r.ditolak_at) : ''}</span></li>` : ''}
+        ${r.wa_terkirim_at ? `<li>${ico('chat')}<span>WA ${r.status === 'ditolak' ? 'penolakan' : 'konfirmasi'} dikirim${oleh(r.wa_oleh)} ${waktu(r.wa_terkirim_at)}</span></li>` : ''}
+      </ul>`;
+    }
+    const baris = list.map((x) => {
+      const d = x.detail || {};
+      switch (x.aksi) {
+        case 'daftar': return `<li>${ico('edit')}<span>Didaftarkan peserta lewat formulir ${waktu(x.created_at)}</span></li>`;
+        case 'tambah': return `<li>${ico('plus')}<span>Ditambahkan manual${oleh(x.oleh)} ${waktu(x.created_at)}</span></li>`;
+        case 'konfirmasi': return `<li class="ok">${ico('check')}<span>Dikonfirmasi${oleh(x.oleh)} ${waktu(x.created_at)}</span></li>`;
+        case 'tolak': return `<li class="bad">${ico('x')}<span>Ditolak${oleh(x.oleh)}${d.alasan ? ` — “${esc(d.alasan)}”` : ''} ${waktu(x.created_at)}</span></li>`;
+        case 'menunggu': return `<li>${ico('undo')}<span>Dikembalikan ke menunggu${oleh(x.oleh)} ${waktu(x.created_at)}</span></li>`;
+        case 'wa': return `<li>${ico('chat')}<span>WA ${esc(d.jenis || 'konfirmasi')} dikirim${oleh(x.oleh)} ${waktu(x.created_at)}</span></li>`;
+        case 'ubah': return `<li>${ico('edit')}<span>Data diubah${oleh(x.oleh)}: ${Object.entries(d).map(([k, [a, b]]) => `${esc(NAMA_KOL[k] || k)} <s>${esc(nilai(k, a))}</s> → ${esc(nilai(k, b))}`).join('; ')} ${waktu(x.created_at)}</span></li>`;
+        default: return '';
+      }
+    }).join('');
+    // pendaftaran lama (sebelum pencatatan aktif): tambahkan dari kolom waktu yang ada
+    const ada = (a) => list.some((x) => x.aksi === a);
+    const lama = [
+      !ada('daftar') && !ada('tambah') ? `<li>${ico('edit')}<span>Didaftarkan ${waktu(r.created_at)}</span></li>` : '',
+      r.dikonfirmasi_at && !ada('konfirmasi') ? `<li class="ok">${ico('check')}<span>Dikonfirmasi${r.dikonfirmasi_oleh ? oleh(r.dikonfirmasi_oleh) : ' <small class="muted">(sebelum pencatatan aktif)</small>'} ${waktu(r.dikonfirmasi_at)}</span></li>` : '',
+      r.wa_terkirim_at && !ada('wa') ? `<li>${ico('chat')}<span>WA dikirim${r.wa_oleh ? oleh(r.wa_oleh) : ' <small class="muted">(sebelum pencatatan aktif)</small>'} ${waktu(r.wa_terkirim_at)}</span></li>` : '',
+    ].join('');
+    return `<ul class="timeline">${lama}${baris}</ul>`;
+  },
+  async muatRiwayat(r) {
+    if (!api.riwayat) return;
+    const list = await api.riwayat(r.id).catch(() => null);
+    const box = $('#riwayat-box');
+    if (box && this.s.detail === r.id && list) box.innerHTML = this.vRiwayat(r, list);
+  },
+  /* rekap per panitia: siapa mengonfirmasi, menolak, mengirim WA */
+  vKinerja() {
+    const d = this.s.data;
+    if (!d.daftar.length || !('dikonfirmasi_oleh' in d.daftar[0])) return '';
+    const m = new Map(), ambil = (e) => { if (!m.has(e)) m.set(e, { konfirmasi: 0, tolak: 0, wa: 0 }); return m.get(e); };
+    let tanpa = 0;
+    for (const r of d.daftar) {
+      if (r.status === 'terkonfirmasi') { if (r.dikonfirmasi_oleh) ambil(r.dikonfirmasi_oleh).konfirmasi++; else tanpa++; }
+      if (r.status === 'ditolak' && r.ditolak_oleh) ambil(r.ditolak_oleh).tolak++;
+      if (r.wa_terkirim_at && r.wa_oleh) ambil(r.wa_oleh).wa++;
+    }
+    const rows = [...m.entries()].sort((a, b) => b[1].konfirmasi - a[1].konfirmasi || b[1].wa - a[1].wa);
+    if (!rows.length && !tanpa) return '';
+    return `<div class="panel" style="margin-top:16px"><div class="panel-h"><h3>Kinerja panitia</h3><span class="hint">dicatat otomatis oleh sistem</span></div>
+      <div class="tbl-wrap"><table class="tbl kinerja"><thead><tr><th>Panitia</th><th class="r">Dikonfirmasi</th><th class="r">Ditolak</th><th class="r">WA dikirim</th></tr></thead><tbody>
+      ${rows.map(([e, c]) => `<tr><td><b${akunId(e) ? ' class="mono"' : ''}>${esc(labelOleh(e, true))}</b>${namaLengkap(e) ? `<small>${esc(namaLengkap(e))}</small>` : ''}</td><td class="r">${angka(c.konfirmasi)}</td><td class="r">${angka(c.tolak)}</td><td class="r">${angka(c.wa)}</td></tr>`).join('')}
+      ${tanpa ? `<tr class="muted"><td>Belum tercatat <small>dikonfirmasi sebelum pencatatan aktif</small></td><td class="r">${angka(tanpa)}</td><td class="r">–</td><td class="r">–</td></tr>` : ''}
+      </tbody></table></div></div>`;
   },
   vAksiDetail(r, next) {
     if (r.status === 'menunggu') {
@@ -5203,7 +5328,8 @@ ${rows.map((r, i) => `<tr><td class="n">${i + 1}</td><td class="no">${esc(r.nomo
         'Jenis layangan': (j && j.nama) || r.jenis, 'Seri & grup': (x && x.nama) || '', 'Kotak': r.kotak || '', 'Tanggal terbang': fmtTanggal(x && x.tanggal), 'Jam terbang': jamText(x),
         'Nama sekha': r.nama_sekha, 'Alamat': r.alamat, 'Nomor WA': fmtWA(r.no_wa), 'Nama pemilik rekening': r.nama_rekening, 'Biaya (Rp)': r.harga,
         'Cara bayar': caraBayar(r) === 'tunai' ? 'Tunai (manual)' : 'Transfer',
-        'WA terkirim': r.wa_terkirim_at ? fmtWaktu(r.wa_terkirim_at) : '', 'Dikonfirmasi': r.dikonfirmasi_at ? fmtWaktu(r.dikonfirmasi_at) : '',
+        'WA terkirim': r.wa_terkirim_at ? fmtWaktu(r.wa_terkirim_at) : '', 'WA dikirim oleh': labelOleh(r.wa_oleh),
+        'Dikonfirmasi': r.dikonfirmasi_at ? fmtWaktu(r.dikonfirmasi_at) : '', 'Dikonfirmasi oleh': labelOleh(r.dikonfirmasi_oleh), 'Ditolak oleh': labelOleh(r.ditolak_oleh),
         'Alasan ditolak': r.alasan_tolak || '', 'Catatan admin': r.catatan_admin || '',
       };
     });
