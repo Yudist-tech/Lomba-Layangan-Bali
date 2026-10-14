@@ -1235,6 +1235,32 @@ fieldset.rentang legend { font-weight: 700; font-size: 14px; padding: 0 6px; }
   .pub-main .opt-grid.jenis .opt-s .sep { display: inline; }
 }
 
+/* ===== Halaman memuat panitia: layangan terbang ===== */
+.muat-wrap { position: relative; min-height: 100vh; min-height: 100dvh; display: grid; place-items: center; padding: 24px 16px 80px; overflow: hidden; color: #fff; text-align: center;
+  background: linear-gradient(165deg, #0a3a6d 0%, #0e5aa7 55%, #3b93d6 100%); }
+.muat-wrap .hero-waves { position: absolute; left: 0; right: 0; bottom: -1px; width: 100%; height: 46px; color: var(--page); }
+.muat-isi { display: flex; flex-direction: column; align-items: center; max-width: 420px; }
+.muat-art { width: 190px; height: 206px; overflow: visible; }
+.muat-layang { transform-box: view-box; transform-origin: 146px 168px; animation: muat-terbang 3.2s ease-in-out infinite; }
+.muat-ekor { transform-box: fill-box; transform-origin: 50% 0; animation: muat-ekor 1.6s ease-in-out infinite; }
+.muat-tali { animation: muat-tali 3.2s ease-in-out infinite; }
+.muat-jauh { animation: muat-terbang 4.4s ease-in-out infinite reverse; transform-box: fill-box; transform-origin: 50% 100%; }
+.muat-t { font-size: 22px; font-weight: 800; letter-spacing: -.01em; margin-top: 10px; line-height: 1.25; }
+.muat-t b { font-weight: 800; color: #ffd36b; }
+.muat-s { font-size: 14px; opacity: .85; margin-top: 4px; }
+.muat-dots { display: flex; gap: 7px; margin-top: 16px; height: 8px; }
+.muat-dots i { width: 8px; height: 8px; border-radius: 50%; background: #fff; opacity: .35; animation: muat-titik 1.2s ease-in-out infinite; }
+.muat-dots i:nth-child(2) { animation-delay: .2s; } .muat-dots i:nth-child(3) { animation-delay: .4s; }
+.muat-wrap.sambut .muat-dots { visibility: hidden; }
+.muat-wrap.sambut .muat-t { animation: muat-masuk .45s ease-out both; }
+@keyframes muat-terbang { 0%, 100% { transform: translate(0, 0) rotate(0deg); } 50% { transform: translate(4px, -12px) rotate(3deg); } }
+@keyframes muat-ekor { 0%, 100% { transform: rotate(-6deg); } 50% { transform: rotate(6deg); } }
+@keyframes muat-tali { 0%, 100% { d: path("M146 168C110 200 70 230 20 262"); } 50% { d: path("M150 156C116 196 72 226 20 262"); } }
+@keyframes muat-titik { 0%, 100% { opacity: .3; transform: translateY(0); } 40% { opacity: 1; transform: translateY(-3px); } }
+@keyframes muat-masuk { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+@media (max-width: 600px) { .muat-art { width: 150px; height: 163px; } .muat-t { font-size: 20px; } .muat-s { font-size: 13px; } }
+@media (prefers-reduced-motion: reduce) { .muat-layang, .muat-ekor, .muat-tali, .muat-jauh, .muat-dots i, .muat-wrap.sambut .muat-t { animation: none; } }
+
 </style>
 </head>
 <body>
@@ -1595,6 +1621,26 @@ const HERO_ART = `<svg class="hero-art" viewBox="0 0 240 280" aria-hidden="true"
   <path d="M169 188c-9 16 14 24 4 40s13 20 5 38" stroke="#fff" stroke-width="2" fill="none" stroke-linecap="round"/>
   <g fill="#f2a900"><path d="M171 206l-9-4 2 9z"/><path d="M173 206l9-5-1 9z"/></g>
   <g fill="#fff"><path d="M175 236l-9-3 3 8z"/><path d="M177 236l8-5v9z"/></g>
+</svg>`;
+const KITE_TERBANG = `<svg class="muat-art" viewBox="0 0 240 260" aria-hidden="true">
+  <g class="muat-jauh" opacity=".5"><path d="M40 46 50 32 60 46 50 66z" fill="#fff"/><path d="M50 66c-4 9 5 14 0 24s4 12 1 20" stroke="#fff" stroke-width="1.3" fill="none" stroke-linecap="round"/></g>
+  <g opacity=".35"><path d="M206 172 213 162 220 172 213 186z" fill="#fff"/></g>
+  <path class="muat-tali" d="M146 168C110 200 70 230 20 262" stroke="rgba(255,255,255,.55)" stroke-width="1.3" fill="none"/>
+  <g class="muat-layang">
+    <g transform="rotate(-12 150 90)">
+      <path d="M150 8 206 82 150 180 94 82z" fill="#fff"/>
+      <path d="M150 8 206 82H150z" fill="#f2a900"/>
+      <path d="M94 82h56v98z" fill="#d03b3b"/>
+      <path d="M150 82h56l-56 98z" fill="#1d1f24"/>
+      <path d="M150 8v172M94 82h112" stroke="#0a3a6d" stroke-width="2" opacity=".3"/>
+      <path d="M150 8 206 82 150 180 94 82z" fill="none" stroke="#fff" stroke-width="3" stroke-linejoin="round"/>
+    </g>
+    <g class="muat-ekor">
+      <path d="M169 178c-9 16 14 24 4 40s13 20 5 38" stroke="#fff" stroke-width="2" fill="none" stroke-linecap="round"/>
+      <g fill="#f2a900"><path d="M171 196l-9-4 2 9z"/><path d="M173 196l9-5-1 9z"/></g>
+      <g fill="#fff"><path d="M175 226l-9-3 3 8z"/><path d="M177 226l8-5v9z"/></g>
+    </g>
+  </g>
 </svg>`;
 const HERO_WAVES = '<svg class="hero-waves" viewBox="0 0 1440 46" preserveAspectRatio="none" aria-hidden="true"><path fill="currentColor" d="M0 30c120-14 240-22 360-14s240 26 360 22 240-24 360-26 240 10 360 18V46H0z"/></svg>';
 
@@ -4117,6 +4163,7 @@ const Adm = {
   },
   async masuk() {
     this.s.adminEv = Ev.slug;
+    if (this.s.sudahSambut !== Ev.slug) this.s.sudahSambut = null;
     this.s.cekAdmin = true; this.render();
     try { this.s.admin = await api.isAdmin(); this.s.super = !!(api.peran && ((await api.peran()) || {}).peran === 'super'); this.s.err = null; }
     catch (e) { this.s.admin = false; this.s.err = pesanError(e); }
@@ -4132,7 +4179,7 @@ const Adm = {
   },
   reset() {
     this.hentikanLive();
-    Object.assign(this.s, { sesi: null, admin: false, adminEv: null, data: null, err: null, detail: null, idsLama: null, health: null, url: {}, f: { ...FILTER_AWAL } });
+    Object.assign(this.s, { sesi: null, admin: false, adminEv: null, data: null, err: null, detail: null, sambut: false, sudahSambut: null, idsLama: null, health: null, url: {}, f: { ...FILTER_AWAL } });
     this.idx = null;
     Overlay.tutupSemua();
     document.title = 'Dashboard panitia';
@@ -4141,7 +4188,7 @@ const Adm = {
     if (this.s.loading) { this.s.muatLagi = true; return; }
     this.s.loading = true;
     if (!opt.diam) this.perbaruiTombolMuat();
-    const v0 = this.s.versi;
+    const v0 = this.s.versi, pertama = !this.s.data;
     try {
       const d = await api.muatSemua();
       if (this.s.versi !== v0) {           // ada perubahan lokal selama memuat → data ini sudah basi
@@ -4161,6 +4208,10 @@ const Adm = {
         else if (baru.length > 1) toast(`${baru.length} pendaftaran baru masuk`, 'info', 5000);
       }
       this.s.idsLama = new Set(d.daftar.map((r) => r.id));
+      if (pertama && !this.s.sudahSambut) {   // sekali per event yang dibuka: sapa panitia sebelum dashboard tampil
+        this.s.sudahSambut = Ev.slug; this.s.sambut = true;
+        setTimeout(() => { this.s.sambut = false; if (Router.aktif === 'adm') this.render(); }, 1300);
+      }
     } catch (e) {
       this.s.err = pesanError(e);
       if (/JWT|sesi login/i.test(this.s.err)) { await api.logout().catch(() => {}); this.reset(); }
@@ -4274,9 +4325,11 @@ const Adm = {
   render() {
     if (Router.aktif !== 'adm') return;
     const s = this.s, app = $('#app');
-    if (s.sesi === undefined || s.cekAdmin) { app.innerHTML = this.vMemuat('Memeriksa akun…'); return; }
+    if (s.sesi === undefined || s.cekAdmin) { this.tampilMemuat(app, 'Memeriksa akun…', 'Sebentar, layangan sedang naik'); return; }
     if (!s.sesi) { app.innerHTML = this.vLogin(); return; }
     if (!s.admin) { app.innerHTML = this.vBukanAdmin(); return; }
+    if (!s.data && !s.err) { this.tampilMemuat(app, 'Membuka event…', this.namaEventMuat()); return; }
+    if (s.sambut) { this.tampilMemuat(app, `Selamat datang, <b>${esc(labelOleh(s.sesi.email) || 'panitia')}</b>`, (s.data.pengaturan && s.data.pengaturan.nama_event) || this.namaEventMuat(), true); return; }
     app.innerHTML = `${demoBar()}<div class="adm">${this.vSide()}<main class="main" id="adm-main">${this.vUtama()}</main>${this.vBnav()}</div>`;
     this.setelahRender();
   },
@@ -4330,9 +4383,26 @@ const Adm = {
       c.addEventListener('focusout', () => { tip.hidden = true; });
     }
   },
-  vMemuat(teks = 'Memuat…') {
-    return `${demoBar()}<div class="login-wrap"><div class="card login" style="text-align:center"><span class="spinner" style="margin:6px auto 12px;width:28px;height:28px"></span><p class="muted" style="margin:0">${esc(teks)}</p></div></div>`;
+  /* Halaman memuat: layangan terbang. Memeriksa akun → Membuka event → Selamat datang, <ID> */
+  vMemuat(teks = 'Memuat…', sub = 'Sebentar, layangan sedang naik', sambut = false) {
+    return `${demoBar()}<div class="muat-wrap${sambut ? ' sambut' : ''}" role="status" aria-live="polite">
+      <div class="muat-isi">${KITE_TERBANG}
+        <div class="muat-t" id="muat-t">${teks}</div>
+        <div class="muat-s" id="muat-s">${esc(sub)}</div>
+        <div class="muat-dots" aria-hidden="true"><i></i><i></i><i></i></div>
+      </div>${HERO_WAVES}</div>`;
   },
+  /* tampilkan halaman memuat; bila sudah tampil, cukup ganti teksnya agar layangan tidak "melompat" */
+  tampilMemuat(app, teks, sub, sambut = false) {
+    const w = app.querySelector('.muat-wrap');
+    if (w && !!$('.demo-bar') === !!demoBar()) {
+      $('#muat-t').innerHTML = teks; $('#muat-s').textContent = sub;
+      w.classList.toggle('sambut', sambut);
+      return;
+    }
+    app.innerHTML = this.vMemuat(teks, sub, sambut);
+  },
+  namaEventMuat() { const e = (Pusat.s.list || []).find((x) => x.slug === Ev.slug); return (e && (e.nama_event || e.nama)) || 'Sebentar, layangan sedang naik'; },
   vLogin() {
     const s = this.s;
     return `${demoBar()}<div class="login-wrap"><div class="card login">
@@ -6541,7 +6611,7 @@ const Pusat = {
   render() {
     if (Router.aktif !== 'pusat') return;
     const s = this.s, app = $('#app');
-    if (s.sesi === undefined) { app.innerHTML = Adm.vMemuat('Memeriksa akun…'); return; }
+    if (s.sesi === undefined) { Adm.tampilMemuat(app, 'Memeriksa akun…', 'Sebentar, layangan sedang naik'); return; }
     if (!s.sesi) { app.innerHTML = this.vLogin(); return; }
     const isi = s.tab === 'sandi' ? this.vSandi() : !this.super || s.tab === 'event' ? this.vIsi() : s.tab === 'akses' ? this.vAkses() : this.vSitus();
     app.innerHTML = `${demoBar()}${this.vTop()}<main class="pz-main" id="main">${this.super ? this.vTabs() : ''}${isi}</main>`;
