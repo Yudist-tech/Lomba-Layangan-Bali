@@ -1571,11 +1571,10 @@ function angkaAcak() {
   do { a = String(Math.floor(Math.random() * 1000)).padStart(3, '0'); } while ((a[0] === a[1] && a[1] === a[2]) || pola.includes(a));
   return a;
 }
-/* label pelaku untuk riwayat & rekap: "Mdwia587 (I Made Darma…)" atau email */
-function labelOleh(email, pendek = false) {
+/* label pelaku untuk riwayat & rekap: ID (mis. Mdwia587) atau email */
+function labelOleh(email) {
   if (!email) return '';
-  const nama = namaLengkap(email), id = akunId(email) ? namaAkun(email) : email;
-  return pendek || !nama ? id : `${id} (${nama})`;
+  return akunId(email) ? namaAkun(email) : email;   // cukup ID (nama lengkap tidak ikut, agar ringkas)
 }
 /* nama lengkap panitia (bila ada) untuk sebuah akun */
 const namaLengkap = (email) => ((Pusat.s && Pusat.s.nama) || {})[String(email || '').toLowerCase()] || '';
@@ -4881,7 +4880,7 @@ const Adm = {
     if (!rows.length && !tanpa) return '';
     return `<div class="panel" style="margin-top:16px"><div class="panel-h"><h3>Kinerja panitia</h3><span class="hint">dicatat otomatis oleh sistem</span></div>
       <div class="tbl-wrap"><table class="tbl kinerja"><thead><tr><th>Panitia</th><th class="r">Dikonfirmasi</th><th class="r">Ditolak</th><th class="r">WA dikirim</th></tr></thead><tbody>
-      ${rows.map(([e, c]) => `<tr><td><b${akunId(e) ? ' class="mono"' : ''}>${esc(labelOleh(e, true))}</b>${namaLengkap(e) ? `<small>${esc(namaLengkap(e))}</small>` : ''}</td><td class="r">${angka(c.konfirmasi)}</td><td class="r">${angka(c.tolak)}</td><td class="r">${angka(c.wa)}</td></tr>`).join('')}
+      ${rows.map(([e, c]) => `<tr><td><b${akunId(e) ? ' class="mono"' : ''}>${esc(labelOleh(e))}</b>${namaLengkap(e) ? `<small>${esc(namaLengkap(e))}</small>` : ''}</td><td class="r">${angka(c.konfirmasi)}</td><td class="r">${angka(c.tolak)}</td><td class="r">${angka(c.wa)}</td></tr>`).join('')}
       ${tanpa ? `<tr class="muted"><td>Belum tercatat <small>dikonfirmasi sebelum pencatatan aktif</small></td><td class="r">${angka(tanpa)}</td><td class="r">–</td><td class="r">–</td></tr>` : ''}
       </tbody></table></div></div>`;
   },
