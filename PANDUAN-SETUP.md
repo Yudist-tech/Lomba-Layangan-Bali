@@ -181,7 +181,7 @@ Simpan, buka lagi di browser. Banner kuning **MODE DEMO** hilang = sudah tersamb
 
 Pasang sekali: jalankan **`login-id.sql`** di SQL Editor (hasil 3 ✅).
 
-1. Super admin → Ruang panitia → kartu event → **Atur** → bagian **Tambah panitia baru** → ketik **nama lengkap** (mis. `I Made Sudarma`) → **Buat ID**. Sistem membuat ID dari **huruf pertama setiap kata nama** (awalan I/Ni dilewati); bila kurang dari 5 huruf, ditambah huruf acak dari dalam nama dengan urutan tetap, lalu **3 angka acak tanpa pola** (bukan 000, 111, 123, 321, …). Contoh: *I Made Darma Wiguna Artha* → `Mdwia587`. Huruf besar/kecil tidak berpengaruh saat login. Butuh **`login-nama.sql`** (jalankan sekali setelah `login-id.sql`, hasil 3 ✅).
+1. Super admin → Ruang panitia → kartu event → **Atur** → bagian **Tambah panitia baru** → ketik **nama lengkap** (mis. `I Made Sudarma`) → **Buat ID**. Sistem membuat ID dari **huruf pertama setiap kata nama** (awalan I/Ni kadang ikut, kadang dilewati — acak; butuh **`id-awalan.sql`**); bila kurang dari 5 huruf, ditambah huruf acak dari dalam nama dengan urutan tetap, lalu **3 angka acak tanpa pola** (bukan 000, 111, 123, 321, …). Contoh: *I Made Darma Wiguna Artha* → `Mdwia587` atau `Imdwa587`. Huruf besar/kecil tidak berpengaruh saat login. Butuh **`login-nama.sql`** (jalankan sekali setelah `login-id.sql`, hasil 3 ✅).
 2. Muncul ID + password acak. Tekan **Kirim lewat WA** atau **Salin**. Password hanya ditampilkan sekali.
 3. Panitia membuka `…/#panitia`, isi kolom **Email atau ID** dengan ID-nya, lalu password.
 
