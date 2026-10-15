@@ -5524,7 +5524,7 @@ ${rows.map((r, i) => `<tr><td class="n">${i + 1}</td><td class="no">${esc(r.nomo
       <form class="panel" data-submit="adm.setEvent" novalidate><div class="panel-h"><h3>Informasi event</h3></div>
         ${this.s.super ? '' : `<div class="note">${ico('lock')}<span>Nama, tanggal, dan lokasi event diatur oleh super admin. Hubungi super admin bila perlu diubah.</span></div>`}
         ${fieldInput({ id: 'p-nama', name: 'nama_event', label: 'Nama event', value: ev.nama_event, maxlength: 120, readonly: !this.s.super })}
-        ${fieldInput({ id: 'p-tema', name: 'tema', label: 'Tema event', value: ev.tema || '', maxlength: 80, opsional: true, readonly: !('tema' in ev), hint: 'tema' in ev ? 'Tampil di bawah nama event (huruf miring). Kosongkan bila tidak ada tema.' : 'Belum aktif: jalankan tema-event.sql di Supabase.' })}
+        ${fieldInput({ id: 'p-tema', name: 'tema', label: 'Tema event', value: ev.tema || '', maxlength: 80, opsional: true, readonly: !('tema' in ev), hint: 'tema' in ev ? 'Kosongkan bila tidak ada tema.' : 'Belum aktif: jalankan tema-event.sql di Supabase.' })}
         ${fieldInput({ id: 'p-org', name: 'penyelenggara', label: 'Penyelenggara', value: ev.penyelenggara, maxlength: 120, opsional: true, hint: 'Kosongkan bila tidak ingin ditampilkan di halaman peserta.' })}
         ${fieldInput({ id: 'p-lokasi', name: 'lokasi', label: 'Lokasi lomba', value: ev.lokasi, maxlength: 160, readonly: !this.s.super })}
         <div class="g2">${fieldInput({ id: 'p-mulai', name: 'tanggal_mulai', label: 'Tanggal mulai', value: ev.tanggal_mulai || '', type: 'date', readonly: !this.s.super })}
