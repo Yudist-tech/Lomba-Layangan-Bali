@@ -1305,6 +1305,11 @@ fieldset.rentang legend { font-weight: 700; font-size: 14px; padding: 0 6px; }
 .jt td.k.k5 { font-size: 10.5px; letter-spacing: -.03em; }
 .jt td.k.k6 { font-size: 9px; letter-spacing: -.04em; }
 
+/* Tema event di bawah nama event */
+.hero-tema { margin: -4px 0 14px; font-size: 18px; font-style: italic; font-weight: 500; line-height: 1.35; opacity: .95; max-width: 40ch; text-wrap: balance; }
+.hero.has-bg .hero-tema { text-shadow: 0 1px 12px rgba(0,0,0,.35); }
+@media (max-width: 600px) { .hero-tema { font-size: 15px; margin: -4px 0 12px; } }
+
 </style>
 </head>
 <body>
@@ -1686,6 +1691,8 @@ const KITE_TERBANG = `<svg class="muat-art" viewBox="0 0 240 260" aria-hidden="t
     </g>
   </g>
 </svg>`;
+/* penyelenggara hanya ditampilkan bila diisi panitia (teks bawaan "Panitia Lomba Layangan" dianggap belum diisi) */
+const orgTampil = (t) => { t = String(t || '').trim(); return !!t && t !== 'Panitia Lomba Layangan'; };
 const HERO_WAVES = '<svg class="hero-waves" viewBox="0 0 1440 46" preserveAspectRatio="none" aria-hidden="true"><path fill="currentColor" d="M0 30c120-14 240-22 360-14s240 26 360 22 240-24 360-26 240 10 360 18V46H0z"/></svg>';
 
 /* ---------- Toast & pesan error ---------- */
@@ -2116,7 +2123,7 @@ class DemoAPI {
   }
   _muatEvent(id) {
     const db = bacaLokal(this.KEY_EV + id) || this.mem[id];
-    if (db && db.versi === 2) { this.mem[id] = this._duaDigit(db); return db; }
+    if (db && db.versi === 2) { if (db.pengaturan && db.pengaturan.tema == null) db.pengaturan.tema = ''; this.mem[id] = this._duaDigit(db); return db; }
     const baru = this._duaDigit(this._benih(false));
     try { this._simpanEv(id, baru); } catch (e) { /* abaikan */ }
     return baru;
@@ -2153,6 +2160,7 @@ class DemoAPI {
         bg_url: '',
         id: 1,
         nama_event: 'Lomba Layangan Tradisional 2026',
+        tema: '',
         penyelenggara: 'Panitia Lomba Layangan',
         lokasi: 'Pantai Padang Galak, Sanur',
         info: 'Satu formulir untuk satu layangan. Pendaftaran dianggap sah setelah pembayaran diverifikasi panitia.\nNomor layangan diisi sendiri oleh peserta dan wajib dipasang pada layangan saat lomba.\nPeserta hadir paling lambat 30 menit sebelum jadwal seri.',
@@ -2463,7 +2471,7 @@ class DemoAPI {
     const seri = [...db.seri].sort((a, b) => (a.tanggal || '9999').localeCompare(b.tanggal || '9999') || (a.jam_mulai || '99').localeCompare(b.jam_mulai || '99') || a.urutan - b.urutan || a.id - b.id);
     return this._salin({
       event: {
-        nama_event: st.nama_event, penyelenggara: st.penyelenggara, lokasi: st.lokasi, info: st.info, wa_admin: st.wa_admin,
+        nama_event: st.nama_event, tema: st.tema || '', penyelenggara: st.penyelenggara, lokasi: st.lokasi, info: st.info, wa_admin: st.wa_admin,
         bank_nama: st.bank_nama, bank_no_rek: st.bank_no_rek, bank_atas_nama: st.bank_atas_nama,
         pendaftaran_buka: buka, batas_daftar: st.batas_daftar, tampilkan_peserta: st.tampilkan_peserta,
         logo_url: st.logo_url || '', bg_url: st.bg_url || '', flyer_url: st.flyer_url || '',
@@ -3579,8 +3587,9 @@ const Pub = {
     return `<header class="hero${bg ? ' has-bg' : ''}"${gayaBg}><div class="hero-in">
       <a class="hero-back" href="#">${ico('arrow-l')} Semua event</a>
       ${logo ? `<img class="hero-logo" src="${esc(logo)}" alt="Logo ${esc(ev.nama_event || 'event')}">` : ''}
-      <div class="org">${esc(ev.penyelenggara || 'Pendaftaran online')}</div>
+      ${orgTampil(ev.penyelenggara) ? `<div class="org">${esc(ev.penyelenggara)}</div>` : ''}
       <h1>${esc(ev.nama_event || 'Lomba Layangan')}</h1>
+      ${String(ev.tema || '').trim() ? `<p class="hero-tema">“${esc(String(ev.tema).trim())}”</p>` : ''}
       <div class="meta">${rentang ? `<span>${ico('cal')}${esc(rentang)}</span>` : ''}${ev.lokasi ? `<span>${ico('pin')}${esc(ev.lokasi)}</span>` : ''}</div>
       <div class="hero-chips">${chip}${urlGambarAman(ev.flyer_url) ? `<button type="button" class="chip chip-btn" data-act="lp.flyer" data-url="${esc(urlGambarAman(ev.flyer_url))}" data-judul="Flyer ${esc(ev.nama_event || '')}">${ico('image')}Lihat flyer</button>` : ''}</div>
     </div>${bg ? '' : HERO_ART}${HERO_WAVES}</header>`;
@@ -3602,7 +3611,7 @@ const Pub = {
   vFooter() {
     const ev = (this.s.info && this.s.info.event) || {};
     const wa = ev.wa_admin ? `<a class="btn btn-ghost" target="_blank" rel="noopener" href="${esc(waLink(ev.wa_admin, `Halo panitia ${ev.nama_event || ''}, saya mau bertanya tentang pendaftaran lomba layangan.`))}">${ico('chat')} Tanya panitia via WhatsApp</a>` : '';
-    return `<footer class="pub-foot">${wa}<div class="foot-s"><a href="#">Semua event</a> · ${esc(ev.penyelenggara || '')}${ev.penyelenggara ? ' · ' : ''}<a href="#admin">Masuk panitia</a></div></footer>`;
+    return `<footer class="pub-foot">${wa}<div class="foot-s"><a href="#">Semua event</a> · ${orgTampil(ev.penyelenggara) ? esc(ev.penyelenggara) + ' · ' : ''}<a href="#admin">Masuk panitia</a></div></footer>`;
   },
   vStepper(n) {
     const langkah = ['Data', 'Konfirmasi', 'Pembayaran'];
@@ -5515,7 +5524,8 @@ ${rows.map((r, i) => `<tr><td class="n">${i + 1}</td><td class="no">${esc(r.nomo
       <form class="panel" data-submit="adm.setEvent" novalidate><div class="panel-h"><h3>Informasi event</h3></div>
         ${this.s.super ? '' : `<div class="note">${ico('lock')}<span>Nama, tanggal, dan lokasi event diatur oleh super admin. Hubungi super admin bila perlu diubah.</span></div>`}
         ${fieldInput({ id: 'p-nama', name: 'nama_event', label: 'Nama event', value: ev.nama_event, maxlength: 120, readonly: !this.s.super })}
-        ${fieldInput({ id: 'p-org', name: 'penyelenggara', label: 'Penyelenggara', value: ev.penyelenggara, maxlength: 120 })}
+        ${fieldInput({ id: 'p-tema', name: 'tema', label: 'Tema event', value: ev.tema || '', maxlength: 80, opsional: true, readonly: !('tema' in ev), placeholder: 'mis. Melestarikan Tradisi, Menerbangkan Harapan', hint: 'tema' in ev ? 'Tampil di bawah nama event (huruf miring). Kosongkan bila tidak ada tema.' : 'Belum aktif: jalankan tema-event.sql di Supabase.' })}
+        ${fieldInput({ id: 'p-org', name: 'penyelenggara', label: 'Penyelenggara', value: ev.penyelenggara, maxlength: 120, opsional: true, hint: 'Kosongkan bila tidak ingin ditampilkan di halaman peserta.' })}
         ${fieldInput({ id: 'p-lokasi', name: 'lokasi', label: 'Lokasi lomba', value: ev.lokasi, maxlength: 160, readonly: !this.s.super })}
         <div class="g2">${fieldInput({ id: 'p-mulai', name: 'tanggal_mulai', label: 'Tanggal mulai', value: ev.tanggal_mulai || '', type: 'date', readonly: !this.s.super })}
         ${fieldInput({ id: 'p-selesai', name: 'tanggal_selesai', label: 'Tanggal selesai', value: ev.tanggal_selesai || '', type: 'date', readonly: !this.s.super, hint: 'Dipakai di halaman depan semua event.' })}</div>
@@ -6334,7 +6344,9 @@ SUB['adm.setEvent'] = (form) => {
   if (wa && !normWA(wa)) return toast('Nomor WA panitia tidak valid.', 'bad');
   const mulai = v('tanggal_mulai') || null, akhir = v('tanggal_selesai') || mulai;
   if (mulai && akhir < mulai) return toast('Tanggal selesai tidak boleh sebelum tanggal mulai.', 'bad');
-  return simpanPengaturanForm(form, { nama_event: v('nama_event'), penyelenggara: v('penyelenggara'), lokasi: v('lokasi'), tanggal_mulai: mulai, tanggal_selesai: akhir, wa_admin: wa ? normWA(wa) : '', info: v('info') });
+  const patch = { nama_event: v('nama_event'), penyelenggara: v('penyelenggara'), lokasi: v('lokasi'), tanggal_mulai: mulai, tanggal_selesai: akhir, wa_admin: wa ? normWA(wa) : '', info: v('info') };
+  if (form.tema && !form.tema.readOnly) patch.tema = v('tema');   // kolom tema ada (tema-event.sql sudah dijalankan)
+  return simpanPengaturanForm(form, patch);
 };
 SUB['adm.setDaftar'] = (form) => {
   const b = String(form.batas_daftar.value).trim();

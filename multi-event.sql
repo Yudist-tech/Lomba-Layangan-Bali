@@ -114,6 +114,8 @@ create sequence if not exists public.lomba_pengaturan_id_seq owned by public.lom
 select setval('public.lomba_pengaturan_id_seq', greatest((select coalesce(max(id), 1) from public.lomba_pengaturan), 1));
 alter table public.lomba_pengaturan alter column id set default nextval('public.lomba_pengaturan_id_seq');
 create unique index if not exists lomba_pengaturan_event_uidx on public.lomba_pengaturan (event_id);
+-- tema event (opsional), tampil di bawah nama event
+alter table public.lomba_pengaturan add column if not exists tema text not null default '';
 alter table public.lomba_pengaturan add column if not exists tanggal_mulai   date;
 alter table public.lomba_pengaturan add column if not exists tanggal_selesai date;
 -- flyer event (gambar A4 tegak) untuk halaman depan
@@ -650,6 +652,7 @@ begin
         'id', v_ev,
         'slug', (select slug from public.lomba_event where id = v_ev),
         'nama_event', v_st.nama_event, 'penyelenggara', v_st.penyelenggara, 'lokasi', v_st.lokasi,
+        'tema', v_st.tema,
         'info', v_st.info, 'wa_admin', v_st.wa_admin,
         'bank_nama', v_st.bank_nama, 'bank_no_rek', v_st.bank_no_rek, 'bank_atas_nama', v_st.bank_atas_nama,
         'pendaftaran_buka', v_st.pendaftaran_buka and (v_st.batas_daftar is null or now() <= v_st.batas_daftar),
