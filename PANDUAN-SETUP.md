@@ -227,6 +227,11 @@ Pasang sekali: jalankan **`bukti-selesai.sql`** di SQL Editor (hasil 2 ✅). Seb
 - Semua panitia event bisa menandai & membuka lagi.
 - Di **Ringkasan** ada satu pengingat *"N kelompok bukti perlu dicek"* (Sama + Mirip di tab Terbaru). Klik **Sama** / **Mirip** untuk langsung membuka filternya; keterangan muncul bila ada kelompok yang kembali karena pendaftaran baru. Pengingat hilang sendiri setelah semua ditandai selesai.
 
+## Tema event & penyelenggara
+
+- **Tema event** (opsional): Pengaturan → Informasi event → *Tema event*. Tampil di halaman peserta tepat di bawah nama event, huruf miring dalam tanda kutip. Kosong = tidak tampil. Pasang sekali: jalankan **`tema-event.sql`** (hasil 2 ✅).
+- **Penyelenggara** hanya tampil di halaman peserta bila diisi. Kosongkan kolomnya bila tidak ingin ditampilkan (teks bawaan "Panitia Lomba Layangan" juga dianggap belum diisi).
+
 ## Aturan yang dijaga otomatis oleh database
 
 - **Kuota per grup** = jumlah kotak dikurangi kotak yang ditutup; dihitung dari pendaftaran *menunggu + terkonfirmasi*. Aman walau banyak orang mendaftar bersamaan — tiap peserta mendapat kotak sendiri, berurutan dari kotak 1.
