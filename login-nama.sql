@@ -15,7 +15,7 @@ create table if not exists public.lomba_panitia (
 alter table public.lomba_panitia enable row level security;
 revoke all on table public.lomba_panitia from anon, authenticated;
 
--- 5 huruf dari nama, sesuai urutan nama: huruf awal SETIAP kata (awalan I / Ni dilewati);
+-- 5 huruf dari nama, sesuai urutan nama: huruf awal SETIAP kata (awalan I / Ni kadang ikut, kadang dilewati — acak);
 -- bila kata < 5, sisanya huruf acak dari dalam nama (urutan tetap). Contoh:
 -- "I Made Darma Wiguna Artha" → m d w (i) a → mdwia
 create or replace function public.lomba_huruf_nama(p_nama text)
@@ -34,7 +34,7 @@ begin
          'ÁÀÂÄÃÉÈÊËÍÌÎÏÓÒÔÖÕÚÙÛÜáàâäãéèêëíìîïóòôöõúùûü', 'AAAAAEEEEIIIIOOOOOUUUUaaaaaeeeeiiiiooooouuuu'),
          '[^A-Za-z ]', ' ', 'g')), '\s+'), '');
   n := coalesce(array_length(w, 1), 0);
-  if n > 1 and w[1] in ('i', 'ni') then
+  if n > 1 and w[1] in ('i', 'ni') and random() < 0.5 then
     w := w[2:];
     n := n - 1;
   end if;

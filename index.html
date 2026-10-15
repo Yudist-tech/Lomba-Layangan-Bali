@@ -1701,12 +1701,12 @@ const akunId = (e) => String(e || '').toLowerCase().endsWith(ID_DOMAIN);
 const kapital = (t) => (t ? t[0].toUpperCase() + t.slice(1) : t);
 const namaAkun = (e) => (akunId(e) ? kapital(String(e).slice(0, -ID_DOMAIN.length).toLowerCase()) : String(e || ''));
 const emailLogin = (v) => { v = String(v || '').trim().toLowerCase(); return v && !v.includes('@') ? v + ID_DOMAIN : v; };
-/* 5 huruf dari nama, sesuai urutan nama: huruf awal SETIAP kata (awalan I / Ni dilewati);
+/* 5 huruf dari nama, sesuai urutan nama: huruf awal SETIAP kata (awalan I / Ni kadang ikut, kadang dilewati — acak);
    bila kata < 5, sisanya huruf acak dari dalam nama (urutan tetap) — sama dengan lomba_huruf_nama di SQL.
    "I Made Darma Wiguna Artha" → m d w (i) a → mdwia */
 function hurufNama(nama) {
   let w = String(nama || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z ]/g, ' ').split(/\s+/).filter(Boolean);
-  if (w.length > 1 && (w[0] === 'i' || w[0] === 'ni')) w = w.slice(1);
+  if (w.length > 1 && (w[0] === 'i' || w[0] === 'ni') && Math.random() < 0.5) w = w.slice(1);   // awalan I/Ni ikut ± separuh kesempatan
   const acak = (arr) => arr.map((x) => [Math.random(), x]).sort((a, b) => a[0] - b[0]).map((x) => x[1]);
   let kata = w;
   if (w.length > 5) {
