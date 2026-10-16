@@ -1181,6 +1181,12 @@ fieldset.rentang legend { font-weight: 700; font-size: 14px; padding: 0 6px; }
 .ae-nama { display: flex; flex-direction: column; min-width: 0; flex: 1 1 150px; }
 .ae-nama small { color: var(--muted); font-size: 12px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .ae-cara .hint { font-size: 12.5px; }
+.ae-pn { color: var(--muted); }
+.ae-pn.on { background: #fff4cc; border-color: #e0a800; color: #7a5600; font-weight: 800; }
+.ae-penilai-info { margin: 8px 0 0; font-size: 12.5px; }
+.ae-row { flex-wrap: wrap; }
+.ae-row .ae-nama { min-width: 140px; }
+.ae-row > b { min-width: 170px; }
 .ak-av.id { border-radius: 8px; font-size: 11px; letter-spacing: .04em; background: var(--accent-soft, var(--warn-soft)); color: var(--ink); }
 .kred { display: grid; gap: 0; margin: 12px 0 4px; border: 1px solid var(--line); border-radius: 12px; overflow: hidden; }
 .kred > div { padding: 10px 14px; border-top: 1px solid var(--line); }
@@ -2203,8 +2209,13 @@ class SupabaseAPI {
       return { juri, penilaian, nilai, penilai, riwayat_nilai, panitia_event };
     } catch (e) { return { juri: null, penilaian: null, nilai: null }; }
   }
-  async aturPenilai(email, on) {
-    const ev = this._ev();
+  /* panitia penilai per event (diatur super admin dari jendela "Atur event"); null = juara.sql belum dipasang */
+  async daftarPenilai(evId) {
+    try { return this._ok(await this.sb.from('lomba_penilai').select('email').eq('event_id', Number(evId))).map((x) => String(x.email).toLowerCase()); }
+    catch (e) { return null; }
+  }
+  async aturPenilai(email, on, evId = this._ev()) {
+    const ev = Number(evId);
     if (on) return this._ok(await this.sb.from('lomba_penilai').insert({ event_id: ev, email }).select().single());
     const r = this._ok(await this.sb.from('lomba_penilai').delete().eq('event_id', ev).eq('email', email).select());
     if (!r.length) throw new Error('BUKAN_SUPER_ADMIN');
@@ -3197,11 +3208,15 @@ class DemoAPI {
     d.riwayat_nilai.unshift({ id: this._idBaru(d.riwayat_nilai), jenis, nomor, aksi, juri: o.juri || null, lama: o.lama ?? null, baru: o.baru ?? null, keterangan: o.ket || null, oleh: this._email(), at: new Date().toISOString() });
     if (d.riwayat_nilai.length > 500) d.riwayat_nilai.length = 500;
   }
-  async aturPenilai(email, on) {
+  async daftarPenilai(evId) { await this._jeda(80); const db = Number(evId) === this.eventId && this.db ? this.db : this._bacaEv(Number(evId)); return ((db && db.penilai) || []).map((p) => String(p.email).toLowerCase()); }
+  async aturPenilai(email, on, evId = this.eventId) {
     await this._jeda(120); this._wajibSuper();
-    const d = this._nilaiDb(); d.penilai = d.penilai.filter((p) => p.email !== email);
+    const id = Number(evId), aktif = id === this.eventId && this.db, d = aktif ? this.db : this._bacaEv(id);
+    if (!d) throw new Error('EVENT_TIDAK_ADA');
+    d.penilai = (d.penilai || []).filter((p) => p.email !== email);
     let row = null; if (on) { row = { email, oleh: this._email(), created_at: new Date().toISOString() }; d.penilai.push(row); }
-    this._simpan(); return this._salin(row);
+    if (aktif) this._simpan(); else this._simpanEv(id, d);
+    return this._salin(row);
   }
   async bukaKunci(jenis, terbuka) {
     await this._jeda(120); this._wajibSuper();
@@ -5560,8 +5575,7 @@ const Adm = {
           ${this.bolehMenilai() && !this.terkunci(jk) ? `<button type="button" class="btn btn-good" data-act="adm.jadikanJuara" ${pk.sah.length ? '' : 'disabled'}>${ico('trophy')} Jadikan juara</button>` : ''}</div>
       </div>
       ${this.vHasilJuara(jk)}
-      ${this.vRiwayatNilai(jk)}
-      ${this.vPanelPenilai()}`;
+      ${this.vRiwayatNilai(jk)}`;
   },
   /* isi tabel: 25 teratas, atau hanya nomor yang dicari (pencarian tidak menggambar ulang kotak cari) */
   vIsiNilai(jk, pk, maks) {
@@ -5648,20 +5662,10 @@ const Adm = {
     const j = this.idx.jenis.get(jk), nama = esc(j ? j.nama : jk), u = this.juaraUmum(jk), p = this.penilaiList();
     let h = '';
     if (!this.bolehMenilai()) h += `<div class="note nilai-ro">${ico('eye')}<span>Anda <b>bukan penilai</b> untuk event ini — hanya bisa melihat. Penilai: <b>${p.map((e) => esc(labelOleh(e))).join('</b>, <b>')}</b>. Hubungi super admin bila perlu akses.</span></div>`;
-    else if (this.s.super && !p.length) h += `<div class="note">${ico('info')}<span>Belum ada <b>panitia penilai</b> yang ditunjuk, jadi semua panitia event bisa mengisi nilai. Tunjuk penilai di bagian <b>Panitia penilai</b> di bawah.</span></div>`;
+    else if (this.s.super && !p.length) h += `<div class="note">${ico('info')}<span>Belum ada <b>panitia penilai</b> yang ditunjuk, jadi semua panitia event bisa mengisi nilai. Tunjuk penilai di <a href="#panitia">Ruang panitia</a> → tombol ${ico('sliders', 'ico-inline')} <b>Atur event</b> → Admin event.</span></div>`;
     if (u && !u.terbuka) h += `<div class="note warn nilai-kunci">${ico('lock')}<span>Nilai <b>${nama}</b> terkunci — juara sudah diumumkan.${this.s.super ? '' : ' Hanya super admin yang bisa membuka kunci.'}</span>${this.s.super ? `<button type="button" class="btn btn-sm" data-act="adm.bukaKunci" data-jenis="${esc(jk)}" data-v="1">${ico('unlock')} Buka kunci</button>` : ''}</div>`;
     else if (u && u.terbuka) h += `<div class="note bad nilai-kunci">${ico('unlock')}<span>Kunci nilai <b>${nama}</b> sedang <b>dibuka</b> oleh super admin. Juara sudah diumumkan, jadi perubahan langsung terlihat publik.</span>${this.s.super ? `<button type="button" class="btn btn-sm" data-act="adm.bukaKunci" data-jenis="${esc(jk)}" data-v="0">${ico('lock')} Kunci lagi</button>` : ''}</div>`;
     return h;
-  },
-  vPanelPenilai() {
-    const d = this.s.data;
-    if (!this.s.super || d.penilai == null) return '';
-    const semua = [...new Set([...(d.panitia_event || []), ...this.penilaiList()].map((e) => String(e).toLowerCase()))].sort();
-    const p = new Set(this.penilaiList());
-    return `<div class="panel" style="margin-top:16px"><div class="panel-h"><h3>${ico('users')} Panitia penilai</h3><span class="hint">hanya super admin</span></div>
-      <p class="hint" style="margin:0 0 8px">Centang panitia yang boleh mengisi nilai. Panitia lain hanya bisa melihat. Bila tidak ada yang dicentang, semua panitia event bisa mengisi.</p>
-      ${semua.length ? `<div class="penilai-list">${semua.map((e) => `<label class="penilai-row"><input type="checkbox" data-ch="adm.penilai" data-email="${esc(e)}" ${p.has(e) ? 'checked' : ''}><b>${esc(labelOleh(e))}</b>${namaLengkap(e) ? `<small>${esc(namaLengkap(e))}</small>` : ''}<span class="pl-st">${p.has(e) ? 'penilai' : 'hanya lihat'}</span></label>`).join('')}</div>` : '<div class="empty">Belum ada panitia di event ini.</div>'}
-    </div>`;
   },
   vRiwayatNilai(jk) {
     const rw = this.s.data.riwayat_nilai;
@@ -6727,14 +6731,6 @@ function segarkanRiwayatNilai() {
   }, 1200);
 }
 ACT['adm.riwayatSemua'] = () => { Adm.s.nilaiRiwayatSemua = !Adm.s.nilaiRiwayatSemua; const box = document.getElementById('nilai-riwayat'); if (box) box.innerHTML = Adm.vIsiRiwayat(Adm.s.nilaiJenis); };
-CH['adm.penilai'] = async (el) => {
-  const email = el.dataset.email, on = el.checked;
-  try {
-    await api.aturPenilai(email, on);
-    const d = nilaiData(); d.penilai = (d.penilai || []).filter((p) => String(p.email).toLowerCase() !== email); if (on) d.penilai.push({ email });
-    Adm.tandaiUbah(); Adm.segarkanTampilan({ paksa: true }); toast(`${labelOleh(email)} ${on ? 'ditunjuk sebagai penilai' : 'tidak lagi penilai'}`, 'good');
-  } catch (e) { el.checked = !on; toast(pesanError(e), 'bad'); }
-};
 ACT['adm.bukaKunci'] = async (el) => {
   const jk = el.dataset.jenis, buka = el.dataset.v === '1', nama = Adm.namaJenis(jk);
   if (buka && !(await konfirmasiDialog({ judul: `Buka kunci nilai ${nama}?`, isi: `Penilai bisa mengubah nilai ${esc(nama)} lagi, padahal juaranya <b>sudah diumumkan</b>. Pembukaan kunci ini tercatat di riwayat nilai.`, tombol: 'Buka kunci', bahaya: true }))) return;
@@ -7643,14 +7639,17 @@ const Pusat = {
       ? `<div class="ae-row">${this.vFormGanti('event', e.id, m)}</div>`
       : akunId(m)
         ? `<div class="ae-row"><span class="ak-av id">ID</span><span class="ae-nama"><b class="mono">${esc(namaAkun(m))}</b>${namaLengkap(m) ? `<small>${esc(namaLengkap(m))}</small>` : ''}</span>
+          ${this.vTogelPenilai(e, m)}
           <button type="button" class="btn btn-xs" data-act="pusat.resetId" data-email="${esc(m)}">${ico('lock')} Reset password</button>
           <button type="button" class="btn btn-xs btn-danger" data-act="pusat.cabut" data-id="${e.id}" data-email="${esc(m)}">${ico('x')} Hapus akses</button>
           <button type="button" class="btn btn-xs btn-icon btn-danger" data-act="pusat.hapusAkun" data-email="${esc(m)}" title="Hapus akun ${esc(namaAkun(m))}" aria-label="Hapus akun ${esc(namaAkun(m))}">${ico('trash')}</button></div>`
         : `<div class="ae-row"><span class="ak-av">${esc(m[0].toUpperCase())}</span><b>${esc(m)}</b>
           ${api.mode === 'supabase' ? `<button type="button" class="btn btn-xs btn-ghost" data-act="pusat.undang" data-email="${esc(m)}" title="Kirim ulang email undangan">${ico('send')}<span class="sr-only">Kirim ulang undangan</span></button>` : ''}
+          ${this.vTogelPenilai(e, m)}
           <button type="button" class="btn btn-xs" data-act="pusat.ubahAkses" data-id="${e.id}" data-email="${esc(m)}">${ico('edit')} Ganti</button>
           <button type="button" class="btn btn-xs btn-danger" data-act="pusat.cabut" data-id="${e.id}" data-email="${esc(m)}">${ico('x')} Hapus akses</button></div>`).join('')
       : '<p class="hint" style="margin:0">Belum ada admin. Hanya super admin yang bisa membuka dashboard event ini.</p>'}</div>
+      ${e.panitia.length && this.penilaiEv(e.id) != null ? `<p class="hint ae-penilai-info">${ico('trophy', 'ico-inline')} <b>Penilai</b> = boleh mengisi nilai di menu Penilaian. ${this.penilaiEv(e.id).length ? 'Panitia lain hanya bisa melihat nilai.' : 'Belum ada yang dipilih, jadi <b>semua</b> panitia event ini bisa mengisi nilai.'}</p>` : ''}
       <div class="ae-cara"><b>Tambah panitia baru</b> <span class="hint">— ketik nama lengkapnya; ID &amp; password dibuat otomatis lalu dikirim lewat WA.</span></div>
       <div class="ae-tambah"><label class="sr-only" for="ae-nama">Nama lengkap panitia</label>
         <input class="input input-sm" type="text" id="ae-nama" placeholder="Nama lengkap, mis. I Made Darma Wiguna Artha" autocomplete="off" maxlength="80" data-in="pusat.pratinjauId" data-enter="pusat.buatNama" data-id="${e.id}">
@@ -7661,6 +7660,21 @@ const Pusat = {
           <input class="input input-sm" type="text" id="ae-id" placeholder="ID panitia" autocomplete="off" autocapitalize="none" spellcheck="false" maxlength="30" data-enter="pusat.buatId" data-id="${e.id}">
           <button type="button" class="btn btn-sm" data-act="pusat.buatId" data-id="${e.id}">${ico('plus')} Tambahkan</button></div></details>
 `;
+  },
+  /* panitia penilai per event (juara.sql bagian 6) */
+  penilaiEv(id) { const m = this.s.penilai || {}; return m[id] === undefined ? null : m[id]; },
+  vTogelPenilai(e, m) {
+    const list = this.penilaiEv(e.id);
+    if (list == null) return '';
+    const on = list.includes(String(m).toLowerCase());
+    return `<button type="button" class="btn btn-xs ae-pn${on ? ' on' : ''}" data-act="pusat.penilai" data-id="${e.id}" data-email="${esc(m)}" aria-pressed="${on}" title="${on ? 'Penilai: boleh mengisi nilai. Klik untuk mencabut.' : 'Jadikan penilai (boleh mengisi nilai)'}">${ico(on ? 'check' : 'trophy')} Penilai</button>`;
+  },
+  async muatPenilai(id) {
+    if (!api.daftarPenilai) return;
+    this.s.penilai = this.s.penilai || {};
+    const r = await api.daftarPenilai(id).catch(() => null);
+    this.s.penilai[id] = r;
+    this.segarkanAksesEvent();
   },
   segarkanAksesEvent() {
     const box = $('#ae-box');
@@ -7852,7 +7866,17 @@ ACT['pusat.logout'] = async () => {
   Pusat.render();
 };
 ACT['pusat.formBuat'] = () => Pusat.formBuat();
-ACT['pusat.formAtur'] = (el) => Pusat.formAtur(el.dataset.id);
+ACT['pusat.formAtur'] = (el) => { Pusat.formAtur(el.dataset.id); Pusat.muatPenilai(Number(el.dataset.id)); };
+ACT['pusat.penilai'] = (el) => sibuk(el, async () => {
+  const id = Number(el.dataset.id), email = String(el.dataset.email).toLowerCase(), list = Pusat.penilaiEv(id) || [], on = !list.includes(email);
+  try {
+    await api.aturPenilai(email, on, id);
+    Pusat.s.penilai[id] = on ? [...list, email] : list.filter((x) => x !== email);
+    Pusat.segarkanAksesEvent();
+    Adm.s.adminEv = null;     // dasbor event dimuat ulang saat dibuka berikutnya (daftar penilai terbaru)
+    toast(`${namaAkun(email)} ${on ? 'sekarang penilai' : 'tidak lagi penilai'}`, 'good');
+  } catch (e) { toast(pesanError(e), 'bad'); }
+});
 IN['pusat.nama'] = (el) => {
   const slug = el.form.slug;
   if (slug && !slug.dataset.manual) slug.value = slugEvent(el.value);
