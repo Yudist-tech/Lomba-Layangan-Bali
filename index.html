@@ -5413,7 +5413,7 @@ const Adm = {
         : '<div class="empty">Belum ada juara untuk jenis ini. Isi nilai lalu klik <b>Jadikan juara</b>.</div>'}
       <div class="jaksi">${umum
         ? `<button type="button" class="btn" data-act="adm.umumkan" data-v="0">${ico('undo')} Tarik pengumuman</button>`
-        : `<button type="button" class="btn btn-primary" data-act="adm.umumkan" data-v="1" ${(d.juara || []).length ? '' : 'disabled'}>${ico('send')} Umumkan juara (semua jenis)</button>`}
+        : `<button type="button" class="btn btn-primary" data-act="adm.umumkan" data-v="1" ${(d.juara || []).length ? '' : 'disabled'}>${ico('send')} Umumkan juara (semua jenis)</button>${list.length ? `<button type="button" class="btn btn-danger" data-act="adm.batalDraf" data-jenis="${esc(jk)}">${ico('trash')} Batalkan draf</button>` : ''}`}
         <span class="hint">Tombol WA opsional untuk mengirim ucapan selamat.</span></div></div>`;
   },
   /* perbarui total, peringkat & tanda tanpa menyusun ulang baris (agar mengetik tidak terganggu) */
@@ -6383,6 +6383,12 @@ SUB['adm.jadikanJuara'] = async (form) => {
     Adm.tandaiUbah(); Overlay.tutupYangBerisi(form); Adm.segarkanTampilan({ paksa: true });
     toast(`${list.length} juara ${Adm.namaJenis(jk)} disimpan${n2.pengaturan.juara_diumumkan_at ? ' dan langsung terlihat publik' : ' sebagai draf'}`, 'good', 4500);
   } catch (e) { toast(pesanError(e), 'bad'); }
+};
+ACT['adm.batalDraf'] = async (el) => {
+  const jk = el.dataset.jenis, n = (nilaiData().juara || []).filter((x) => x.jenis === jk).length;
+  if (!(await konfirmasiDialog({ judul: `Batalkan draf juara ${Adm.namaJenis(jk)}?`, isi: `<b>${n} juara/harapan</b> di draf ini dihapus. Nilai juri <b>tidak</b> ikut terhapus — Anda bisa menekan <b>Jadikan juara</b> lagi kapan saja.`, tombol: 'Batalkan draf', bahaya: true }))) return;
+  try { await api.simpanJuaraJenis(jk, []); const n2 = nilaiData(); n2.juara = (n2.juara || []).filter((x) => x.jenis !== jk); Adm.tandaiUbah(); Adm.segarkanTampilan({ paksa: true }); toast('Draf juara dibatalkan', 'good'); }
+  catch (e) { toast(pesanError(e), 'bad'); }
 };
 ACT['adm.umumkan'] = async (el) => {
   const d = nilaiData(), on = el.dataset.v === '1';
