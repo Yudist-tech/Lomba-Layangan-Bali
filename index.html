@@ -1320,6 +1320,18 @@ fieldset.rentang legend { font-weight: 700; font-size: 14px; padding: 0 6px; }
 .nilai-cari { flex: 1 1 280px; display: flex; align-items: center; gap: 8px; border: 1px solid var(--line-strong); border-radius: 11px; padding: 0 0 0 12px; background: var(--surface); }
 .nilai-cari .ico { width: 17px; height: 17px; color: var(--muted); flex: none; }
 .nilai-cari .input { border: 0; box-shadow: none; padding-left: 0; background: transparent; }
+.nilai-cari:focus-within { border-color: var(--brand); box-shadow: 0 0 0 3px rgba(14,91,168,.12); }
+.nilai-cari .input { font-weight: 700; font-size: 16px; }
+.nilai-cari-x { border: 0; background: none; color: var(--muted); padding: 0 12px; cursor: pointer; display: grid; place-items: center; align-self: stretch; }
+.nilai-cari-x .ico { width: 16px; height: 16px; }
+.nilai-cari .input:placeholder-shown + .nilai-cari-x { display: none; }
+.nilai-info { font-size: 12.5px; color: var(--muted); margin: -2px 2px 10px; }
+.nilai-info b { color: var(--brand); }
+.nilai-info.salah { color: var(--bad-ink); font-weight: 600; font-size: 13.5px; padding: 6px 2px; }
+.nilai-sisa { text-align: center; font-size: 12.5px; color: var(--muted); padding: 10px 6px 2px; }
+.nilai-sisa kbd { border: 1px solid var(--line-strong); border-bottom-width: 2px; border-radius: 5px; padding: 0 5px; font: 700 11px inherit; background: var(--surface); }
+.btn-link { border: 0; background: none; padding: 0; font: inherit; font-weight: 700; color: var(--brand); cursor: pointer; text-decoration: underline; }
+.nilai-tbl.cari .nr:not(.nh) { background: var(--brand-soft); }
 .nilai-tbl { border: 1px solid var(--line); border-radius: 12px; overflow-x: auto; }
 .nr { display: grid; grid-template-columns: 52px 62px minmax(200px, 1fr) repeat(var(--nj), 104px) 64px 132px; align-items: center; gap: 8px; padding: 8px 10px; border-top: 1px solid var(--line); min-width: calc(52px + 62px + 200px + var(--nj) * 104px + 64px + 132px + (var(--nj) + 5) * 8px + 20px); font-variant-numeric: tabular-nums; }
 .nr.nh { border-top: 0; background: var(--surface-2); font-size: 11.5px; font-weight: 800; letter-spacing: .04em; text-transform: uppercase; color: var(--ink-2); }
@@ -2128,7 +2140,12 @@ class SupabaseAPI {
   async tambahJuri(urutan, nama) { return this._ok(await this.sb.from('lomba_juri').insert({ event_id: this._ev(), urutan, nama }).select().single()); }
   async ubahJuri(id, nama) { return this._ok(await this.sb.from('lomba_juri').update({ nama }).eq('id', id).select().single()); }
   async hapusJuri(id) { this._ok(await this.sb.from('lomba_juri').delete().eq('id', id)); }
-  async tambahPenilaian(pid) { return this._ok(await this.sb.from('lomba_penilaian').insert({ pendaftaran_id: pid, event_id: this._ev() }).select().single()); }
+  /* baris penilaian dibuat otomatis saat nilai/DQ/catatan pertama disimpan; bila sudah ada (panitia lain), ambil yang ada */
+  async tambahPenilaian(pid) {
+    const r = await this.sb.from('lomba_penilaian').insert({ pendaftaran_id: pid, event_id: this._ev() }).select().single();
+    if (r.error && r.error.code === '23505') return this._ok(await this.sb.from('lomba_penilaian').select('*').eq('pendaftaran_id', pid).single());
+    return this._ok(r);
+  }
   async ubahPenilaian(pid, patch) { return this._ok(await this.sb.from('lomba_penilaian').update(patch).eq('pendaftaran_id', pid).select().single()); }
   async hapusPenilaian(pid) { this._ok(await this.sb.from('lomba_penilaian').delete().eq('pendaftaran_id', pid)); }
   async simpanNilai(pid, juriId, nilai) {
@@ -3091,7 +3108,7 @@ class DemoAPI {
     const d = this._nilaiDb(), p = d.daftar.find((x) => x.id === pid);
     if (!p) throw new Error('JUARA_TIDAK_VALID');
     if (p.status !== 'terkonfirmasi') throw new Error('JUARA_BELUM_TERKONFIRMASI');
-    if (d.penilaian.some((x) => x.pendaftaran_id === pid)) throw new Error('duplicate key value violates unique constraint "lomba_penilaian_pkey"');
+    const ada = d.penilaian.find((x) => x.pendaftaran_id === pid); if (ada) return this._salin(ada);
     const row = { pendaftaran_id: pid, diskualifikasi: false, alasan: null, catatan: '', prioritas: null, oleh: this._email(), updated_at: new Date().toISOString() };
     d.penilaian.push(row); this._simpan(); return this._salin(row);
   }
@@ -5362,12 +5379,14 @@ const Adm = {
   peringkat(jenis) {
     const d = this.s.data, juri = [...(d.juri || [])].sort((a, b) => a.urutan - b.urutan);
     const nil = new Map((d.nilai || []).map((n) => [n.pendaftaran_id + '|' + n.juri_id, n.nilai]));
-    const rows = (d.penilaian || []).map((p) => ({ p, r: this.baris(p.pendaftaran_id) }))
-      .filter((x) => x.r && x.r.jenis === jenis)
-      .map(({ p, r }) => {
+    // semua layangan terkonfirmasi di jenis ini bisa langsung dinilai; baris penilaian dibuat saat pertama diisi
+    const pen = new Map((d.penilaian || []).map((p) => [p.pendaftaran_id, p]));
+    const rows = d.daftar.filter((r) => r.jenis === jenis && r.status === 'terkonfirmasi')
+      .map((r) => {
+        const p = pen.get(r.id) || { pendaftaran_id: r.id, diskualifikasi: false, alasan: null, catatan: '', prioritas: null };
         const skor = juri.map((j) => (nil.has(r.id + '|' + j.id) ? nil.get(r.id + '|' + j.id) : null));
         const terisi = skor.filter((v) => v != null);
-        return { p, r, skor, total: terisi.reduce((a, v) => a + v, 0), lengkap: juri.length > 0 && terisi.length === juri.length, dq: !!p.diskualifikasi, rank: null, seri: false };
+        return { p, r, skor, total: terisi.reduce((a, v) => a + v, 0), lengkap: juri.length > 0 && terisi.length === juri.length, kosong: !terisi.length, dq: !!p.diskualifikasi, rank: null, seri: false };
       });
     const urutNo = (a, b) => (a.r.nomor_urut || 1e9) - (b.r.nomor_urut || 1e9);
     const sah = rows.filter((x) => !x.dq && x.lengkap)
@@ -5377,9 +5396,10 @@ const Adm = {
       x.rank = prev && prev.total === x.total && (prev.p.prioritas ?? null) === (x.p.prioritas ?? null) ? prev.rank : i + 1;
     });
     sah.forEach((x) => { x.seri = sah.some((y) => y !== x && y.rank === x.rank); });
-    const belum = rows.filter((x) => !x.dq && !x.lengkap).sort(urutNo);
+    const belum = rows.filter((x) => !x.dq && !x.lengkap && !x.kosong).sort(urutNo);
+    const kosong = rows.filter((x) => !x.dq && x.kosong).sort(urutNo);
     const dq = rows.filter((x) => x.dq).sort(urutNo);
-    return { juri, sah, belum, dq, semua: rows };
+    return { juri, sah, belum, kosong, dq, semua: rows, urut: [...sah, ...belum, ...dq, ...kosong] };
   },
   vPenilaian() {
     const d = this.s.data, ev = d.pengaturan;
@@ -5391,40 +5411,57 @@ const Adm = {
     const jk = this.s.nilaiJenis, j = this.idx.jenis.get(jk);
     const pk = this.peringkat(jk);
     const nKonf = (kode) => d.daftar.filter((r) => r.jenis === kode && r.status === 'terkonfirmasi').length;
-    const nDinilai = (kode) => (d.penilaian || []).filter((p) => { const r = this.baris(p.pendaftaran_id); return r && r.jenis === kode; }).length;
+    const adaNilai = new Set((d.nilai || []).map((n) => n.pendaftaran_id));
+    (d.penilaian || []).forEach((p) => { if (p.diskualifikasi) adaNilai.add(p.pendaftaran_id); });
+    const nDinilai = (kode) => d.daftar.filter((r) => r.jenis === kode && r.status === 'terkonfirmasi' && adaNilai.has(r.id)).length;
     const chips = jenisList.map((x) => `<button type="button" class="nchip ${x.kode === jk ? 'on' : ''}" data-act="adm.nilaiJenis" data-v="${esc(x.kode)}">${jdot(x.kode, d.jenis)}${esc(x.nama)} <small>${nDinilai(x.kode)}/${nKonf(x.kode)}</small>${this.juaraUmum(x.kode) ? ' <span title="Juara sudah diumumkan">🏆</span>' : ''}</button>`).join('');
-    const sudah = new Set((d.penilaian || []).map((p) => p.pendaftaran_id));
-    const calon = d.daftar.filter((r) => r.jenis === jk && r.status === 'terkonfirmasi' && !sudah.has(r.id)).sort((a, b) => (a.nomor_urut || 1e9) - (b.nomor_urut || 1e9));
     const maks = Number(ev.nilai_maks) || 100;
-    const mode = this.s.nilaiUrut || 'peringkat';
-    let urut = mode === 'nomor' ? [...pk.semua].sort((a, b) => (a.r.nomor_urut || 1e9) - (b.r.nomor_urut || 1e9)) : [...pk.sah, ...pk.belum, ...pk.dq];
-    const kolom = `--nj:${Math.max(1, pk.juri.length)}`;
-    const head = `<div class="nr nh" style="${kolom}"><span>Rank</span><span>No.</span><span>Sekha</span>
-      ${pk.juri.map((x, i) => `<span class="nj-h"><input class="nj-nama" value="${esc(x.nama)}" placeholder="Juri ${i + 1}" maxlength="30" data-ch="adm.juriNama" data-id="${x.id}" aria-label="Nama juri ${i + 1}">${pk.juri.length > 1 ? `<button type="button" class="nj-x" data-act="adm.juriHapus" data-id="${x.id}" title="Hapus juri ${i + 1}" aria-label="Hapus juri ${i + 1}">${ico('x')}</button>` : ''}</span>`).join('')}
-      <span class="r">Total</span><span class="nj-tambah"><button type="button" class="btn btn-xs" data-act="adm.juriTambah">${ico('plus')} Juri</button></span></div>`;
-    const baris = urut.map((x) => this.vBarisNilai(x, pk, maks, kolom)).join('');
-    const atasSeri = pk.sah.filter((x) => x.seri && x.rank <= 3 + Math.max(6, (this.s.nilaiHarapan || 6)));
     return top + `
       <div class="nchips" role="tablist" aria-label="Jenis layangan">${chips}</div>
       <div class="panel nilai-panel">
         <div class="nilai-alat">
-          <label class="nilai-cari">${ico('search')}<input class="input" list="nilai-calon" placeholder="Tambah layangan yang dinilai: ketik nomor / sekha" data-ch="adm.nilaiTambah" autocomplete="off" aria-label="Tambah layangan yang dinilai"></label>
-          <datalist id="nilai-calon">${calon.map((r) => `<option value="${esc(r.nomor_layangan || '-')} · ${esc(r.nama_sekha)}">`).join('')}</datalist>
-          <div class="seg" role="group" aria-label="Urutkan"><button type="button" class="${mode === 'peringkat' ? 'on' : ''}" data-act="adm.nilaiUrut" data-v="peringkat">Peringkat</button><button type="button" class="${mode === 'nomor' ? 'on' : ''}" data-act="adm.nilaiUrut" data-v="nomor">Nomor</button></div>
+          <label class="nilai-cari">${ico('search')}<input id="nilai-cari" class="input" type="text" inputmode="numeric" placeholder="Ketik nomor layangan lalu Enter" value="${esc(this.s.nilaiCari || '')}" data-in="adm.nilaiCari" autocomplete="off" aria-label="Cari nomor layangan"><button type="button" class="nilai-cari-x" data-act="adm.nilaiCariHapus" aria-label="Hapus pencarian">${ico('x')}</button></label>
           <button type="button" class="btn btn-sm" data-act="adm.nilaiMaks">${ico('sliders')} Nilai 1–${maks}</button>
         </div>
-        ${pk.semua.length ? `<div class="nilai-tbl">${head}${baris}</div>` : `<div class="empty">Belum ada layangan ${esc(j ? j.nama : '')} yang dinilai. Cari nomor atau nama sekha di kotak atas untuk menambahkan.</div>`}
-        <div id="nilai-ulang" class="nilai-ulang" hidden><button type="button" class="btn btn-xs" data-act="adm.nilaiUrut" data-v="${mode}">${ico('refresh')} Urutkan ulang</button></div>
-        ${atasSeri.length ? `<div class="note warn" style="margin-top:12px">${ico('alert')}<span>Ada <b>nilai sama</b> di peringkat ${[...new Set(atasSeri.map((x) => x.rank))].join(', ')}. Klik <b>${ico('arrow-up')} Naikkan</b> pada layangan yang menurut juri lebih unggul.</span></div>` : ''}
-        <div class="nilai-kaki"><span class="hint">${pk.sah.length} layangan berperingkat${pk.belum.length ? ` · ${pk.belum.length} nilai belum lengkap` : ''}${pk.dq.length ? ` · ${pk.dq.length} diskualifikasi` : ''}</span>
+        <div id="nilai-isi">${this.vIsiNilai(jk, pk, maks)}</div>
+        <div class="nilai-kaki"><span class="hint">${pk.sah.length} layangan berperingkat${pk.belum.length ? ` · ${pk.belum.length} nilai belum lengkap` : ''}${pk.dq.length ? ` · ${pk.dq.length} diskualifikasi` : ''} · ${pk.kosong.length} belum dinilai</span>
           <button type="button" class="btn btn-good" data-act="adm.jadikanJuara" ${pk.sah.length ? '' : 'disabled'}>${ico('trophy')} Jadikan juara</button></div>
       </div>
       ${this.vHasilJuara(jk)}`;
   },
+  /* isi tabel: 25 teratas, atau hanya nomor yang dicari (pencarian tidak menggambar ulang kotak cari) */
+  vIsiNilai(jk, pk, maks) {
+    pk = pk || this.peringkat(jk); maks = maks || Number(this.s.data.pengaturan.nilai_maks) || 100;
+    const BATAS = 25, cari = (this.s.nilaiCari || '').trim(), j = this.idx.jenis.get(jk);
+    const kolom = `--nj:${Math.max(1, pk.juri.length)}`;
+    const head = `<div class="nr nh" style="${kolom}"><span>Rank</span><span>No.</span><span>Sekha</span>
+      ${pk.juri.map((x, i) => `<span class="nj-h"><input class="nj-nama" value="${esc(x.nama)}" placeholder="Juri ${i + 1}" maxlength="30" data-ch="adm.juriNama" data-id="${x.id}" aria-label="Nama juri ${i + 1}">${pk.juri.length > 1 ? `<button type="button" class="nj-x" data-act="adm.juriHapus" data-id="${x.id}" title="Hapus juri ${i + 1}" aria-label="Hapus juri ${i + 1}">${ico('x')}</button>` : ''}</span>`).join('')}
+      <span class="r">Total</span><span class="nj-tambah"><button type="button" class="btn btn-xs" data-act="adm.juriTambah">${ico('plus')} Juri</button></span></div>`;
+    if (!pk.semua.length) return `<div class="empty">Belum ada layangan ${esc(j ? j.nama : '')} yang terkonfirmasi.</div>`;
+    let tampil, info;
+    if (cari) {
+      const no = normNomor(cari);
+      tampil = no == null ? [] : pk.urut.filter((x) => normNomor(x.r.nomor_layangan) === no);
+      if (!tampil.length) return `<div class="nilai-info salah">${no == null ? 'Ketik nomor layangan (angka saja).' : `No. ${esc(cari)} tidak ada di ${esc(j ? j.nama : 'jenis ini')} (hanya layangan terkonfirmasi).`}</div>`;
+      info = `Menampilkan <b>No. ${esc(tampil[0].r.nomor_layangan)}</b> · ${pk.semua.length - tampil.length} layangan lain disembunyikan`;
+    } else {
+      tampil = this.s.nilaiSemua ? pk.urut : pk.urut.slice(0, BATAS);
+      info = `${this.s.nilaiSemua || pk.urut.length <= BATAS ? `Semua ${pk.urut.length} layangan` : `${BATAS} teratas dari ${pk.urut.length} layangan`} · urut peringkat, yang belum dinilai di bawah`;
+    }
+    const sisa = cari ? 0 : pk.urut.length - tampil.length;
+    const atasSeri = pk.sah.filter((x) => x.seri && x.rank <= 3 + Math.max(6, (this.s.nilaiHarapan || 6)));
+    return `<div class="nilai-info">${info}</div>
+      <div class="nilai-tbl${cari ? ' cari' : ''}">${head}${tampil.map((x) => this.vBarisNilai(x, pk, maks, kolom)).join('')}</div>
+      ${sisa > 0 ? `<div class="nilai-sisa">${sisa} layangan lain disembunyikan — ketik nomornya di kotak cari untuk memberi nilai · <button type="button" class="btn-link" data-act="adm.nilaiSemua">Tampilkan semua</button></div>` : ''}
+      ${!cari && this.s.nilaiSemua && pk.urut.length > BATAS ? `<div class="nilai-sisa"><button type="button" class="btn-link" data-act="adm.nilaiSemua">Tampilkan ${BATAS} teratas saja</button></div>` : ''}
+      ${cari ? '<div class="nilai-sisa">Isi nilai → <kbd>Enter</kbd> pindah ke juri berikutnya. Setelah juri terakhir, kursor kembali ke kotak cari.</div>' : ''}
+      <div id="nilai-ulang" class="nilai-ulang" hidden><button type="button" class="btn btn-xs" data-act="adm.nilaiUrut" data-v="peringkat">${ico('refresh')} Urutkan ulang</button></div>
+      ${atasSeri.length ? `<div class="note warn" style="margin-top:12px">${ico('alert')}<span>Ada <b>nilai sama</b> di peringkat ${[...new Set(atasSeri.map((x) => x.rank))].join(', ')}. Klik <b>${ico('arrow-up')} Naikkan</b> pada layangan yang menurut juri lebih unggul.</span></div>` : ''}`;
+  },
   vBarisNilai(x, pk, maks, kolom) {
     const r = x.r, id = esc(r.id);
     const kelas = x.rank === 1 ? 'g' : x.rank === 2 ? 's' : x.rank === 3 ? 'b' : x.rank ? 'h' : '';
-    const tags = [x.dq ? `<span class="ntag dq">Diskualifikasi</span>` : '', !x.dq && !x.lengkap ? '<span class="ntag blm">Belum lengkap</span>' : '', x.seri ? '<span class="ntag seri">Nilai sama</span>' : ''].join('');
+    const tags = [x.dq ? `<span class="ntag dq">Diskualifikasi</span>` : '', !x.dq && !x.lengkap && !x.kosong ? '<span class="ntag blm">Belum lengkap</span>' : '', x.seri ? '<span class="ntag seri">Nilai sama</span>' : ''].join('');
     return `<div class="nr${x.dq ? ' dq' : ''}${x.seri ? ' seri' : ''}" style="${kolom}" data-pid="${id}">
       <span class="nrk"><b class="rk ${kelas}">${x.dq ? '✕' : x.rank || '—'}</b></span>
       <span class="nno">${esc(r.nomor_layangan || '-')}</span>
@@ -5433,11 +5470,10 @@ const Adm = {
         ${x.seri ? `<button type="button" class="btn btn-xs nnaik" data-act="adm.nilaiNaik" data-pid="${id}" title="Letakkan di atas yang nilainya sama">${ico('arrow-up')} Naikkan</button>` : ''}
         ${x.p.catatan ? `<small class="ncat">${ico('edit')} ${esc(x.p.catatan)}</small>` : ''}</span>
       <span class="nins">${pk.juri.map((j, i) => `<label class="nin"><span class="nin-l">${esc(j.nama || 'Juri ' + (i + 1))}</span><input type="number" inputmode="numeric" min="0" max="${maks}" step="1" value="${x.skor[i] ?? ''}" data-ch="adm.nilai" data-pid="${id}" data-juri="${j.id}" aria-label="Nilai ${esc(j.nama || 'juri ' + (i + 1))} untuk nomor ${esc(r.nomor_layangan || '-')}"></label>`).join('')}</span>
-      <span class="ntot">${x.total || (x.lengkap ? 0 : '')}<small>${x.lengkap ? '' : 'sementara'}</small></span>
+      <span class="ntot">${x.kosong ? '' : x.total || (x.lengkap ? 0 : '')}<small>${x.lengkap || x.kosong ? '' : 'sementara'}</small></span>
       <span class="naksi">
         <button type="button" class="btn btn-xs btn-icon" data-act="adm.nilaiCatatan" data-pid="${id}" title="Catatan" aria-label="Catatan">${ico('edit')}</button>
         <button type="button" class="btn btn-xs ${x.dq ? '' : 'btn-danger'}" data-act="adm.nilaiDq" data-pid="${id}">${x.dq ? 'Batal DQ' : 'DQ'}</button>
-        <button type="button" class="btn btn-xs btn-icon" data-act="adm.nilaiHapus" data-pid="${id}" title="Keluarkan dari penilaian" aria-label="Keluarkan dari penilaian">${ico('trash')}</button>
       </span></div>`;
   },
   /* hasil juara & status pengumuman */
@@ -5465,7 +5501,7 @@ const Adm = {
       const rk = el.querySelector('.rk');
       rk.className = 'rk ' + (x.rank === 1 ? 'g' : x.rank === 2 ? 's' : x.rank === 3 ? 'b' : x.rank ? 'h' : '');
       rk.textContent = x.dq ? '✕' : x.rank || '—';
-      el.querySelector('.ntot').innerHTML = `${x.total || (x.lengkap ? 0 : '')}<small>${x.lengkap ? '' : 'sementara'}</small>`;
+      el.querySelector('.ntot').innerHTML = `${x.kosong ? '' : x.total || (x.lengkap ? 0 : '')}<small>${x.lengkap || x.kosong ? '' : 'sementara'}</small>`;
       el.classList.toggle('seri', x.seri);
     }
     const u = $('#nilai-ulang'); if (u) u.hidden = false;
@@ -6286,7 +6322,7 @@ ACT['adm.cekLagi'] = () => Adm.masuk();
 /* ---------- Penilaian & juara ---------- */
 const nilaiData = () => Adm.s.data;
 function gantiBarisNilai(list, kunci, row) { const i = list.findIndex(kunci); if (row) { if (i >= 0) list[i] = row; else list.push(row); } else if (i >= 0) list.splice(i, 1); }
-ACT['adm.nilaiJenis'] = (el) => { Adm.s.nilaiJenis = el.dataset.v; Adm.segarkanTampilan({ paksa: true }); };
+ACT['adm.nilaiJenis'] = (el) => { Adm.s.nilaiJenis = el.dataset.v; Adm.s.nilaiCari = ''; Adm.s.nilaiSemua = false; Adm.segarkanTampilan({ paksa: true }); };
 ACT['adm.nilaiUrut'] = (el) => { Adm.s.nilaiUrut = el.dataset.v; Adm.segarkanTampilan({ paksa: true }); };
 /* juri bawaan: Juri 1–3 dibuat otomatis saat penilaian pertama kali dibuka */
 async function siapkanJuri() {
@@ -6312,22 +6348,29 @@ ACT['adm.juriHapus'] = async (el) => {
   try { await api.hapusJuri(id); const n2 = nilaiData(); n2.juri = n2.juri.filter((x) => x.id !== id); n2.nilai = (n2.nilai || []).filter((x) => x.juri_id !== id); Adm.tandaiUbah(); Adm.segarkanTampilan({ paksa: true }); toast('Juri dihapus', 'good'); }
   catch (e) { toast(pesanError(e), 'bad'); }
 };
-CH['adm.nilaiTambah'] = async (el) => {
-  const d = nilaiData(), v = el.value.trim(); if (!v) return;
-  const no = v.split('·')[0].trim();
-  const sudah = new Set((d.penilaian || []).map((p) => p.pendaftaran_id));
-  const cocok = d.daftar.filter((r) => r.jenis === Adm.s.nilaiJenis && r.status === 'terkonfirmasi' && (normNomor(r.nomor_layangan) === normNomor(no) || r.nama_sekha.toLowerCase() === v.toLowerCase() || `${r.nomor_layangan || '-'} · ${r.nama_sekha}` === v));
-  if (!cocok.length) { toast(`Nomor ${no} tidak ditemukan di ${Adm.namaJenis(Adm.s.nilaiJenis)} (hanya layangan terkonfirmasi).`, 'bad', 4500); return; }
-  const r = cocok[0];
-  if (sudah.has(r.id)) { toast(`Nomor ${r.nomor_layangan} sudah ada di daftar penilaian.`, 'info'); el.value = ''; return; }
-  try {
-    const row = await api.tambahPenilaian(r.id); nilaiData().penilaian.push(row); Adm.tandaiUbah();
-    Adm.segarkanTampilan({ paksa: true });
-    const inp = document.querySelector(`.nr[data-pid="${CSS.escape(r.id)}"] input[data-ch="adm.nilai"]`);
-    if (inp) { inp.scrollIntoView({ block: 'center' }); inp.focus(); }
-    const cari = document.querySelector('[data-ch="adm.nilaiTambah"]'); if (cari) cari.value = '';
-  } catch (e) { toast(pesanError(e), 'bad'); }
-};
+/* pencarian nomor: hanya nomor itu yang tampil; tabel digambar ulang tanpa menyentuh kotak cari */
+function gambarIsiNilai() { const box = document.getElementById('nilai-isi'); if (box) box.innerHTML = Adm.vIsiNilai(Adm.s.nilaiJenis); }
+IN['adm.nilaiCari'] = (el) => { const v = el.value.replace(/\D/g, '').slice(0, 6); if (v !== el.value) el.value = v; Adm.s.nilaiCari = v; gambarIsiNilai(); };
+ACT['adm.nilaiCariHapus'] = () => { Adm.s.nilaiCari = ''; const c = document.getElementById('nilai-cari'); if (c) { c.value = ''; c.focus(); } gambarIsiNilai(); };
+ACT['adm.nilaiSemua'] = () => { Adm.s.nilaiSemua = !Adm.s.nilaiSemua; gambarIsiNilai(); };
+document.addEventListener('keydown', (e) => {
+  if (e.key !== 'Enter' || Adm.s.tab !== 'nilai' || !e.target.closest) return;
+  const t = e.target;
+  if (t.id === 'nilai-cari') {           // Enter di kotak cari → kolom juri pertama yang masih kosong
+    e.preventDefault();
+    const ins = [...document.querySelectorAll('#nilai-isi .nr:not(.nh) input[data-ch="adm.nilai"]')];
+    if (!Adm.s.nilaiCari || !ins.length) return;
+    const tuju = ins.find((x) => x.value === '') || ins[0]; tuju.focus(); tuju.select();
+    return;
+  }
+  if (t.matches('#nilai-isi input[data-ch="adm.nilai"]')) {   // Enter di kolom nilai → juri berikutnya; juri terakhir → kembali ke cari
+    e.preventDefault();
+    const ins = [...t.closest('.nr').querySelectorAll('input[data-ch="adm.nilai"]')], i = ins.indexOf(t);
+    if (i < ins.length - 1) { ins[i + 1].focus(); ins[i + 1].select(); return; }
+    const c = document.getElementById('nilai-cari');
+    if (c && Adm.s.nilaiCari) { t.blur(); c.focus(); c.select(); } else t.blur();
+  }
+});
 CH['adm.nilai'] = async (el) => {
   const d = nilaiData(), pid = el.dataset.pid, juri = Number(el.dataset.juri), t = el.value.trim();
   const maks = Number(d.pengaturan.nilai_maks) || 100;
@@ -6338,18 +6381,25 @@ CH['adm.nilai'] = async (el) => {
   }
   el.classList.remove('salah'); el.classList.add('menyimpan');
   try {
+    if (v != null) await pastikanPenilaian(pid);
     const row = await api.simpanNilai(pid, juri, v);
     gantiBarisNilai(nilaiData().nilai, (x) => x.pendaftaran_id === pid && x.juri_id === juri, row);
     Adm.tandaiUbah(); Adm.segarkanNilai();
   } catch (e) { el.classList.add('salah'); toast(pesanError(e), 'bad'); }
   el.classList.remove('menyimpan');
 };
+/* baris penilaian dibuat saat layangan pertama kali diberi nilai / DQ / catatan */
+async function pastikanPenilaian(pid) {
+  if ((nilaiData().penilaian || []).some((x) => x.pendaftaran_id === pid)) return;
+  const row = await api.tambahPenilaian(pid);
+  const d = nilaiData(); if (!d.penilaian.some((x) => x.pendaftaran_id === pid)) d.penilaian.push(row);
+}
 async function ubahPenilaianLokal(pid, patch, pesan) {
-  try { const row = await api.ubahPenilaian(pid, patch); gantiBarisNilai(nilaiData().penilaian, (x) => x.pendaftaran_id === pid, row); Adm.tandaiUbah(); Adm.segarkanTampilan({ paksa: true }); if (pesan) toast(pesan, 'good'); return true; }
+  try { await pastikanPenilaian(pid); const row = await api.ubahPenilaian(pid, patch); gantiBarisNilai(nilaiData().penilaian, (x) => x.pendaftaran_id === pid, row); Adm.tandaiUbah(); Adm.segarkanTampilan({ paksa: true }); if (pesan) toast(pesan, 'good'); return true; }
   catch (e) { toast(pesanError(e), 'bad'); return false; }
 }
 ACT['adm.nilaiCatatan'] = (el) => {
-  const pid = el.dataset.pid, p = nilaiData().penilaian.find((x) => x.pendaftaran_id === pid), r = Adm.baris(pid);
+  const pid = el.dataset.pid, p = nilaiData().penilaian.find((x) => x.pendaftaran_id === pid) || {}, r = Adm.baris(pid);
   Overlay.modal(`<form data-submit="adm.nilaiCatatan" data-pid="${esc(pid)}" novalidate><h3>Catatan · No. ${esc(r.nomor_layangan || '-')}</h3>
     <p class="lead">${esc(r.nama_sekha)}</p>
     <div class="field"><label class="label" for="nc-isi">Catatan penilaian <span class="opt-lbl">(opsional)</span></label><textarea class="input" id="nc-isi" name="catatan" rows="3" maxlength="300">${esc(p.catatan || '')}</textarea><span class="hint">Hanya terlihat oleh panitia.</span></div>
@@ -6357,7 +6407,7 @@ ACT['adm.nilaiCatatan'] = (el) => {
 };
 SUB['adm.nilaiCatatan'] = async (form) => { if (await ubahPenilaianLokal(form.dataset.pid, { catatan: form.catatan.value.trim() }, 'Catatan disimpan')) Overlay.tutupYangBerisi(form); };
 ACT['adm.nilaiDq'] = async (el) => {
-  const pid = el.dataset.pid, p = nilaiData().penilaian.find((x) => x.pendaftaran_id === pid), r = Adm.baris(pid);
+  const pid = el.dataset.pid, p = nilaiData().penilaian.find((x) => x.pendaftaran_id === pid) || {}, r = Adm.baris(pid);
   if (p.diskualifikasi) {
     if (await konfirmasiDialog({ judul: 'Batalkan diskualifikasi?', isi: `No. <b>${esc(r.nomor_layangan || '-')}</b> (${esc(r.nama_sekha)}) kembali masuk peringkat sesuai nilainya.`, tombol: 'Batalkan diskualifikasi' })) ubahPenilaianLokal(pid, { diskualifikasi: false, alasan: null }, 'Diskualifikasi dibatalkan');
     return;
@@ -6371,12 +6421,6 @@ SUB['adm.nilaiDq'] = async (form) => {
   const alasan = form.alasan.value.trim();
   if (alasan.length < 3) { form.alasan.closest('.field').classList.add('err'); toast('Diskualifikasi wajib diberi alasan.', 'bad'); form.alasan.focus(); return; }
   if (await ubahPenilaianLokal(form.dataset.pid, { diskualifikasi: true, alasan }, 'Layangan didiskualifikasi')) Overlay.tutupYangBerisi(form);
-};
-ACT['adm.nilaiHapus'] = async (el) => {
-  const pid = el.dataset.pid, r = Adm.baris(pid), d = nilaiData();
-  if (!(await konfirmasiDialog({ judul: `Keluarkan No. ${r.nomor_layangan || '-'} dari penilaian?`, isi: 'Semua nilai juri untuk layangan ini ikut dihapus. Data pendaftaran tidak berubah.', tombol: 'Keluarkan', bahaya: true }))) return;
-  try { await api.hapusPenilaian(pid); const n2 = nilaiData(); n2.penilaian = n2.penilaian.filter((x) => x.pendaftaran_id !== pid); n2.nilai = n2.nilai.filter((x) => x.pendaftaran_id !== pid); Adm.tandaiUbah(); Adm.segarkanTampilan({ paksa: true }); toast('Dikeluarkan dari penilaian', 'good'); }
-  catch (e) { toast(pesanError(e), 'bad'); }
 };
 /* nilai sama: layangan yang dipilih diletakkan paling atas di antara yang nilainya sama */
 ACT['adm.nilaiNaik'] = (el) => sibuk(el, async () => {
