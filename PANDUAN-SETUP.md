@@ -232,6 +232,25 @@ Pasang sekali: jalankan **`bukti-selesai.sql`** di SQL Editor (hasil 2 ✅). Seb
 - **Tema event** (opsional): Pengaturan → Informasi event → *Tema event*. Tampil di halaman peserta tepat di bawah nama event, huruf miring dalam tanda kutip. Kosong = tidak tampil. Pasang sekali: jalankan **`tema-event.sql`** (hasil 2 ✅).
 - **Penyelenggara** hanya tampil di halaman peserta bila diisi. Kosongkan kolomnya bila tidak ingin ditampilkan (teks bawaan "Panitia Lomba Layangan" juga dianggap belum diisi).
 
+## Penilaian & juara
+
+Pasang sekali:
+1. **Cadangkan dulu**: jalankan **`cadangan-sebelum-penilaian.sql`** → semua baris kolom *cocok* harus ✅. Salinan tersimpan di skema `cadangan_sebelum_penilaian` (Table Editor → pilih schema tersebut).
+2. Jalankan **`juara.sql`** di Supabase → SQL Editor (hasil **4 ✅**). Aman dijalankan ulang.
+
+Kode situs sebelum fitur ini disimpan di GitHub sebagai branch **`cadangan-sebelum-penilaian`** (salinan persis main sebelum PR #28). Bila perlu kembali: buka PR #28 di GitHub → **Revert**, lalu merge PR revert tersebut (data penilaian tetap tersimpan di database, hanya tidak tampil).
+
+**Penilaian** (menu *Penilaian* di dasbor panitia, semua panitia event bisa mengisi):
+1. Pilih jenis layangan di atas tabel.
+2. Isi nama juri di kepala kolom (bawaan 3 juri; **+ Juri** untuk menambah, juri sama untuk semua jenis).
+3. Semua layangan **terkonfirmasi** di jenis itu langsung bisa dinilai. Tabel menampilkan **15 teratas** (urut peringkat, yang belum dinilai di bawah); sisanya disembunyikan (ada tautan *Tampilkan semua*).
+4. Ketik **nomor layangan** di kotak cari → hanya nomor itu yang tampil → **Enter** → isi nilai Juri 1 → **Enter** → Juri 2 → … Setelah juri terakhir kursor kembali ke kotak cari (angka lama terpilih), tinggal ketik nomor berikutnya.
+5. Nilai angka bulat 0–100 (batas atas bisa diubah lewat tombol **Nilai 1–100**). Total & peringkat dihitung otomatis.
+6. **Nilai sama** → tekan **Naikkan** pada layangan yang ingin ditaruh di atas.
+7. **DQ** wajib dengan alasan; peringkat di bawahnya otomatis naik. ✎ untuk catatan.
+
+**Juara (per jenis)**: tekan **Jadikan juara** (peringkat 1–3 = Juara, berikutnya Harapan; bawaan 6 harapan, bisa ditambah) → cek daftar → **Umumkan juara <jenis>**. Tiap jenis diumumkan sendiri-sendiri, jadi jenis yang selesai dinilai lebih dulu bisa langsung diumumkan; jenis yang sudah diumumkan diberi 🏆 di pilihan jenis. Selama masih draf ada tombol **Batalkan draf** (nilai juri tidak terhapus). Di halaman peserta (tab *Juara*, muncul mulai hari terakhir event) jenis yang belum diumumkan bertanda "segera" dan menampilkan "Juri & panitia masih berdiskusi…". Begitu satu jenis diumumkan, halaman semua event menampilkan tombol **🏆 Lihat juara**. Publik hanya melihat nomor, sekha dan banjar. **Foto layangan** (opsional): di daftar juara tekan **Foto** untuk mengunggah; di halaman juara foto menggantikan ikon piala dan bisa diketuk untuk diperbesar. Tombol WA ucapan selamat bersifat opsional. Pengumuman bisa ditarik kembali per jenis (data tidak terhapus).
+
 ## Aturan yang dijaga otomatis oleh database
 
 - **Kuota per grup** = jumlah kotak dikurangi kotak yang ditutup; dihitung dari pendaftaran *menunggu + terkonfirmasi*. Aman walau banyak orang mendaftar bersamaan — tiap peserta mendapat kotak sendiri, berurutan dari kotak 1.
