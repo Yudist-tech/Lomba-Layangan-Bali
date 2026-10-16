@@ -1442,7 +1442,7 @@ fieldset.rentang legend { font-weight: 700; font-size: 14px; padding: 0 6px; }
 .jw-foto.kecil { width: 36px; height: 36px; border-radius: 10px; border-color: var(--brand-soft); }
 .jw-s { flex: 1; min-width: 0; font-weight: 600; overflow-wrap: anywhere; }
 .jw-s small { display: block; color: var(--muted); font-weight: 500; font-size: 12px; }
-.jw-s small.jw-hl { color: var(--brand); font-weight: 700; }
+.jw-s small.jw-hl { color: var(--brand); font-weight: 800; font-size: 11.5px; letter-spacing: .02em; margin-bottom: 1px; }
 .jw-nn { font-weight: 800; white-space: nowrap; font-variant-numeric: tabular-nums; }
 .jw-selamat { text-align: center; font-size: 13px; color: var(--muted); margin: 14px 0 0; }
 @media (max-width: 600px) { .jw-sk { font-size: 14.5px; } .jw-no b { font-size: 22px; } .jw-ic, .jw-foto:not(.kecil) { width: 46px; height: 46px; } }
@@ -3865,7 +3865,7 @@ const Pub = {
       <div class="jw-list">${juara.map((x) => `<div class="jw ${warna(x.urutan)}"><span class="jw-bar"></span>${foto(x) || `<span class="jw-ic">${pialaSvg(warna(x.urutan))}</span>`}
         <div class="jw-t"><div class="jw-lb">Juara ${x.urutan}</div><div class="jw-sk">${esc(x.sekha)}</div>${x.alamat ? `<div class="jw-al">${esc(x.alamat)}</div>` : ''}</div>
         <div class="jw-no">No.<b>${esc(x.nomor || '-')}</b></div></div>`).join('')}</div>
-      ${harapan.length ? `<div class="jw-hp"><div class="jw-hh">Harapan</div>${harapan.map((x) => `<div class="jw-r">${foto(x, true) || `<span class="jw-n">${x.urutan}</span>`}<span class="jw-s">${esc(x.sekha)}${x.alamat ? `<small>${esc(x.alamat)}</small>` : ''}${x.foto ? `<small class="jw-hl">Harapan ${x.urutan}</small>` : ''}</span><span class="jw-nn">No. ${esc(x.nomor || '-')}</span></div>`).join('')}</div>` : ''}
+      ${harapan.length ? `<div class="jw-hp"><div class="jw-hh">Harapan</div>${harapan.map((x) => `<div class="jw-r">${foto(x, true) || `<span class="jw-n">${x.urutan}</span>`}<span class="jw-s">${x.foto ? `<small class="jw-hl">Harapan ${x.urutan}</small>` : ''}${esc(x.sekha)}${x.alamat ? `<small>${esc(x.alamat)}</small>` : ''}</span><span class="jw-nn">No. ${esc(x.nomor || '-')}</span></div>`).join('')}</div>` : ''}
       <p class="jw-selamat">Selamat kepada para juara ${esc(nama(jk))}! 🎉</p>
     </section>`;
   },
