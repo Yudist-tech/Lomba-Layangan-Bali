@@ -5432,7 +5432,7 @@ const Adm = {
   /* isi tabel: 25 teratas, atau hanya nomor yang dicari (pencarian tidak menggambar ulang kotak cari) */
   vIsiNilai(jk, pk, maks) {
     pk = pk || this.peringkat(jk); maks = maks || Number(this.s.data.pengaturan.nilai_maks) || 100;
-    const BATAS = 25, cari = (this.s.nilaiCari || '').trim(), j = this.idx.jenis.get(jk);
+    const BATAS = 15, cari = (this.s.nilaiCari || '').trim(), j = this.idx.jenis.get(jk);
     const kolom = `--nj:${Math.max(1, pk.juri.length)}`;
     const head = `<div class="nr nh" style="${kolom}"><span>Rank</span><span>No.</span><span>Sekha</span>
       ${pk.juri.map((x, i) => `<span class="nj-h"><input class="nj-nama" value="${esc(x.nama)}" placeholder="Juri ${i + 1}" maxlength="30" data-ch="adm.juriNama" data-id="${x.id}" aria-label="Nama juri ${i + 1}">${pk.juri.length > 1 ? `<button type="button" class="nj-x" data-act="adm.juriHapus" data-id="${x.id}" title="Hapus juri ${i + 1}" aria-label="Hapus juri ${i + 1}">${ico('x')}</button>` : ''}</span>`).join('')}

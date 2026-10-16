@@ -239,7 +239,7 @@ Pasang sekali: jalankan **`juara.sql`** di Supabase → SQL Editor (hasil **4 �
 **Penilaian** (menu *Penilaian* di dasbor panitia, semua panitia event bisa mengisi):
 1. Pilih jenis layangan di atas tabel.
 2. Isi nama juri di kepala kolom (bawaan 3 juri; **+ Juri** untuk menambah, juri sama untuk semua jenis).
-3. Semua layangan **terkonfirmasi** di jenis itu langsung bisa dinilai. Tabel menampilkan **25 teratas** (urut peringkat, yang belum dinilai di bawah); sisanya disembunyikan (ada tautan *Tampilkan semua*).
+3. Semua layangan **terkonfirmasi** di jenis itu langsung bisa dinilai. Tabel menampilkan **15 teratas** (urut peringkat, yang belum dinilai di bawah); sisanya disembunyikan (ada tautan *Tampilkan semua*).
 4. Ketik **nomor layangan** di kotak cari → hanya nomor itu yang tampil → **Enter** → isi nilai Juri 1 → **Enter** → Juri 2 → … Setelah juri terakhir kursor kembali ke kotak cari (angka lama terpilih), tinggal ketik nomor berikutnya.
 5. Nilai angka bulat 0–100 (batas atas bisa diubah lewat tombol **Nilai 1–100**). Total & peringkat dihitung otomatis.
 6. **Nilai sama** → tekan **Naikkan** pada layangan yang ingin ditaruh di atas.
