@@ -252,7 +252,7 @@ Kode situs sebelum fitur ini disimpan di GitHub sebagai branch **`cadangan-sebel
 **Keamanan penilaian** (aktif otomatis setelah `juara.sql`):
 - **Password setiap masuk**: setiap kali membuka menu Penilaian, panitia wajib memasukkan password ID-nya. Password dicek oleh Supabase dan tidak disimpan.
 - **Tertutup bila tidak ada gerakan**: bila 10 menit tidak ada gerakan (ketik, klik, geser, sentuh) di halaman Penilaian, panitia dipindah ke Ringkasan; masuk lagi wajib password. Waktunya tidak ditampilkan; selama panitia aktif, halaman tidak tertutup.
-- **Panitia penilai**: super admin menekan tombol **Penilai** di samping nama panitia, di Ruang panitia → ⚙ **Atur event** → Admin event (tempat membuat ID panitia). Panitia lain hanya bisa melihat. Bila belum ada yang dicentang, semua panitia event bisa mengisi. Dijaga database.
+- **Panitia penilai**: super admin menyalakan sakelar **Penilai** (kuning) di samping nama panitia, di Ruang panitia → ⚙ **Atur event** → tab **Panitia** (tempat membuat ID panitia). Panitia lain hanya bisa melihat. Bila belum ada yang dicentang, semua panitia event bisa mengisi. Dijaga database.
 - **Kunci nilai**: setelah juara sebuah jenis diumumkan, nilai, DQ dan daftar juara jenis itu terkunci (foto masih bisa ditambah). Hanya super admin yang bisa **Buka kunci** / **Kunci lagi** atau **Tarik pengumuman**.
 - **Riwayat nilai**: setiap perubahan nilai, DQ, pembuatan juara, pengumuman dan buka kunci tercatat otomatis (siapa, kapan, dari berapa ke berapa) dan tidak bisa dihapus panitia. Bisa dilihat semua panitia event.
 
