@@ -116,6 +116,8 @@ create table if not exists public.lomba_penilaian (
   updated_at      timestamptz not null default now(),
   check (not diskualifikasi or length(btrim(coalesce(alasan, ''))) > 0)
 );
+-- foto layangan (opsional, diunggah panitia; tampil di halaman juara menggantikan ikon piala)
+alter table public.lomba_penilaian add column if not exists foto_url text;
 create table if not exists public.lomba_nilai (
   pendaftaran_id  uuid not null references public.lomba_penilaian(pendaftaran_id) on delete cascade,
   juri_id         bigint not null references public.lomba_juri(id) on delete cascade,
@@ -212,11 +214,12 @@ begin
     'list', coalesce((
     select json_agg(json_build_object(
              'jenis', j.jenis, 'kelas', j.kelas, 'urutan', j.urutan,
-             'nomor', p.nomor_layangan, 'sekha', p.nama_sekha, 'alamat', p.alamat)
+             'nomor', p.nomor_layangan, 'sekha', p.nama_sekha, 'alamat', p.alamat, 'foto', pn.foto_url)
            order by j.jenis, j.kelas desc, j.urutan)
       from public.lomba_juara j
       join public.lomba_pendaftaran p on p.id = j.pendaftaran_id
       join public.lomba_juara_umum u on u.event_id = j.event_id and u.jenis = j.jenis
+      left join public.lomba_penilaian pn on pn.pendaftaran_id = j.pendaftaran_id
      where j.event_id = v_ev and p.status = 'terkonfirmasi'), '[]'::json));
 end;
 $$;

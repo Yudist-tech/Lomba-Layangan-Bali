@@ -1381,6 +1381,8 @@ fieldset.rentang legend { font-weight: 700; font-size: 14px; padding: 0 6px; }
 .jrow:first-child { border-top: 0; }
 .jrow.juara { background: color-mix(in srgb, #d9a400 7%, var(--surface)); }
 .jrow .jl { font-size: 13px; } .jrow .jn { font-weight: 800; } .jrow .js small { display: block; font-size: 12px; color: var(--muted); }
+.jfoto { display: flex; gap: 6px; align-items: center; justify-content: flex-end; flex-wrap: wrap; }
+.jfoto img { width: 40px; height: 40px; border-radius: 9px; object-fit: cover; border: 1px solid var(--line); }
 @media (max-width: 760px) {
   /* di HP: tiap layangan jadi kartu */
   .nilai-tbl { border: 0; overflow: visible; }
@@ -1394,7 +1396,7 @@ fieldset.rentang legend { font-weight: 700; font-size: 14px; padding: 0 6px; }
   .nr:not(.nh) .naksi { grid-area: ak; justify-content: flex-start; }
   .nr:not(.nh) .nin-l { display: block; font-size: 11px; color: var(--muted); text-align: center; margin-bottom: 2px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .jrow { grid-template-columns: 82px 62px minmax(0, 1fr); }
-  .jrow .btn { grid-column: 1 / -1; justify-self: start; }
+  .jrow .jfoto { grid-column: 1 / -1; justify-content: flex-start; }
 }
 
 /* ===== Juara (halaman peserta & halaman semua event) ===== */
@@ -1412,23 +1414,38 @@ fieldset.rentang legend { font-weight: 700; font-size: 14px; padding: 0 6px; }
 .juara-h span { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; color: #b98900; }
 .juara-h span .ico { width: 15px; height: 15px; }
 .juara-h .h2 { margin-top: 2px; }
-.juara-jenis { margin: 12px 0 14px; }
-.podium { display: grid; grid-template-columns: 1fr 1.12fr 1fr; gap: 8px; align-items: end; margin-bottom: 12px; }
-.pd { border: 1px solid var(--line); border-radius: 14px; padding: 12px 8px; text-align: center; background: var(--surface); min-width: 0; }
-.pd-m { width: 34px; height: 34px; border-radius: 50%; margin: 0 auto 6px; display: grid; place-items: center; color: #fff; font-weight: 900; }
-.pd.j1 { padding-top: 18px; border-color: #f0d27a; background: #fffbea; } .pd.j1 .pd-m { background: #d9a400; width: 42px; height: 42px; font-size: 18px; }
-.pd.j2 .pd-m { background: #9aa3ad; } .pd.j3 .pd-m { background: #c07a3a; }
-.pd-no { font-size: 20px; font-weight: 900; font-variant-numeric: tabular-nums; }
-.pd.j1 .pd-no { font-size: 24px; }
-.pd-sk { font-weight: 700; font-size: 13px; overflow-wrap: anywhere; }
-.pd-al { color: var(--muted); font-size: 12px; overflow-wrap: anywhere; }
-.pd.kosong { opacity: .5; }
-.hrp { border: 1px solid var(--line); border-radius: 12px; overflow: hidden; }
-.hrp div { display: grid; grid-template-columns: 92px 70px minmax(0, 1fr); gap: 8px; padding: 9px 12px; border-top: 1px solid var(--line); font-size: 14px; align-items: baseline; }
-.hrp div:first-child { border-top: 0; }
-.hrp em { font-style: normal; font-weight: 700; color: var(--ink-2); font-size: 13px; }
-.hrp span { overflow-wrap: anywhere; }
-@media (max-width: 600px) { .hrp div { grid-template-columns: 78px 62px minmax(0, 1fr); font-size: 13px; } .pd-no { font-size: 17px; } .pd.j1 .pd-no { font-size: 20px; } }
+.juara-jenis { flex-wrap: nowrap; overflow-x: auto; margin: 12px -22px 14px; padding: 0 22px 2px; scrollbar-width: none; }
+@media (max-width: 600px) { .juara-jenis { margin-left: -16px; margin-right: -16px; padding-left: 16px; padding-right: 16px; } }
+.juara-jenis::-webkit-scrollbar { display: none; }
+.juara-jenis .nchip { flex: none; }
+.jw-list { display: grid; gap: 8px; }
+.jw { display: flex; align-items: center; gap: 12px; padding: 12px 14px 12px 0; border: 1px solid var(--line); border-radius: 14px; background: var(--surface); overflow: hidden; }
+.jw-bar { width: 6px; align-self: stretch; flex: none; }
+.jw.g .jw-bar { background: #e0a800; } .jw.s .jw-bar { background: #a3acb8; } .jw.b .jw-bar { background: #c47a3c; }
+.jw-ic { width: 52px; height: 52px; border-radius: 13px; display: grid; place-items: center; flex: none; }
+.jw.g .jw-ic { background: #fff4cc; } .jw.s .jw-ic { background: #eef1f5; } .jw.b .jw-ic { background: #fbe7d6; }
+.jw-foto { width: 52px; height: 52px; border-radius: 13px; padding: 0; border: 2px solid transparent; overflow: hidden; flex: none; cursor: zoom-in; background: var(--surface-3); }
+.jw.g .jw-foto { border-color: #e0a800; } .jw.s .jw-foto { border-color: #a3acb8; } .jw.b .jw-foto { border-color: #c47a3c; }
+.jw-foto img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.jw-t { flex: 1; min-width: 0; }
+.jw-lb { font-size: 12px; font-weight: 800; letter-spacing: .02em; }
+.jw.g .jw-lb { color: #9a6c00; } .jw.s .jw-lb { color: #5d6672; } .jw.b .jw-lb { color: #9a5524; }
+.jw-sk { font-size: 15px; font-weight: 700; line-height: 1.25; overflow-wrap: anywhere; }
+.jw-al { font-size: 12.5px; color: var(--muted); overflow-wrap: anywhere; }
+.jw-no { font-size: 12px; font-weight: 700; color: var(--muted); text-align: right; white-space: nowrap; }
+.jw-no b { display: block; font-size: 24px; line-height: 1.05; font-weight: 900; color: var(--ink); font-variant-numeric: tabular-nums; }
+.jw-hp { margin-top: 14px; border-top: 1px solid var(--line); padding-top: 10px; }
+.jw-hh { font-size: 11.5px; font-weight: 800; letter-spacing: .08em; color: var(--brand); text-transform: uppercase; margin-bottom: 4px; }
+.jw-r { display: flex; align-items: center; gap: 10px; padding: 9px 2px; border-bottom: 1px dashed var(--line); font-size: 14px; }
+.jw-r:last-child { border-bottom: 0; }
+.jw-n { width: 26px; height: 26px; border-radius: 50%; background: var(--brand-soft); color: var(--brand); font-weight: 800; font-size: 12.5px; display: grid; place-items: center; flex: none; }
+.jw-foto.kecil { width: 36px; height: 36px; border-radius: 10px; border-color: var(--brand-soft); }
+.jw-s { flex: 1; min-width: 0; font-weight: 600; overflow-wrap: anywhere; }
+.jw-s small { display: block; color: var(--muted); font-weight: 500; font-size: 12px; }
+.jw-s small.jw-hl { color: var(--brand); font-weight: 700; }
+.jw-nn { font-weight: 800; white-space: nowrap; font-variant-numeric: tabular-nums; }
+.jw-selamat { text-align: center; font-size: 13px; color: var(--muted); margin: 14px 0 0; }
+@media (max-width: 600px) { .jw-sk { font-size: 14.5px; } .jw-no b { font-size: 22px; } .jw-ic, .jw-foto:not(.kecil) { width: 46px; height: 46px; } }
 .ev-chip.juara { background: #fff6d6; color: #7a5600; border-color: #f0d27a; font-weight: 800; }
 .ev-cta.gold { background: linear-gradient(180deg, #ffd75e, #f2b705); color: #4a3400; border-color: #e0a800; }
 .ev-st.st-juara { background: #fff6d6; color: #7a5600; }
@@ -1711,6 +1728,11 @@ function kompresGambar(file, maxSisi = 2000, kualitas = 0.82, tipe = 'image/jpeg
   });
 }
 /* Hanya alamat gambar https:// atau data:image/… yang dipakai; tanda kutip/backslash dibuang agar aman di CSS url('…'). */
+/* piala berwarna untuk halaman juara: g = emas, s = perak, b = perunggu */
+function pialaSvg(k) {
+  const w = { g: ['#f2b705', '#b98200'], s: ['#b8c1cc', '#7b8794'], b: ['#d98a4a', '#9a5524'] }[k] || ['#f2b705', '#b98200'];
+  return `<svg viewBox="0 0 24 24" width="26" height="26" fill="none" aria-hidden="true"><path d="M7 4h10v4a5 5 0 0 1-10 0V4z" fill="${w[0]}"/><path d="M7 5H4v1.5A3.5 3.5 0 0 0 7.5 10M17 5h3v1.5A3.5 3.5 0 0 1 16.5 10" stroke="${w[1]}" stroke-width="1.6" stroke-linecap="round"/><path d="M12 13v3" stroke="${w[1]}" stroke-width="1.8"/><path d="M8.5 20h7l-.8-3.2a1 1 0 0 0-1-.8h-3.4a1 1 0 0 0-1 .8L8.5 20z" fill="${w[1]}"/><path d="M9.5 6.5v1.5a2.5 2.5 0 0 0 1.2 2.1" stroke="#fff" stroke-opacity=".7" stroke-width="1.2" stroke-linecap="round"/></svg>`;
+}
 function urlGambarAman(u) {
   u = String(u || '').trim();
   if (!/^https:\/\//i.test(u) && !/^data:image\/(png|jpe?g|webp);base64,/i.test(u)) return '';
@@ -3146,7 +3168,7 @@ class DemoAPI {
     const ok = new Set(umum.map((u) => u.jenis));
     const list = (this.db.juara || []).filter((j) => ok.has(j.jenis)).map((j) => ({ j, p: this.db.daftar.find((d) => d.id === j.pendaftaran_id) }))
       .filter((x) => x.p && x.p.status === 'terkonfirmasi')
-      .map(({ j, p }) => ({ jenis: j.jenis, kelas: j.kelas, urutan: j.urutan, nomor: p.nomor_layangan, sekha: p.nama_sekha, alamat: p.alamat }));
+      .map(({ j, p }) => ({ jenis: j.jenis, kelas: j.kelas, urutan: j.urutan, nomor: p.nomor_layangan, sekha: p.nama_sekha, alamat: p.alamat, foto: ((this.db.penilaian || []).find((x) => x.pendaftaran_id === p.id) || {}).foto_url || null }));
     return this._salin({ diumumkan: true, jenis: umum.map((u) => ({ jenis: u.jenis, diumumkan_at: u.diumumkan_at })), list });
   }
   async umumkanJuara(jenis, on) {
@@ -3835,13 +3857,16 @@ const Pub = {
           <button type="button" class="btn" data-act="pub.juaraMuat">${ico('refresh')} Muat ulang</button></div>
       </section>`;
     }
-    const ambil = (u) => rows.find((x) => x.kelas === 'juara' && x.urutan === u);
-    const pod = (u) => { const x = ambil(u); return x ? `<div class="pd j${u}"><div class="pd-m">${u}</div><div class="pd-no">No. ${esc(x.nomor || '-')}</div><div class="pd-sk">${esc(x.sekha)}</div><div class="pd-al">${esc(x.alamat || '')}</div></div>` : `<div class="pd j${u} kosong"><div class="pd-m">${u}</div><div class="pd-al">—</div></div>`; };
+    const foto = (x, kecil) => { const u = urlGambarAman(x.foto); return u ? `<button type="button" class="jw-foto${kecil ? ' kecil' : ''}" data-act="lp.flyer" data-url="${esc(u)}" data-judul="No. ${esc(x.nomor || '-')} · ${esc(x.sekha)}" aria-label="Lihat foto layangan No. ${esc(x.nomor || '-')}"><img src="${esc(u)}" alt="" loading="lazy"></button>` : ''; };
+    const juara = rows.filter((x) => x.kelas === 'juara').sort((a, b) => a.urutan - b.urutan);
     const harapan = rows.filter((x) => x.kelas === 'harapan').sort((a, b) => a.urutan - b.urutan);
+    const warna = (u) => (u === 1 ? 'g' : u === 2 ? 's' : 'b');
     return `<section class="card">${kepala}${chips}
-      <div class="podium">${pod(2)}${pod(1)}${pod(3)}</div>
-      ${harapan.length ? `<div class="hrp">${harapan.map((x) => `<div><em>Harapan ${x.urutan}</em><b>No. ${esc(x.nomor || '-')}</b><span>${esc(x.sekha)}${x.alamat ? ` · ${esc(x.alamat)}` : ''}</span></div>`).join('')}</div>` : ''}
-      <p class="hint" style="margin:12px 0 0">Selamat kepada para juara ${esc(nama(jk))}! 🎉</p>
+      <div class="jw-list">${juara.map((x) => `<div class="jw ${warna(x.urutan)}"><span class="jw-bar"></span>${foto(x) || `<span class="jw-ic">${pialaSvg(warna(x.urutan))}</span>`}
+        <div class="jw-t"><div class="jw-lb">Juara ${x.urutan}</div><div class="jw-sk">${esc(x.sekha)}</div>${x.alamat ? `<div class="jw-al">${esc(x.alamat)}</div>` : ''}</div>
+        <div class="jw-no">No.<b>${esc(x.nomor || '-')}</b></div></div>`).join('')}</div>
+      ${harapan.length ? `<div class="jw-hp"><div class="jw-hh">Harapan</div>${harapan.map((x) => `<div class="jw-r">${foto(x, true) || `<span class="jw-n">${x.urutan}</span>`}<span class="jw-s">${esc(x.sekha)}${x.alamat ? `<small>${esc(x.alamat)}</small>` : ''}${x.foto ? `<small class="jw-hl">Harapan ${x.urutan}</small>` : ''}</span><span class="jw-nn">No. ${esc(x.nomor || '-')}</span></div>`).join('')}</div>` : ''}
+      <p class="jw-selamat">Selamat kepada para juara ${esc(nama(jk))}! 🎉</p>
     </section>`;
   },
   rapikanPilihan() {
@@ -5484,12 +5509,12 @@ const Adm = {
     const status = umum ? `<span class="pill-st good">${ico('check')} Diumumkan ${esc(fmtWaktu(umum.diumumkan_at))}</span>` : list.length ? '<span class="pill-st warn">Draf — belum terlihat publik</span>' : '';
     const wa = (x, r) => r.no_wa ? `<a class="btn btn-xs" target="_blank" rel="noopener" href="${esc(waLink(r.no_wa, `Selamat! Layangan ${j ? j.nama : ''} nomor ${r.nomor_layangan} (${r.nama_sekha}) meraih ${this.labelPeringkat(x.kelas, x.urutan)} di ${ev.nama_event || 'lomba layangan'}. Terima kasih sudah ikut serta.`))}">${ico('chat')} WA</a>` : '';
     return `<div class="panel" style="margin-top:16px"><div class="panel-h"><h3>${ico('trophy')} Juara ${esc(j ? j.nama : '')}</h3>${status}</div>
-      ${list.length ? `<div class="jlist">${list.map((x) => { const r = this.baris(x.pendaftaran_id) || {}; return `<div class="jrow ${x.kelas}"><b class="jl">${this.labelPeringkat(x.kelas, x.urutan)}</b><span class="jn">No. ${esc(r.nomor_layangan || '-')}</span><span class="js">${esc(r.nama_sekha || '-')}<small>${esc(r.alamat || '')}</small></span>${wa(x, r)}</div>`; }).join('')}</div>`
+      ${list.length ? `<div class="jlist">${list.map((x) => { const r = this.baris(x.pendaftaran_id) || {}; const foto = ((d.penilaian || []).find((p) => p.pendaftaran_id === x.pendaftaran_id) || {}).foto_url; return `<div class="jrow ${x.kelas}"><b class="jl">${this.labelPeringkat(x.kelas, x.urutan)}</b><span class="jn">No. ${esc(r.nomor_layangan || '-')}</span><span class="js">${esc(r.nama_sekha || '-')}<small>${esc(r.alamat || '')}</small></span><span class="jfoto">${foto ? `<img src="${esc(foto)}" alt="Foto layangan No. ${esc(r.nomor_layangan || '')}"><button type="button" class="btn btn-xs btn-icon" data-act="adm.fotoHapus" data-pid="${esc(x.pendaftaran_id)}" title="Hapus foto" aria-label="Hapus foto">${ico('x')}</button>` : ''}<label class="btn btn-xs" title="Foto layangan (opsional) — tampil di halaman juara menggantikan ikon piala">${ico('image')} ${foto ? 'Ganti' : 'Foto'}<input type="file" accept="image/png,image/jpeg,image/webp" hidden data-ch="adm.fotoJuara" data-pid="${esc(x.pendaftaran_id)}"></label>${wa(x, r)}</span></div>`; }).join('')}</div>`
         : '<div class="empty">Belum ada juara untuk jenis ini. Isi nilai lalu klik <b>Jadikan juara</b>.</div>'}
       <div class="jaksi">${umum
         ? `<button type="button" class="btn" data-act="adm.umumkan" data-v="0" data-jenis="${esc(jk)}">${ico('undo')} Tarik pengumuman</button>`
         : `<button type="button" class="btn btn-primary" data-act="adm.umumkan" data-v="1" data-jenis="${esc(jk)}" ${list.length ? '' : 'disabled'}>${ico('send')} Umumkan juara ${esc(j ? j.nama : '')}</button>${list.length ? `<button type="button" class="btn btn-danger" data-act="adm.batalDraf" data-jenis="${esc(jk)}">${ico('trash')} Batalkan draf</button>` : ''}`}
-        <span class="hint">Tombol WA opsional untuk mengirim ucapan selamat.</span></div></div>`;
+        <span class="hint">Foto layangan & tombol WA bersifat opsional.</span></div></div>`;
   },
   juaraUmum(jk) { return (this.s.data.juara_umum || []).find((u) => u.jenis === jk) || null; },
   /* perbarui total, peringkat & tanda tanpa menyusun ulang baris (agar mengetik tidak terganggu) */
@@ -6467,6 +6492,27 @@ SUB['adm.jadikanJuara'] = async (form) => {
     Adm.tandaiUbah(); Overlay.tutupYangBerisi(form); Adm.segarkanTampilan({ paksa: true });
     toast(`${list.length} juara ${Adm.namaJenis(jk)} disimpan${Adm.juaraUmum(jk) ? ' dan langsung terlihat publik' : ' sebagai draf'}`, 'good', 4500);
   } catch (e) { toast(pesanError(e), 'bad'); }
+};
+/* foto layangan juara (opsional): disimpan per layangan, tampil di halaman juara menggantikan ikon piala */
+CH['adm.fotoJuara'] = async (el) => {
+  const file = el.files && el.files[0], pid = el.dataset.pid;
+  el.value = '';
+  if (!file) return;
+  if (!/^image\/(png|jpeg|webp)$/.test(file.type)) return toast(pesanError(new Error('MEDIA_TIDAK_VALID')), 'bad');
+  const lama = ((nilaiData().penilaian || []).find((p) => p.pendaftaran_id === pid) || {}).foto_url;
+  const tombol = el.closest('label');
+  if (tombol) { tombol.insertAdjacentHTML('afterbegin', '<span class="spinner"></span>'); tombol.style.pointerEvents = 'none'; }
+  try {
+    const blob = await kompresGambar(file, 1200, 0.8);
+    const url = await api.uploadMedia('juara', blob, 'image/jpeg');
+    if (await ubahPenilaianLokal(pid, { foto_url: url }, 'Foto layangan disimpan')) { if (lama && lama !== url) api.hapusMedia(lama); }
+  } catch (e) { toast(pesanError(e), 'bad', 6000); }
+  finally { if (tombol && tombol.isConnected) { const sp = tombol.querySelector('.spinner'); if (sp) sp.remove(); tombol.style.pointerEvents = ''; } }
+};
+ACT['adm.fotoHapus'] = async (el) => {
+  const pid = el.dataset.pid, lama = ((nilaiData().penilaian || []).find((p) => p.pendaftaran_id === pid) || {}).foto_url;
+  if (!(await konfirmasiDialog({ judul: 'Hapus foto layangan?', isi: 'Halaman juara kembali menampilkan ikon piala.', tombol: 'Hapus foto', bahaya: true }))) return;
+  if (await ubahPenilaianLokal(pid, { foto_url: null }, 'Foto dihapus') && lama) api.hapusMedia(lama);
 };
 ACT['adm.batalDraf'] = async (el) => {
   const jk = el.dataset.jenis, n = (nilaiData().juara || []).filter((x) => x.jenis === jk).length;
