@@ -236,7 +236,7 @@ Pasang sekali: jalankan **`bukti-selesai.sql`** di SQL Editor (hasil 2 ✅). Seb
 
 Pasang sekali:
 1. **Cadangkan dulu**: jalankan **`cadangan-sebelum-penilaian.sql`** → semua baris kolom *cocok* harus ✅. Salinan tersimpan di skema `cadangan_sebelum_penilaian` (Table Editor → pilih schema tersebut).
-2. Jalankan **`juara.sql`** di Supabase → SQL Editor (hasil **4 ✅**). Aman dijalankan ulang.
+2. Jalankan **`juara.sql`** di Supabase → SQL Editor (hasil **5 ✅**). Aman dijalankan ulang.
 
 Kode situs sebelum fitur ini disimpan di GitHub sebagai branch **`cadangan-sebelum-penilaian`** (salinan persis main sebelum PR #28). Bila perlu kembali: buka PR #28 di GitHub → **Revert**, lalu merge PR revert tersebut (data penilaian tetap tersimpan di database, hanya tidak tampil).
 
@@ -248,6 +248,13 @@ Kode situs sebelum fitur ini disimpan di GitHub sebagai branch **`cadangan-sebel
 5. Nilai angka bulat 0–100 (batas atas bisa diubah lewat tombol **Nilai 1–100**). Total & peringkat dihitung otomatis.
 6. **Nilai sama** → tekan **Naikkan** pada layangan yang ingin ditaruh di atas.
 7. **DQ** wajib dengan alasan; peringkat di bawahnya otomatis naik. ✎ untuk catatan.
+
+**Keamanan penilaian** (aktif otomatis setelah `juara.sql`):
+- **Password setiap masuk**: setiap kali membuka menu Penilaian, panitia wajib memasukkan password ID-nya. Password dicek oleh Supabase dan tidak disimpan.
+- **Tertutup bila tidak ada gerakan**: bila 10 menit tidak ada gerakan (ketik, klik, geser, sentuh) di halaman Penilaian, panitia dipindah ke Ringkasan; masuk lagi wajib password. Waktunya tidak ditampilkan; selama panitia aktif, halaman tidak tertutup.
+- **Panitia penilai**: super admin mencentang panitia yang boleh mengisi nilai (bagian *Panitia penilai* di bawah halaman Penilaian). Panitia lain hanya bisa melihat. Bila belum ada yang dicentang, semua panitia event bisa mengisi. Dijaga database.
+- **Kunci nilai**: setelah juara sebuah jenis diumumkan, nilai, DQ dan daftar juara jenis itu terkunci (foto masih bisa ditambah). Hanya super admin yang bisa **Buka kunci** / **Kunci lagi** atau **Tarik pengumuman**.
+- **Riwayat nilai**: setiap perubahan nilai, DQ, pembuatan juara, pengumuman dan buka kunci tercatat otomatis (siapa, kapan, dari berapa ke berapa) dan tidak bisa dihapus panitia. Bisa dilihat semua panitia event.
 
 **Juara (per jenis)**: tekan **Jadikan juara** (peringkat 1–3 = Juara, berikutnya Harapan; bawaan 6 harapan, bisa ditambah) → cek daftar → **Umumkan juara <jenis>**. Tiap jenis diumumkan sendiri-sendiri, jadi jenis yang selesai dinilai lebih dulu bisa langsung diumumkan; jenis yang sudah diumumkan diberi 🏆 di pilihan jenis. Selama masih draf ada tombol **Batalkan draf** (nilai juri tidak terhapus). Di halaman peserta (tab *Juara*, muncul mulai hari terakhir event) jenis yang belum diumumkan bertanda "segera" dan menampilkan "Juri & panitia masih berdiskusi…". Begitu satu jenis diumumkan, halaman semua event menampilkan tombol **🏆 Lihat juara**. Publik hanya melihat nomor, sekha dan banjar. **Foto layangan** (opsional): di daftar juara tekan **Foto** untuk mengunggah; di halaman juara foto menggantikan ikon piala dan bisa diketuk untuk diperbesar. Tombol WA ucapan selamat bersifat opsional. Pengumuman bisa ditarik kembali per jenis (data tidak terhapus).
 

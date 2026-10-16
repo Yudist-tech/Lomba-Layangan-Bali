@@ -7,6 +7,8 @@
 -- Diskualifikasi wajib beralasan. Hasil dijadikan juara (Juara 1–3, Harapan 1…)
 -- lalu baru terlihat publik setelah panitia menekan "Umumkan juara" — PER JENIS
 -- (jenis yang sudah selesai dinilai bisa diumumkan lebih dulu).
+-- Keamanan: hanya panitia penilai yang bisa mengubah nilai, nilai terkunci
+-- setelah diumumkan, dan setiap perubahan tercatat (bagian 6).
 -- Hanya pendaftaran TERKONFIRMASI yang bisa dinilai / menjadi juara.
 -- =====================================================================
 
@@ -258,6 +260,258 @@ as $$
   from e left join st on true;
 $$;
 
+-- =====================================================================
+-- 6) KEAMANAN PENILAIAN
+--    a. Hanya PANITIA PENILAI (dipilih super admin) yang boleh mengubah nilai,
+--       diskualifikasi, juri, dan daftar juara. Bila belum ada penilai yang
+--       ditunjuk, semua panitia event boleh menilai (seperti sebelumnya).
+--    b. Setelah juara sebuah jenis diumumkan, nilainya TERKUNCI. Hanya super
+--       admin yang bisa membuka kunci / menarik pengumuman.
+--    c. Setiap perubahan tercatat di lomba_nilai_riwayat (tidak bisa dihapus panitia).
+-- =====================================================================
+alter table public.lomba_juara_umum add column if not exists terbuka boolean not null default false;
+
+create table if not exists public.lomba_penilai (
+  event_id    bigint not null references public.lomba_event(id) on delete cascade,
+  email       text not null,
+  oleh        text,
+  created_at  timestamptz not null default now(),
+  primary key (event_id, email)
+);
+alter table public.lomba_penilai enable row level security;
+drop policy if exists lomba_baca on public.lomba_penilai;
+create policy lomba_baca on public.lomba_penilai for select to authenticated using ((select public.lomba_boleh_event(event_id)));
+drop policy if exists lomba_super_tambah on public.lomba_penilai;
+create policy lomba_super_tambah on public.lomba_penilai for insert to authenticated with check ((select public.lomba_is_super()));
+drop policy if exists lomba_super_hapus on public.lomba_penilai;
+create policy lomba_super_hapus on public.lomba_penilai for delete to authenticated using ((select public.lomba_is_super()));
+grant select, insert, delete on public.lomba_penilai to authenticated;
+
+create or replace function public.lomba_boleh_menilai(p_event bigint)
+returns boolean
+language sql
+stable
+security definer
+set search_path = public
+as $$
+  select public.lomba_is_super()
+      or (public.lomba_boleh_event(p_event)
+          and (not exists (select 1 from public.lomba_penilai where event_id = p_event)
+               or exists (select 1 from public.lomba_penilai where event_id = p_event and email = public.lomba_email_saya())));
+$$;
+grant execute on function public.lomba_boleh_menilai(bigint) to authenticated;
+
+create or replace function public.lomba_jenis_terkunci(p_event bigint, p_jenis text)
+returns boolean
+language sql
+stable
+security definer
+set search_path = public
+as $$
+  select exists (select 1 from public.lomba_juara_umum where event_id = p_event and jenis = p_jenis and not terbuka);
+$$;
+
+-- a. hak tulis: baca = semua panitia event, ubah = penilai
+do $$
+declare t text;
+begin
+  foreach t in array array['lomba_juri', 'lomba_penilaian', 'lomba_nilai', 'lomba_juara'] loop
+    execute format('drop policy if exists lomba_admin_kelola on public.%I', t);
+    execute format('drop policy if exists lomba_baca on public.%I', t);
+    execute format('drop policy if exists lomba_menilai_tambah on public.%I', t);
+    execute format('drop policy if exists lomba_menilai_ubah on public.%I', t);
+    execute format('drop policy if exists lomba_menilai_hapus on public.%I', t);
+    execute format('create policy lomba_baca on public.%I for select to authenticated using ((select public.lomba_boleh_event(event_id)))', t);
+    execute format('create policy lomba_menilai_tambah on public.%I for insert to authenticated with check ((select public.lomba_boleh_menilai(event_id)))', t);
+    execute format('create policy lomba_menilai_ubah on public.%I for update to authenticated using ((select public.lomba_boleh_menilai(event_id))) with check ((select public.lomba_boleh_menilai(event_id)))', t);
+    execute format('create policy lomba_menilai_hapus on public.%I for delete to authenticated using ((select public.lomba_boleh_menilai(event_id)))', t);
+  end loop;
+end $$;
+-- pengumuman: penilai boleh mengumumkan; buka/kunci & tarik pengumuman hanya super admin
+drop policy if exists lomba_admin_kelola on public.lomba_juara_umum;
+drop policy if exists lomba_baca on public.lomba_juara_umum;
+drop policy if exists lomba_menilai_tambah on public.lomba_juara_umum;
+drop policy if exists lomba_super_ubah on public.lomba_juara_umum;
+drop policy if exists lomba_super_hapus on public.lomba_juara_umum;
+create policy lomba_baca on public.lomba_juara_umum for select to authenticated using ((select public.lomba_boleh_event(event_id)));
+create policy lomba_menilai_tambah on public.lomba_juara_umum for insert to authenticated with check ((select public.lomba_boleh_menilai(event_id)) and not terbuka);
+create policy lomba_super_ubah on public.lomba_juara_umum for update to authenticated using ((select public.lomba_is_super())) with check ((select public.lomba_is_super()));
+create policy lomba_super_hapus on public.lomba_juara_umum for delete to authenticated using ((select public.lomba_is_super()));
+
+-- b. kunci: nilai, diskualifikasi & daftar juara jenis yang sudah diumumkan tidak bisa diubah
+--    (foto layangan tetap boleh ditambahkan setelah diumumkan)
+create or replace function public.lomba_trg_kunci()
+returns trigger
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  r      record;
+  v_ev   bigint;
+  v_jen  text;
+begin
+  r := coalesce(new, old);
+  -- event sedang dihapus (hapus berantai): jangan dihalangi
+  if tg_op = 'DELETE' and not exists (select 1 from public.lomba_event where id = r.event_id) then return old; end if;
+  if tg_table_name = 'lomba_juara' then
+    v_ev := r.event_id; v_jen := r.jenis;
+    if tg_op = 'DELETE' and not exists (select 1 from public.lomba_pendaftaran where id = r.pendaftaran_id) then return old; end if;
+  else
+    select p.event_id, p.jenis into v_ev, v_jen from public.lomba_pendaftaran p where p.id = r.pendaftaran_id;
+    if v_ev is null then return coalesce(new, old); end if;      -- pendaftaran sudah dihapus (hapus berantai)
+    if tg_table_name = 'lomba_penilaian' and tg_op = 'UPDATE' then
+      if (new.diskualifikasi, new.alasan, new.catatan, new.prioritas) is not distinct from (old.diskualifikasi, old.alasan, old.catatan, old.prioritas) then
+        return new;                                                -- hanya foto yang berubah
+      end if;
+    end if;
+  end if;
+  if public.lomba_jenis_terkunci(v_ev, v_jen) then
+    raise exception 'NILAI_TERKUNCI';
+  end if;
+  return coalesce(new, old);
+end;
+$$;
+do $$
+declare t text;
+begin
+  foreach t in array array['lomba_penilaian', 'lomba_nilai', 'lomba_juara'] loop
+    execute format('drop trigger if exists lomba_kunci_biud on public.%I', t);
+    execute format('create trigger lomba_kunci_biud before insert or update or delete on public.%I for each row execute function public.lomba_trg_kunci()', t);
+  end loop;
+end $$;
+
+-- c. riwayat nilai
+create table if not exists public.lomba_nilai_riwayat (
+  id          bigint generated by default as identity primary key,
+  event_id    bigint not null references public.lomba_event(id) on delete cascade,
+  jenis       text,
+  nomor       text,
+  aksi        text not null,     -- nilai | dq | batal_dq | juara | hapus_juara | umumkan | tarik | buka_kunci | kunci
+  juri        text,
+  lama        int,
+  baru        int,
+  keterangan  text,
+  oleh        text,
+  at          timestamptz not null default now()
+);
+create index if not exists lomba_nilai_riwayat_ev_idx on public.lomba_nilai_riwayat (event_id, at desc);
+alter table public.lomba_nilai_riwayat enable row level security;
+drop policy if exists lomba_baca on public.lomba_nilai_riwayat;
+create policy lomba_baca on public.lomba_nilai_riwayat for select to authenticated using ((select public.lomba_boleh_event(event_id)));
+revoke insert, update, delete on public.lomba_nilai_riwayat from anon, authenticated;
+grant select on public.lomba_nilai_riwayat to authenticated;
+
+create or replace function public.lomba_catat_nilai(p_ev bigint, p_jenis text, p_nomor text, p_aksi text, p_juri text, p_lama int, p_baru int, p_ket text)
+returns void
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  if not exists (select 1 from public.lomba_event where id = p_ev) then return; end if;   -- event sedang dihapus
+  insert into public.lomba_nilai_riwayat (event_id, jenis, nomor, aksi, juri, lama, baru, keterangan, oleh)
+  values (p_ev, p_jenis, p_nomor, p_aksi, p_juri, p_lama, p_baru, p_ket, public.lomba_email_saya());
+end;
+$$;
+revoke all on function public.lomba_catat_nilai(bigint, text, text, text, text, int, int, text) from public, anon, authenticated;
+
+create or replace function public.lomba_trg_riwayat_nilai()
+returns trigger
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  r record; p record; v_juri text;
+begin
+  r := coalesce(new, old);
+  if tg_op = 'UPDATE' and new.nilai is not distinct from old.nilai then return null; end if;
+  select event_id, jenis, nomor_layangan into p from public.lomba_pendaftaran where id = r.pendaftaran_id;
+  if p.event_id is null then return null; end if;
+  select coalesce(nullif(btrim(nama), ''), 'Juri ' || urutan) into v_juri from public.lomba_juri where id = r.juri_id;
+  perform public.lomba_catat_nilai(p.event_id, p.jenis, p.nomor_layangan, 'nilai', coalesce(v_juri, 'Juri'),
+          case when tg_op = 'INSERT' then null else old.nilai end, case when tg_op = 'DELETE' then null else new.nilai end, null);
+  return null;
+end;
+$$;
+drop trigger if exists lomba_riwayat_nilai_aiud on public.lomba_nilai;
+create trigger lomba_riwayat_nilai_aiud after insert or update or delete on public.lomba_nilai
+  for each row execute function public.lomba_trg_riwayat_nilai();
+
+create or replace function public.lomba_trg_riwayat_penilaian()
+returns trigger
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare p record;
+begin
+  if new.diskualifikasi is not distinct from old.diskualifikasi then return null; end if;
+  select event_id, jenis, nomor_layangan into p from public.lomba_pendaftaran where id = new.pendaftaran_id;
+  if p.event_id is null then return null; end if;
+  perform public.lomba_catat_nilai(p.event_id, p.jenis, p.nomor_layangan, case when new.diskualifikasi then 'dq' else 'batal_dq' end, null, null, null,
+          case when new.diskualifikasi then new.alasan else old.alasan end);
+  return null;
+end;
+$$;
+drop trigger if exists lomba_riwayat_penilaian_au on public.lomba_penilaian;
+create trigger lomba_riwayat_penilaian_au after update on public.lomba_penilaian
+  for each row execute function public.lomba_trg_riwayat_penilaian();
+
+create or replace function public.lomba_trg_riwayat_umum()
+returns trigger
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  if tg_op = 'INSERT' then perform public.lomba_catat_nilai(new.event_id, new.jenis, null, 'umumkan', null, null, null, null);
+  elsif tg_op = 'DELETE' then perform public.lomba_catat_nilai(old.event_id, old.jenis, null, 'tarik', null, null, null, null);
+  elsif new.terbuka is distinct from old.terbuka then
+    perform public.lomba_catat_nilai(new.event_id, new.jenis, null, case when new.terbuka then 'buka_kunci' else 'kunci' end, null, null, null, null);
+  end if;
+  return null;
+end;
+$$;
+drop trigger if exists lomba_riwayat_umum_aiud on public.lomba_juara_umum;
+create trigger lomba_riwayat_umum_aiud after insert or update or delete on public.lomba_juara_umum
+  for each row execute function public.lomba_trg_riwayat_umum();
+
+-- daftar juara dibuat / dihapus: satu catatan per jenis
+create or replace function public.lomba_trg_riwayat_juara()
+returns trigger
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare x record;
+begin
+  if tg_op = 'INSERT' then
+    for x in select event_id, jenis, count(*) n from baru group by 1, 2 loop
+      perform public.lomba_catat_nilai(x.event_id, x.jenis, null, 'juara', null, null, x.n::int, null);
+    end loop;
+  else
+    for x in select event_id, jenis, count(*) n from lama group by 1, 2 loop
+      perform public.lomba_catat_nilai(x.event_id, x.jenis, null, 'hapus_juara', null, x.n::int, null, null);
+    end loop;
+  end if;
+  return null;
+end;
+$$;
+drop trigger if exists lomba_riwayat_juara_ai on public.lomba_juara;
+create trigger lomba_riwayat_juara_ai after insert on public.lomba_juara
+  referencing new table as baru for each statement execute function public.lomba_trg_riwayat_juara();
+drop trigger if exists lomba_riwayat_juara_ad on public.lomba_juara;
+create trigger lomba_riwayat_juara_ad after delete on public.lomba_juara
+  referencing old table as lama for each statement execute function public.lomba_trg_riwayat_juara();
+
+revoke all on function public.lomba_trg_kunci() from public, anon, authenticated;
+revoke all on function public.lomba_trg_riwayat_nilai() from public, anon, authenticated;
+revoke all on function public.lomba_trg_riwayat_penilaian() from public, anon, authenticated;
+revoke all on function public.lomba_trg_riwayat_umum() from public, anon, authenticated;
+revoke all on function public.lomba_trg_riwayat_juara() from public, anon, authenticated;
+
 -- Pemeriksaan
 select '✅ Tabel penilaian siap' as hasil
 where exists (select 1 from information_schema.tables where table_schema = 'public' and table_name = 'lomba_nilai')
@@ -268,6 +522,11 @@ where exists (select 1 from information_schema.tables where table_schema = 'publ
 union all
 select '✅ Pengumuman publik siap'
 where exists (select 1 from pg_proc where proname = 'lomba_juara_publik')
+union all
+select '✅ Keamanan penilaian aktif (penilai, kunci, riwayat)'
+where exists (select 1 from information_schema.tables where table_schema = 'public' and table_name = 'lomba_nilai_riwayat')
+  and exists (select 1 from pg_trigger where tgname = 'lomba_kunci_biud')
+  and exists (select 1 from pg_proc where proname = 'lomba_boleh_menilai')
 union all
 select '✅ Halaman semua event membaca status juara'
 where pg_get_functiondef('public.lomba_ringkas_event(bigint, boolean)'::regprocedure) like '%juara_diumumkan%';
