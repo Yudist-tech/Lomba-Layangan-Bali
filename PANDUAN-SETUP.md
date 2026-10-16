@@ -232,6 +232,20 @@ Pasang sekali: jalankan **`bukti-selesai.sql`** di SQL Editor (hasil 2 ✅). Seb
 - **Tema event** (opsional): Pengaturan → Informasi event → *Tema event*. Tampil di halaman peserta tepat di bawah nama event, huruf miring dalam tanda kutip. Kosong = tidak tampil. Pasang sekali: jalankan **`tema-event.sql`** (hasil 2 ✅).
 - **Penyelenggara** hanya tampil di halaman peserta bila diisi. Kosongkan kolomnya bila tidak ingin ditampilkan (teks bawaan "Panitia Lomba Layangan" juga dianggap belum diisi).
 
+## Penilaian & juara
+
+Pasang sekali: jalankan **`juara.sql`** di Supabase → SQL Editor (hasil **4 ✅**). Aman dijalankan ulang.
+
+**Penilaian** (menu *Penilaian* di dasbor panitia, semua panitia event bisa mengisi):
+1. Pilih jenis layangan di atas tabel.
+2. Isi nama juri di kepala kolom (bawaan 3 juri; **+ Juri** untuk menambah, juri sama untuk semua jenis).
+3. Cari nomor/sekha di kolom pencarian untuk memasukkan layangan yang dinilai (hanya yang terkonfirmasi).
+4. Ketik nilai angka bulat 0–100 (batas atas bisa diubah lewat tombol **Nilai 1–100**). Total & peringkat dihitung otomatis.
+5. **Nilai sama** → tekan **Naikkan** pada layangan yang ingin ditaruh di atas.
+6. **DQ** wajib dengan alasan; peringkat di bawahnya otomatis naik. ✎ untuk catatan.
+
+**Juara**: tekan **Jadikan juara** (peringkat 1–3 = Juara, berikutnya Harapan; bawaan 6 harapan, bisa ditambah) → cek daftar → **Umumkan**. Sebelum diumumkan, halaman peserta (tab *Juara*, muncul mulai hari terakhir event) menampilkan "Juri & panitia sedang berdiskusi…". Setelah diumumkan, halaman semua event menampilkan tombol **🏆 Lihat juara**. Publik hanya melihat nomor, sekha dan banjar. Tombol WA ucapan selamat bersifat opsional. Pengumuman bisa ditarik kembali (data tidak terhapus).
+
 ## Aturan yang dijaga otomatis oleh database
 
 - **Kuota per grup** = jumlah kotak dikurangi kotak yang ditutup; dihitung dari pendaftaran *menunggu + terkonfirmasi*. Aman walau banyak orang mendaftar bersamaan — tiap peserta mendapat kotak sendiri, berurutan dari kotak 1.
