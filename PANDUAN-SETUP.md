@@ -238,7 +238,7 @@ Pasang sekali:
 1. **Cadangkan dulu**: jalankan **`cadangan-sebelum-penilaian.sql`** → semua baris kolom *cocok* harus ✅. Salinan tersimpan di skema `cadangan_sebelum_penilaian` (Table Editor → pilih schema tersebut).
 2. Jalankan **`juara.sql`** di Supabase → SQL Editor (hasil **4 ✅**). Aman dijalankan ulang.
 
-Kode situs sebelum fitur ini ditandai di GitHub sebagai tag **`sebelum-penilaian`**. Bila perlu kembali: buka PR #28 di GitHub → **Revert**, lalu merge PR revert tersebut (data penilaian tetap tersimpan di database, hanya tidak tampil).
+Kode situs sebelum fitur ini disimpan di GitHub sebagai branch **`cadangan-sebelum-penilaian`** (salinan persis main sebelum PR #28). Bila perlu kembali: buka PR #28 di GitHub → **Revert**, lalu merge PR revert tersebut (data penilaian tetap tersimpan di database, hanya tidak tampil).
 
 **Penilaian** (menu *Penilaian* di dasbor panitia, semua panitia event bisa mengisi):
 1. Pilih jenis layangan di atas tabel.
