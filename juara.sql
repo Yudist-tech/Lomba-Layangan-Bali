@@ -5,12 +5,40 @@
 -- Penilaian: panitia mencari layangan yang dinilai, memasukkan nilai tiap juri
 -- (angka bulat, batas bawaan 100), sistem menjumlah & mengurutkan per jenis.
 -- Diskualifikasi wajib beralasan. Hasil dijadikan juara (Juara 1–3, Harapan 1…)
--- lalu baru terlihat publik setelah panitia menekan "Umumkan juara".
+-- lalu baru terlihat publik setelah panitia menekan "Umumkan juara" — PER JENIS
+-- (jenis yang sudah selesai dinilai bisa diumumkan lebih dulu).
 -- Hanya pendaftaran TERKONFIRMASI yang bisa dinilai / menjadi juara.
 -- =====================================================================
 
--- 1) penanda sudah diumumkan (kosong = masih draf)
-alter table public.lomba_pengaturan add column if not exists juara_diumumkan_at timestamptz;
+-- 1) penanda jenis yang juaranya sudah diumumkan (tidak ada baris = masih draf)
+create table if not exists public.lomba_juara_umum (
+  event_id      bigint not null references public.lomba_event(id) on delete cascade,
+  jenis         text not null,
+  diumumkan_at  timestamptz not null default now(),
+  oleh          text,
+  primary key (event_id, jenis)
+);
+alter table public.lomba_juara_umum enable row level security;
+drop policy if exists lomba_admin_kelola on public.lomba_juara_umum;
+create policy lomba_admin_kelola on public.lomba_juara_umum for all to authenticated
+  using ((select public.lomba_boleh_event(event_id)))
+  with check ((select public.lomba_boleh_event(event_id)));
+grant select, insert, update, delete on public.lomba_juara_umum to authenticated;
+create or replace function public.lomba_trg_juara_umum()
+returns trigger
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  new.oleh := public.lomba_email_saya();
+  return new;
+end;
+$$;
+drop trigger if exists lomba_juara_umum_biu on public.lomba_juara_umum;
+create trigger lomba_juara_umum_biu before insert or update on public.lomba_juara_umum
+  for each row execute function public.lomba_trg_juara_umum();
+revoke all on function public.lomba_trg_juara_umum() from public, anon, authenticated;
 
 -- 2) daftar juara
 create table if not exists public.lomba_juara (
@@ -164,7 +192,7 @@ create trigger lomba_nilai_biu before insert or update on public.lomba_nilai
 revoke all on function public.lomba_trg_penilaian() from public, anon, authenticated;
 revoke all on function public.lomba_trg_nilai() from public, anon, authenticated;
 
--- 4) halaman publik: juara hanya terlihat setelah diumumkan
+-- 4) halaman publik: juara sebuah jenis hanya terlihat setelah jenis itu diumumkan
 create or replace function public.lomba_juara_publik(p_event bigint default null)
 returns json
 language plpgsql
@@ -174,18 +202,21 @@ set search_path = public
 as $$
 declare
   v_ev bigint := public.lomba_ev(p_event);
-  v_at timestamptz;
 begin
-  select juara_diumumkan_at into v_at from public.lomba_pengaturan where event_id = v_ev;
-  if v_at is null then
-    return json_build_object('diumumkan', false, 'list', '[]'::json);
+  if not exists (select 1 from public.lomba_juara_umum where event_id = v_ev) then
+    return json_build_object('diumumkan', false, 'jenis', '[]'::json, 'list', '[]'::json);
   end if;
-  return json_build_object('diumumkan', true, 'diumumkan_at', v_at, 'list', coalesce((
+  return json_build_object('diumumkan', true,
+    'jenis', (select json_agg(json_build_object('jenis', u.jenis, 'diumumkan_at', u.diumumkan_at) order by u.diumumkan_at)
+                from public.lomba_juara_umum u where u.event_id = v_ev),
+    'list', coalesce((
     select json_agg(json_build_object(
              'jenis', j.jenis, 'kelas', j.kelas, 'urutan', j.urutan,
              'nomor', p.nomor_layangan, 'sekha', p.nama_sekha, 'alamat', p.alamat)
            order by j.jenis, j.kelas desc, j.urutan)
-      from public.lomba_juara j join public.lomba_pendaftaran p on p.id = j.pendaftaran_id
+      from public.lomba_juara j
+      join public.lomba_pendaftaran p on p.id = j.pendaftaran_id
+      join public.lomba_juara_umum u on u.event_id = j.event_id and u.jenis = j.jenis
      where j.event_id = v_ev and p.status = 'terkonfirmasi'), '[]'::json));
 end;
 $$;
@@ -216,7 +247,7 @@ as $$
     'jumlah_jenis', (select count(*) from public.lomba_jenis j where j.event_id = p_event and j.aktif),
     'harga_min', (select min(j.harga) from public.lomba_jenis j where j.event_id = p_event and j.aktif),
     'peserta', (select count(*) from public.lomba_pendaftaran p where p.event_id = p_event and p.status = 'terkonfirmasi'),
-    'juara_diumumkan', st.juara_diumumkan_at is not null,
+    'juara_diumumkan', exists (select 1 from public.lomba_juara_umum u where u.event_id = p_event),
     'menunggu', case when p_admin then (select count(*) from public.lomba_pendaftaran p where p.event_id = p_event and p.status = 'menunggu') end,
     'pemasukan', case when p_admin then (select coalesce(sum(p.harga), 0) from public.lomba_pendaftaran p where p.event_id = p_event and p.status = 'terkonfirmasi') end,
     'panitia', case when p_admin and public.lomba_is_super()
@@ -230,6 +261,7 @@ where exists (select 1 from information_schema.tables where table_schema = 'publ
 union all
 select '✅ Tabel juara siap'
 where exists (select 1 from information_schema.tables where table_schema = 'public' and table_name = 'lomba_juara')
+  and exists (select 1 from information_schema.tables where table_schema = 'public' and table_name = 'lomba_juara_umum')
 union all
 select '✅ Pengumuman publik siap'
 where exists (select 1 from pg_proc where proname = 'lomba_juara_publik')

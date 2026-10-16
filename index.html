@@ -1392,6 +1392,11 @@ fieldset.rentang legend { font-weight: 700; font-size: 14px; padding: 0 6px; }
 .juara-tunggu .jt-ico { width: 64px; height: 64px; margin: 0 auto 10px; border-radius: 50%; display: grid; place-items: center; background: #fff6d6; color: #b98900; }
 .juara-tunggu .jt-ico .ico { width: 32px; height: 32px; }
 .juara-tunggu .lead { max-width: 46ch; margin-left: auto; margin-right: auto; }
+.juara-tunggu.kecil { padding: 18px 8px 6px; }
+.juara-tunggu.kecil .jt-ico { width: 52px; height: 52px; }
+.juara-tunggu.kecil .jt-ico .ico { width: 26px; height: 26px; }
+.juara-tunggu.kecil h3 { margin: 0 0 6px; font-size: 17px; }
+.nchip.blm:not(.on) { color: var(--muted); border-style: dashed; }
 .juara-h span { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; color: #b98900; }
 .juara-h span .ico { width: 15px; height: 15px; }
 .juara-h .h2 { margin-top: 2px; }
@@ -2078,8 +2083,8 @@ class SupabaseAPI {
       this.sb.from('lomba_hari').select('*').eq('event_id', ev).order('tanggal', { ascending: true, nullsFirst: false }).order('urutan').order('id').then((r) => this._ok(r)),
       this.sb.from('lomba_sesi').select('*').eq('event_id', ev).order('jam_mulai', { ascending: true, nullsFirst: false }).order('urutan').order('id').then((r) => this._ok(r)),
     ]);
-    const [baca, selesai, juara, nilai] = await Promise.all([this.muatBacaan(), this.muatSelesai(), this.muatJuara(), this.muatNilai()]);
-    return { pengaturan: pengaturan || {}, jenis, seri, daftar, hari, sesi, baca, selesai, juara, ...nilai };
+    const [baca, selesai, juara, juara_umum, nilai] = await Promise.all([this.muatBacaan(), this.muatSelesai(), this.muatJuara(), this.muatJuaraUmum(), this.muatNilai()]);
+    return { pengaturan: pengaturan || {}, jenis, seri, daftar, hari, sesi, baca, selesai, juara, juara_umum, ...nilai };
   }
   /* hasil baca bukti (bukti-mirip.sql); null = tabel belum dipasang */
   async muatBacaan() {
@@ -2101,6 +2106,11 @@ class SupabaseAPI {
   /* juara (juara.sql); null = tabel belum dipasang */
   async muatJuara() {
     try { return this._ok(await this.sb.from('lomba_juara').select('*').eq('event_id', this._ev())); }
+    catch (e) { return null; }
+  }
+  /* jenis yang juaranya sudah diumumkan (juara.sql); null = tabel belum dipasang */
+  async muatJuaraUmum() {
+    try { return this._ok(await this.sb.from('lomba_juara_umum').select('*').eq('event_id', this._ev())); }
     catch (e) { return null; }
   }
   /* penilaian (juara.sql); semua null = tabel belum dipasang */
@@ -2134,6 +2144,12 @@ class SupabaseAPI {
     return this._ok(await this.sb.from('lomba_juara').insert(list.map((x) => ({ event_id: ev, jenis, ...x }))).select());
   }
   juaraPublik() { return this._rpc('lomba_juara_publik', { p_event: this._ev() }); }
+  /* umumkan / tarik juara satu jenis; mengembalikan baris pengumuman atau null */
+  async umumkanJuara(jenis, on) {
+    const ev = this._ev();
+    if (!on) { this._ok(await this.sb.from('lomba_juara_umum').delete().eq('event_id', ev).eq('jenis', jenis)); return null; }
+    return this._ok(await this.sb.from('lomba_juara_umum').upsert({ event_id: ev, jenis, diumumkan_at: new Date().toISOString() }).select().single());
+  }
   async tandaiSelesai(jenis, anggota) { return this._ok(await this.sb.from('lomba_bukti_selesai').insert({ event_id: this._ev(), jenis, anggota }).select().single()); }
   async bukaLagi(ids) { for (const id of ids) this._ok(await this.sb.from('lomba_bukti_selesai').delete().eq('id', id)); }
   async simpanBacaan(row) { return this._ok(await this.sb.from('lomba_bukti_baca').upsert({ ...row, event_id: this._ev(), dibaca_at: new Date().toISOString() }).select().single()); }
@@ -2266,6 +2282,12 @@ class DemoAPI {
   _bacaEv(id) { return this._juaraLama(this.mem[id] || bacaLokal(this.KEY_EV + id)); }
   /* data demo lama (sebelum fitur juara): event yang sudah selesai diberi contoh juara sekali */
   _juaraLama(db) {
+    // data demo sebelum pengumuman per jenis: pengumuman lama berlaku untuk semua jenis yang punya juara
+    if (db && db.versi === 2 && db.juara_umum == null) {
+      const at = db.pengaturan && db.pengaturan.juara_diumumkan_at;
+      db.juara_umum = at ? [...new Set((db.juara || []).map((x) => x.jenis))].map((jenis) => ({ jenis, diumumkan_at: at, oleh: null })) : [];
+      if (db.pengaturan) delete db.pengaturan.juara_diumumkan_at;
+    }
     if (db && db.versi === 2 && db.juri == null) {
       db.juara = db.juara || []; db.juri = []; db.penilaian = []; db.nilai = [];
       const s = db.pengaturan && (db.pengaturan.tanggal_selesai || db.pengaturan.tanggal_mulai);
@@ -2311,7 +2333,8 @@ class DemoAPI {
       const ok = db.daftar.filter((d) => d.jenis === j.kode && d.status === 'terkonfirmasi' && d.nomor_layangan).sort(() => Math.random() - 0.5).slice(0, 6);
       ok.forEach((d, i) => db.juara.push({ id: id++, jenis: j.kode, kelas: i < 3 ? 'juara' : 'harapan', urutan: (i % 3) + 1, pendaftaran_id: d.id, oleh: null, created_at: new Date().toISOString() }));
     });
-    if (db.juara.length) db.pengaturan.juara_diumumkan_at = new Date().toISOString();
+    const at = new Date().toISOString();
+    db.juara_umum = [...new Set(db.juara.map((x) => x.jenis))].map((jenis) => ({ jenis, diumumkan_at: at, oleh: null }));
   }
   /* tiruan nomor-2-digit.sql: nomor 1–9 ditulis 01–09 */
   _duaDigit(db) {
@@ -2801,7 +2824,7 @@ class DemoAPI {
       jumlah_jenis: new Set(grup.map((g) => g.jenis)).size || db.jenis.filter((j) => j.aktif).length,
       harga_min: harga.length ? Math.min(...harga) : null,
       peserta: db.daftar.filter((d) => d.status === 'terkonfirmasi').length,
-      juara_diumumkan: !!st.juara_diumumkan_at,
+      juara_diumumkan: (db.juara_umum || []).length > 0,
     };
     if (untukAdmin) {
       r.menunggu = db.daftar.filter((d) => d.status === 'menunggu').length;
@@ -3055,7 +3078,7 @@ class DemoAPI {
   /* ---- data admin ---- */
   async muatSemua() {
     await this._jeda(250);
-    return this._salin({ pengaturan: this.db.pengaturan, jenis: this.db.jenis, seri: this.db.seri, daftar: this.db.daftar, hari: [...this.db.hari].sort(urutHari), sesi: [...this.db.sesi].sort(urutSesi), baca: Object.values(this.db.baca || {}), selesai: this.db.selesai || [], juara: this.db.juara || [], juri: this.db.juri || [], penilaian: this.db.penilaian || [], nilai: this.db.nilai || [] });
+    return this._salin({ pengaturan: this.db.pengaturan, jenis: this.db.jenis, seri: this.db.seri, daftar: this.db.daftar, hari: [...this.db.hari].sort(urutHari), sesi: [...this.db.sesi].sort(urutSesi), baca: Object.values(this.db.baca || {}), selesai: this.db.selesai || [], juara: this.db.juara || [], juara_umum: this.db.juara_umum || [], juri: this.db.juri || [], penilaian: this.db.penilaian || [], nilai: this.db.nilai || [] });
   }
   /* tiruan juara.sql: penilaian */
   _nilaiDb() { const d = this.db; d.juri = d.juri || []; d.penilaian = d.penilaian || []; d.nilai = d.nilai || []; return d; }
@@ -3101,12 +3124,20 @@ class DemoAPI {
   }
   async juaraPublik() {
     await this._jeda(150);
-    const st = this.db.pengaturan;
-    if (!st.juara_diumumkan_at) return { diumumkan: false, list: [] };
-    const list = (this.db.juara || []).map((j) => ({ j, p: this.db.daftar.find((d) => d.id === j.pendaftaran_id) }))
+    const umum = this.db.juara_umum || [];
+    if (!umum.length) return { diumumkan: false, jenis: [], list: [] };
+    const ok = new Set(umum.map((u) => u.jenis));
+    const list = (this.db.juara || []).filter((j) => ok.has(j.jenis)).map((j) => ({ j, p: this.db.daftar.find((d) => d.id === j.pendaftaran_id) }))
       .filter((x) => x.p && x.p.status === 'terkonfirmasi')
       .map(({ j, p }) => ({ jenis: j.jenis, kelas: j.kelas, urutan: j.urutan, nomor: p.nomor_layangan, sekha: p.nama_sekha, alamat: p.alamat }));
-    return this._salin({ diumumkan: true, diumumkan_at: st.juara_diumumkan_at, list });
+    return this._salin({ diumumkan: true, jenis: umum.map((u) => ({ jenis: u.jenis, diumumkan_at: u.diumumkan_at })), list });
+  }
+  async umumkanJuara(jenis, on) {
+    await this._jeda(150);
+    this.db.juara_umum = (this.db.juara_umum || []).filter((u) => u.jenis !== jenis);
+    let row = null;
+    if (on) { row = { jenis, diumumkan_at: new Date().toISOString(), oleh: this._email() }; this.db.juara_umum.push(row); }
+    this._simpan(); return this._salin(row);
   }
   async muatBacaan() { return this._salin(Object.values(this.db.baca || {})); }
   async tandaiSelesai(jenis, anggota) {
@@ -3772,17 +3803,25 @@ const Pub = {
         <button type="button" class="btn" data-act="pub.juaraMuat">${ico('refresh')} Muat ulang</button></section>`;
     }
     const nama = (k) => ((info.jenis || []).find((x) => x.kode === k) || {}).nama || k;
-    const jenisAda = [...new Set(j.list.map((x) => x.jenis))];
-    const urutJenis = (info.jenis || []).map((x) => x.kode).filter((k) => jenisAda.includes(k)).concat(jenisAda.filter((k) => !(info.jenis || []).some((x) => x.kode === k)));
-    if (!urutJenis.length) return `<section class="card"><h2 class="h2">Pengumuman juara</h2><div class="empty">Daftar juara belum tersedia.</div></section>`;
-    if (!urutJenis.includes(this.s.juaraJenis)) this.s.juaraJenis = urutJenis[0];
+    // jenis yang sudah diumumkan (per jenis); jenis lain tampil "segera diumumkan"
+    const sudah = new Set((j.jenis && j.jenis.length ? j.jenis.map((x) => x.jenis) : j.list.map((x) => x.jenis)));
+    const urutJenis = (info.jenis || []).map((x) => x.kode).concat([...sudah].filter((k) => !(info.jenis || []).some((x) => x.kode === k)));
+    if (!urutJenis.includes(this.s.juaraJenis)) this.s.juaraJenis = urutJenis.find((k) => sudah.has(k)) || urutJenis[0];
     const jk = this.s.juaraJenis, rows = j.list.filter((x) => x.jenis === jk);
+    const chips = `<div class="nchips juara-jenis" role="tablist">${urutJenis.map((k) => `<button type="button" class="nchip ${k === jk ? 'on' : ''} ${sudah.has(k) ? '' : 'blm'}" data-act="pub.juaraJenis" data-v="${esc(k)}">${jdot(k, info.jenis)}${esc(nama(k))}${sudah.has(k) ? '' : ' <small>segera</small>'}</button>`).join('')}</div>`;
+    const kepala = `<div class="juara-h"><span>${ico('trophy')} Pengumuman juara</span><h2 class="h2">${esc(ev.nama_event || '')}</h2></div>`;
+    if (!sudah.has(jk)) {
+      return `<section class="card">${kepala}${chips}
+        <div class="juara-tunggu kecil"><div class="jt-ico">${ico('trophy')}</div>
+          <h3>Juara ${esc(nama(jk))} segera diumumkan</h3>
+          <p class="lead">Juri &amp; panitia masih berdiskusi untuk jenis ini. Juara jenis lain yang sudah diumumkan bisa dilihat di pilihan di atas.</p>
+          <button type="button" class="btn" data-act="pub.juaraMuat">${ico('refresh')} Muat ulang</button></div>
+      </section>`;
+    }
     const ambil = (u) => rows.find((x) => x.kelas === 'juara' && x.urutan === u);
     const pod = (u) => { const x = ambil(u); return x ? `<div class="pd j${u}"><div class="pd-m">${u}</div><div class="pd-no">No. ${esc(x.nomor || '-')}</div><div class="pd-sk">${esc(x.sekha)}</div><div class="pd-al">${esc(x.alamat || '')}</div></div>` : `<div class="pd j${u} kosong"><div class="pd-m">${u}</div><div class="pd-al">—</div></div>`; };
     const harapan = rows.filter((x) => x.kelas === 'harapan').sort((a, b) => a.urutan - b.urutan);
-    return `<section class="card">
-      <div class="juara-h"><span>${ico('trophy')} Pengumuman juara</span><h2 class="h2">${esc(ev.nama_event || '')}</h2></div>
-      <div class="nchips juara-jenis" role="tablist">${urutJenis.map((k) => `<button type="button" class="nchip ${k === jk ? 'on' : ''}" data-act="pub.juaraJenis" data-v="${esc(k)}">${jdot(k, info.jenis)}${esc(nama(k))}</button>`).join('')}</div>
+    return `<section class="card">${kepala}${chips}
       <div class="podium">${pod(2)}${pod(1)}${pod(3)}</div>
       ${harapan.length ? `<div class="hrp">${harapan.map((x) => `<div><em>Harapan ${x.urutan}</em><b>No. ${esc(x.nomor || '-')}</b><span>${esc(x.sekha)}${x.alamat ? ` · ${esc(x.alamat)}` : ''}</span></div>`).join('')}</div>` : ''}
       <p class="hint" style="margin:12px 0 0">Selamat kepada para juara ${esc(nama(jk))}! 🎉</p>
@@ -5353,7 +5392,7 @@ const Adm = {
     const pk = this.peringkat(jk);
     const nKonf = (kode) => d.daftar.filter((r) => r.jenis === kode && r.status === 'terkonfirmasi').length;
     const nDinilai = (kode) => (d.penilaian || []).filter((p) => { const r = this.baris(p.pendaftaran_id); return r && r.jenis === kode; }).length;
-    const chips = jenisList.map((x) => `<button type="button" class="nchip ${x.kode === jk ? 'on' : ''}" data-act="adm.nilaiJenis" data-v="${esc(x.kode)}">${jdot(x.kode, d.jenis)}${esc(x.nama)} <small>${nDinilai(x.kode)}/${nKonf(x.kode)}</small></button>`).join('');
+    const chips = jenisList.map((x) => `<button type="button" class="nchip ${x.kode === jk ? 'on' : ''}" data-act="adm.nilaiJenis" data-v="${esc(x.kode)}">${jdot(x.kode, d.jenis)}${esc(x.nama)} <small>${nDinilai(x.kode)}/${nKonf(x.kode)}</small>${this.juaraUmum(x.kode) ? ' <span title="Juara sudah diumumkan">🏆</span>' : ''}</button>`).join('');
     const sudah = new Set((d.penilaian || []).map((p) => p.pendaftaran_id));
     const calon = d.daftar.filter((r) => r.jenis === jk && r.status === 'terkonfirmasi' && !sudah.has(r.id)).sort((a, b) => (a.nomor_urut || 1e9) - (b.nomor_urut || 1e9));
     const maks = Number(ev.nilai_maks) || 100;
@@ -5405,17 +5444,18 @@ const Adm = {
   vHasilJuara(jk) {
     const d = this.s.data, ev = d.pengaturan, j = this.idx.jenis.get(jk);
     const list = (d.juara || []).filter((x) => x.jenis === jk).sort((a, b) => (a.kelas === b.kelas ? a.urutan - b.urutan : a.kelas === 'juara' ? -1 : 1));
-    const umum = !!ev.juara_diumumkan_at;
-    const status = umum ? `<span class="pill-st good">${ico('check')} Diumumkan ${esc(fmtWaktu(ev.juara_diumumkan_at))}</span>` : '<span class="pill-st warn">Draf — belum terlihat publik</span>';
+    const umum = this.juaraUmum(jk);
+    const status = umum ? `<span class="pill-st good">${ico('check')} Diumumkan ${esc(fmtWaktu(umum.diumumkan_at))}</span>` : list.length ? '<span class="pill-st warn">Draf — belum terlihat publik</span>' : '';
     const wa = (x, r) => r.no_wa ? `<a class="btn btn-xs" target="_blank" rel="noopener" href="${esc(waLink(r.no_wa, `Selamat! Layangan ${j ? j.nama : ''} nomor ${r.nomor_layangan} (${r.nama_sekha}) meraih ${this.labelPeringkat(x.kelas, x.urutan)} di ${ev.nama_event || 'lomba layangan'}. Terima kasih sudah ikut serta.`))}">${ico('chat')} WA</a>` : '';
     return `<div class="panel" style="margin-top:16px"><div class="panel-h"><h3>${ico('trophy')} Juara ${esc(j ? j.nama : '')}</h3>${status}</div>
       ${list.length ? `<div class="jlist">${list.map((x) => { const r = this.baris(x.pendaftaran_id) || {}; return `<div class="jrow ${x.kelas}"><b class="jl">${this.labelPeringkat(x.kelas, x.urutan)}</b><span class="jn">No. ${esc(r.nomor_layangan || '-')}</span><span class="js">${esc(r.nama_sekha || '-')}<small>${esc(r.alamat || '')}</small></span>${wa(x, r)}</div>`; }).join('')}</div>`
         : '<div class="empty">Belum ada juara untuk jenis ini. Isi nilai lalu klik <b>Jadikan juara</b>.</div>'}
       <div class="jaksi">${umum
-        ? `<button type="button" class="btn" data-act="adm.umumkan" data-v="0">${ico('undo')} Tarik pengumuman</button>`
-        : `<button type="button" class="btn btn-primary" data-act="adm.umumkan" data-v="1" ${(d.juara || []).length ? '' : 'disabled'}>${ico('send')} Umumkan juara (semua jenis)</button>${list.length ? `<button type="button" class="btn btn-danger" data-act="adm.batalDraf" data-jenis="${esc(jk)}">${ico('trash')} Batalkan draf</button>` : ''}`}
+        ? `<button type="button" class="btn" data-act="adm.umumkan" data-v="0" data-jenis="${esc(jk)}">${ico('undo')} Tarik pengumuman</button>`
+        : `<button type="button" class="btn btn-primary" data-act="adm.umumkan" data-v="1" data-jenis="${esc(jk)}" ${list.length ? '' : 'disabled'}>${ico('send')} Umumkan juara ${esc(j ? j.nama : '')}</button>${list.length ? `<button type="button" class="btn btn-danger" data-act="adm.batalDraf" data-jenis="${esc(jk)}">${ico('trash')} Batalkan draf</button>` : ''}`}
         <span class="hint">Tombol WA opsional untuk mengirim ucapan selamat.</span></div></div>`;
   },
+  juaraUmum(jk) { return (this.s.data.juara_umum || []).find((u) => u.jenis === jk) || null; },
   /* perbarui total, peringkat & tanda tanpa menyusun ulang baris (agar mengetik tidak terganggu) */
   segarkanNilai() {
     const pk = this.peringkat(this.s.nilaiJenis);
@@ -6381,7 +6421,7 @@ SUB['adm.jadikanJuara'] = async (form) => {
     const baru = await api.simpanJuaraJenis(jk, list);
     const n2 = nilaiData(); n2.juara = (n2.juara || []).filter((x) => x.jenis !== jk).concat(baru || []);
     Adm.tandaiUbah(); Overlay.tutupYangBerisi(form); Adm.segarkanTampilan({ paksa: true });
-    toast(`${list.length} juara ${Adm.namaJenis(jk)} disimpan${n2.pengaturan.juara_diumumkan_at ? ' dan langsung terlihat publik' : ' sebagai draf'}`, 'good', 4500);
+    toast(`${list.length} juara ${Adm.namaJenis(jk)} disimpan${Adm.juaraUmum(jk) ? ' dan langsung terlihat publik' : ' sebagai draf'}`, 'good', 4500);
   } catch (e) { toast(pesanError(e), 'bad'); }
 };
 ACT['adm.batalDraf'] = async (el) => {
@@ -6391,14 +6431,16 @@ ACT['adm.batalDraf'] = async (el) => {
   catch (e) { toast(pesanError(e), 'bad'); }
 };
 ACT['adm.umumkan'] = async (el) => {
-  const d = nilaiData(), on = el.dataset.v === '1';
+  const jk = el.dataset.jenis, on = el.dataset.v === '1', nama = Adm.namaJenis(jk);
   if (on) {
-    const jn = new Set((d.juara || []).map((x) => x.jenis)), semua = Adm.jenisNilai();
-    const kurang = semua.filter((j) => !jn.has(j.kode)).map((j) => j.nama);
-    if (!(await konfirmasiDialog({ judul: 'Umumkan juara?', isi: `Juara akan terlihat di halaman peserta & halaman semua event.${kurang.length ? `<br><br>${ico('alert')} Belum ada juara untuk: <b>${kurang.map(esc).join(', ')}</b>.` : ''}`, tombol: 'Umumkan sekarang' }))) return;
-  } else if (!(await konfirmasiDialog({ judul: 'Tarik pengumuman juara?', isi: 'Juara tidak lagi terlihat publik (kembali ke draf). Data juara tidak terhapus.', tombol: 'Tarik pengumuman', bahaya: true }))) return;
-  try { const st = await api.simpanPengaturan({ juara_diumumkan_at: on ? new Date().toISOString() : null }); Object.assign(nilaiData().pengaturan, st); Adm.tandaiUbah(); Adm.segarkanTampilan({ paksa: true }); toast(on ? 'Juara diumumkan 🎉' : 'Pengumuman ditarik', 'good'); }
-  catch (e) { toast(pesanError(e), 'bad'); }
+    const n = (nilaiData().juara || []).filter((x) => x.jenis === jk).length;
+    if (!(await konfirmasiDialog({ judul: `Umumkan juara ${nama}?`, isi: `<b>${n} juara/harapan ${esc(nama)}</b> akan terlihat di halaman peserta. Jenis lain tetap draf sampai diumumkan sendiri.`, tombol: 'Umumkan sekarang' }))) return;
+  } else if (!(await konfirmasiDialog({ judul: `Tarik pengumuman ${nama}?`, isi: `Juara ${esc(nama)} tidak lagi terlihat publik (kembali ke draf). Data juara tidak terhapus.`, tombol: 'Tarik pengumuman', bahaya: true }))) return;
+  try {
+    const row = await api.umumkanJuara(jk, on);
+    const n2 = nilaiData(); n2.juara_umum = (n2.juara_umum || []).filter((u) => u.jenis !== jk).concat(row ? [row] : []);
+    Adm.tandaiUbah(); Adm.segarkanTampilan({ paksa: true }); toast(on ? `Juara ${nama} diumumkan 🎉` : `Pengumuman ${nama} ditarik`, 'good');
+  } catch (e) { toast(pesanError(e), 'bad'); }
 };
 ACT['adm.muat'] = () => Adm.muat();
 ACT['adm.buka'] = (el) => {

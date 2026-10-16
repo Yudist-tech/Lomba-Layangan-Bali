@@ -244,7 +244,7 @@ Pasang sekali: jalankan **`juara.sql`** di Supabase → SQL Editor (hasil **4 �
 5. **Nilai sama** → tekan **Naikkan** pada layangan yang ingin ditaruh di atas.
 6. **DQ** wajib dengan alasan; peringkat di bawahnya otomatis naik. ✎ untuk catatan.
 
-**Juara**: tekan **Jadikan juara** (peringkat 1–3 = Juara, berikutnya Harapan; bawaan 6 harapan, bisa ditambah) → cek daftar → **Umumkan**. Sebelum diumumkan, halaman peserta (tab *Juara*, muncul mulai hari terakhir event) menampilkan "Juri & panitia sedang berdiskusi…". Setelah diumumkan, halaman semua event menampilkan tombol **🏆 Lihat juara**. Publik hanya melihat nomor, sekha dan banjar. Tombol WA ucapan selamat bersifat opsional. Pengumuman bisa ditarik kembali (data tidak terhapus).
+**Juara (per jenis)**: tekan **Jadikan juara** (peringkat 1–3 = Juara, berikutnya Harapan; bawaan 6 harapan, bisa ditambah) → cek daftar → **Umumkan juara <jenis>**. Tiap jenis diumumkan sendiri-sendiri, jadi jenis yang selesai dinilai lebih dulu bisa langsung diumumkan; jenis yang sudah diumumkan diberi 🏆 di pilihan jenis. Selama masih draf ada tombol **Batalkan draf** (nilai juri tidak terhapus). Di halaman peserta (tab *Juara*, muncul mulai hari terakhir event) jenis yang belum diumumkan bertanda "segera" dan menampilkan "Juri & panitia masih berdiskusi…". Begitu satu jenis diumumkan, halaman semua event menampilkan tombol **🏆 Lihat juara**. Publik hanya melihat nomor, sekha dan banjar. Tombol WA ucapan selamat bersifat opsional. Pengumuman bisa ditarik kembali per jenis (data tidak terhapus).
 
 ## Aturan yang dijaga otomatis oleh database
 
