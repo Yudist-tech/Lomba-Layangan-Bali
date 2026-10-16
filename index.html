@@ -1646,6 +1646,7 @@ const ICONS = {
   share: '<circle cx="18" cy="5" r="2.5"/><circle cx="6" cy="12" r="2.5"/><circle cx="18" cy="19" r="2.5"/><path d="m8.2 10.8 7.6-4.5M8.2 13.2l7.6 4.5"/>',
   lock: '<rect x="4" y="10" width="16" height="11" rx="2.5"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/>',
   kite: '<path d="M12 2.5 19 10l-7 11.5L5 10z"/><path d="M12 2.5v19M5 10h14"/>',
+  trophy: '<path d="M8 4h8v5a4 4 0 0 1-8 0z"/><path d="M8 6H5a3 3 0 0 0 3 4M16 6h3a3 3 0 0 1-3 4"/><path d="M12 13v4M8.5 20.5h7M10 17h4l.5 3.5h-5z"/>',
   layers: '<path d="m12 3 9 5-9 5-9-5z"/><path d="m3 13 9 5 9-5"/>',
   undo: '<path d="M9 14 4 9l5-5"/><path d="M4 9h11a5 5 0 0 1 0 10h-3"/>',
   globe: '<circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18"/>',
@@ -1751,6 +1752,9 @@ function passwordAcak() {
   return Array.from(crypto.getRandomValues(new Uint8Array(10)), (b) => abc[b % abc.length]).join('');
 }
 const PESAN_ERROR = {
+  JUARA_BELUM_TERKONFIRMASI: 'Hanya layangan yang sudah terkonfirmasi yang bisa menjadi juara.',
+  JUARA_TIDAK_VALID: 'Layangan ini bukan dari jenis yang sedang diisi.',
+  JUARA_BELUM_AKTIF: 'Fitur juara belum aktif: jalankan juara.sql di Supabase → SQL Editor.',
   ID_TIDAK_VALID: 'ID hanya boleh huruf kecil, angka, titik, strip, atau garis bawah (3–30 karakter), tanpa spasi.',
   ID_TIDAK_ADA: 'Akun ID tersebut tidak ditemukan.',
   PASSWORD_PENDEK: 'Password minimal 8 karakter.',
@@ -1794,6 +1798,9 @@ const PESAN_ERROR = {
 function pesanError(e) {
   const msg = (e && (e.message || e.error_description || e.msg || e.error)) || String(e || '');
   for (const k of Object.keys(PESAN_ERROR)) if (msg.includes(k)) return PESAN_ERROR[k];
+  if (/lomba_juara_event_id_pendaftaran_id_key/i.test(msg)) return 'Layangan ini sudah mendapat peringkat lain.';
+  if (/lomba_juara_event_id_jenis_kelas_urutan_key/i.test(msg)) return 'Peringkat ini sudah terisi. Muat ulang lalu coba lagi.';
+  if (/lomba_juara_publik|lomba_juara/i.test(msg) && /does not exist|not find|schema cache/i.test(msg)) return PESAN_ERROR.JUARA_BELUM_AKTIF;
   if (/nomor_layangan|nomor_uidx/i.test(msg) && /duplicate|unique/i.test(msg)) return PESAN_ERROR.NOMOR_DIPAKAI;
   if (/kotak_uidx/i.test(msg)) return PESAN_ERROR.KUOTA_PENUH;
   if (/foreign key/i.test(msg)) return 'Data ini masih dipakai (masih ada grup atau pendaftar di dalamnya).';
@@ -1962,8 +1969,8 @@ class SupabaseAPI {
       this.sb.from('lomba_hari').select('*').eq('event_id', ev).order('tanggal', { ascending: true, nullsFirst: false }).order('urutan').order('id').then((r) => this._ok(r)),
       this.sb.from('lomba_sesi').select('*').eq('event_id', ev).order('jam_mulai', { ascending: true, nullsFirst: false }).order('urutan').order('id').then((r) => this._ok(r)),
     ]);
-    const [baca, selesai] = await Promise.all([this.muatBacaan(), this.muatSelesai()]);
-    return { pengaturan: pengaturan || {}, jenis, seri, daftar, hari, sesi, baca, selesai };
+    const [baca, selesai, juara] = await Promise.all([this.muatBacaan(), this.muatSelesai(), this.muatJuara()]);
+    return { pengaturan: pengaturan || {}, jenis, seri, daftar, hari, sesi, baca, selesai, juara };
   }
   /* hasil baca bukti (bukti-mirip.sql); null = tabel belum dipasang */
   async muatBacaan() {
@@ -1982,6 +1989,18 @@ class SupabaseAPI {
     try { return this._ok(await this.sb.from('lomba_bukti_selesai').select('*').eq('event_id', this._ev()).order('created_at')); }
     catch (e) { return null; }
   }
+  /* juara (juara.sql); null = tabel belum dipasang */
+  async muatJuara() {
+    try { return this._ok(await this.sb.from('lomba_juara').select('*').eq('event_id', this._ev())); }
+    catch (e) { return null; }
+  }
+  async simpanJuara(jenis, kelas, urutan, pendaftaranId) {
+    const ev = this._ev();
+    this._ok(await this.sb.from('lomba_juara').delete().eq('event_id', ev).eq('jenis', jenis).eq('kelas', kelas).eq('urutan', urutan));
+    if (!pendaftaranId) return null;
+    return this._ok(await this.sb.from('lomba_juara').insert({ event_id: ev, jenis, kelas, urutan, pendaftaran_id: pendaftaranId }).select().single());
+  }
+  juaraPublik() { return this._rpc('lomba_juara_publik', { p_event: this._ev() }); }
   async tandaiSelesai(jenis, anggota) { return this._ok(await this.sb.from('lomba_bukti_selesai').insert({ event_id: this._ev(), jenis, anggota }).select().single()); }
   async bukaLagi(ids) { for (const id of ids) this._ok(await this.sb.from('lomba_bukti_selesai').delete().eq('id', id)); }
   async simpanBacaan(row) { return this._ok(await this.sb.from('lomba_bukti_baca').upsert({ ...row, event_id: this._ev(), dibaca_at: new Date().toISOString() }).select().single()); }
@@ -2111,7 +2130,16 @@ class DemoAPI {
     if (ix && ix.versi === 1 && Array.isArray(ix.events)) { ix.situs = { ...SITUS_AWAL, ...(ix.situs || {}) }; return ix; }
     return this._benihSemua();
   }
-  _bacaEv(id) { return this.mem[id] || bacaLokal(this.KEY_EV + id); }
+  _bacaEv(id) { return this._juaraLama(this.mem[id] || bacaLokal(this.KEY_EV + id)); }
+  /* data demo lama (sebelum fitur juara): event yang sudah selesai diberi contoh juara sekali */
+  _juaraLama(db) {
+    if (db && db.versi === 2 && db.juara == null) {
+      db.juara = [];
+      const s = db.pengaturan && (db.pengaturan.tanggal_selesai || db.pengaturan.tanggal_mulai);
+      if (s && s < hariIniIso() && (db.daftar || []).some((d) => d.status === 'terkonfirmasi')) this._isiJuaraContoh(db);
+    }
+    return db;
+  }
   _simpanEv(id, db) {
     this.mem[id] = db;
     try { localStorage.setItem(this.KEY_EV + id, JSON.stringify(db)); }
@@ -2123,10 +2151,19 @@ class DemoAPI {
   }
   _muatEvent(id) {
     const db = bacaLokal(this.KEY_EV + id) || this.mem[id];
-    if (db && db.versi === 2) { if (db.pengaturan && db.pengaturan.tema == null) db.pengaturan.tema = ''; this.mem[id] = this._duaDigit(db); return db; }
+    if (db && db.versi === 2) { if (db.pengaturan && db.pengaturan.tema == null) db.pengaturan.tema = ''; this._juaraLama(db); this.mem[id] = this._duaDigit(db); return db; }
     const baru = this._duaDigit(this._benih(false));
     try { this._simpanEv(id, baru); } catch (e) { /* abaikan */ }
     return baru;
+  }
+  /* contoh juara untuk event yang sudah selesai: juara 1–3 & harapan 1–3 tiap jenis */
+  _isiJuaraContoh(db) {
+    db.juara = []; let id = 1;
+    db.jenis.forEach((j) => {
+      const ok = db.daftar.filter((d) => d.jenis === j.kode && d.status === 'terkonfirmasi' && d.nomor_layangan).sort(() => Math.random() - 0.5).slice(0, 6);
+      ok.forEach((d, i) => db.juara.push({ id: id++, jenis: j.kode, kelas: i < 3 ? 'juara' : 'harapan', urutan: (i % 3) + 1, pendaftaran_id: d.id, oleh: null, created_at: new Date().toISOString() }));
+    });
+    if (db.juara.length) db.pengaturan.juara_diumumkan_at = new Date().toISOString();
   }
   /* tiruan nomor-2-digit.sql: nomor 1–9 ditulis 01–09 */
   _duaDigit(db) {
@@ -2258,6 +2295,7 @@ class DemoAPI {
       if (r.flyer) { try { st.flyer_url = this._contohFlyer(r, tgl(r.m)); } catch (e) { /* tanpa canvas: pakai flyer bawaan */ } }
       const selesai = r.s < 0;
       const db = this._benih(r.skala > 0, st, { skala: r.skala, sebelum: selesai ? new Date(Date.now() + r.m * 86400000) : null });
+      if (selesai && r.skala > 0) this._isiJuaraContoh(db);
       if (r.skala === 0) { // jadwal belum disusun panitia, cukup jenis layangan
         const contoh = this._benih(true, st, { skala: 0 });
         db.jenis = contoh.jenis;
@@ -2614,6 +2652,7 @@ class DemoAPI {
       jumlah_jenis: new Set(grup.map((g) => g.jenis)).size || db.jenis.filter((j) => j.aktif).length,
       harga_min: harga.length ? Math.min(...harga) : null,
       peserta: db.daftar.filter((d) => d.status === 'terkonfirmasi').length,
+      juara_diumumkan: !!st.juara_diumumkan_at,
     };
     if (untukAdmin) {
       r.menunggu = db.daftar.filter((d) => d.status === 'menunggu').length;
@@ -2867,7 +2906,32 @@ class DemoAPI {
   /* ---- data admin ---- */
   async muatSemua() {
     await this._jeda(250);
-    return this._salin({ pengaturan: this.db.pengaturan, jenis: this.db.jenis, seri: this.db.seri, daftar: this.db.daftar, hari: [...this.db.hari].sort(urutHari), sesi: [...this.db.sesi].sort(urutSesi), baca: Object.values(this.db.baca || {}), selesai: this.db.selesai || [] });
+    return this._salin({ pengaturan: this.db.pengaturan, jenis: this.db.jenis, seri: this.db.seri, daftar: this.db.daftar, hari: [...this.db.hari].sort(urutHari), sesi: [...this.db.sesi].sort(urutSesi), baca: Object.values(this.db.baca || {}), selesai: this.db.selesai || [], juara: this.db.juara || [] });
+  }
+  /* tiruan juara.sql */
+  async simpanJuara(jenis, kelas, urutan, pendaftaranId) {
+    await this._jeda(150);
+    const list = this.db.juara || (this.db.juara = []);
+    if (pendaftaranId) {
+      const p = this.db.daftar.find((d) => d.id === pendaftaranId);
+      if (!p || p.jenis !== jenis) throw new Error('JUARA_TIDAK_VALID');
+      if (p.status !== 'terkonfirmasi') throw new Error('JUARA_BELUM_TERKONFIRMASI');
+      if (list.some((x) => x.pendaftaran_id === pendaftaranId && !(x.jenis === jenis && x.kelas === kelas && x.urutan === urutan))) throw new Error('duplicate key value violates unique constraint "lomba_juara_event_id_pendaftaran_id_key"');
+    }
+    this.db.juara = list.filter((x) => !(x.jenis === jenis && x.kelas === kelas && x.urutan === urutan));
+    let row = null;
+    if (pendaftaranId) { row = { id: (list.reduce((m, x) => Math.max(m, x.id || 0), 0) || 0) + 1, jenis, kelas, urutan, pendaftaran_id: pendaftaranId, oleh: this._email(), created_at: new Date().toISOString() }; this.db.juara.push(row); }
+    this._simpan();
+    return row && this._salin(row);
+  }
+  async juaraPublik() {
+    await this._jeda(150);
+    const st = this.db.pengaturan;
+    if (!st.juara_diumumkan_at) return { diumumkan: false, list: [] };
+    const list = (this.db.juara || []).map((j) => ({ j, p: this.db.daftar.find((d) => d.id === j.pendaftaran_id) }))
+      .filter((x) => x.p && x.p.status === 'terkonfirmasi')
+      .map(({ j, p }) => ({ jenis: j.jenis, kelas: j.kelas, urutan: j.urutan, nomor: p.nomor_layangan, sekha: p.nama_sekha, alamat: p.alamat }));
+    return this._salin({ diumumkan: true, diumumkan_at: st.juara_diumumkan_at, list });
   }
   async muatBacaan() { return this._salin(Object.values(this.db.baca || {})); }
   async tandaiSelesai(jenis, anggota) {
