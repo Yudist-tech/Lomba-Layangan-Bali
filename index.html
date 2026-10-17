@@ -635,7 +635,7 @@ details.tbl-toggle summary { cursor: pointer; font-size: 13px; color: var(--bran
 .ck-uang span { font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: .04em; }
 .ck-uang b { display: block; font-size: 17px; font-weight: 900; font-variant-numeric: tabular-nums; }
 .ck-uang small { display: block; font-size: 11.5px; color: var(--muted); }
-.ck-uang.bad { color: var(--ck-r); } .ck-uang.y { color: var(--ck-y); } .ck-uang.ok { color: var(--good-ink); } .ck-uang.n { color: var(--muted); }
+.ck-uang.bad { color: var(--ck-r); } .ck-uang.lebih { color: #5b3fb3; } .ck-uang.y { color: var(--ck-y); } .ck-uang.ok { color: var(--good-ink); } .ck-uang.n { color: var(--muted); }
 .ck-rows { border-top: 1px solid var(--line); }
 .ck-rw { display: grid; grid-template-columns: 52px minmax(0, 1fr) auto auto; gap: 10px; align-items: center; width: 100%; border: 0; border-top: 1px solid var(--line); background: none; font: inherit; text-align: left; padding: 8px 12px; cursor: pointer; color: inherit; }
 .ck-rw:first-child { border-top: 0; }
@@ -2953,6 +2953,9 @@ class DemoAPI {
     // perlu dicek: nama pengirim, nominal & waktu sama, rekening tidak terbaca
     const cek = rows.filter((r) => r.status === 'menunggu' && !r.bukti_hash).slice(8, 10);
     if (cek.length === 2) { cek[1].nama_rekening = cek[0].nama_rekening; cek.forEach((r) => { r.bukti_nominal = cek[0].harga; r.bukti_waktu = cek[0].created_at; r.bukti_rek = ''; }); }
+    // bayar gabungan tetapi nominal LEBIH dari total tagihan
+    const lebih = rows.filter((r) => r.status === 'menunggu' && !r.bukti_hash && r.bukti_rek === undefined && r.bukti_ref === undefined).slice(10, 12);
+    if (lebih.length === 2) lebih.forEach((r) => { r.nama_sekha = lebih[0].nama_sekha; r.no_wa = lebih[0].no_wa; r.alamat = lebih[0].alamat; r.bukti_hash = 'contoh-hash-lebih'; r.bukti_ref = '202705181402119965'; r.bukti_nominal = lebih[0].harga + lebih[1].harga + 50000; r.bukti_waktu = lebih[0].created_at; });
     db.daftar = rows.reverse();
   }
   _kode(rows) {
@@ -5525,7 +5528,7 @@ const Adm = {
       const kurang = nominal != null ? total - nominal : null;
       const why = bukti[z].has('hash') ? 'hash' : bukti[z].has('ref') ? 'ref' : bukti[z].has('rek') ? 'rek' : 'nama';
       const b0 = rr.map(sah).find((b) => b && b.nominal) || rr.map(sah).find(Boolean) || {};
-      const g = { rows: rr, n: rr.length, total, nominal, kurang, lv: nominal != null && kurang <= 0 ? 0 : lv[z], tingkat: lv[z], why,
+      const g = { rows: rr, n: rr.length, total, nominal, kurang, lv: nominal != null && kurang === 0 ? 0 : lv[z], tingkat: lv[z], why,
         ref: (rr.map(sah).find((b) => b && b.ref) || {}).ref || null, rek4: (rr.map(sah).find((b) => b && b.rek4) || {}).rek4 || null,
         nama: b0.nama || rr[0].nama_rekening, waktu: b0.waktu || null, beda: new Set(aktif.map((r) => r.no_wa)).size > 1, status: new Map() };
       let sisa = nominal;
@@ -5535,6 +5538,7 @@ const Adm = {
         else if (nominal == null) g.status.set(r.id, 'nominal');
         else { sisa -= r.harga || 0; g.status.set(r.id, sisa >= 0 ? 'tertutup' : 'belum'); }
       });
+      if (g.kurang != null && g.kurang < 0) rr.forEach((r) => { if (g.status.get(r.id) !== 'ditolak' && g.lv !== 1) g.status.set(r.id, 'tertutup'); });
       return g;
     });
     daftarG.sort((p, q) => q.lv - p.lv || p.rows[0].created_at.localeCompare(q.rows[0].created_at))
@@ -5553,10 +5557,12 @@ const Adm = {
     return `${rupiah(g.nominal)} · ${tgl} ${jam} · nama pengirim <b>${esc(g.nama || '-')}</b> sama`;
   },
   vUangCek(g) {
-    if (g.lv === 0) return `<div class="ck-uang ok"><span>Cukup</span><b>${rupiah(g.nominal)}</b><small>untuk ${g.n} layangan · total ${rupiah(g.total)}</small></div>`;
+    if (g.lv === 0) return `<div class="ck-uang ok"><span>Sesuai</span><b>${rupiah(g.nominal)}</b><small>untuk ${g.n} layangan · tagihan ${rupiah(g.total)}</small></div>`;
     if (g.nominal == null) return `<div class="ck-uang n"><span>Nominal</span><b>tak terbaca</b><small>total tagihan ${rupiah(g.total)}</small></div>`;
-    if (g.lv === 1) return `<div class="ck-uang y"><span>Bila sama, kurang</span><b>${rupiah(g.kurang)}</b><small>rekening tidak terbaca</small></div>`;
-    return `<div class="ck-uang bad"><span>Kurang</span><b>${rupiah(g.kurang)}</b><small>bukti ${rupiah(g.nominal)} · dipakai ${rupiah(g.total)}</small></div>`;
+    const lebih = g.kurang < 0, sel = rupiah(Math.abs(g.kurang));
+    if (g.lv === 1) return `<div class="ck-uang y"><span>Bila sama, ${lebih ? 'lebih' : 'kurang'}</span><b>${sel}</b><small>rekening tidak terbaca</small></div>`;
+    if (lebih) return `<div class="ck-uang lebih"><span>Lebih</span><b>${sel}</b><small>bukti ${rupiah(g.nominal)} · tagihan ${rupiah(g.total)}</small></div>`;
+    return `<div class="ck-uang bad"><span>Kurang</span><b>${sel}</b><small>bukti ${rupiah(g.nominal)} · dipakai ${rupiah(g.total)}</small></div>`;
   },
   vKartuCek(g) {
     const LV = { 3: ['r', 'Pasti sama'], 2: ['o', 'Sangat mungkin'], 1: ['y', 'Perlu dicek'], 0: ['g', 'Bayar gabungan'] }[g.lv];
@@ -5603,7 +5609,7 @@ const Adm = {
           <button type="button" class="ck-info" data-act="adm.cekInfo" aria-label="Arti warna" title="Arti warna">i</button></div>
         <div class="ck-tiles">${tile(3, 'r', 'Pasti sama', 'Pasti')}${tile(2, 'o', 'Sangat mungkin', 'Mungkin')}${tile(1, 'y', 'Perlu dicek', 'Dicek')}${tile(0, 'g', 'Bayar gabungan', 'Gabungan')}</div>
         ${tampil.length ? tampil.map((g) => this.vKartuCek(g)).join('') : `<div class="empty">${kosong}</div>`}
-        ${!lvF && tab === 'perlu' && gab.length ? `<button type="button" class="ck gab-ringkas" data-act="adm.cekLv" data-v="0"><span class="ck-lv">${ico('check')} Bayar gabungan</span><span>${gab.length} kelompok · satu transfer untuk beberapa layangan, nominal <b>cukup</b> <small>— tidak perlu dicek</small></span><span class="btn btn-sm">Lihat ${ico('arrow-r')}</span></button>` : ''}
+        ${!lvF && tab === 'perlu' && gab.length ? `<button type="button" class="ck gab-ringkas" data-act="adm.cekLv" data-v="0"><span class="ck-lv">${ico('check')} Bayar gabungan</span><span>${gab.length} kelompok · satu transfer untuk beberapa layangan, nominal <b>sesuai</b> tagihan <small>— tidak perlu dicek</small></span><span class="btn btn-sm">Lihat ${ico('arrow-r')}</span></button>` : ''}
       </div>`;
   },
   /* ringkasan cek bukti di detail pendaftaran */
@@ -5619,7 +5625,7 @@ const Adm = {
       const ms = (w) => (w ? Date.parse(String(w).slice(0, 19) + 'Z') : NaN);
       const kv = [['No. Referensi', b.ref ? `<span class="ck-mono">${esc(b.ref)}</span>` : '—'], ['Rekening pengirim', b.rek4 ? `••${esc(b.rek4)}` : '—'], ['Nama pengirim', esc(b.nama || '—')], ['Nominal', b.nominal ? rupiah(b.nominal) : '—'], ['Waktu transfer', b.waktu ? esc(fmtWaktu(String(b.waktu).slice(0, 19))) : '—']];
       const fl = [];
-      if (!g && b.nominal && b.nominal < r.harga) fl.push(['w', `<b>Nominal tidak sesuai harga:</b> bukti ${rupiah(b.nominal)}, harga ${esc(this.namaJenis(r.jenis))} ${rupiah(r.harga)}.`]);
+      if (!g && b.nominal && b.nominal !== r.harga) fl.push(['w', `<b>Nominal ${b.nominal < r.harga ? 'kurang' : 'lebih'} ${rupiah(Math.abs(r.harga - b.nominal))}:</b> bukti ${rupiah(b.nominal)}, harga ${esc(this.namaJenis(r.jenis))} ${rupiah(r.harga)}.`]);
       if (b.waktu && ms(b.waktu) < Date.parse(r.created_at) - 14 * 864e5) fl.push(['w', `<b>Bukti lama:</b> tanggal transfer ${esc(fmtWaktu(String(b.waktu).slice(0, 19)))}, jauh sebelum mendaftar.`]);
       if (!g) fl.push(['ok', 'Bukti tidak dipakai pendaftaran lain.']);
       h += `<div class="ck-baca"><div class="ck-baca-h">Terbaca dari bukti</div>${kv.map(([k, v]) => `<div class="kv"><span>${k}</span><b>${v}</b></div>`).join('')}
@@ -7068,8 +7074,8 @@ ACT['adm.cekInfo'] = () => Overlay.modal(`<div><h3>Arti warna Cek Bukti</h3>
   <div class="ck-leg"><div><span class="ck-tile r"><b><i></i></b></span><span><b>Pasti sama</b> — file bukti identik, atau No. Referensi transaksi sama.</span></div>
   <div><span class="ck-tile o"><b><i></i></b></span><span><b>Sangat mungkin</b> — nominal + waktu (≤ 1 menit) + 4 angka rekening pengirim sama.</span></div>
   <div><span class="ck-tile y"><b><i></i></b></span><span><b>Perlu dicek</b> — nominal + waktu + nama pengirim sama, rekening tidak terbaca.</span></div>
-  <div><span class="ck-tile g"><b>${ico('check')}</b></span><span><b>Bayar gabungan</b> — satu transfer untuk beberapa layangan dan nominalnya <b>cukup</b>. Wajar, tidak perlu dicek.</span></div></div>
-  <p class="hint">"Kurang" = total harga semua pendaftaran yang memakai bukti itu dikurangi nominal di bukti. Pendaftaran paling awal dianggap tertutup lebih dulu; sisanya <b>belum terbayar</b>.</p>
+  <div><span class="ck-tile g"><b>${ico('check')}</b></span><span><b>Bayar gabungan</b> — satu transfer untuk beberapa layangan dan nominalnya <b>pas sama</b> dengan total tagihan. Wajar, tidak perlu dicek.</span></div></div>
+  <p class="hint"><b>Kurang</b> = nominal di bukti lebih kecil dari total tagihan semua pendaftaran yang memakainya. <b>Lebih</b> = nominal lebih besar dari total tagihan (cek apakah ada pendaftaran yang belum masuk, atau perlu dikembalikan). Pendaftaran paling awal dianggap tertutup lebih dulu; sisanya <b>belum terbayar</b>.</p>
   <div class="actions end"><button type="button" class="btn btn-primary" data-act="ovl.tutup">Mengerti</button></div></div>`);
 ACT['adm.cekHasil'] = (el) => sibuk(el, async () => {
   const g = Adm.idx.cekGrup.get(el.dataset.id); if (!g) return;
