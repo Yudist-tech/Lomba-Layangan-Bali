@@ -214,9 +214,9 @@ Satu filter **⚠ Cek Bukti** di halaman Pendaftaran menampilkan bukti transfer 
 | 🔴 **Pasti sama** | file bukti identik, atau **No. Referensi transaksi** sama (walau di-screenshot ulang / dipotong) |
 | 🟠 **Sangat mungkin** | nominal + waktu (≤ 1 menit) + **4 angka terakhir rekening pengirim** sama |
 | 🟡 **Perlu dicek** | nominal + waktu + nama pengirim sama, rekening tidak terbaca |
-| ✓ **Bayar gabungan** | satu transfer untuk beberapa layangan dan nominalnya **cukup** → wajar, tidak perlu dicek |
+| ✓ **Bayar gabungan** | satu transfer untuk beberapa layangan dan nominalnya **pas sama** dengan total tagihan → wajar, tidak perlu dicek |
 
-- Di kanan atas tiap kotak tampil **uang yang kurang** (total harga semua pendaftaran yang memakai bukti itu − nominal di bukti). Pendaftaran paling awal dianggap tertutup lebih dulu; sisanya berlabel **belum terbayar** → itulah yang perlu dihubungi / ditolak.
+- Di kanan atas tiap kotak tampil **Kurang** (nominal bukti < total tagihan) atau **Lebih** (nominal bukti > total tagihan — cek apakah ada pendaftaran yang belum masuk / perlu dikembalikan). Pendaftaran paling awal dianggap tertutup lebih dulu; sisanya berlabel **belum terbayar** → itulah yang perlu dihubungi / ditolak.
 - Dua transfer bernama sama di menit yang sama tetapi **rekeningnya berbeda** tidak lagi ditandai.
 - Tombol **Tandai bermasalah** / **Sah, selesai** memindahkan kotak ke tab **Selesai** (tercatat siapa & kapan). **Buka lagi** mengembalikannya. Bila masuk pendaftaran baru dengan bukti yang sama, kotak kembali ke **Perlu dicek** dengan label **BARU**.
 - Detail pendaftaran menampilkan **Terbaca dari bukti**: No. Referensi, rekening pengirim (4 angka), nama, nominal, waktu, plus peringatan *nominal tidak sesuai harga* dan *bukti lama*.
