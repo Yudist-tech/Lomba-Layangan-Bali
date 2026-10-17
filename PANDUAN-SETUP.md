@@ -203,29 +203,26 @@ Pasang sekali: jalankan **`riwayat.sql`** di SQL Editor (hasil 3 ✅).
 - **Excel**: kolom *Dikonfirmasi oleh*, *Ditolak oleh*, *WA dikirim oleh*.
 - Pendaftaran yang dikonfirmasi sebelum `riwayat.sql` dipasang ditandai *sebelum pencatatan aktif*.
 
-## Bukti Transfer Sama & Bukti Transfer Mirip
+## Cek Bukti (pengganti Bukti Transfer Sama & Mirip)
 
-- **Bukti Transfer Sama** (otomatis): file gambar yang diunggah **persis sama** di lebih dari 1 pendaftaran. Dikelompokkan *Bukti A, Bukti B, …* dengan warna sendiri. Yang dibandingkan hanya file gambarnya — nama sekha, jenis, atau biaya tidak berpengaruh. Dobel belum tentu curang: satu transfer bisa memang untuk beberapa layangan, jadi cek apakah nominal di bukti cukup untuk total tagihan kelompok.
-- **Bukti Transfer Mirip** (perlu klik **Periksa bukti**): dashboard membaca tulisan di gambar bukti (nominal, tanggal & jam, nama pengirim). Pendaftaran ditandai *Mirip 1, Mirip 2, …* bila **nama pengirim sama + nominal sama + waktu di bukti selisih ≤ 1 menit**. Ini menangkap bukti yang sama walau filenya berbeda (screenshot ulang, dikirim ulang lewat WhatsApp, dipotong).
-  - Pasang sekali: jalankan **`bukti-mirip.sql`** di SQL Editor (hasil 2 ✅).
-  - **Otomatis**: selama dashboard terbuka, bukti yang belum diperiksa dibaca sendiri di latar belakang — saat dashboard dibuka dan setiap ada pendaftaran baru. Tombol berubah menjadi *Memeriksa bukti 3/10*, dan muncul pemberitahuan bila ada Bukti Transfer Mirip baru.
-  - Pengaturan otomatis **per perangkat** (centang *Periksa otomatis di perangkat ini* di jendela Periksa bukti). Bawaan: aktif di laptop/komputer, mati di HP (hemat kuota & baterai). Cukup satu panitia yang membiarkan dashboard terbuka di laptop.
-  - Pembacaan berjalan di browser panitia, jadi **tidak berjalan bila tidak ada dashboard yang terbuka**; bukti yang masuk saat itu dibaca begitu dashboard dibuka lagi.
-  - Tombol **Periksa bukti** juga bisa diklik manual; menunjukkan jumlah bukti baru yang belum diperiksa. Tiap gambar cukup dibaca sekali; hasilnya tersimpan di database.
-  - Pertama kali, browser mengunduh pembaca teks (±5 MB). Lebih nyaman dijalankan di laptop; ±1–3 detik per gambar.
-  - Gambar buram/terpotong yang tidak terbaca dihitung sebagai *tidak terbaca otomatis* — cek manual.
-  - Tanda *mirip* adalah petunjuk, bukan keputusan: tetap buka kedua bukti dan cocokkan sebelum menolak.
+Pasang sekali, berurutan: **`bukti-mirip.sql`** (2 ✅) → **`bukti-selesai.sql`** (2 ✅) → **`bukti-cek.sql`** (2 ✅). Semua aman dijalankan ulang.
 
-### Tab Terbaru & Selesai
+Satu filter **⚠ Cek Bukti** di halaman Pendaftaran menampilkan bukti transfer yang dipakai lebih dari satu pendaftaran, diurutkan dari yang paling pasti:
 
-Pasang sekali: jalankan **`bukti-selesai.sql`** di SQL Editor (hasil 2 ✅). Sebelum dipasang, dashboard menampilkan catatan untuk menjalankannya.
+| Tingkat | Artinya |
+|---|---|
+| 🔴 **Pasti sama** | file bukti identik, atau **No. Referensi transaksi** sama (walau di-screenshot ulang / dipotong) |
+| 🟠 **Sangat mungkin** | nominal + waktu (≤ 1 menit) + **4 angka terakhir rekening pengirim** sama |
+| 🟡 **Perlu dicek** | nominal + waktu + nama pengirim sama, rekening tidak terbaca |
+| ✓ **Bayar gabungan** | satu transfer untuk beberapa layangan dan nominalnya **cukup** → wajar, tidak perlu dicek |
 
-- Di filter **Bukti Transfer Sama** dan **Bukti Transfer Mirip** ada tab **Terbaru** (perlu dicek) dan **Selesai** (sudah dicek). Angka merah di tombol filter = jumlah kelompok di Terbaru.
-- Setelah mengecek satu kelompok, klik **Tandai selesai** → kelompok pindah ke Selesai. Tercatat siapa (ID panitia) dan kapan.
-- Bila kemudian masuk pendaftaran baru dengan bukti yang sama/mirip, **seluruh kelompok kembali ke Terbaru**: pendaftaran baru diberi label **BARU** dan ada catatan siapa yang sebelumnya menandai selesai. Periksa ulang semuanya, lalu tandai selesai lagi.
-- **Buka lagi** mengembalikan kelompok dari Selesai ke Terbaru.
-- Semua panitia event bisa menandai & membuka lagi.
-- Di **Ringkasan** ada satu pengingat *"N kelompok bukti perlu dicek"* (Sama + Mirip di tab Terbaru). Klik **Sama** / **Mirip** untuk langsung membuka filternya; keterangan muncul bila ada kelompok yang kembali karena pendaftaran baru. Pengingat hilang sendiri setelah semua ditandai selesai.
+- Di kanan atas tiap kotak tampil **uang yang kurang** (total harga semua pendaftaran yang memakai bukti itu − nominal di bukti). Pendaftaran paling awal dianggap tertutup lebih dulu; sisanya berlabel **belum terbayar** → itulah yang perlu dihubungi / ditolak.
+- Dua transfer bernama sama di menit yang sama tetapi **rekeningnya berbeda** tidak lagi ditandai.
+- Tombol **Tandai bermasalah** / **Sah, selesai** memindahkan kotak ke tab **Selesai** (tercatat siapa & kapan). **Buka lagi** mengembalikannya. Bila masuk pendaftaran baru dengan bukti yang sama, kotak kembali ke **Perlu dicek** dengan label **BARU**.
+- Detail pendaftaran menampilkan **Terbaca dari bukti**: No. Referensi, rekening pengirim (4 angka), nama, nominal, waktu, plus peringatan *nominal tidak sesuai harga* dan *bukti lama*.
+- Di **Ringkasan** ada satu pengingat *"N bukti perlu dicek"* dengan rincian tingkatnya.
+- Pembacaan bukti tetap otomatis di browser panitia (seperti sebelumnya, tombol **Periksa bukti**). Setelah `bukti-cek.sql` dipasang, bukti lama **dibaca ulang sekali** untuk mengisi No. Referensi & rekening.
+- Tanda di sini adalah petunjuk, bukan keputusan: buka buktinya sebelum menolak.
 
 ## Tema event & penyelenggara
 
