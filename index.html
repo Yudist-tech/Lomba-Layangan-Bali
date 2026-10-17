@@ -1181,12 +1181,58 @@ fieldset.rentang legend { font-weight: 700; font-size: 14px; padding: 0 6px; }
 .ae-nama { display: flex; flex-direction: column; min-width: 0; flex: 1 1 150px; }
 .ae-nama small { color: var(--muted); font-size: 12px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .ae-cara .hint { font-size: 12.5px; }
-.ae-pn { color: var(--muted); }
-.ae-pn.on { background: #fff4cc; border-color: #e0a800; color: #7a5600; font-weight: 800; }
-.ae-penilai-info { margin: 8px 0 0; font-size: 12.5px; }
-.ae-row { flex-wrap: wrap; }
-.ae-row .ae-nama { min-width: 140px; }
-.ae-row > b { min-width: 170px; }
+.ae-penilai-info { margin: 8px 2px 0; font-size: 12.5px; }
+/* jendela Atur event (desain B: tab Panitia | Event) */
+.at-form h3 { margin: 0; font-size: 19px; }
+.at-h { display: flex; align-items: flex-start; gap: 10px; margin-bottom: 12px; }
+.at-h p { margin: 2px 0 0; font-size: 13px; color: var(--muted); }
+.at-h .btn { margin-left: auto; margin-top: -4px; }
+.at-tabs { display: flex; background: var(--surface-3); border-radius: 12px; padding: 4px; margin-bottom: 14px; }
+.at-tabs button { flex: 1; border: 0; background: none; font: inherit; font-weight: 700; font-size: 14px; color: var(--muted); padding: 8px; border-radius: 9px; cursor: pointer; }
+.at-tabs button.on { background: var(--surface); color: var(--ink); box-shadow: 0 1px 3px rgba(0,0,0,.08); }
+.at-n { display: inline-block; background: var(--brand-soft); color: var(--brand); border-radius: 99px; padding: 0 7px; font-size: 12px; margin-left: 3px; }
+.ae-add { border: 1.5px solid var(--brand); background: var(--brand-soft); border-radius: 14px; padding: 12px; }
+.ae-add-t { display: flex; align-items: center; gap: 6px; font-weight: 800; color: var(--brand); margin-bottom: 8px; }
+.ae-add-t .ico { width: 16px; height: 16px; }
+.ae-add-r { display: flex; gap: 8px; }
+.ae-add-r .input { flex: 1; min-width: 0; background: var(--surface); }
+.ae-prev { margin: 7px 2px 0; font-size: 12.5px; color: var(--brand-soft-ink, var(--brand)); }
+.ae-prev b { background: var(--surface); border-radius: 6px; padding: 1px 6px; }
+.ae-lain { margin: 8px 2px 0; }
+.ae-lain summary { font-size: 13px; font-weight: 700; color: var(--brand); cursor: pointer; list-style: none; }
+.ae-lain summary::-webkit-details-marker { display: none; }
+.ae-lain summary::after { content: ' ›'; }
+.ae-lain[open] summary { margin-bottom: 8px; }
+.ae-sec { display: flex; justify-content: space-between; font-size: 11.5px; font-weight: 800; letter-spacing: .07em; text-transform: uppercase; color: var(--muted); margin: 16px 2px 8px; }
+.ae-sec span + span { text-transform: none; letter-spacing: 0; font-weight: 700; }
+.ae-plist { border: 1px solid var(--line); border-radius: 14px; }
+.ae-p { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-top: 1px solid var(--line); position: relative; }
+.ae-p:first-child { border-top: 0; }
+.ae-av { width: 34px; height: 34px; border-radius: 10px; background: #fff4d6; color: #8a5a00; font-weight: 800; font-size: 12px; display: grid; place-items: center; flex: none; }
+.ae-av.e { background: var(--brand-soft); color: var(--brand); border-radius: 50%; font-size: 14px; }
+.ae-who { flex: 1; min-width: 0; }
+.ae-who b { display: block; font-size: 14.5px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ae-who small { display: block; color: var(--muted); font-size: 12px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ae-sw { width: 38px; height: 22px; border-radius: 99px; background: var(--line-strong); border: 0; position: relative; flex: none; cursor: pointer; padding: 0; transition: background .15s; }
+.ae-sw::after { content: ''; position: absolute; top: 3px; left: 3px; width: 16px; height: 16px; border-radius: 50%; background: #fff; box-shadow: 0 1px 2px rgba(0,0,0,.2); transition: left .15s; }
+.ae-sw.on { background: #e0a800; }
+.ae-sw.on::after { left: 19px; }
+.ae-menu { position: relative; flex: none; }
+.ae-dots { width: 32px; height: 32px; border-radius: 9px; border: 1px solid var(--line); display: grid; place-items: center; cursor: pointer; list-style: none; color: var(--ink-2); }
+.ae-dots::-webkit-details-marker { display: none; }
+.ae-menu[open] .ae-dots { border-color: var(--brand); background: var(--brand-soft); color: var(--brand); }
+.ae-pop { position: absolute; right: 0; top: 38px; z-index: 5; min-width: 210px; background: var(--surface); border: 1px solid var(--line); border-radius: 12px; box-shadow: 0 12px 30px rgba(0,0,0,.18); padding: 6px; }
+.ae-pop button { display: flex; align-items: center; gap: 8px; width: 100%; border: 0; background: none; font: inherit; font-size: 14px; font-weight: 600; color: var(--ink); text-align: left; padding: 9px 10px; border-radius: 8px; cursor: pointer; }
+.ae-pop button:hover { background: var(--surface-2); }
+.ae-pop button.r { color: var(--bad-ink); }
+.ae-pop button .ico { width: 16px; height: 16px; }
+.ae-pop hr { border: 0; border-top: 1px solid var(--line); margin: 4px 0; }
+.ae-p .ak-ganti { flex: 1; }
+.at-set { display: flex; align-items: center; gap: 12px; border: 1px solid var(--line); border-radius: 14px; padding: 12px; cursor: pointer; }
+.at-set > span:first-child { flex: 1; }
+.at-set small { display: block; color: var(--muted); font-size: 12.5px; }
+.at-set .switch { margin: 0; }
+.at-hapus { color: var(--bad-ink); }
 .ak-av.id { border-radius: 8px; font-size: 11px; letter-spacing: .04em; background: var(--accent-soft, var(--warn-soft)); color: var(--ink); }
 .kred { display: grid; gap: 0; margin: 12px 0 4px; border: 1px solid var(--line); border-radius: 12px; overflow: hidden; }
 .kred > div { padding: 10px 14px; border-top: 1px solid var(--line); }
@@ -1828,6 +1874,7 @@ const ICONS = {
   users: '<circle cx="9" cy="8" r="3.5"/><path d="M2.5 20a6.5 6.5 0 0 1 13 0"/><path d="M16 4.5a3.5 3.5 0 0 1 0 7M18 14.5a6.5 6.5 0 0 1 3.5 5.5"/>',
   wallet: '<rect x="3" y="6" width="18" height="13" rx="2.5"/><path d="M3 10h18"/><circle cx="16.5" cy="14.5" r="1.2"/>',
   share: '<circle cx="18" cy="5" r="2.5"/><circle cx="6" cy="12" r="2.5"/><circle cx="18" cy="19" r="2.5"/><path d="m8.2 10.8 7.6-4.5M8.2 13.2l7.6 4.5"/>',
+  more: '<circle cx="5" cy="12" r="1.6" fill="currentColor" stroke="none"/><circle cx="12" cy="12" r="1.6" fill="currentColor" stroke="none"/><circle cx="19" cy="12" r="1.6" fill="currentColor" stroke="none"/>',
   unlock: '<rect x="4.5" y="11" width="15" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 7.8-1.2"/>',
   history: '<path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/><path d="M12 7v5l3 2"/>',
   lock: '<rect x="4" y="10" width="16" height="11" rx="2.5"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/>',
@@ -7634,32 +7681,37 @@ const Pusat = {
   },
   /* ---- daftar admin di dalam jendela "Atur event" ---- */
   vAksesEvent(e) {
-    const ed = this.s.edit;
-    return `<div class="ae-list">${e.panitia.length ? e.panitia.map((m) => (ed && ed.mode === 'event' && ed.id === e.id && ed.email === m)
-      ? `<div class="ae-row">${this.vFormGanti('event', e.id, m)}</div>`
-      : akunId(m)
-        ? `<div class="ae-row"><span class="ak-av id">ID</span><span class="ae-nama"><b class="mono">${esc(namaAkun(m))}</b>${namaLengkap(m) ? `<small>${esc(namaLengkap(m))}</small>` : ''}</span>
-          ${this.vTogelPenilai(e, m)}
-          <button type="button" class="btn btn-xs" data-act="pusat.resetId" data-email="${esc(m)}">${ico('lock')} Reset password</button>
-          <button type="button" class="btn btn-xs btn-danger" data-act="pusat.cabut" data-id="${e.id}" data-email="${esc(m)}">${ico('x')} Hapus akses</button>
-          <button type="button" class="btn btn-xs btn-icon btn-danger" data-act="pusat.hapusAkun" data-email="${esc(m)}" title="Hapus akun ${esc(namaAkun(m))}" aria-label="Hapus akun ${esc(namaAkun(m))}">${ico('trash')}</button></div>`
-        : `<div class="ae-row"><span class="ak-av">${esc(m[0].toUpperCase())}</span><b>${esc(m)}</b>
-          ${api.mode === 'supabase' ? `<button type="button" class="btn btn-xs btn-ghost" data-act="pusat.undang" data-email="${esc(m)}" title="Kirim ulang email undangan">${ico('send')}<span class="sr-only">Kirim ulang undangan</span></button>` : ''}
-          ${this.vTogelPenilai(e, m)}
-          <button type="button" class="btn btn-xs" data-act="pusat.ubahAkses" data-id="${e.id}" data-email="${esc(m)}">${ico('edit')} Ganti</button>
-          <button type="button" class="btn btn-xs btn-danger" data-act="pusat.cabut" data-id="${e.id}" data-email="${esc(m)}">${ico('x')} Hapus akses</button></div>`).join('')
-      : '<p class="hint" style="margin:0">Belum ada admin. Hanya super admin yang bisa membuka dashboard event ini.</p>'}</div>
-      ${e.panitia.length && this.penilaiEv(e.id) != null ? `<p class="hint ae-penilai-info">${ico('trophy', 'ico-inline')} <b>Penilai</b> = boleh mengisi nilai di menu Penilaian. ${this.penilaiEv(e.id).length ? 'Panitia lain hanya bisa melihat nilai.' : 'Belum ada yang dipilih, jadi <b>semua</b> panitia event ini bisa mengisi nilai.'}</p>` : ''}
-      <div class="ae-cara"><b>Tambah panitia baru</b> <span class="hint">— ketik nama lengkapnya; ID &amp; password dibuat otomatis lalu dikirim lewat WA.</span></div>
-      <div class="ae-tambah"><label class="sr-only" for="ae-nama">Nama lengkap panitia</label>
-        <input class="input input-sm" type="text" id="ae-nama" placeholder="Nama lengkap, mis. I Made Darma Wiguna Artha" autocomplete="off" maxlength="80" data-in="pusat.pratinjauId" data-enter="pusat.buatNama" data-id="${e.id}">
-        <button type="button" class="btn btn-sm btn-primary" data-act="pusat.buatNama" data-id="${e.id}">${ico('plus')} Buat ID</button></div>
-      <p class="hint ae-pratinjau" id="ae-pratinjau" aria-live="polite"></p>
-      <details class="ae-lain"><summary>Tambahkan ID yang sudah ada</summary>
-        <div class="ae-tambah"><label class="sr-only" for="ae-id">ID yang sudah ada</label>
+    const ed = this.s.edit, pn = this.penilaiEv(e.id);
+    const menu = (m, isi) => `<details class="ae-menu"><summary class="ae-dots" aria-label="Aksi untuk ${esc(namaAkun(m))}">${ico('more')}</summary><div class="ae-pop">${isi}</div></details>`;
+    const baris = (m) => {
+      if (ed && ed.mode === 'event' && ed.id === e.id && ed.email === m) return `<div class="ae-p">${this.vFormGanti('event', e.id, m)}</div>`;
+      const id = akunId(m);
+      const aksi = id
+        ? `<button type="button" data-act="pusat.resetId" data-email="${esc(m)}">${ico('lock')} Reset password</button>
+           <button type="button" data-act="pusat.salinId" data-email="${esc(m)}">${ico('copy')} Salin ID</button><hr>
+           <button type="button" class="r" data-act="pusat.cabut" data-id="${e.id}" data-email="${esc(m)}">${ico('x')} Cabut akses event ini</button>
+           <button type="button" class="r" data-act="pusat.hapusAkun" data-email="${esc(m)}">${ico('trash')} Hapus akun</button>`
+        : `${api.mode === 'supabase' ? `<button type="button" data-act="pusat.undang" data-email="${esc(m)}">${ico('send')} Kirim ulang undangan</button>` : ''}
+           <button type="button" data-act="pusat.ubahAkses" data-id="${e.id}" data-email="${esc(m)}">${ico('edit')} Ganti email</button><hr>
+           <button type="button" class="r" data-act="pusat.cabut" data-id="${e.id}" data-email="${esc(m)}">${ico('x')} Cabut akses event ini</button>`;
+      return `<div class="ae-p">${id ? '<span class="ae-av">ID</span>' : `<span class="ae-av e">${esc(m[0].toUpperCase())}</span>`}
+        <span class="ae-who"><b${id ? ' class="mono"' : ''}>${esc(namaAkun(m))}</b><small>${id ? esc(namaLengkap(m) || 'ID panitia') : 'login dengan email'}</small></span>
+        ${this.vTogelPenilai(e, m)}${menu(m, aksi)}</div>`;
+    };
+    return `<div class="ae-add">
+        <div class="ae-add-t">${ico('plus')} Buat ID panitia baru</div>
+        <div class="ae-add-r"><label class="sr-only" for="ae-nama">Nama lengkap panitia</label>
+          <input class="input" type="text" id="ae-nama" placeholder="Nama lengkap panitia" autocomplete="off" maxlength="80" data-in="pusat.pratinjauId" data-enter="pusat.buatNama" data-id="${e.id}">
+          <button type="button" class="btn btn-primary" data-act="pusat.buatNama" data-id="${e.id}">Buat ID</button></div>
+        <p class="ae-prev" id="ae-pratinjau" aria-live="polite">ID & password dibuat otomatis, lalu bisa dikirim lewat WA.</p>
+      </div>
+      <details class="ae-lain"><summary>atau tambahkan ID yang sudah ada</summary>
+        <div class="ae-add-r"><label class="sr-only" for="ae-id">ID yang sudah ada</label>
           <input class="input input-sm" type="text" id="ae-id" placeholder="ID panitia" autocomplete="off" autocapitalize="none" spellcheck="false" maxlength="30" data-enter="pusat.buatId" data-id="${e.id}">
           <button type="button" class="btn btn-sm" data-act="pusat.buatId" data-id="${e.id}">${ico('plus')} Tambahkan</button></div></details>
-`;
+      <div class="ae-sec"><span>Panitia</span>${pn != null && e.panitia.length ? '<span>Penilai</span>' : ''}</div>
+      ${e.panitia.length ? `<div class="ae-plist">${e.panitia.map(baris).join('')}</div>` : '<p class="hint" style="margin:0">Belum ada panitia. Hanya super admin yang bisa membuka dashboard event ini.</p>'}
+      ${e.panitia.length && pn != null ? `<p class="hint ae-penilai-info">${ico('trophy', 'ico-inline')} <b>Penilai</b> = boleh mengisi nilai. ${pn.length ? 'Panitia lain hanya melihat.' : 'Belum ada yang dipilih, jadi <b>semua</b> panitia bisa mengisi nilai.'}</p>` : ''}`;
   },
   /* panitia penilai per event (juara.sql bagian 6) */
   penilaiEv(id) { const m = this.s.penilai || {}; return m[id] === undefined ? null : m[id]; },
@@ -7667,7 +7719,7 @@ const Pusat = {
     const list = this.penilaiEv(e.id);
     if (list == null) return '';
     const on = list.includes(String(m).toLowerCase());
-    return `<button type="button" class="btn btn-xs ae-pn${on ? ' on' : ''}" data-act="pusat.penilai" data-id="${e.id}" data-email="${esc(m)}" aria-pressed="${on}" title="${on ? 'Penilai: boleh mengisi nilai. Klik untuk mencabut.' : 'Jadikan penilai (boleh mengisi nilai)'}">${ico(on ? 'check' : 'trophy')} Penilai</button>`;
+    return `<button type="button" class="ae-sw${on ? ' on' : ''}" role="switch" aria-checked="${on}" data-act="pusat.penilai" data-id="${e.id}" data-email="${esc(m)}" aria-label="Penilai: ${esc(namaAkun(m))}" title="${on ? 'Penilai — boleh mengisi nilai' : 'Bukan penilai — hanya melihat nilai'}"></button>`;
   },
   async muatPenilai(id) {
     if (!api.daftarPenilai) return;
@@ -7680,7 +7732,7 @@ const Pusat = {
     const box = $('#ae-box');
     if (!box) return;
     const e = (this.s.list || []).find((x) => x.id === Number(box.dataset.id));
-    if (e) box.innerHTML = this.vAksesEvent(e);
+    if (e) { box.innerHTML = this.vAksesEvent(e); const n = $('#at-n'); if (n) n.textContent = e.panitia.length; }
     const f = box.querySelector('.ak-ganti input'); if (f) f.focus();
   },
   /* ---- tab: pengaturan situs (halaman depan) ---- */
@@ -7817,20 +7869,25 @@ const Pusat = {
   formAtur(id) {
     const e = (this.s.list || []).find((x) => x.id === Number(id));
     if (!e) return;
-    Overlay.modal(`<form data-submit="pusat.simpanAtur" data-id="${e.id}" novalidate>
-      <h3>Atur event</h3>
-      <p class="lead"><b>${esc(e.nama_event)}</b> · ${esc(rentangEvent(e))}</p>
-      <div class="field"><label class="label" for="at-slug">Kode alamat</label>
-        <div class="slug-row"><span>…/#e/</span><input class="input" id="at-slug" name="slug" maxlength="40" value="${esc(e.slug)}" autocapitalize="off" spellcheck="false"></div>
-        <span class="hint">Mengubah kode membuat link lama tidak bisa dibuka lagi.</span></div>
-      <div class="field"><span class="label">Admin event</span>
+    Overlay.modal(`<form class="at-form" data-submit="pusat.simpanAtur" data-id="${e.id}" novalidate>
+      <div class="at-h"><div><h3>Atur event</h3><p>${esc(e.nama_event)} · ${esc(rentangEvent(e))}</p></div>
+        <button type="button" class="btn btn-icon btn-ghost" data-act="ovl.tutup" aria-label="Tutup">${ico('x')}</button></div>
+      <div class="at-tabs" role="tablist"><button type="button" role="tab" class="on" aria-selected="true" data-act="pusat.aturTab" data-v="panitia">Panitia <span class="at-n" id="at-n">${e.panitia.length}</span></button><button type="button" role="tab" aria-selected="false" data-act="pusat.aturTab" data-v="event">Event</button></div>
+      <div class="at-pane" data-pane="panitia">
         <div id="ae-box" data-id="${e.id}">${this.vAksesEvent(e)}</div>
-        <span class="hint">Perubahan admin langsung tersimpan. Admin hanya bisa membuka dashboard event ini. Admin baru menerima email undangan untuk membuat password sendiri${api.mode === 'demo' ? ' (di demo: masuk dengan password apa saja)' : ''}.</span></div>
-      <label class="switch"><input type="checkbox" name="tampil" ${e.tampil ? 'checked' : ''}><span class="sw"></span>Tampilkan di halaman depan</label>
-      <p class="hint" style="margin:10px 0 0">Nama, tanggal & lokasi event (hanya super admin) dan isi event lainnya diubah dari <a href="#e/${encodeURIComponent(e.slug)}/admin/pengaturan">Pengaturan di dashboard event</a>.</p>
-      <div class="actions">
-        <button type="button" class="btn btn-danger" data-act="pusat.hapus" data-id="${e.id}">${ico('trash')} Hapus event</button><span style="flex:1"></span>
-        <button type="button" class="btn" data-act="ovl.tutup">Batal</button><button type="submit" class="btn btn-primary">Simpan</button></div>
+        <div class="actions end"><button type="button" class="btn" data-act="ovl.tutup">Tutup</button></div>
+      </div>
+      <div class="at-pane" data-pane="event" hidden>
+        <div class="ae-sec"><span>Alamat halaman</span></div>
+        <div class="slug-row"><span>…/#e/</span><input class="input" id="at-slug" name="slug" maxlength="40" value="${esc(e.slug)}" autocapitalize="off" spellcheck="false" aria-label="Kode alamat"></div>
+        <p class="hint" style="margin:6px 2px 0">Mengubah kode membuat link lama tidak bisa dibuka lagi.</p>
+        <div class="ae-sec"><span>Tampilan</span></div>
+        <label class="at-set"><span><b>Tampilkan di halaman depan</b><small>Event muncul di daftar semua event</small></span><span class="switch"><input type="checkbox" name="tampil" ${e.tampil ? 'checked' : ''}><span class="sw"></span></span></label>
+        <p class="hint" style="margin:8px 2px 0">Nama, tanggal & lokasi event diubah dari <a href="#e/${encodeURIComponent(e.slug)}/admin/pengaturan">Pengaturan di dashboard event</a>.</p>
+        <div class="actions">
+          <button type="button" class="btn btn-ghost at-hapus" data-act="pusat.hapus" data-id="${e.id}">${ico('trash')} Hapus event</button><span style="flex:1"></span>
+          <button type="button" class="btn" data-act="ovl.tutup">Batal</button><button type="submit" class="btn btn-primary">Simpan</button></div>
+      </div>
     </form>`);
   },
 };
@@ -7866,6 +7923,16 @@ ACT['pusat.logout'] = async () => {
   Pusat.render();
 };
 ACT['pusat.formBuat'] = () => Pusat.formBuat();
+ACT['pusat.aturTab'] = (el) => {
+  const f = el.closest('form'), v = el.dataset.v;
+  f.querySelectorAll('.at-tabs [role=tab]').forEach((t) => { const on = t.dataset.v === v; t.classList.toggle('on', on); t.setAttribute('aria-selected', on); });
+  f.querySelectorAll('.at-pane').forEach((p) => { p.hidden = p.dataset.pane !== v; });
+};
+ACT['pusat.salinId'] = (el) => { const d = el.closest('details'); if (d) d.open = false; salin(namaAkun(el.dataset.email), `ID ${namaAkun(el.dataset.email)} disalin`); };
+/* menu ⋯ panitia: hanya satu terbuka; tertutup saat klik di luar atau memilih aksi */
+document.addEventListener('click', (ev) => {
+  document.querySelectorAll('details.ae-menu[open]').forEach((d) => { if (!d.contains(ev.target) || ev.target.closest('.ae-pop button')) d.open = false; });
+}, true);
 ACT['pusat.formAtur'] = (el) => { Pusat.formAtur(el.dataset.id); Pusat.muatPenilai(Number(el.dataset.id)); };
 ACT['pusat.penilai'] = (el) => sibuk(el, async () => {
   const id = Number(el.dataset.id), email = String(el.dataset.email).toLowerCase(), list = Pusat.penilaiEv(id) || [], on = !list.includes(email);
@@ -7974,7 +8041,7 @@ function tampilKredensial(judul, akun, password, nama) {
 ACT['pusat.salinKred'] = (el) => salin(el.dataset.teks, 'ID & password disalin');
 IN['pusat.pratinjauId'] = (el) => {
   const p = $('#ae-pratinjau'), v = el.value.trim();
-  if (p) p.innerHTML = v.length >= 3 && /[a-z]/i.test(v) ? `ID diambil dari huruf setiap kata nama + 3 angka acak, contoh: <b class="mono">${esc(kapital(hurufNama(v)) + angkaAcak())}</b>` : '';
+  if (p) p.innerHTML = v.length >= 3 && /[a-z]/i.test(v) ? `ID akan menjadi seperti <b class="mono">${esc(kapital(hurufNama(v)) + angkaAcak())}</b> (angka acak) · password dibuat otomatis` : 'ID & password dibuat otomatis, lalu bisa dikirim lewat WA.';
 };
 ACT['pusat.buatNama'] = (el) => sibuk(el, async () => {
   const inp = $('#ae-nama'), nama = inp ? inp.value.trim() : '';
