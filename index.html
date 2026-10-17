@@ -1450,6 +1450,7 @@ fieldset.rentang legend { font-weight: 700; font-size: 14px; padding: 0 6px; }
 .ntot { text-align: right; font-weight: 900; font-size: 16px; }
 .ntot small { display: block; font-size: 10.5px; font-weight: 600; color: var(--muted); }
 .naksi { display: flex; gap: 4px; justify-content: flex-end; flex-wrap: wrap; }
+.naksi .nak-m { display: none; }
 .nr.seri { background: color-mix(in srgb, var(--warn) 9%, var(--surface)); }
 .nr.dq { background: var(--surface-2); }
 .nr.dq .nno, .nr.dq .nsk b, .nr.dq .ntot { color: var(--muted); text-decoration: line-through; }
@@ -1474,12 +1475,26 @@ fieldset.rentang legend { font-weight: 700; font-size: 14px; padding: 0 6px; }
   .nr.nh { display: flex; flex-wrap: wrap; gap: 6px; border: 1px solid var(--line); border-radius: 12px; margin-bottom: 8px; min-width: 0; }
   .nr.nh > span:nth-child(-n+3), .nr.nh > .r { display: none; }
   .nr.nh .nj-h { flex: 1 1 30%; }
-  .nr:not(.nh) { grid-template-columns: auto auto minmax(0, 1fr); grid-template-areas: "rk no tot" "sk sk sk" "in in in" "ak ak ak"; min-width: 0; border: 1px solid var(--line); border-radius: 12px; margin-bottom: 8px; padding: 10px 12px; }
-  .nr:not(.nh) .nrk { grid-area: rk; } .nr:not(.nh) .nno { grid-area: no; font-size: 17px; } .nr:not(.nh) .ntot { grid-area: tot; }
-  .nr:not(.nh) .nsk { grid-area: sk; }
+  /* kartu ringkas: baris 1 = peringkat · nomor · nama · total, baris 2 = nilai juri (nama juri di dalam kotak) + menu ⋯ */
+  .nr:not(.nh) { align-items: start; grid-template-columns: auto auto minmax(0, 1fr) auto; grid-template-areas: "rk no sk tot" "in in in ak"; gap: 6px 8px; min-width: 0; border: 1px solid var(--line); border-radius: 12px; margin-bottom: 6px; padding: 8px 10px; }
+  .nr:not(.nh) .nrk { grid-area: rk; } .nr:not(.nh) .rk { min-width: 26px; height: 24px; font-size: 12px; border-radius: 7px; padding: 0 5px; }
+  .nr:not(.nh) .nno { grid-area: no; font-size: 16px; font-weight: 900; line-height: 24px; }
+  .nr:not(.nh) .nsk { padding-top: 2px; }
+  .nr:not(.nh) .ntot { grid-area: tot; font-size: 17px; line-height: 24px; display: flex; flex-direction: row-reverse; align-items: baseline; gap: 4px; }
+  .nr:not(.nh) .ntot small { display: inline; }
+  .nr:not(.nh) .nsk { grid-area: sk; gap: 3px 6px; }
+  .nr:not(.nh) .nsk b { font-size: 14.5px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; max-width: 100%; }
+  .nr:not(.nh) .nsk .ntag.blm { display: none; }
+  .nr:not(.nh) .nsk .ntag { font-size: 10.5px; padding: 0 5px; }
+  .nr:not(.nh) .nsk small { font-size: 11.5px; line-height: 1.3; }
   .nr:not(.nh) .nins { grid-area: in; display: grid; grid-template-columns: repeat(var(--nj), minmax(0, 1fr)); gap: 6px; }
-  .nr:not(.nh) .naksi { grid-area: ak; justify-content: flex-start; }
-  .nr:not(.nh) .nin-l { display: block; font-size: 11px; color: var(--muted); text-align: center; margin-bottom: 2px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .nr:not(.nh) .nin-l { display: block; font-size: 11px; line-height: 14px; font-weight: 600; color: var(--muted); text-align: center; margin-bottom: 2px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .nr:not(.nh) .nin input { height: 36px; padding: 0 2px; font-size: 15.5px; }
+  .nr:not(.nh) .naksi { grid-area: ak; align-self: end; }
+  .nr:not(.nh) .naksi .nak-d { display: none; }
+  .nr:not(.nh) .naksi .nak-m { display: block; }
+  .nr:not(.nh) .naksi .ae-dots { width: 34px; height: 36px; }
+  .nr.dq:not(.nh) { opacity: .8; }
   .jrow { grid-template-columns: 82px 62px minmax(0, 1fr); }
   .jrow .jfoto { grid-column: 1 / -1; justify-content: flex-start; }
 }
@@ -4924,7 +4939,7 @@ const Adm = {
     if (Router.aktif !== 'adm') return;
     // tab Penilaian: jangan menggambar ulang saat panitia sedang mengetik nilai (pembaruan latar belakang ditunda)
     const fokus = document.activeElement;
-    if (!opt.paksa && this.s.tab === 'nilai' && fokus && fokus.closest && fokus.closest('#adm-main') && /^(INPUT|TEXTAREA)$/.test(fokus.tagName)) { this.s.nilaiTunda = true; return; }
+    if (!opt.paksa && this.s.tab === 'nilai' && ((fokus && fokus.closest && fokus.closest('#adm-main') && /^(INPUT|TEXTAREA)$/.test(fokus.tagName)) || document.querySelector('#adm-main details.ae-menu[open]'))) { this.s.nilaiTunda = true; return; }
     this.s.nilaiTunda = false;
     const main = $('#adm-main');
     if (!main || !this.s.admin) { this.render(); return; }
@@ -5668,8 +5683,11 @@ const Adm = {
       <span class="nins">${pk.juri.map((j, i) => `<label class="nin"><span class="nin-l">${esc(j.nama || 'Juri ' + (i + 1))}</span><input type="number" inputmode="numeric" min="0" max="${maks}" step="1" value="${x.skor[i] ?? ''}" data-ch="adm.nilai" data-pid="${id}" data-juri="${j.id}" ${ro ? 'disabled' : ''} aria-label="Nilai ${esc(j.nama || 'juri ' + (i + 1))} untuk nomor ${esc(r.nomor_layangan || '-')}"></label>`).join('')}</span>
       <span class="ntot">${x.kosong ? '' : x.total || (x.lengkap ? 0 : '')}<small>${x.lengkap || x.kosong ? '' : 'sementara'}</small></span>
       <span class="naksi">${ro ? '' : `
-        <button type="button" class="btn btn-xs btn-icon" data-act="adm.nilaiCatatan" data-pid="${id}" title="Catatan" aria-label="Catatan">${ico('edit')}</button>
-        <button type="button" class="btn btn-xs ${x.dq ? '' : 'btn-danger'}" data-act="adm.nilaiDq" data-pid="${id}">${x.dq ? 'Batal DQ' : 'DQ'}</button>`}
+        <details class="ae-menu nak-m"><summary class="ae-dots" aria-label="Aksi untuk nomor ${esc(r.nomor_layangan || '-')}">${ico('more')}</summary><div class="ae-pop">
+          <button type="button" data-act="adm.nilaiCatatan" data-pid="${id}">${ico('edit')} Catatan</button>
+          <button type="button" class="${x.dq ? '' : 'r'}" data-act="adm.nilaiDq" data-pid="${id}">${ico(x.dq ? 'undo' : 'x')} ${x.dq ? 'Batalkan diskualifikasi' : 'Diskualifikasi'}</button></div></details>
+        <button type="button" class="btn btn-xs btn-icon nak-d" data-act="adm.nilaiCatatan" data-pid="${id}" title="Catatan" aria-label="Catatan">${ico('edit')}</button>
+        <button type="button" class="btn btn-xs nak-d ${x.dq ? '' : 'btn-danger'}" data-act="adm.nilaiDq" data-pid="${id}">${x.dq ? 'Batal DQ' : 'DQ'}</button>`}
       </span></div>`;
   },
   /* hasil juara & status pengumuman */
@@ -7932,6 +7950,7 @@ ACT['pusat.salinId'] = (el) => { const d = el.closest('details'); if (d) d.open 
 /* menu ⋯ panitia: hanya satu terbuka; tertutup saat klik di luar atau memilih aksi */
 document.addEventListener('click', (ev) => {
   document.querySelectorAll('details.ae-menu[open]').forEach((d) => { if (!d.contains(ev.target) || ev.target.closest('.ae-pop button')) d.open = false; });
+  if (Adm.s.nilaiTunda) setTimeout(cobaSegarkanTunda, 400);
 }, true);
 ACT['pusat.formAtur'] = (el) => { Pusat.formAtur(el.dataset.id); Pusat.muatPenilai(Number(el.dataset.id)); };
 ACT['pusat.penilai'] = (el) => sibuk(el, async () => {
@@ -8249,9 +8268,13 @@ document.addEventListener('keydown', (e) => {
     if (b && !b.disabled) { e.preventDefault(); b.click(); }
   }
 });
+function cobaSegarkanTunda() {
+  const f = document.activeElement;
+  if (Adm.s.nilaiTunda && !(f && f.closest && f.closest('#adm-main') && /^(INPUT|TEXTAREA)$/.test(f.tagName)) && !document.querySelector('#adm-main details.ae-menu[open]')) Adm.segarkanTampilan();
+}
 document.addEventListener('focusout', (e) => {
   // pembaruan yang ditunda di tab Penilaian dijalankan setelah panitia selesai mengetik
-  if (Adm.s.nilaiTunda && e.target.closest && e.target.closest('#adm-main')) setTimeout(() => { const f = document.activeElement; if (Adm.s.nilaiTunda && !(f && f.closest && f.closest('#adm-main') && /^(INPUT|TEXTAREA)$/.test(f.tagName))) Adm.segarkanTampilan(); }, 300);
+  if (Adm.s.nilaiTunda && e.target.closest && e.target.closest('#adm-main')) setTimeout(cobaSegarkanTunda, 300);
 });
 document.addEventListener('toggle', (e) => {
   if (e.target.matches && e.target.matches('details[data-info]')) Pub.s.infoOpen = e.target.open;
