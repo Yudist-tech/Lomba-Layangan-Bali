@@ -6295,9 +6295,6 @@ ${rows.map((r, i) => `<tr><td class="n">${i + 1}</td><td class="no">${esc(r.nomo
         ${fieldInput({ id: 'p-rek', name: 'bank_no_rek', label: 'Nomor rekening', value: ev.bank_no_rek, maxlength: 40, inputmode: 'numeric' })}
         ${fieldInput({ id: 'p-an', name: 'bank_atas_nama', label: 'Atas nama', value: ev.bank_atas_nama, maxlength: 120 })}
         <div class="actions end"><button class="btn btn-primary btn-sm" type="submit">Simpan</button></div></form>
-      <div class="panel"><div class="panel-h"><h3>Jenis layangan & harga</h3><a class="btn btn-xs" href="#admin/jenis">${ico('edit')} Kelola</a></div>
-        <div class="health">${d.jenis.map((j) => `<div><span>${jdot(j.kode, d.jenis)}${esc(j.nama)}${j.aktif ? '' : ' <span class="hint">(nonaktif)</span>'}</span><b>${rupiah(j.harga)}</b></div>`).join('') || '<div><span class="hint">Belum ada jenis layangan.</span></div>'}</div>
-        <p class="hint" style="margin:10px 0 0">Tambah, ubah harga, atau tutup jenis layangan di halaman <a href="#admin/jenis">Jenis Layangan</a>.</p></div>
     </div><div class="set-col">
       <form class="panel" data-submit="adm.setTemplate" novalidate><div class="panel-h"><h3>Pesan WhatsApp</h3></div>
         <div class="field"><label class="label" for="t-konf">Konfirmasi (setelah pembayaran diterima)</label>
