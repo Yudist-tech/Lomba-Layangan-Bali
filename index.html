@@ -648,6 +648,23 @@ button.kd-row:hover { background: var(--surface-2); }
 .ph-chips button:hover { border-color: var(--brand); }
 .wa-preview { white-space: pre-wrap; background: #e7ffdb; color: #111b21; border-radius: 12px 12px 12px 4px; padding: 10px 12px; font-size: 13.5px; line-height: 1.45; max-height: 320px; overflow: auto; border: 1px solid #cfeebd; }
 .health { display: grid; gap: 8px; }
+.sehat-wrap { margin: 0 0 16px; }
+.sehat { display: flex; align-items: center; gap: 8px; font-size: 13.5px; color: var(--ink-2); padding: 4px 4px; }
+.sehat-wrap > .sehat { padding-bottom: 0; }
+div.sehat { margin: 0 0 16px; }
+.sehat-wrap div.sehat { margin: 0; }
+.sehat-ico { width: 22px; height: 22px; border-radius: 50%; display: grid; place-items: center; flex: none; }
+.sehat-ico .ico { width: 13px; height: 13px; }
+.sehat-ico.good { background: var(--good-soft); color: var(--good-ink); }
+.sehat-ico.bad { background: var(--bad-soft); color: var(--bad-ink); }
+.sehat-ico.tunggu { background: var(--surface-3); color: var(--muted); }
+.sehat-det { margin: 4px 0 0 34px; font-size: 13px; }
+.sehat-det summary { cursor: pointer; color: var(--brand); font-weight: 700; }
+.sehat-det[open] { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 10px 12px; margin-left: 0; }
+.sehat-det .health { margin-top: 8px; }
+.sehat-list { margin: 8px 0 0; padding: 0; list-style: none; color: var(--bad-ink); font-weight: 600; }
+.sehat-list li { display: flex; gap: 6px; align-items: center; padding: 3px 0; }
+.sehat-list .ico { width: 14px; height: 14px; }
 .health div { display: flex; justify-content: space-between; gap: 10px; font-size: 14px; padding: 8px 0; border-top: 1px solid var(--line); }
 .health div:first-child { border-top: 0; }
 .danger-zone { border-color: var(--bad-soft); }
@@ -4947,7 +4964,7 @@ const Adm = {
     if (side) side.outerHTML = this.vSide();
     if (bnav) bnav.outerHTML = this.vBnav();
     if (this.s.tab === 'pengaturan' && this.s.data && $('#set-root')) {
-      const h = $('#health'); if (h) h.innerHTML = this.vHealth();
+      const h = $('#health'); if (h) h.outerHTML = this.vSehat();
       const t = $('#set-tampilan'); if (t) t.outerHTML = this.vPanelTampilan();
       const mt = $('#adm-main .mtop'); if (mt) mt.outerHTML = this.vMtop();
     } else if (this.s.tab === 'pendaftaran' && this.s.data && $('#adm-search')) {
@@ -4968,6 +4985,7 @@ const Adm = {
   setelahRender() {
     if (this.s.tab === 'pendaftaran' && this.s.data) this.bukaPertamaBila();
     if (this.s.tab === 'nilai' && this.s.data) siapkanJuri();
+    if (this.s.data && !this.s.health && !this.s.sehatJalan) this.cekSehat();
     if (this.s.tab === 'pengaturan' && this.s.data && $('#prev-konf') && !$('#prev-konf').textContent) this.segarkanPratinjau();
     const c = $('#grafik-harian');
     if (c && !c.dataset.siap) {
@@ -5102,6 +5120,8 @@ const Adm = {
     }
     if (!ev.bank_no_rek) todo.push(item('bad', 'bank', 'Rekening panitia belum diisi', 'Peserta belum bisa melihat tujuan transfer.', `<a class="btn btn-sm" href="#admin/pengaturan">Isi</a>`));
     if (!d.hari.length) todo.push(item('bad', 'cal', 'Jadwal terbang belum dibuat', 'Peserta baru bisa mendaftar setelah ada hari, seri, dan grup di jadwal terbang.', `<a class="btn btn-sm" href="#admin/seri">Buat</a>`));
+    const masalah = this.s.super ? this.sehatMasalah() : [];
+    if (masalah.length) todo.push(item('bad', 'alert', 'Ada kendala sistem', esc(masalah.join(' · ')), `<a class="btn btn-sm" href="${hrefEv('admin/pengaturan')}">Lihat detail</a>`));
     const tanpaTgl = d.hari.filter((h) => !h.tanggal).length;
     if (tanpaTgl) todo.push(item('info', 'cal', `${tanpaTgl} hari belum punya tanggal`, 'Tanggal tampil di formulir dan pesan WA.', `<a class="btn btn-sm" href="#admin/seri">Atur</a>`));
     const kpi = (label, nilai, sub, opsi = {}) => {
@@ -6312,7 +6332,7 @@ ${rows.map((r, i) => `<tr><td class="n">${i + 1}</td><td class="no">${esc(r.nomo
         <a class="btn btn-sm" href="${hrefEv('daftar')}" target="_blank" rel="noopener">${ico('globe')} Buka halaman peserta</a></div>
         <p class="hint" style="margin:12px 0 0">Dashboard: <b>${esc(linkPublik)}/admin</b></p>
       </div>
-      <div class="panel"><div class="panel-h"><h3>Status sistem</h3><button class="btn btn-xs" data-act="adm.cekSetup">${ico('refresh')} Periksa</button></div><div id="health">${this.vHealth()}</div></div>
+      ${this.vSehat()}
       <div class="panel danger-zone"><div class="panel-h"><h3>Zona berbahaya</h3></div>
         <p class="hint" style="margin:0 0 12px">Dipakai setelah uji coba, sebelum pendaftaran resmi dibuka.</p>
         <div class="sa-act">
@@ -6339,6 +6359,37 @@ ${rows.map((r, i) => `<tr><td class="n">${i + 1}</td><td class="no">${esc(r.nomo
       ${baris('flyer', 'Flyer event', 'Tampil di halaman depan semua event & bisa diperbesar peserta. Ukuran bebas (tegak paling bagus), JPG atau PNG.')}
       ${baris('bg', 'Gambar latar', 'Latar bagian atas halaman. Gambar mendatar (landscape), dibuat sedikit gelap agar tulisan terbaca.')}
       <p class="hint" style="margin:0">Kosongkan untuk memakai tampilan bawaan. Gambar otomatis diperkecil sebelum diunggah.</p></div>`;
+  },
+  /* status sistem: dicek otomatis sekali per sesi; masalah hanya dirinci untuk super admin */
+  sehatMasalah() {
+    const h = this.s.health;
+    if (!h || h.gagal || api.mode !== 'supabase') return [];
+    const m = [];
+    if (!h.bucket) m.push('Bucket bukti transfer belum siap');
+    if (!h.media) m.push('Bucket logo & latar belum siap');
+    if (!(h.storage_policies >= 3)) m.push('Aturan akses Storage belum lengkap');
+    if (!h.realtime) m.push('Realtime database belum aktif (data diperbarui tiap 30 detik)');
+    return m;
+  },
+  async cekSehat() {
+    if (this.s.sehatJalan) return;
+    this.s.sehatJalan = true;
+    try { this.s.health = await api.cekSetup(); } catch (e) { this.s.health = { gagal: true }; }
+    this.s.sehatJalan = false;
+    const h = $('#health'); if (h) h.outerHTML = this.vSehat();
+    if (this.s.tab === 'ringkasan' && this.s.super && this.sehatMasalah().length && Router.aktif === 'adm') this.segarkanTampilan({ paksa: true });
+  },
+  vSehat() {
+    const h = this.s.health, m = this.sehatMasalah();
+    const baris = !h ? `<span class="sehat-ico tunggu">${ico('refresh')}</span><span>Memeriksa sistem…</span>`
+      : m.length ? `<span class="sehat-ico bad">${ico('alert')}</span><span><b>Ada kendala sistem</b>${this.s.super ? ` — ${m.length} hal perlu dibereskan` : ', hubungi super admin'}</span>`
+      : `<span class="sehat-ico good">${ico('check')}</span><span>Sistem berjalan normal</span>`;
+    if (!this.s.super) return `<div class="sehat" id="health">${baris}</div>`;
+    return `<div class="sehat-wrap" id="health"><div class="sehat">${baris}</div>
+      <details class="sehat-det" ${m.length ? 'open' : ''}><summary>${m.length ? 'Detail kendala' : 'Lihat detail'} <span class="hint">(super admin)</span></summary>
+        ${m.length ? `<ul class="sehat-list">${m.map((x) => `<li>${ico('alert')} ${esc(x)}</li>`).join('')}</ul>` : ''}
+        ${this.vHealth()}
+        <button class="btn btn-xs" data-act="adm.cekSetup" style="margin-top:8px">${ico('refresh')} Periksa ulang</button></details></div>`;
   },
   vHealth() {
     const h = this.s.health, ok = (v) => (v ? `<span class="badge b-good">${ico('check')}OK</span>` : `<span class="badge b-bad">${ico('x')}Belum</span>`);
@@ -7352,7 +7403,7 @@ ACT['adm.sisip'] = (el) => {
 };
 ACT['adm.tplDefault'] = () => { $('#t-konf').value = TEMPLATE_WA.konfirmasi; $('#t-tolak').value = TEMPLATE_WA.tolak; Adm.segarkanPratinjau(); toast('Template bawaan dipasang — klik Simpan untuk menyimpan', 'info'); };
 ACT['adm.cekSetup'] = (el) => sibuk(el, async () => {
-  try { Adm.s.health = await api.cekSetup(); $('#health').innerHTML = Adm.vHealth(); }
+  try { Adm.s.health = await api.cekSetup(); const h = $('#health'); if (h) h.outerHTML = Adm.vSehat(); if (!Adm.sehatMasalah().length) toast('Sistem berjalan normal', 'good'); }
   catch (e) { toast(pesanError(e), 'bad', 6000); }
 });
 ACT['adm.reset'] = async () => {
