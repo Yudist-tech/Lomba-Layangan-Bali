@@ -699,8 +699,8 @@ details.tbl-toggle summary { cursor: pointer; font-size: 13px; color: var(--bran
 .lk-more { display: none; grid-column: 2 / -1; gap: 6px; flex-wrap: wrap; padding-top: 4px; }
 .lk-row.open .lk-more { display: grid; grid-template-columns: 1fr 1fr auto; }
 .lk-more .btn { justify-content: center; min-width: 0; padding-left: 8px; padding-right: 8px; } .lk-more .btn-ghost { padding-left: 6px; padding-right: 4px; }
-.lk-more .lk-bad { border-color: var(--ck-r-bd); color: var(--ck-r); } .lk-more .lk-bad.on { background: var(--ck-r-bg); }
-.lk-more .lk-okb { border-color: #1f7a46; color: var(--good-ink); } .lk-more .lk-okb.on { background: var(--good-soft); }
+.lk-more .lk-bad { border-color: var(--ck-r-bd); color: var(--ck-r); } .lk-more .lk-bad.on { background: var(--ck-r-dot); border-color: var(--ck-r-dot); color: #fff; }
+.lk-more .lk-okb { border-color: #1f7a46; color: var(--good-ink); } .lk-more .lk-okb.on { background: #1f7a46; color: #fff; }
 .lk-row.done { background: var(--surface-2); }
 .lk-hs { display: inline-flex; align-items: center; gap: 3px; margin-left: 6px; font-size: 10.5px; font-weight: 800; border-radius: 5px; padding: 1px 6px; vertical-align: 2px; }
 .lk-hs .ico { width: 11px; height: 11px; } .lk-hs.ok { background: var(--good-soft); color: var(--good-ink); } .lk-hs.bad { background: var(--ck-r-bg); color: var(--ck-r); }
@@ -5966,7 +5966,7 @@ const Adm = {
     const buka = lk.buka || (lk.buka = new Set());
     const baris = g.rows.map((r, i) => { const st = ST[g.status.get(r.id)], hs = g.hasilRow.get(r.id), id = esc(r.id), on = buka.has(r.id);
       const baruTag = g.baru.includes(r.id) ? '<span class="cr-baru">BARU</span>' : '';
-      const tanda = baruTag + (hs ? `<span class="lk-hs ${hs === 'bermasalah' ? 'bad' : 'ok'}">${hs === 'bermasalah' ? ico('alert') + 'Bermasalah' : ico('check') + 'Benar'}</span>` : '');
+      const tanda = baruTag;   // tanda Benar/Bermasalah terlihat dari tombol yang menyala
       return `<div class="lk-row open${hs ? ' done' : ''}" data-row="${id}"><span class="gm-n">${i + 1}</span><span class="gm-t"><b>${esc(r.nama_sekha)}</b>${tanda}<small>${jdot(r.jenis, dj)}${esc(this.namaJenis(r.jenis))} · ${esc((STATUS[r.status] || {}).label || r.status)}</small></span><span class="gm-r"><b>No. ${esc(r.nomor_layangan || '—')}</b><small>${rupiah(r.harga)}${st && g.n > 1 ? ` · <em class="lk-st ${st[0]}">${st[1]}</em>` : ''}</small></span>
         <div class="lk-more"><button type="button" class="btn btn-sm lk-bad${hs === 'bermasalah' ? ' on' : ''}" data-act="adm.lkSatu" data-v="bermasalah" data-id="${id}">${ico('alert')} Bermasalah</button><button type="button" class="btn btn-sm lk-okb${hs === 'sah' ? ' on' : ''}" data-act="adm.lkSatu" data-v="sah" data-id="${id}">${ico('check')} Benar</button><button type="button" class="btn btn-sm btn-ghost" data-act="adm.lkDetail" data-id="${id}">Detail ${ico('arrow-r')}</button></div></div>`; }).join('');
     let uang = '';
@@ -5984,7 +5984,7 @@ const Adm = {
         ${wkLain ? `<div class="ck-fl ${wkLain.k === 'lama' ? 'w' : 'bad'}">${ico('clock')}<span><b>${WK_LABEL[wkLain.k][1]}:</b> transfer ${durasiTeks(wkLain.sel)} ${wkLain.k === 'wajar' ? 'setelah' : 'sebelum'} daftar.</span></div>` : ''}${ulang}
         <div class="lk-rows">${baris}</div>${uang}
       </section>
-      <div class="lk-bawah"><span class="hint">Tandai tiap pendaftaran — kasus selesai otomatis bila semua sudah ditandai.</span><button type="button" class="ck2-link" data-act="adm.lkLewati">Lewati dulu ${ico('arrow-r')}</button></div>`;
+      <div class="lk-bawah"><span class="hint">${g.dicek ? `<b>${g.dicek} dari ${g.n}</b> ditandai` : 'Pindah otomatis setelah semua ditandai'}</span><button type="button" class="ck2-link" data-act="adm.lkLewati">Lewati dulu ${ico('arrow-r')}</button></div>`;
     g.rows.slice(0, 4).forEach(async (r) => {
       const fig = box.querySelector(`[data-bukti="${CSS.escape(r.id)}"] .lk-im-box`); if (!fig) return;
       if (!r.bukti_path) { fig.innerHTML = '<span class="lk-load">tanpa bukti</span>'; return; }
