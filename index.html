@@ -1919,7 +1919,7 @@ const _fmtZona = (() => {
    wajar : transfer > 60 menit SETELAH daftar      → merah (bukti diunggah saat daftar, jadi tidak mungkin) */
 const BATAS_WAKTU = { lamaJam: 24, sangatHari: 14, toleransiMnt: 60 };
 function cekWaktuBukti(r, b) {
-  if (!r || !b || b.gagal || !b.waktu || !r.created_at) return null;
+  if (!r || !b || !b.waktu || !r.created_at) return null;
   const tT = Date.parse(String(b.waktu).slice(0, 19) + 'Z'), p = bagianWaktu(r.created_at);
   if (isNaN(tT) || !p) return null;
   const tD = Date.UTC(p.y, p.m - 1, p.d, p.h, p.mi), sel = tD - tT;   // + = transfer sebelum daftar
@@ -2019,7 +2019,7 @@ async function sha256File(file) {
    "bukti mirip" bila nama pengirim sama + nominal sama + waktu selisih ≤ 1 menit.
    (Kemiripan gambar tidak dipakai: struk berbeda dari aplikasi bank yang sama terlihat
    hampir identik, sehingga tidak bisa membedakan transfer sah dari salinan.) */
-const BACA_VERSI = 2;   // naik bila pembaca bukti mendapat kolom baru (2 = No. Referensi & 4 angka rekening) → bukti lama dibaca ulang sekali
+const BACA_VERSI = 3;   // 3 = bukti yang dulu "tidak terbaca" dibaca ulang (gambar diperbesar, tahun dicek)   // naik bila pembaca bukti mendapat kolom baru (2 = No. Referensi & 4 angka rekening) → bukti lama dibaca ulang sekali
 const OCR_SUMBER = ['https://cdn.jsdelivr.net/npm/tesseract.js@5.1.1/dist/tesseract.min.js', 'https://unpkg.com/tesseract.js@5.1.1/dist/tesseract.min.js'];
 const BULAN_TEKS = { jan: 1, januari: 1, january: 1, feb: 2, peb: 2, februari: 2, february: 2, mar: 3, maret: 3, march: 3, apr: 4, april: 4, mei: 5, may: 5, jun: 6, juni: 6, june: 6, jul: 7, juli: 7, july: 7, agu: 8, agt: 8, ags: 8, aug: 8, agustus: 8, august: 8, sep: 9, sept: 9, september: 9, okt: 10, oct: 10, oktober: 10, october: 10, nov: 11, nop: 11, november: 11, nopember: 11, des: 12, dec: 12, desember: 12, december: 12 };
 function angkaRupiah(s) {
@@ -2126,7 +2126,7 @@ function siapkanOCR() {
 }
 /* gambar → kanvas yang cukup besar & abu-abu supaya tulisan mudah dibaca */
 function kanvasOCR(gambar) {
-  const w0 = gambar.width, h0 = gambar.height, skala = Math.min(3, Math.max(1, 1600 / Math.max(w0, 1)), 5000 / Math.max(h0, 1));
+  const w0 = gambar.width, h0 = gambar.height, skala = Math.min(4, Math.max(1, 2000 / Math.max(w0, 1)), 8000 / Math.max(h0, 1));
   const c = document.createElement('canvas'); c.width = Math.round(w0 * skala); c.height = Math.round(h0 * skala);
   const x = c.getContext('2d'); x.filter = 'grayscale(1)'; x.drawImage(gambar, 0, 0, c.width, c.height);
   return c;
@@ -2139,7 +2139,7 @@ function kompresGambar(file, maxSisi = 2000, kualitas = 0.82, tipe = 'image/jpeg
       try {
         let { naturalWidth: w, naturalHeight: h } = img;
         if (!w || !h) throw new Error('decode');
-        const skala = Math.min(1, maxSisi / Math.max(w, h));
+        const skala = typeof maxSisi === 'object' ? Math.min(1, maxSisi.lebar / w, maxSisi.tinggi / h) : Math.min(1, maxSisi / Math.max(w, h));
         w = Math.round(w * skala); h = Math.round(h * skala);
         const c = document.createElement('canvas');
         c.width = w; c.height = h;
@@ -4879,7 +4879,7 @@ const Pub = {
       if (s.file.type !== 'application/pdf') {
         const demo = api.mode === 'demo';
         try {
-          blob = await kompresGambar(s.file, demo ? 1100 : 2000, demo ? 0.7 : 0.82);
+          blob = await kompresGambar(s.file, demo ? 1100 : { lebar: 1400, tinggi: 4200 }, demo ? 0.7 : 0.82);   // lebar dijaga supaya tulisan kecil di struk tetap terbaca
           ext = 'jpg'; tipe = 'image/jpeg';
         } catch (err) {
           const asli = { 'image/jpeg': 'jpg', 'image/png': 'png', 'image/webp': 'webp' }[s.file.type];
@@ -5694,7 +5694,7 @@ const Adm = {
      Pasangan yang file-nya identik sudah masuk "Bukti Transfer Sama". */
   indeksMirip(d) {
     const baca = new Map();
-    for (const b of d.baca || []) baca.set(b.pendaftaran_id, b);
+    for (const b of d.baca || []) baca.set(b.pendaftaran_id, { ...b, gagal: !b.nominal });   // waktu kosong ≠ gagal: nominal tetap dipakai
     const perluBaca = (r) => r.bukti_path && r.status !== 'ditolak' && !/\.pdf$/i.test(r.bukti_path);
     const sah = (r) => { const b = baca.get(r.id); return b && b.bukti_path === r.bukti_path ? b : null; };
     const belumDibaca = d.daftar.filter((r) => perluBaca(r) && !sah(r));
@@ -5900,7 +5900,7 @@ const Adm = {
     const seg = (k, label, n) => `<button type="button" class="${tab === k ? 'on' : ''} ck2-${k}" data-act="adm.cekTab" data-v="${k}">${label} <em>${n}</em></button>`;
     const catat = [];
     if (st.belumDibaca) catat.push(`${st.belumDibaca} bukti belum diperiksa — klik <b>Periksa bukti</b> supaya ikut dibandingkan.`);
-    if (st.tidakTerbaca) catat.push(`${st.tidakTerbaca} bukti tidak terbaca otomatis (gambar buram/terpotong) — cek manual.`);
+    if (st.tidakTerbaca) catat.push(`${st.tidakTerbaca} bukti yang nominalnya tidak terbaca otomatis — cocokkan manual.`);
     this.s.cekAntre = tab === 'perlu' ? perlu.map((g) => g.rows[0].id) : [];
     let isi;
     if (tab === 'masalah') isi = masalah.length ? masalah.map((r) => this.vKartuMasalah(r)).join('') : '<div class="empty">Tidak ada pendaftaran bermasalah. 👍</div>';
@@ -6007,14 +6007,14 @@ const Adm = {
   nominalCek(r) {
     if (!r.bukti_path) return null;
     const b = this.bacaSah(r), g = this.idx.cekGrup.get(r.id), gab = g && g.why !== 'waktu' && g.n > 1;
-    const tagihan = gab ? g.total : (r.harga || 0), bukti = gab ? g.nominal : (b && !b.gagal ? b.nominal : null);
+    const tagihan = gab ? g.total : (r.harga || 0), bukti = gab ? g.nominal : (b && b.nominal ? b.nominal : null);
     return { tagihan, bukti, sel: bukti == null ? null : tagihan - bukti, gab, n: gab ? g.rows.filter((o) => o.status !== 'ditolak').length : 1, terbaca: !!b, gagal: !!(b && b.gagal) };
   },
   vCekNominal(r) {
     const c = this.nominalCek(r); if (!c) return '';
     const tg = c.gab ? `total tagihan ${rupiah(c.tagihan)}` : `tagihan ${rupiah(c.tagihan)}`;
     const baris = (k, ik, judul, nilai, ket) => `<div class="cn ${k}">${ico(ik)}<b>${judul}</b><span class="cn-v">${nilai}</span><small>${ket}</small></div>`;
-    if (c.sel == null) return baris('na', 'info', 'Nominal belum terbaca', '', c.gagal ? 'Gambar buram / terpotong — cocokkan manual dengan gambar bukti' : 'Bukti belum diperiksa — cocokkan manual dengan gambar bukti');
+    if (c.sel == null) return baris('na', 'info', 'Nominal belum terbaca', '', c.gagal ? 'Angka nominal tidak terbaca otomatis — cocokkan manual dengan gambar bukti' : 'Bukti belum diperiksa — cocokkan manual dengan gambar bukti');
     if (c.sel === 0) return c.gab ? baris('ok', 'check', 'Bayar gabungan sesuai', `${c.n} layangan`, `Di bukti ${rupiah(c.bukti)} = ${tg}`) : baris('ok', 'check', 'Nominal sesuai', rupiah(c.bukti), 'Di bukti sama dengan tagihan');
     return c.sel > 0 ? baris('kr', 'alert', 'Nominal KURANG', rupiah(c.sel), `Di bukti ${rupiah(c.bukti)} · ${tg}`) : baris('lb', 'alert', 'Nominal LEBIH', rupiah(-c.sel), `Di bukti ${rupiah(c.bukti)} · ${tg}`);
   },
@@ -6040,7 +6040,7 @@ const Adm = {
       if (g.nominal != null) ring += g.kurang === 0 ? `<span class="gm-ok">Selisih</span><b class="gm-ok">Sesuai</b>` : g.kurang < 0 ? `<span class="gm-lb">Selisih</span><b class="gm-lb">Lebih ${rupiah(-g.kurang)}</b>` : `<span class="gm-kr">Selisih</span><b class="gm-kr">Kurang ${rupiah(g.kurang)}</b>`;
       h += `<section class="ck ck-mini ${LV[0]}"><div class="ck-h"><div class="ck-t"><div class="ck-lv"><i></i>${LV[1]}${g.lv > 0 && g.selesai ? ' · selesai dicek' : ''}</div><div class="ck-why">${this.alasanCek(g)}</div></div>${this.vUangCek(g)}</div>${semua}<div class="gm-sum">${ring}</div></section>`;
     }
-    if (b && !b.gagal) {
+    if (b && (b.nominal || b.waktu || b.nama || b.ref)) {
       const ms = (w) => (w ? Date.parse(String(w).slice(0, 19) + 'Z') : NaN);
       const kv = [['No. Referensi', b.ref ? `<span class="ck-mono">${esc(b.ref)}</span>` : '—'], ['Rekening pengirim', b.rek4 ? `••${esc(b.rek4)}` : '—'], ['Nama pengirim', esc(b.nama || '—')], ['Nominal', b.nominal ? rupiah(b.nominal) : '—'], ['Waktu transfer', b.waktu ? esc(fmtWaktu(String(b.waktu).slice(0, 19))) : '—']];
       const fl = [];
@@ -6052,10 +6052,12 @@ const Adm = {
         else if (wk.k === 'sangat') fl.push(['bad', `<b>Bukti sangat lama:</b> transfer ${tr} — <b>${d} sebelum</b> mendaftar (${df}).${sls}`, 'clock']);
         else fl.push(['w', `<b>Transfer ${d} sebelum daftar.</b> Transfer ${tr} · daftar ${df}. Wajar bila sudah bayar duluan; cek nama pengirim.${sls}`, 'clock']);
       }
+      const kosong = [!b.nominal && 'nominal', !b.waktu && 'waktu transfer'].filter(Boolean);
+      if (kosong.length) { const t = kosong.join(' & '); fl.push(['w', `<b>${t[0].toUpperCase() + t.slice(1)}</b> tidak terbaca otomatis — cocokkan manual dengan gambar bukti.`]); }
       if (!g) fl.push(['ok', 'Bukti tidak dipakai pendaftaran lain.']);
       h += `<details class="ck-baca"><summary class="ck-baca-h"><span>Terbaca dari bukti</span><span class="ck-baca-r">${b.nominal ? rupiah(b.nominal) : 'lihat'}<svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true"><path d="M6 9l6 6 6-6" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></span></summary>${kv.map(([k, v]) => `<div class="kv"><span>${k}</span><b>${v}</b></div>`).join('')}</details>
         ${fl.map(([k, t, ic]) => `<div class="ck-fl ${k}">${ic ? ico(ic) : k === 'ok' ? ico('check') : ico('alert')}<span>${t}</span></div>`).join('')}`;
-    } else if (b && b.gagal) h += `<div class="ck-fl w">${ico('alert')}<span>Bukti tidak terbaca otomatis (buram/terpotong) — cek manual.</span></div>`;
+    } else if (b) h += `<div class="ck-fl w">${ico('alert')}<span>Isi bukti tidak terbaca otomatis — cocokkan manual dengan gambar bukti.</span></div>`;
     return h;
   },
   /* ---- Periksa bukti: satu mesin untuk tombol manual & mode otomatis ----
@@ -6073,11 +6075,13 @@ const Adm = {
     this.jalankanPeriksa('auto');
   },
   /* bukti yang belum dibaca, langsung dari data terbaru (ikut menangkap pendaftaran yang baru masuk) */
+  /* baca ulang: bacaan versi 1 (belum ada No. Ref & rekening), atau yang nominal/waktunya belum terbaca sebelum versi 3 */
+  perluBacaUlang(b) { const v = b.versi || 1; return v < 2 || (v < 3 && (!b.nominal || !b.waktu)); },
   antreanBaca(sudah) {
     const d = this.s.data; if (!d) return [];
     const baca = new Map((d.baca || []).map((b) => [b.pendaftaran_id, b]));
     return d.daftar.filter((r) => r.bukti_path && r.status !== 'ditolak' && !/\.pdf$/i.test(r.bukti_path) && !sudah.has(r.id)
-      && !(baca.get(r.id) && baca.get(r.id).bukti_path === r.bukti_path && (api.bacaLama || (baca.get(r.id).versi || 1) >= BACA_VERSI)))
+      && !(baca.get(r.id) && baca.get(r.id).bukti_path === r.bukti_path && (api.bacaLama || !this.perluBacaUlang(baca.get(r.id)))))
       .sort((a, b) => b.created_at.localeCompare(a.created_at));     // yang terbaru dulu
   },
   async jalankanPeriksa(mode) {
@@ -6104,9 +6108,11 @@ const Adm = {
           if (bmp) {
             hasil = bacaTeksBukti((await ocr.recognize(kanvasOCR(bmp))).data.text, String((this.s.data && this.s.data.pengaturan.bank_no_rek) || '').replace(/\D/g, '').slice(-4));
             if (bmp.close) bmp.close();
+            const thD = (bagianWaktu(r.created_at) || {}).y, thT = hasil.waktu ? +String(hasil.waktu).slice(0, 4) : null;
+            if (thT && thD && (thT < thD - 1 || thT > thD)) hasil.waktu = null;   // mis. "2096" hasil salah baca
           }
         }
-        const simpan = await api.simpanBacaan({ pendaftaran_id: r.id, bukti_path: r.bukti_path, ...hasil, versi: BACA_VERSI, gagal: !hasil.nominal || !hasil.waktu });
+        const simpan = await api.simpanBacaan({ pendaftaran_id: r.id, bukti_path: r.bukti_path, ...hasil, versi: BACA_VERSI, gagal: !hasil.nominal });
         const dd = this.s.data;
         if (dd) dd.baca = (dd.baca || []).filter((b) => b.pendaftaran_id !== r.id).concat([simpan]);
         pb.ok++;
@@ -6145,7 +6151,7 @@ const Adm = {
     if (btn) { btn.textContent = 'Tutup'; btn.dataset.act = 'ovl.tutup'; btn.classList.add('btn-primary'); }
     const st = this.idx.st;
     status.textContent = pb.ocrError ? 'Pembaca teks gagal dimuat. Periksa koneksi internet, lalu klik Periksa bukti lagi.'
-      : `${pb.batal ? 'Dihentikan. ' : 'Selesai. '}${pb.ok} bukti diperiksa${pb.gagal ? `, ${pb.gagal} gagal diunduh (dicoba lagi lain kali)` : ''}. ${st.cek.perlu ? `${st.cek.perlu} kelompok bukti perlu dicek (filter Cek Bukti).` : 'Tidak ada bukti yang perlu dicek.'}${st.tidakTerbaca ? ` ${st.tidakTerbaca} bukti tidak terbaca otomatis — cek manual.` : ''}`;
+      : `${pb.batal ? 'Dihentikan. ' : 'Selesai. '}${pb.ok} bukti diperiksa${pb.gagal ? `, ${pb.gagal} gagal diunduh (dicoba lagi lain kali)` : ''}. ${st.cek.perlu ? `${st.cek.perlu} kelompok bukti perlu dicek (filter Cek Bukti).` : 'Tidak ada bukti yang perlu dicek.'}${st.tidakTerbaca ? ` ${st.tidakTerbaca} bukti yang nominalnya tidak terbaca otomatis — cocokkan manual.` : ''}`;
   },
   async periksaBukti() {
     const d = this.s.data;
