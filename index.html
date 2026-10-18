@@ -669,7 +669,21 @@ details.tbl-toggle summary { cursor: pointer; font-size: 13px; color: var(--bran
 .ck.gab-ringkas > span:nth-child(2) { flex: 1; } .ck.gab-ringkas small { color: var(--muted); }
 .ck.gab-ringkas .ck-lv { color: var(--good-ink); flex: none; }
 .ck-mini { margin: 0 0 10px; }
-.ck-mini .kd-row { border-top: 1px solid var(--line); }
+.gm-row { display: grid; grid-template-columns: 22px 1fr auto; gap: 8px; align-items: center; width: 100%; padding: 9px 14px; border: 0; border-top: 1px solid var(--line); background: transparent; color: inherit; font: inherit; text-align: left; cursor: pointer; }
+button.gm-row:hover { background: var(--surface-2); }
+.gm-row.ini { cursor: default; background: color-mix(in srgb, var(--brand) 12%, transparent); box-shadow: inset 3px 0 0 var(--brand); }
+.gm-n { width: 22px; height: 22px; border-radius: 50%; background: var(--surface-2); border: 1px solid var(--line); font-size: 11.5px; font-weight: 800; display: grid; place-items: center; color: var(--muted); }
+.gm-row.ini .gm-n { background: var(--brand); border-color: var(--brand); color: #fff; }
+.gm-t { min-width: 0; } .gm-t b { font-size: 14.5px; }
+.gm-t small, .gm-r small { display: block; color: var(--muted); font-size: 12px; margin-top: 1px; }
+.gm-tag { display: inline-block; font-size: 10px; font-weight: 800; letter-spacing: .03em; text-transform: uppercase; background: var(--brand); color: #fff; border-radius: 5px; padding: 1px 6px; margin-left: 6px; vertical-align: 2px; }
+.gm-tag.x { background: var(--surface-3); color: var(--muted); }
+.gm-r { text-align: right; white-space: nowrap; } .gm-r b { font-size: 14.5px; font-weight: 800; } .gm-r i { font-style: normal; color: var(--muted); margin-left: 5px; }
+.gm-coret { text-decoration: line-through; }
+.gm-sum { display: grid; grid-template-columns: 1fr auto; gap: 3px 10px; padding: 9px 14px; border-top: 1px dashed var(--line); background: var(--surface-2); font-size: 13px; }
+.gm-sum span { color: var(--muted); } .gm-sum b { text-align: right; }
+.gm-sum .gm-lb { color: var(--ck-p, #5b3fb3); } .gm-sum .gm-kr { color: var(--ck-r); } .gm-sum .gm-ok { color: var(--good-ink); }
+.gm-sum b.gm-lb, .gm-sum b.gm-kr, .gm-sum b.gm-ok { font-weight: 800; }
 .ck-baca { border: 1px solid var(--line); border-radius: 12px; padding: 10px 12px; margin: 0 0 10px; background: var(--surface); }
 .ck-baca-h { font-size: 11.5px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); display: flex; justify-content: space-between; align-items: center; gap: 10px; cursor: pointer; list-style: none; user-select: none; padding: 2px 0; }
 .ck-baca-h::-webkit-details-marker { display: none; }
@@ -5632,8 +5646,15 @@ const Adm = {
     let h = '';
     if (g) {
       const LV = { 3: ['r', 'Pasti sama'], 2: ['o', 'Sangat mungkin'], 1: ['y', 'Perlu dicek'], 0: ['g', 'Bayar gabungan'] }[g.lv];
-      const lain = g.rows.filter((o) => o.id !== r.id).map((o) => `<button type="button" class="kd-row" data-act="adm.nav" data-id="${esc(o.id)}"><span class="kd-1"><b>${esc(o.nama_sekha)}</b><span class="kd-nomor">No. ${esc(o.nomor_layangan || '—')}</span></span><span class="kd-2">${esc(this.namaJenis(o.jenis))} · ${rupiah(o.harga)}</span></button>`).join('');
-      h += `<section class="ck ck-mini ${LV[0]}"><div class="ck-h"><div class="ck-t"><div class="ck-lv"><i></i>${LV[1]}${g.lv > 0 && g.selesai ? ' · selesai dicek' : ''}</div><div class="ck-why">${this.alasanCek(g)}</div></div>${this.vUangCek(g)}</div>${lain}</section>`;
+      const semua = g.rows.map((o, i) => {
+        const ini = o.id === r.id, tolak = o.status === 'ditolak';
+        const isi = `<span class="gm-n">${i + 1}</span><span class="gm-t"><b>${esc(o.nama_sekha)}</b>${ini ? '<span class="gm-tag">Sedang dibuka</span>' : ''}${tolak ? '<span class="gm-tag x">Ditolak</span>' : ''}<small>${esc(this.namaJenis(o.jenis))} · daftar ${esc(fmtWaktu(o.created_at).replace(/ \d{4},/, ','))}</small></span><span class="gm-r"><b>No. ${esc(o.nomor_layangan || '—')}${ini ? '' : '<i aria-hidden="true">›</i>'}</b><small${tolak ? ' class="gm-coret"' : ''}>${rupiah(o.harga)}</small></span>`;
+        return ini ? `<div class="gm-row ini">${isi}</div>` : `<button type="button" class="gm-row" data-act="adm.nav" data-id="${esc(o.id)}">${isi}</button>`;
+      }).join('');
+      const nAktif = g.rows.filter((o) => o.status !== 'ditolak').length;
+      let ring = `<span>Total tagihan (${nAktif} layangan)</span><b>${rupiah(g.total)}</b><span>Nominal di bukti</span><b>${g.nominal != null ? rupiah(g.nominal) : 'tak terbaca'}</b>`;
+      if (g.nominal != null) ring += g.kurang === 0 ? `<span class="gm-ok">Selisih</span><b class="gm-ok">Sesuai</b>` : g.kurang < 0 ? `<span class="gm-lb">Selisih</span><b class="gm-lb">Lebih ${rupiah(-g.kurang)}</b>` : `<span class="gm-kr">Selisih</span><b class="gm-kr">Kurang ${rupiah(g.kurang)}</b>`;
+      h += `<section class="ck ck-mini ${LV[0]}"><div class="ck-h"><div class="ck-t"><div class="ck-lv"><i></i>${LV[1]}${g.lv > 0 && g.selesai ? ' · selesai dicek' : ''}</div><div class="ck-why">${this.alasanCek(g)}</div></div>${this.vUangCek(g)}</div>${semua}<div class="gm-sum">${ring}</div></section>`;
     }
     if (b && !b.gagal) {
       const ms = (w) => (w ? Date.parse(String(w).slice(0, 19) + 'Z') : NaN);
