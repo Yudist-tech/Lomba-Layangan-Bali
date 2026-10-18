@@ -606,6 +606,19 @@ details.tbl-toggle summary { cursor: pointer; font-size: 13px; color: var(--bran
 .tgl.tgl-cek.on { background: #e8590c; border-color: #e8590c; color: #fff; }
 .tgl.tgl-cek.on small.perlu { background: #fff; color: #e8590c; }
 .ck-panel { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 12px; }
+/* cek nominal & status di halaman konfirmasi */
+.cn { display: grid; grid-template-columns: auto 1fr auto; gap: 1px 10px; align-items: center; border-radius: 12px; padding: 9px 12px; margin: 0 0 10px; border: 1px solid transparent; }
+.cn .ico { grid-row: span 2; width: 18px; height: 18px; } .cn b { font-size: 14.5px; } .cn .cn-v { font-weight: 800; font-size: 14.5px; text-align: right; white-space: nowrap; }
+.cn small { grid-column: 2 / 4; font-size: 12.5px; opacity: .9; }
+.cn.ok { background: var(--good-soft); color: var(--good-ink); }
+.cn.kr { background: var(--ck-r-bg); color: var(--ck-r); border-color: var(--ck-r-bd); }
+.cn.lb { background: color-mix(in srgb, var(--ck-p, #5b3fb3) 14%, var(--surface)); color: var(--ck-p, #5b3fb3); border-color: color-mix(in srgb, var(--ck-p, #5b3fb3) 40%, transparent); }
+.cn.na { background: var(--surface-2); color: var(--muted); }
+.cn-st { display: flex; flex-wrap: wrap; gap: 8px 10px; align-items: center; border-radius: 12px; padding: 9px 12px; margin: 0 0 10px; font-size: 13px; line-height: 1.45; }
+.cn-st > .ico { width: 17px; height: 17px; flex: none; } .cn-st > span { flex: 1 1 200px; } .cn-st .btn { margin-left: auto; }
+.cn-st.bad { background: var(--ck-r-bg); color: var(--ck-r); } .cn-st.warn { background: var(--ck-y-bg); color: var(--ck-y); }
+.cn-tb { display: grid; grid-template-columns: 1fr auto; gap: 3px 10px; background: var(--surface-2); border-radius: 10px; padding: 9px 12px; margin: 10px 0; color: var(--ink); font-size: 13.5px; }
+.cn-tb span { color: var(--muted); } .cn-tb b { text-align: right; } .cn-tb .kr { color: var(--ck-r); } .cn-tb .lb { color: var(--ck-p, #5b3fb3); }
 /* ===== Cek Bukti ringkas (kategori + mode satu per satu) ===== */
 .ck2-hd { display: flex; justify-content: space-between; align-items: center; gap: 10px; margin-bottom: 10px; }
 .ck2-hd h3 { margin: 0; font-size: 17px; } .ck2-hd small { display: block; color: var(--muted); font-size: 12.5px; margin-top: 1px; }
@@ -2773,8 +2786,8 @@ class DemoAPI {
      Semua fungsi lama bekerja pada this.db = data event yang sedang dibuka (pakaiEvent). */
   constructor() {
     this.mode = 'demo';
-    this.KEY = 'lomba_ml_index_v4';
-    this.KEY_EV = 'lomba_ml_event_v4_';
+    this.KEY = 'lomba_ml_index_v5';
+    this.KEY_EV = 'lomba_ml_event_v5_';
     this.KEY_SESI = 'lomba_ml_sesi_v1';
     this.subs = new Set();
     this.eventId = null;
@@ -3128,6 +3141,10 @@ class DemoAPI {
     if (polos[0]) geser(polos[0], -(3 * 1440 + 2 * 60 + 5));
     if (polos[1]) geser(polos[1], -21 * 1440);
     if (polos[2]) geser(polos[2], 2 * 60 + 11);
+    // pendaftaran tunggal: nominal di bukti kurang & lebih dari harga
+    const nom = rows.filter((r) => r.status === 'menunggu' && !r.bukti_hash && r.bukti_rek === undefined && r.bukti_ref === undefined && r.bukti_waktu === undefined && r.bukti_nominal === undefined).slice(15, 17);
+    if (nom[0]) nom[0].bukti_nominal = Math.max(10000, nom[0].harga - 25000);
+    if (nom[1]) nom[1].bukti_nominal = nom[1].harga + 25000;
     db.daftar = rows.reverse();
   }
   _kode(rows) {
@@ -5902,13 +5919,28 @@ const Adm = {
         ${tab === 'perlu' ? '<div class="ck2-foot"><span class="ck2-lg"><i class="r"></i>hampir pasti masalah <i class="y"></i>cek sebentar</span></div>' : ''}
       </div>`;
   },
+  /* konfirmasi diblokir sampai kasus Cek Bukti selesai */
+  dialogBlokir(r, st) {
+    const id = esc(r.id);
+    if (st.k === 'masalah') {
+      Overlay.modal(`<div><h3>Belum bisa dikonfirmasi</h3>
+        <p class="lead"><b>${esc(r.nama_sekha)}</b> (No. ${esc(r.nomor_layangan || '—')}) sudah <b>ditandai bermasalah</b> oleh ${esc(labelOleh(st.tn.rec.oleh) || 'panitia')} · ${esc(fmtWaktu(st.tn.rec.created_at))}${st.g ? ` — ${esc(this.katCek(st.g).judul)}` : ''}.</p>
+        <p class="hint">Tolak pendaftaran ini, atau bila masalahnya sudah beres (mis. kekurangan sudah dilunasi) ubah jadi <b>benar</b> lalu konfirmasi.</p>
+        <div class="actions end"><button type="button" class="btn" data-act="ovl.tutup">Tutup</button><button type="button" class="btn lk-okb" data-act="adm.jadiBenarTutup" data-id="${id}">${ico('check')} Jadi benar</button></div></div>`);
+      return;
+    }
+    Overlay.modal(`<div><h3>Selesaikan cek bukti dulu</h3>
+      <p class="lead"><b>${esc(r.nama_sekha)}</b> (No. ${esc(r.nomor_layangan || '—')}) masih ada di <b>Cek Bukti → Perlu dicek</b>: ${esc(this.katCek(st.g).judul)}.</p>
+      <p class="hint">Tandai kasusnya <b>Benar</b> atau <b>Bermasalah</b> dulu. Setelah ditandai benar, pendaftaran ini bisa dikonfirmasi.</p>
+      <div class="actions end"><button type="button" class="btn" data-act="ovl.tutup">Tutup</button><button type="button" class="btn btn-primary" data-act="adm.cekKasus" data-id="${id}">Cek kasusnya ${ico('arrow-r')}</button></div></div>`);
+  },
   /* ---- mode cek satu per satu ---- */
   mulaiLangkah(idAwal) {
     const antre = (this.s.cekAntre || []).slice();
     if (!antre.length) return;
     let i = Math.max(0, antre.indexOf(idAwal));
     this.s.lk = { antre, i, sah: 0, masalah: 0, lewat: 0 };
-    this.s.lk.item = Overlay.buka(`<div class="ovl center" data-ovl-bg><div class="modal lk" role="dialog" aria-modal="true" aria-label="Cek bukti satu per satu"><div class="lk-isi"></div></div></div>`, { onClose: () => { this.s.lk = null; } });
+    this.s.lk.item = Overlay.buka(`<div class="ovl center" data-ovl-bg><div class="modal lk" role="dialog" aria-modal="true" aria-label="Cek bukti satu per satu"><div class="lk-isi"></div></div></div>`, { onClose: () => { this.s.lk = null; if (this.s.lapisDetail && this.s.lapisDetail.el.isConnected) this.renderDetail(); } });
     this.renderLangkah();
   },
   grupLangkah() {
@@ -5963,9 +5995,38 @@ const Adm = {
     });
     const m = lk.item.el.querySelector('.modal'); if (m) m.scrollTop = 0;
   },
+  /* status Cek Bukti satu pendaftaran: 'perlu' (kasus belum diputuskan) / 'masalah' (ditandai bermasalah) / null */
+  statusCek(r) {
+    if (!r || r.status === 'ditolak') return null;
+    const tn = this.idx.tanda && this.idx.tanda.get(r.id), g = this.idx.cekGrup.get(r.id);
+    if (tn && tn.hasil === 'bermasalah') return { k: 'masalah', tn, g };
+    if (g && g.lv > 0 && !g.selesai && !(g.hasilRow && g.hasilRow.get(r.id) === 'sah')) return { k: 'perlu', g };
+    return null;
+  },
+  /* perbandingan nominal di bukti dengan tagihan (bayar gabungan = total kelompok) */
+  nominalCek(r) {
+    if (!r.bukti_path) return null;
+    const b = this.bacaSah(r), g = this.idx.cekGrup.get(r.id), gab = g && g.why !== 'waktu' && g.n > 1;
+    const tagihan = gab ? g.total : (r.harga || 0), bukti = gab ? g.nominal : (b && !b.gagal ? b.nominal : null);
+    return { tagihan, bukti, sel: bukti == null ? null : tagihan - bukti, gab, n: gab ? g.rows.filter((o) => o.status !== 'ditolak').length : 1, terbaca: !!b, gagal: !!(b && b.gagal) };
+  },
+  vCekNominal(r) {
+    const c = this.nominalCek(r); if (!c) return '';
+    const tg = c.gab ? `total tagihan ${rupiah(c.tagihan)}` : `tagihan ${rupiah(c.tagihan)}`;
+    const baris = (k, ik, judul, nilai, ket) => `<div class="cn ${k}">${ico(ik)}<b>${judul}</b><span class="cn-v">${nilai}</span><small>${ket}</small></div>`;
+    if (c.sel == null) return baris('na', 'info', 'Nominal belum terbaca', '', c.gagal ? 'Gambar buram / terpotong — cocokkan manual dengan gambar bukti' : 'Bukti belum diperiksa — cocokkan manual dengan gambar bukti');
+    if (c.sel === 0) return c.gab ? baris('ok', 'check', 'Bayar gabungan sesuai', `${c.n} layangan`, `Di bukti ${rupiah(c.bukti)} = ${tg}`) : baris('ok', 'check', 'Nominal sesuai', rupiah(c.bukti), 'Di bukti sama dengan tagihan');
+    return c.sel > 0 ? baris('kr', 'alert', 'Nominal KURANG', rupiah(c.sel), `Di bukti ${rupiah(c.bukti)} · ${tg}`) : baris('lb', 'alert', 'Nominal LEBIH', rupiah(-c.sel), `Di bukti ${rupiah(c.bukti)} · ${tg}`);
+  },
+  vStatusCek(r) {
+    const st = this.statusCek(r); if (!st || this.s.data.selesai == null) return '';
+    const id = esc(r.id);
+    if (st.k === 'masalah') return `<div class="cn-st bad">${ico('alert')}<span><b>Ditandai bermasalah</b> oleh ${esc(labelOleh(st.tn.rec.oleh) || 'panitia')} · ${esc(fmtWaktu(st.tn.rec.created_at))}. Belum bisa dikonfirmasi — tolak, atau ubah jadi benar bila sudah beres.</span><button type="button" class="btn btn-sm lk-okb" data-act="adm.jadiBenar" data-id="${id}">${ico('check')} Jadi benar</button></div>`;
+    return `<div class="cn-st warn">${ico('alert')}<span><b>Masih di Cek Bukti → Perlu dicek</b> (${esc(this.katCek(st.g).judul)}). Selesaikan kasusnya dulu sebelum konfirmasi.</span><button type="button" class="btn btn-sm" data-act="adm.cekKasus" data-id="${id}">Cek kasusnya ${ico('arrow-r')}</button></div>`;
+  },
   /* ringkasan cek bukti di detail pendaftaran */
   vKotakCek(r) {
-    const g0 = this.idx.cekGrup.get(r.id), g = g0 && g0.why !== 'waktu' ? g0 : null, b = r.bukti_path ? this.bacaSah(r) : null;
+    const g0 = this.idx.cekGrup.get(r.id), g = g0 && g0.why !== 'waktu' && g0.n > 1 ? g0 : null, b = r.bukti_path ? this.bacaSah(r) : null;
     let h = '';
     if (g) {
       const LV = this.lvCek(g);
@@ -5983,7 +6044,6 @@ const Adm = {
       const ms = (w) => (w ? Date.parse(String(w).slice(0, 19) + 'Z') : NaN);
       const kv = [['No. Referensi', b.ref ? `<span class="ck-mono">${esc(b.ref)}</span>` : '—'], ['Rekening pengirim', b.rek4 ? `••${esc(b.rek4)}` : '—'], ['Nama pengirim', esc(b.nama || '—')], ['Nominal', b.nominal ? rupiah(b.nominal) : '—'], ['Waktu transfer', b.waktu ? esc(fmtWaktu(String(b.waktu).slice(0, 19))) : '—']];
       const fl = [];
-      if (!g && b.nominal && b.nominal !== r.harga) fl.push(['w', `<b>Nominal ${b.nominal < r.harga ? 'kurang' : 'lebih'} ${rupiah(Math.abs(r.harga - b.nominal))}:</b> bukti ${rupiah(b.nominal)}, harga ${esc(this.namaJenis(r.jenis))} ${rupiah(r.harga)}.`]);
       const wk = cekWaktuBukti(r, b);
       if (wk) {
         const tr = esc(fmtWaktu(wk.waktu)), df = esc(fmtWaktu(wk.daftar)), d = durasiTeks(wk.sel);
@@ -6387,6 +6447,7 @@ const Adm = {
         ${r.status === 'ditolak' ? `<div class="note bad">${ico('x')}<span><b>Ditolak:</b> ${esc(r.alasan_tolak || '-')}</span></div>` : ''}
         <div class="sect"><h4>Pembayaran</h4>
           <div class="total" style="margin:0 0 10px"><div><div class="t-l">Tagihan ${esc((j && j.nama) || '')}</div><div class="t-s">Pengirim: <b>${esc(r.nama_rekening)}</b></div></div><div class="amt">${rupiah(r.harga)}</div></div>
+          ${this.vCekNominal(r)}${this.vStatusCek(r)}
           ${this.vKotakCek(r)}
           ${r.bukti_path ? `<div class="bukti-box" id="bukti-box"><div class="empty"><span class="spinner" style="margin:0 auto"></span></div></div><div class="bukti-tools" id="bukti-tools"></div>` : `<div class="empty-sm">${ico('file')} Tanpa bukti transfer — pendaftaran manual oleh panitia.</div>`}
         </div>
@@ -7452,12 +7513,21 @@ ACT['adm.cekInfo'] = () => Overlay.modal(`<div><h3>Cara kerja Cek Bukti</h3>
   • Bila masuk <b>pendaftaran baru</b> yang terkait kasus lama, kasus itu ditarik lagi ke <b>Perlu dicek</b> lengkap dengan tanda lama, tinggal tentukan yang baru.</p>
   <div class="actions end"><button type="button" class="btn btn-primary" data-act="ovl.tutup">Mengerti</button></div></div>`);
 ACT['adm.cekMulai'] = () => Adm.mulaiLangkah();
+ACT['adm.cekKasus'] = (el) => { const g = Adm.idx.cekGrup.get(el.dataset.id); if (el.closest('.modal')) Overlay.tutupYangBerisi(el); if (!g) return; Adm.s.cekAntre = [g.rows[0].id]; Adm.mulaiLangkah(g.rows[0].id); };
 ACT['adm.filterMasalah'] = () => { Adm.s.f = { ...FILTER_AWAL, cek: true, cekTab: 'masalah' }; location.hash = '#admin/pendaftaran'; if (Adm.s.tab === 'pendaftaran') Adm.segarkanTampilan(); };
+ACT['adm.jadiBenarTutup'] = (el) => sibuk(el, async () => {
+  try {
+    const row = await api.tandaiSelesai('cek', [el.dataset.id], 'sah');
+    Adm.s.data.selesai = (Adm.s.data.selesai || []).concat([row]);
+    Overlay.tutupYangBerisi(el); Adm.indeks(); Adm.segarkanTampilan({ diam: true }); if (Adm.s.lapisDetail) Adm.renderDetail();
+    toast('Ditandai benar — sekarang bisa dikonfirmasi', 'good');
+  } catch (e) { toast(pesanError(e), 'bad', 6000); }
+});
 ACT['adm.jadiBenar'] = (el) => sibuk(el, async () => {
   try {
     const row = await api.tandaiSelesai('cek', [el.dataset.id], 'sah');
     Adm.s.data.selesai = (Adm.s.data.selesai || []).concat([row]);
-    Adm.indeks(); Adm.segarkanTampilan({ diam: true }); toast('Ditandai benar — kembali ke daftar pendaftaran biasa', 'good');
+    Adm.indeks(); Adm.segarkanTampilan({ diam: true }); if (Adm.s.lapisDetail && Adm.s.lapisDetail.el.isConnected) Adm.renderDetail(); toast('Ditandai benar — kembali ke daftar pendaftaran biasa', 'good');
   } catch (e) { toast(pesanError(e), 'bad', 6000); }
 });
 ACT['adm.cekLangkah'] = (el) => Adm.mulaiLangkah(el.dataset.id);
@@ -7536,8 +7606,24 @@ CH['adm.fSeri'] = (el) => { Adm.s.f.seri = el.value; Adm.segarkanTampilan(); };
 CH['adm.fUrut'] = (el) => { Adm.s.f.urut = el.value; Adm.segarkanTampilan(); };
 IN['adm.q'] = debounce((el) => { Adm.s.f.q = el.value; Adm.s.batas = 150; const l = $('#adm-list'); if (l) l.innerHTML = Adm.vList(); }, 180);
 
-ACT['adm.konfirmasi'] = (el) => {
+ACT['adm.konfirmasi'] = async (el) => {
   const r = Adm.baris(el.dataset.id);
+  if (r && Adm.s.data.selesai != null) {          // fitur Cek Bukti aktif: kasus harus selesai dulu
+    const st = Adm.statusCek(r);
+    if (st) { Adm.dialogBlokir(r, st); return; }
+  }
+  if (r) {
+    const c = Adm.nominalCek(r), tn = Adm.idx.tanda && Adm.idx.tanda.get(r.id);
+    if (c && c.sel && !(tn && tn.hasil === 'sah')) {
+      const kurang = c.sel > 0;
+      const ok = await konfirmasiDialog({ judul: `Nominal ${kurang ? 'kurang' : 'lebih'} ${rupiah(Math.abs(c.sel))}`,
+        isi: `Uang di bukti transfer <b>${kurang ? 'lebih kecil' : 'lebih besar'}</b> dari ${c.gab ? 'total tagihan' : 'tagihan'}.
+          <span class="cn-tb"><span>${c.gab ? `Total tagihan (${c.n} layangan)` : 'Tagihan'}</span><b>${rupiah(c.tagihan)}</b><span>Di bukti</span><b>${rupiah(c.bukti)}</b><span class="${kurang ? 'kr' : 'lb'}">${kurang ? 'Kurang' : 'Lebih'}</span><b class="${kurang ? 'kr' : 'lb'}">${rupiah(Math.abs(c.sel))}</b></span>
+          ${kurang ? 'Konfirmasi hanya bila kekurangan sudah dilunasi atau angka di bukti salah terbaca.' : 'Pastikan kelebihan bayar sudah dicatat (dikembalikan / dianggap donasi) atau angka di bukti salah terbaca.'}`,
+        tombol: 'Tetap konfirmasi' });
+      if (!ok) return;
+    }
+  }
   if (r && !r.nomor_layangan) { toast('Pendaftaran ini belum punya nomor layangan. Isi nomornya dulu, lalu konfirmasi.', 'info', 6000); Adm.formPendaftaran(r); return; }
   return ACT['adm.konfirmasiLangsung'](el);
 };
