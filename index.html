@@ -1690,6 +1690,20 @@ fieldset.rentang legend { font-weight: 700; font-size: 14px; padding: 0 6px; }
 @media (max-width: 600px) { .hero-tema { font-size: 15px; margin: -4px 0 12px; } }
 
 /* ===== Penilaian & juara (dashboard) ===== */
+.ja { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; margin: 0 0 14px; }
+.ja-b { display: flex; align-items: center; gap: 12px; min-width: 0; text-align: left; background: var(--surface); border: 1.5px solid var(--line-strong); border-radius: 14px; padding: 12px 14px; font: inherit; color: var(--ink); cursor: pointer; transition: border-color .15s, box-shadow .15s; }
+.ja-b:hover { border-color: var(--brand); box-shadow: 0 0 0 3px rgba(14, 91, 168, .1); }
+.ja-b:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
+.ja-ic { width: 42px; height: 42px; border-radius: 11px; display: grid; place-items: center; flex: none; }
+.ja-ic .ico { width: 21px; height: 21px; }
+.ja-b.j .ja-ic { background: var(--brand-soft); color: var(--brand); }
+.ja-b.p .ja-ic { background: var(--good-soft); color: var(--good-ink); }
+.ja-t { min-width: 0; } .ja-t b { display: block; font-size: 15px; line-height: 1.25; } .ja-t small { color: var(--muted); font-size: 12px; }
+@media (max-width: 760px) { .ja { grid-template-columns: 1fr 1fr; gap: 8px; } .ja-b { padding: 10px; gap: 9px; } .ja-ic { width: 34px; height: 34px; } .ja-ic .ico { width: 18px; height: 18px; } .ja-t b { font-size: 13.5px; } }
+.nj-n { font-size: 12.5px; font-weight: 700; color: var(--ink); text-transform: none; letter-spacing: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.dj-row { display: grid; grid-template-columns: 24px minmax(0, 1fr) 30px; gap: 10px; align-items: center; padding: 7px 2px; border-bottom: 1px solid var(--line); }
+.dj-no { font-weight: 800; color: var(--muted); text-align: center; }
+.dj-row .input { font-weight: 700; }
 .nchips { display: flex; gap: 6px; flex-wrap: wrap; margin: 0 0 12px; }
 .nchip { display: inline-flex; align-items: center; gap: 6px; border: 1px solid var(--line); background: var(--surface); border-radius: 99px; padding: 6px 12px; font: inherit; font-size: 13.5px; font-weight: 700; color: var(--ink-2); cursor: pointer; }
 .nchip small { font-weight: 600; color: var(--muted); font-variant-numeric: tabular-nums; }
@@ -2891,6 +2905,7 @@ class SupabaseAPI {
   async hapusJuri(id) { this._ok(await this.sb.from('lomba_juri').delete().eq('id', id)); }
   /* juri pantau & catatannya (juri-pantau.sql) */
   async tambahPantau(nama) { return this._ok(await this.sb.from('lomba_juri_pantau').insert(nama.map((n) => ({ event_id: this._ev(), nama: n }))).select()); }
+  async ubahPantau(id, nama) { return this._ok(await this.sb.from('lomba_juri_pantau').update({ nama }).eq('id', id).select().single()); }
   async hapusPantau(id) { this._ok(await this.sb.from('lomba_juri_pantau').delete().eq('id', id)); }
   async tambahCatatanPantau(c) { return this._ok(await this.sb.from('lomba_catatan_pantau').insert({ ...c, event_id: this._ev() }).select().single()); }
   async ubahCatatanPantau(id, patch) { return this._ok(await this.sb.from('lomba_catatan_pantau').update(patch).eq('id', id).select().single()); }
@@ -3953,6 +3968,9 @@ class DemoAPI {
     const ada = new Set(d.juri_pantau.map((x) => x.nama.trim().toLowerCase()));
     if (nama.some((n) => ada.has(n.trim().toLowerCase()))) throw new Error('duplicate key value violates unique constraint "lomba_juri_pantau_nama_uq"');
     const rows = nama.map((n) => { const r = { id: this._idBaru(d.juri_pantau), nama: n }; d.juri_pantau.push(r); return r; }); this._simpan(); return this._salin(rows); }
+  async ubahPantau(id, nama) { await this._jeda(120); this._wajibPenilai(); const d = this.db; this._pantauDb();
+    if (d.juri_pantau.some((x) => x.id !== id && x.nama.trim().toLowerCase() === nama.toLowerCase())) throw new Error('duplicate key value violates unique constraint "lomba_juri_pantau_nama_uq"');
+    const j = d.juri_pantau.find((x) => x.id === id); j.nama = nama; this._simpan(); return this._salin(j); }
   async hapusPantau(id) { await this._jeda(120); this._wajibPenilai(); const d = this.db; this._pantauDb(); d.juri_pantau = d.juri_pantau.filter((x) => x.id !== id); d.catatan_pantau = d.catatan_pantau.filter((x) => x.pantau_id !== id); this._simpan(); }
   async tambahCatatanPantau(c) { await this._jeda(120); this._wajibPenilai(); const d = this.db; this._pantauDb(); const r = { id: this._idBaru(d.catatan_pantau), teks_baca: null, ragu: false, lembar: null, baris: null, foto_url: null, ...c, teks: String(c.teks || '').trim().slice(0, 300), oleh: this._email(), updated_at: new Date().toISOString() }; d.catatan_pantau.push(r); this._simpan(); return this._salin(r); }
   async ubahCatatanPantau(id, patch) { await this._jeda(120); this._wajibPenilai(); const c = this._pantauDb().catatan_pantau.find((x) => x.id === id); Object.assign(c, patch, { teks: String(patch.teks ?? c.teks).trim().slice(0, 300), oleh: this._email(), updated_at: new Date().toISOString() }); this._simpan(); return this._salin(c); }
@@ -6574,7 +6592,7 @@ const Adm = {
     const nDinilai = (kode) => d.daftar.filter((r) => r.jenis === kode && r.status === 'terkonfirmasi' && adaNilai.has(r.id)).length;
     const chips = jenisList.map((x) => `<button type="button" class="nchip ${x.kode === jk ? 'on' : ''}" data-act="adm.nilaiJenis" data-v="${esc(x.kode)}">${jdot(x.kode, d.jenis)}${esc(x.nama)} <small>${nDinilai(x.kode)}/${nKonf(x.kode)}</small>${this.juaraUmum(x.kode) ? ' <span title="Juara sudah diumumkan">🏆</span>' : ''}</button>`).join('');
     const maks = Number(ev.nilai_maks) || 100;
-    return top + `
+    return top + this.vJuriAlat() + `
       <div class="nchips" role="tablist" aria-label="Jenis layangan">${chips}</div>
       ${bantuan('nilai', 'Cara mengisi nilai', [
         'Ketik <b>nomor layangan</b> di kotak cari lalu tekan <b>Enter</b> — hanya nomor itu yang tampil.',
@@ -6585,8 +6603,6 @@ const Adm = {
       <div class="panel nilai-panel">
         <div class="nilai-alat">
           <label class="nilai-cari">${ico('search')}<input id="nilai-cari" class="input" type="text" inputmode="numeric" placeholder="Ketik nomor layangan lalu Enter" value="${esc(this.s.nilaiCari || '')}" data-in="adm.nilaiCari" autocomplete="off" aria-label="Cari nomor layangan"><button type="button" class="nilai-cari-x" data-act="adm.nilaiCariHapus" aria-label="Hapus pencarian">${ico('x')}</button></label>
-          <button type="button" class="btn btn-sm" data-act="adm.cetakLembar">${ico('print')} Cetak lembar juri</button>
-          <button type="button" class="btn btn-sm" data-act="adm.cetakPantau">${ico('print')} Cetak lembar juri pantau</button>
           ${this.bolehMenilai() ? `<button type="button" class="btn btn-sm" data-act="adm.nilaiMaks">${ico('sliders')} Nilai 1–${maks}</button>` : ''}
         </div>
         <div id="nilai-isi">${this.vIsiNilai(jk, pk, maks)}</div>
@@ -6603,8 +6619,8 @@ const Adm = {
     const boleh = this.bolehMenilai(), ro = !boleh || this.terkunci(jk);
     const kolom = `--nj:${Math.max(1, pk.juri.length)}`, kp = this.pantauAktif();
     const head = `<div class="nr nh" style="${kolom}"><span>Rank</span><span>No.</span><span>Sekha</span>
-      ${pk.juri.map((x, i) => `<span class="nj-h"><input class="nj-nama" value="${esc(x.nama)}" placeholder="Juri ${i + 1}" maxlength="30" data-ch="adm.juriNama" data-id="${x.id}" aria-label="Nama juri ${i + 1}" ${boleh ? '' : 'readonly'}>${boleh && pk.juri.length > 1 ? `<button type="button" class="nj-x" data-act="adm.juriHapus" data-id="${x.id}" title="Hapus juri ${i + 1}" aria-label="Hapus juri ${i + 1}">${ico('x')}</button>` : ''}</span>`).join('')}
-      <span class="r">Total</span>${kp ? '<span class="nkp-h">Keterangan juri pantau</span>' : ''}<span class="nj-tambah">${boleh ? `<button type="button" class="btn btn-xs" data-act="adm.juriTambah">${ico('plus')} Juri</button>` : ''}</span></div>`;
+      ${pk.juri.map((x, i) => `<span class="nj-h"><span class="nj-n" title="${esc(x.nama || 'Juri ' + (i + 1))}">${esc(x.nama || 'Juri ' + (i + 1))}</span></span>`).join('')}
+      <span class="r">Total</span>${kp ? '<span class="nkp-h">Keterangan juri pantau</span>' : ''}<span></span></div>`;
     if (!pk.semua.length) return `<div class="empty">Belum ada layangan ${esc(j ? j.nama : '')} yang terkonfirmasi.</div>`;
     let tampil, info;
     if (cari) {
@@ -6646,6 +6662,12 @@ const Adm = {
         <button type="button" class="btn btn-xs btn-icon nak-d" data-act="adm.nilaiCatatan" data-pid="${id}" title="Catatan" aria-label="Catatan">${ico('edit')}</button>
         <button type="button" class="btn btn-xs nak-d ${x.dq ? '' : 'btn-danger'}" data-act="adm.nilaiDq" data-pid="${id}">${x.dq ? 'Batal DQ' : 'DQ'}</button>`}
       </span></div>`;
+  },
+  /* 4 tombol besar: daftar & cetak form juri / juri pantau */
+  vJuriAlat() {
+    const d = this.s.data, nj = (d.juri || []).length, np = Array.isArray(d.juri_pantau) ? d.juri_pantau.length : null;
+    const b = (act, kls, icon, judul, ket) => `<button type="button" class="ja-b ${kls}" data-act="${act}"><span class="ja-ic">${ico(icon)}</span><span class="ja-t"><b>${judul}</b><small>${ket}</small></span></button>`;
+    return `<div class="ja">${b('adm.daftarJuri', 'j', 'users', 'Daftar Juri', `${nj} juri nilai`)}${b('adm.cetakLembar', 'j', 'print', 'Cetak Form Juri', 'lembar nilai')}${b('adm.daftarPantau', 'p', 'eye', 'Daftar Juri Pantau', np == null ? 'belum aktif' : `${np} juri pantau`)}${b('adm.cetakPantau', 'p', 'print', 'Cetak Form Juri Pantau', 'lembar catatan')}</div>`;
   },
   /* ---- juri pantau (juri-pantau.sql) ---- */
   pantauAktif() { const d = this.s.data; return Array.isArray(d.juri_pantau) && Array.isArray(d.catatan_pantau); },
@@ -7630,18 +7652,18 @@ async function siapkanJuri() {
 }
 ACT['adm.juriTambah'] = (el) => sibuk(el, async () => {
   const d = nilaiData(), urutan = (d.juri || []).reduce((m, x) => Math.max(m, x.urutan), 0) + 1;
-  try { const row = await api.tambahJuri(urutan, ''); nilaiData().juri.push(row); Adm.tandaiUbah(); Adm.segarkanTampilan({ paksa: true }); toast(`Juri ${urutan} ditambahkan`, 'good'); }
+  try { const row = await api.tambahJuri(urutan, ''); nilaiData().juri.push(row); Adm.tandaiUbah(); Adm.segarkanTampilan({ paksa: true }); djGambar(row.id); toast(`Juri ${urutan} ditambahkan`, 'good'); }
   catch (e) { toast(pesanError(e), 'bad'); }
 });
 CH['adm.juriNama'] = async (el) => {
   const id = Number(el.dataset.id), nama = el.value.trim();
-  try { const row = await api.ubahJuri(id, nama); gantiBarisNilai(nilaiData().juri, (x) => x.id === id, row); Adm.tandaiUbah(); toast('Nama juri disimpan', 'good'); }
+  try { const row = await api.ubahJuri(id, nama); gantiBarisNilai(nilaiData().juri, (x) => x.id === id, row); Adm.tandaiUbah(); Adm.segarkanTampilan({ paksa: true }); toast('Nama juri disimpan', 'good'); }
   catch (e) { toast(pesanError(e), 'bad'); }
 };
 ACT['adm.juriHapus'] = async (el) => {
   const d = nilaiData(), id = Number(el.dataset.id), j = d.juri.find((x) => x.id === id), n = (d.nilai || []).filter((x) => x.juri_id === id).length;
   if (!(await konfirmasiDialog({ judul: `Hapus ${j && j.nama ? j.nama : 'juri ini'}?`, isi: n ? `<b>${n} nilai</b> dari juri ini ikut terhapus, dan total semua layangan dihitung ulang.` : 'Kolom juri ini dihapus dari penilaian.', tombol: 'Hapus juri', bahaya: true }))) return;
-  try { await api.hapusJuri(id); const n2 = nilaiData(); n2.juri = n2.juri.filter((x) => x.id !== id); n2.nilai = (n2.nilai || []).filter((x) => x.juri_id !== id); Adm.tandaiUbah(); Adm.segarkanTampilan({ paksa: true }); toast('Juri dihapus', 'good'); }
+  try { await api.hapusJuri(id); const n2 = nilaiData(); n2.juri = n2.juri.filter((x) => x.id !== id); n2.nilai = (n2.nilai || []).filter((x) => x.juri_id !== id); Adm.tandaiUbah(); Adm.segarkanTampilan({ paksa: true }); djGambar(); toast('Juri dihapus', 'good'); }
   catch (e) { toast(pesanError(e), 'bad'); }
 };
 /* pencarian nomor: hanya nomor itu yang tampil; tabel digambar ulang tanpa menyentuh kotak cari */
@@ -7730,10 +7752,10 @@ ACT['adm.nilaiNaik'] = (el) => sibuk(el, async () => {
 });
 ACT['adm.cetakLembar'] = () => {
   const d = nilaiData(), juri = [...(d.juri || [])].sort((a, b) => a.urutan - b.urutan);
-  if (!juri.length) { toast('Belum ada juri. Tambahkan juri dulu di tabel penilaian.', 'info'); return; }
+  if (!juri.length) { toast('Belum ada juri. Isi dulu lewat tombol "Daftar Juri".', 'info'); return; }
   const nm = (j) => (j.nama || '').trim() || `Juri ${j.urutan}`;
   Overlay.modal(`<form data-submit="adm.cetakLembar" class="cl" novalidate>
-    <h3>Cetak lembar nilai</h3><p class="lead">QR berisi juri &amp; event — jenis layangan ditulis juri di lembar.</p>
+    <h3>Cetak Form Juri</h3><p class="lead">QR berisi juri &amp; event — jenis layangan ditulis juri di lembar.</p>
     <div class="cl-hd"><span>Juri &amp; jumlah lembar</span><button type="button" class="ck2-link" data-act="adm.clSemua">Pilih semua</button></div>
     <div class="cl-list">${juri.map((j) => `<div class="cl-row" data-id="${j.id}">
       <label class="cl-cb"><input type="checkbox" data-ch="adm.clPilih"><span>${esc(nm(j))}${j.nama ? '' : ' <small>(nama belum diisi)</small>'}</span></label>
@@ -7769,32 +7791,46 @@ SUB['adm.cetakLembar'] = (form) => {
 };
 /* ---- juri pantau: cetak lembar (nama tersimpan per event) ---- */
 const PANTAU_BELUM = 'Fitur juri pantau belum aktif — jalankan file juri-pantau.sql di Supabase dulu.';
-function cpBaris(j, n) {
+/* Daftar Juri (nilai) */
+function djGambar(fokusId) {
+  const box = document.getElementById('dj-list'); if (!box) return;
+  const boleh = Adm.bolehMenilai(), juri = [...(nilaiData().juri || [])].sort((a, b) => a.urutan - b.urutan);
+  box.innerHTML = juri.length ? juri.map((j, i) => `<div class="dj-row"><span class="dj-no">${i + 1}</span>
+    <input class="input" value="${esc(j.nama)}" placeholder="Nama juri ${i + 1}" maxlength="30" data-ch="adm.juriNama" data-id="${j.id}" aria-label="Nama juri ${i + 1}" ${boleh ? '' : 'readonly'}>
+    ${boleh && juri.length > 1 ? `<button type="button" class="cp-x" data-act="adm.juriHapus" data-id="${j.id}" title="Hapus juri ${i + 1}" aria-label="Hapus juri ${i + 1}">${ico('x')}</button>` : '<span></span>'}</div>`).join('') : '<p class="cp-kos">Belum ada juri.</p>';
+  if (fokusId) { const f = box.querySelector(`input[data-id="${fokusId}"]`); if (f) f.focus(); }
+}
+ACT['adm.daftarJuri'] = () => {
   const boleh = Adm.bolehMenilai();
-  return `<div class="cl-row${n ? '' : ' off'}" data-id="${j.id}">
-    <label class="cl-cb"><input type="checkbox" data-ch="adm.clPilih" ${n ? 'checked' : ''}><span>${esc(j.nama)}</span></label>
-    <div class="cl-st"><button type="button" data-act="adm.clJml" data-v="-1" aria-label="Kurangi">−</button><input type="number" min="0" max="200" value="${n}" inputmode="numeric" data-in="adm.clIsi" aria-label="Jumlah lembar ${esc(j.nama)}"><button type="button" data-act="adm.clJml" data-v="1" aria-label="Tambah">+</button></div>
-    ${boleh ? `<button type="button" class="cp-x" data-act="adm.cpHapus" data-id="${j.id}" title="Hapus ${esc(j.nama)}" aria-label="Hapus ${esc(j.nama)}">${ico('x')}</button>` : ''}</div>`;
+  Overlay.modal(`<div class="cl"><h3>Daftar Juri</h3><p class="lead">Juri yang memberi nilai di event ini. Nama tersimpan otomatis setelah diketik.</p>
+    <div class="cl-list" id="dj-list"></div>
+    ${boleh ? `<div class="cp-add"><button type="button" class="btn" data-act="adm.juriTambah">${ico('plus')} Tambah juri</button></div>` : '<p class="hint">Hanya panitia penilai yang bisa mengubah daftar juri.</p>'}
+    <div class="actions end"><button type="button" class="btn btn-primary" data-act="ovl.tutup">Selesai</button></div></div>`);
+  djGambar();
+};
+/* Daftar Juri Pantau */
+function dpGambar() {
+  const box = document.getElementById('dp-list'); if (!box) return;
+  const boleh = Adm.bolehMenilai(), list = nilaiData().juri_pantau || [];
+  box.innerHTML = list.length ? list.map((j, i) => `<div class="dj-row"><span class="dj-no">${i + 1}</span>
+    <input class="input" value="${esc(j.nama)}" maxlength="40" data-ch="adm.dpNama" data-id="${j.id}" aria-label="Nama juri pantau ${i + 1}" ${boleh ? '' : 'readonly'}>
+    ${boleh ? `<button type="button" class="cp-x" data-act="adm.cpHapus" data-id="${j.id}" title="Hapus ${esc(j.nama)}" aria-label="Hapus ${esc(j.nama)}">${ico('x')}</button>` : '<span></span>'}</div>`).join('') : '<p class="cp-kos">Belum ada nama juri pantau. Ketik namanya di bawah.</p>';
 }
-function cpGambar() {
-  const box = document.getElementById('cp-list'); if (!box) return;
-  const jml = new Map([...box.querySelectorAll('.cl-row')].map((r) => [r.dataset.id, r.querySelector('input[type=checkbox]').checked ? Number(r.querySelector('input[type=number]').value) || 0 : 0]));
-  const list = nilaiData().juri_pantau || [];
-  box.innerHTML = list.length ? list.map((j) => cpBaris(j, jml.has(String(j.id)) ? jml.get(String(j.id)) : 1)).join('') : '<p class="cp-kos">Belum ada nama juri pantau. Ketik namanya di bawah.</p>';
-  clHitung();
-}
-ACT['adm.cetakPantau'] = () => {
+ACT['adm.daftarPantau'] = () => {
   if (!Adm.pantauAktif()) { toast(PANTAU_BELUM, 'info'); return; }
   const boleh = Adm.bolehMenilai();
-  Overlay.modal(`<form data-submit="adm.cetakPantau" class="cl" novalidate>
-    <h3>Cetak lembar juri pantau</h3><p class="lead">Nama tersimpan untuk event ini — cukup diketik sekali. QR berisi juri pantau &amp; event.</p>
-    <div class="cl-hd"><span>Juri pantau &amp; jumlah lembar</span><button type="button" class="ck2-link" data-act="adm.clSemua">Pilih semua</button></div>
-    <div class="cl-list" id="cp-list"></div>
-    ${boleh ? `<div class="cp-add"><textarea class="input" id="cp-nama" rows="2" maxlength="2000" placeholder="Ketik nama juri pantau… (bisa tempel banyak nama, satu per baris)" aria-label="Nama juri pantau baru"></textarea><button type="button" class="btn" data-act="adm.cpTambah">${ico('plus')} Tambah</button></div>` : ''}
-    <div class="cl-sum" id="cl-sum">Pilih juri pantau lalu isi jumlah lembar.</div>
-    <div class="actions end"><button type="button" class="btn" data-act="ovl.tutup">Batal</button><button type="submit" class="btn btn-primary" id="cl-go" disabled>${ico('print')} Cetak / simpan PDF</button></div>
-  </form>`);
-  cpGambar();
+  Overlay.modal(`<div class="cl"><h3>Daftar Juri Pantau</h3><p class="lead">Juri pantau yang bertugas di event ini. Nama tersimpan otomatis.</p>
+    <div class="cl-list" id="dp-list"></div>
+    ${boleh ? `<div class="cp-add"><textarea class="input" id="cp-nama" rows="2" maxlength="2000" placeholder="Ketik / tempel nama juri pantau… (satu per baris)" aria-label="Nama juri pantau baru"></textarea><button type="button" class="btn" data-act="adm.cpTambah">${ico('plus')} Tambah</button></div>` : '<p class="hint">Hanya panitia penilai yang bisa mengubah daftar juri pantau.</p>'}
+    <div class="actions end"><button type="button" class="btn btn-primary" data-act="ovl.tutup">Selesai</button></div></div>`);
+  dpGambar();
+};
+CH['adm.dpNama'] = async (el) => {
+  const id = Number(el.dataset.id), nama = el.value.trim().replace(/\s+/g, ' ').slice(0, 40), d = nilaiData(), j = (d.juri_pantau || []).find((x) => x.id === id); if (!j) return;
+  if (!nama) { el.value = j.nama; toast('Nama tidak boleh kosong — pakai ✕ untuk menghapus', 'info'); return; }
+  if (nama === j.nama) return;
+  try { const row = await api.ubahPantau(id, nama); gantiBarisNilai(d.juri_pantau, (x) => x.id === id, row); Adm.tandaiUbah(); toast('Nama juri pantau disimpan', 'good'); }
+  catch (e) { el.value = j.nama; toast(/duplicate|23505/i.test(e.message || '') ? 'Nama itu sudah ada di daftar' : pesanError(e), 'bad'); }
 };
 ACT['adm.cpTambah'] = (el) => sibuk(el, async () => {
   const ta = document.getElementById('cp-nama'); if (!ta) return;
@@ -7803,16 +7839,31 @@ ACT['adm.cpTambah'] = (el) => sibuk(el, async () => {
   const dobel = baru.filter((n) => ada.has(n.toLowerCase())), masuk = baru.filter((n) => !ada.has(n.toLowerCase()));
   if (!masuk.length) { toast(dobel.length ? `${dobel.join(', ')} sudah ada di daftar` : 'Ketik nama juri pantau dulu', 'info'); ta.focus(); return; }
   try {
-    const rows = await api.tambahPantau(masuk); nilaiData().juri_pantau.push(...rows); Adm.tandaiUbah();
-    ta.value = ''; cpGambar(); toast(`${rows.length} juri pantau ditambahkan${dobel.length ? ` · ${dobel.length} sudah ada` : ''}`, 'good');
+    const rows = await api.tambahPantau(masuk); nilaiData().juri_pantau.push(...rows); Adm.tandaiUbah(); Adm.segarkanTampilan({ paksa: true });
+    ta.value = ''; dpGambar(); toast(`${rows.length} juri pantau ditambahkan${dobel.length ? ` · ${dobel.length} sudah ada` : ''}`, 'good');
   } catch (e) { toast(/duplicate|23505/i.test(e.message || '') ? 'Nama itu sudah ada di daftar' : pesanError(e), 'bad'); }
 });
 ACT['adm.cpHapus'] = async (el) => {
   const id = Number(el.dataset.id), d = nilaiData(), j = (d.juri_pantau || []).find((x) => x.id === id); if (!j) return;
   const n = (d.catatan_pantau || []).filter((c) => c.pantau_id === id).length;
   if (n && !(await konfirmasiDialog({ judul: `Hapus ${j.nama}?`, isi: `<b>${n} catatan</b> dari juri pantau ini ikut terhapus dari kolom keterangan.`, tombol: 'Hapus', bahaya: true }))) return;
-  try { await api.hapusPantau(id); d.juri_pantau = d.juri_pantau.filter((x) => x.id !== id); d.catatan_pantau = d.catatan_pantau.filter((c) => c.pantau_id !== id); Adm.tandaiUbah(); cpGambar(); gambarIsiNilai(); toast(`${j.nama} dihapus`, 'good'); }
+  try { await api.hapusPantau(id); d.juri_pantau = d.juri_pantau.filter((x) => x.id !== id); d.catatan_pantau = d.catatan_pantau.filter((c) => c.pantau_id !== id); Adm.tandaiUbah(); Adm.segarkanTampilan({ paksa: true }); dpGambar(); toast(`${j.nama} dihapus`, 'good'); }
   catch (e) { toast(pesanError(e), 'bad'); }
+};
+/* Cetak Form Juri Pantau */
+ACT['adm.cetakPantau'] = () => {
+  if (!Adm.pantauAktif()) { toast(PANTAU_BELUM, 'info'); return; }
+  const list = nilaiData().juri_pantau || [];
+  if (!list.length) { toast('Belum ada juri pantau. Isi dulu lewat tombol "Daftar Juri Pantau".', 'info'); return; }
+  Overlay.modal(`<form data-submit="adm.cetakPantau" class="cl" novalidate>
+    <h3>Cetak Form Juri Pantau</h3><p class="lead">Pilih juri pantau lalu isi jumlah lembar. QR berisi juri pantau &amp; event.</p>
+    <div class="cl-hd"><span>Juri pantau &amp; jumlah lembar</span><button type="button" class="ck2-link" data-act="adm.clSemua">Pilih semua</button></div>
+    <div class="cl-list" id="cp-list">${list.map((j) => `<div class="cl-row off" data-id="${j.id}">
+      <label class="cl-cb"><input type="checkbox" data-ch="adm.clPilih"><span>${esc(j.nama)}</span></label>
+      <div class="cl-st"><button type="button" data-act="adm.clJml" data-v="-1" aria-label="Kurangi">−</button><input type="number" min="0" max="200" value="0" inputmode="numeric" data-in="adm.clIsi" aria-label="Jumlah lembar ${esc(j.nama)}"><button type="button" data-act="adm.clJml" data-v="1" aria-label="Tambah">+</button></div></div>`).join('')}</div>
+    <div class="cl-sum" id="cl-sum">Pilih juri pantau lalu isi jumlah lembar.</div>
+    <div class="actions end"><button type="button" class="btn" data-act="ovl.tutup">Batal</button><button type="submit" class="btn btn-primary" id="cl-go" disabled>${ico('print')} Cetak / simpan PDF</button></div>
+  </form>`);
 };
 SUB['adm.cetakPantau'] = (form) => {
   const d = nilaiData(), pj = new Map((d.juri_pantau || []).map((j) => [String(j.id), j])), daftar = [];
