@@ -698,6 +698,19 @@ button.gm-row:hover { background: var(--surface-2); }
 .ck-fl { display: flex; gap: 8px; align-items: flex-start; border-radius: 10px; padding: 7px 10px; font-size: 12.5px; margin-top: 6px; line-height: 1.4; }
 .ck-fl .ico { width: 15px; height: 15px; flex: none; margin-top: 1px; }
 .ck-fl.w { background: var(--ck-y-bg); color: var(--ck-y); } .ck-fl.ok { background: var(--good-soft); color: var(--good-ink); }
+.ck-fl.bad { background: var(--ck-r-bg); color: var(--ck-r); }
+.ck-fl.ck-fl-in { margin: 0; border-radius: 0; border-top: 1px solid var(--line); }
+/* garis waktu Transfer ↔ Daftar */
+.ck-gw { padding: 10px 14px 9px; border-top: 1px solid var(--line); }
+.ck-gw-l { position: relative; display: flex; align-items: center; justify-content: space-between; height: 22px; margin: 0 6px; }
+.ck-gw-l::before { content: ""; position: absolute; left: 0; right: 0; top: 50%; border-top: 2px dashed var(--ck-y-bd); }
+.ck-gw.r .ck-gw-l::before { border-color: var(--ck-r-bd); }
+.ck-gw-d { position: relative; width: 12px; height: 12px; border-radius: 50%; background: var(--ck-y-dot); box-shadow: 0 0 0 3px var(--surface); }
+.ck-gw.r .ck-gw-d.tr { background: var(--ck-r-dot); } .ck-gw-d.df { background: var(--brand); }
+.ck-gw-l em { position: relative; font-style: normal; font-size: 12px; font-weight: 800; background: var(--surface); padding: 0 8px; color: var(--ck-y); }
+.ck-gw.r .ck-gw-l em { color: var(--ck-r); }
+.ck-gw-e { display: flex; justify-content: space-between; font-size: 12px; color: var(--muted); margin-top: 3px; }
+.ck-gw-e b { display: block; color: var(--ink); font-size: 13px; } .ck-gw-e div:last-child { text-align: right; }
 .ck-leg > div { display: flex; gap: 10px; align-items: flex-start; padding: 8px 0; border-top: 1px dashed var(--line); font-size: 13.5px; }
 .ck-leg > div:first-child { border-top: 0; }
 .ck-leg .ck-tile { cursor: default; padding: 4px 8px; flex: none; }
@@ -1785,6 +1798,27 @@ const _fmtZona = (() => {
   try { return new Intl.DateTimeFormat('en-GB', { timeZone: CONFIG.ZONA_IANA, year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', hourCycle: 'h23' }); }
   catch (e) { return null; }
 })();
+/* Selisih waktu transfer (terbaca dari bukti, jam WITA/WIB di struk) dengan waktu pendaftaran dibuat.
+   lama  : transfer > 24 jam sebelum daftar        → kuning
+   sangat: transfer > 14 hari sebelum daftar       → merah
+   wajar : transfer > 60 menit SETELAH daftar      → merah (bukti diunggah saat daftar, jadi tidak mungkin) */
+const BATAS_WAKTU = { lamaJam: 24, sangatHari: 14, toleransiMnt: 60 };
+function cekWaktuBukti(r, b) {
+  if (!r || !b || b.gagal || !b.waktu || !r.created_at) return null;
+  const tT = Date.parse(String(b.waktu).slice(0, 19) + 'Z'), p = bagianWaktu(r.created_at);
+  if (isNaN(tT) || !p) return null;
+  const tD = Date.UTC(p.y, p.m - 1, p.d, p.h, p.mi), sel = tD - tT;   // + = transfer sebelum daftar
+  const k = sel < -BATAS_WAKTU.toleransiMnt * 60000 ? 'wajar' : sel > BATAS_WAKTU.sangatHari * 864e5 ? 'sangat' : sel > BATAS_WAKTU.lamaJam * 3600e3 ? 'lama' : null;
+  return k ? { k, sel, waktu: String(b.waktu).slice(0, 19), daftar: r.created_at } : null;
+}
+function durasiTeks(ms, pendek = false) {
+  const m = Math.round(Math.abs(ms) / 60000), h = Math.floor(m / 1440), j = Math.floor((m % 1440) / 60), mn = m % 60;
+  if (h >= 3 || (pendek && h)) return `${h} hari`;
+  if (h) return `${h} hari${j ? ` ${j} jam` : ''}`;
+  if (j) return pendek ? `${j} jam` : `${j} jam${mn ? ` ${mn} mnt` : ''}`;
+  return `${mn} mnt`;
+}
+const WK_LABEL = { lama: ['y', 'Transfer lama'], sangat: ['r', 'Bukti sangat lama'], wajar: ['r', 'Waktu tidak wajar'] };
 function bagianWaktu(nilai) {
   const d = nilai instanceof Date ? nilai : new Date(nilai);
   if (isNaN(d)) return null;
@@ -2984,6 +3018,12 @@ class DemoAPI {
     // bayar gabungan tetapi nominal LEBIH dari total tagihan
     const lebih = rows.filter((r) => r.status === 'menunggu' && !r.bukti_hash && r.bukti_rek === undefined && r.bukti_ref === undefined).slice(10, 12);
     if (lebih.length === 2) lebih.forEach((r) => { r.nama_sekha = lebih[0].nama_sekha; r.no_wa = lebih[0].no_wa; r.alamat = lebih[0].alamat; r.bukti_hash = 'contoh-hash-lebih'; r.bukti_ref = '202705181402119965'; r.bukti_nominal = lebih[0].harga + lebih[1].harga + 50000; r.bukti_waktu = lebih[0].created_at; });
+    // selisih waktu transfer vs waktu daftar: lama (3 hari), sangat lama (21 hari), tidak wajar (transfer setelah daftar)
+    const polos = rows.filter((r) => r.status === 'menunggu' && !r.bukti_hash && r.bukti_rek === undefined && r.bukti_ref === undefined && r.bukti_waktu === undefined).slice(12, 15);
+    const geser = (r, mnt) => { r.bukti_waktu = new Date(Date.parse(r.created_at) + mnt * 60000).toISOString(); };
+    if (polos[0]) geser(polos[0], -(3 * 1440 + 2 * 60 + 5));
+    if (polos[1]) geser(polos[1], -21 * 1440);
+    if (polos[2]) geser(polos[2], 2 * 60 + 11);
     db.daftar = rows.reverse();
   }
   _kode(rows) {
@@ -3589,9 +3629,9 @@ class DemoAPI {
   bacaContoh(path) {
     if (!String(path).startsWith('contoh/')) return null;
     const r = this.db.daftar.find((d) => d.bukti_path === path); if (!r) return null;
-    const w = new Date(r.bukti_waktu || r.created_at), p = (n) => String(n).padStart(2, '0');
+    const w = bagianWaktu(r.bukti_waktu || r.created_at), p = (n) => String(n).padStart(2, '0');
     return { gambar: this._gambarContoh(path), nominal: r.bukti_nominal || r.harga, nama: String(r.nama_rekening || '').toUpperCase(),
-      waktu: `${w.getFullYear()}-${p(w.getMonth() + 1)}-${p(w.getDate())}T${p(w.getHours())}:${p(w.getMinutes())}:00`,
+      waktu: `${w.y}-${p(w.m)}-${p(w.d)}T${p(w.h)}:${p(w.mi)}:00`,
       ref: this._refContoh(r), rek4: this._rekContoh(r) };
   }
   /* contoh No. Referensi & 4 angka rekening pengirim (data demo) */
@@ -5571,12 +5611,38 @@ const Adm = {
     });
     daftarG.sort((p, q) => q.lv - p.lv || p.rows[0].created_at.localeCompare(q.rows[0].created_at))
       .forEach((g, i) => { g.label = String(i + 1); g.rows.forEach((r) => peta.set(r.id, g)); });
+    // selisih waktu transfer ↔ waktu daftar: pendaftaran tunggal jadi kartu "Perlu dicek" sendiri
+    rows.forEach((r) => {
+      if (peta.has(r.id) || r.status === 'ditolak') return;
+      const b = sah(r), wk = cekWaktuBukti(r, b); if (!wk) return;
+      const nominal = b.nominal || null;
+      peta.set(r.id, { rows: [r], n: 1, total: r.harga || 0, nominal, kurang: nominal != null ? (r.harga || 0) - nominal : null, lv: 1, tingkat: 1, why: 'waktu', wk,
+        ref: b.ref || null, rek4: b.rek4 || null, nama: b.nama || r.nama_rekening, waktu: b.waktu, beda: false, status: new Map([[r.id, 'waktu']]) });
+    });
     return peta;
   },
   // Filter "Bukti dobel": tiap kelompok bukti yang sama jadi satu kotak terpisah dengan judul & warna sendiri
   /* ---------- Cek Bukti (pengganti Bukti Transfer Sama & Mirip) ---------- */
   bacaSah(r) { const b = this.idx.baca.get(r.id); return b && b.bukti_path === r.bukti_path ? b : null; },
+  lvCek(g) {
+    if (g.why === 'waktu') return g.wk.k === 'lama' ? ['y', 'Perlu dicek · waktu'] : WK_LABEL[g.wk.k];
+    return { 3: ['r', 'Pasti sama'], 2: ['o', 'Sangat mungkin'], 1: ['y', 'Perlu dicek'], 0: ['g', 'Bayar gabungan'] }[g.lv];
+  },
+  waktuRow(r) { return r.bukti_path ? cekWaktuBukti(r, this.bacaSah(r)) : null; },
+  /* garis waktu Transfer ↔ Daftar */
+  vGarisWaktu(wk) {
+    const tr = fmtWaktu(wk.waktu).replace(/ \d{4},/, ','), df = fmtWaktu(wk.daftar).replace(/ \d{4},/, ',');
+    const a = wk.k === 'wajar' ? ['Daftar', df, 'df'] : ['Transfer', tr, 'tr'], z = wk.k === 'wajar' ? ['Transfer', tr, 'tr'] : ['Daftar', df, 'df'];
+    return `<div class="ck-gw ${WK_LABEL[wk.k][0]}"><div class="ck-gw-l"><span class="ck-gw-d ${a[2]}"></span><em>${durasiTeks(wk.sel)}</em><span class="ck-gw-d ${z[2]}"></span></div>
+      <div class="ck-gw-e"><div>${a[0]}<b>${esc(a[1])}</b></div><div>${z[0]}<b>${esc(z[1])}</b></div></div></div>`;
+  },
   alasanCek(g) {
+    if (g.why === 'waktu') {
+      const d = durasiTeks(g.wk.sel);
+      if (g.wk.k === 'wajar') return `Waktu transfer <b>${d} setelah</b> pendaftaran dibuat — bukti mungkin diedit atau salah terbaca`;
+      if (g.wk.k === 'sangat') return `Transfer <b>${d} sebelum</b> mendaftar — kemungkinan bukti lama / bukti event lain`;
+      return `Transfer <b>${d} sebelum</b> mendaftar — wajar bila sudah bayar duluan, cek nama pengirim`;
+    }
     const w = g.waktu ? String(g.waktu) : '', jam = w.slice(11, 16).replace(':', '.'), tgl = w ? `${+w.slice(8, 10)} ${BLN[+w.slice(5, 7) - 1]}` : '';
     const siapa = g.beda ? ' dari <b>pendaftar berbeda</b>' : ' dari pendaftar yang sama';
     if (g.why === 'hash') return `File bukti yang <b>persis sama</b> dipakai di <b>${g.n} pendaftaran</b>${siapa}`;
@@ -5585,6 +5651,7 @@ const Adm = {
     return `${rupiah(g.nominal)} · ${tgl} ${jam} · nama pengirim <b>${esc(g.nama || '-')}</b> sama`;
   },
   vUangCek(g) {
+    if (g.why === 'waktu') return `<div class="ck-uang ${g.wk.k === 'lama' ? 'y' : 'bad'}"><span>${g.wk.k === 'wajar' ? 'Setelah daftar' : 'Selisih'}</span><b>${g.wk.k === 'wajar' ? '+' : ''}${durasiTeks(g.wk.sel, true)}</b><small>${g.nominal != null ? `bukti ${rupiah(g.nominal)} · harga ${rupiah(g.total)}` : 'nominal tak terbaca'}</small></div>`;
     if (g.lv === 0) return `<div class="ck-uang ok"><span>Sesuai</span><b>${rupiah(g.nominal)}</b><small>untuk ${g.n} layangan · tagihan ${rupiah(g.total)}</small></div>`;
     if (g.nominal == null) return `<div class="ck-uang n"><span>Nominal</span><b>tak terbaca</b><small>total tagihan ${rupiah(g.total)}</small></div>`;
     const lebih = g.kurang < 0, sel = rupiah(Math.abs(g.kurang));
@@ -5593,8 +5660,8 @@ const Adm = {
     return `<div class="ck-uang bad"><span>Kurang</span><b>${sel}</b><small>bukti ${rupiah(g.nominal)} · dipakai ${rupiah(g.total)}</small></div>`;
   },
   vKartuCek(g) {
-    const LV = { 3: ['r', 'Pasti sama'], 2: ['o', 'Sangat mungkin'], 1: ['y', 'Perlu dicek'], 0: ['g', 'Bayar gabungan'] }[g.lv];
-    const ST = { tertutup: ['ok', 'tertutup bukti'], belum: ['bad', 'belum terbayar'], cek: ['n', 'cek manual'], nominal: ['n', 'cek nominal'], ditolak: ['n', 'ditolak'] };
+    const LV = this.lvCek(g);
+    const ST = { tertutup: ['ok', 'tertutup bukti'], belum: ['bad', 'belum terbayar'], cek: ['n', 'cek manual'], nominal: ['n', 'cek nominal'], ditolak: ['n', 'ditolak'], waktu: ['n', 'cek waktu'] };
     const dj = this.s.data.jenis, siapa = (c) => `<b>${esc(labelOleh(c.oleh) || 'panitia')}</b> · ${esc(fmtWaktu(c.created_at))}`;
     const id0 = esc(g.rows[0].id);
     const baris = g.rows.map((r) => { const st = ST[g.status.get(r.id)] || ST.cek, j = this.idx.jenis.get(r.jenis);
@@ -5611,9 +5678,13 @@ const Adm = {
       if (g.rec) ket = `<div class="note bad cek-ulang">${ico('alert')}<span><b>Ada pendaftaran baru</b> dengan bukti yang sama. Sebelumnya sudah dicek oleh ${siapa(g.rec)} — periksa ulang.</span></div>`;
       aksi = `<div class="ck-act"><button type="button" class="btn btn-sm ck-bad" data-act="adm.cekHasil" data-v="bermasalah" data-id="${id0}">${ico('alert')}<span class="pj">Tandai bermasalah</span><span class="ck-lp">Bermasalah</span></button><button type="button" class="btn btn-sm ck-ok" data-act="adm.cekHasil" data-v="sah" data-id="${id0}">${ico('check')}<span class="pj">Sah, selesai</span><span class="ck-lp">Sah</span></button><button type="button" class="btn btn-sm btn-ghost ck-lihat" data-act="adm.buka" data-id="${id0}"><span class="pj">Lihat bukti</span><span class="ck-lp">Bukti</span>${ico('arrow-r')}</button></div>`;
     }
+    if (g.why !== 'waktu') {     // kelompok bukti sama/mirip yang juga punya selisih waktu janggal
+      const wk = g.rows.map((r) => this.waktuRow(r)).filter(Boolean).sort((p, q) => (q.k !== 'lama') - (p.k !== 'lama'))[0];
+      if (wk) ket += `<div class="ck-fl ${WK_LABEL[wk.k][0] === 'y' ? 'w' : 'bad'} ck-fl-in">${ico('clock')}<span><b>${WK_LABEL[wk.k][1]}:</b> transfer ${esc(fmtWaktu(wk.waktu))} · ${durasiTeks(wk.sel)} ${wk.k === 'wajar' ? 'setelah' : 'sebelum'} daftar.</span></div>`;
+    }
     return `<section class="ck ${LV[0]}${g.selesai && g.lv > 0 ? ' selesai' : ''}">
       <div class="ck-h"><div class="ck-t"><div class="ck-lv"><i></i>${LV[1]}</div><div class="ck-why">${this.alasanCek(g)}</div></div>${this.vUangCek(g)}</div>
-      ${ket}<div class="ck-rows">${baris}</div>${aksi}</section>`;
+      ${g.why === 'waktu' ? this.vGarisWaktu(g.wk) : ''}${ket}<div class="ck-rows">${baris}</div>${aksi}</section>`;
   },
   vCekDaftar(rows) {
     const f = this.s.f, st = this.idx.st, ids = new Set(rows.map((r) => r.id));
@@ -5642,10 +5713,10 @@ const Adm = {
   },
   /* ringkasan cek bukti di detail pendaftaran */
   vKotakCek(r) {
-    const g = this.idx.cekGrup.get(r.id), b = r.bukti_path ? this.bacaSah(r) : null;
+    const g0 = this.idx.cekGrup.get(r.id), g = g0 && g0.why !== 'waktu' ? g0 : null, b = r.bukti_path ? this.bacaSah(r) : null;
     let h = '';
     if (g) {
-      const LV = { 3: ['r', 'Pasti sama'], 2: ['o', 'Sangat mungkin'], 1: ['y', 'Perlu dicek'], 0: ['g', 'Bayar gabungan'] }[g.lv];
+      const LV = this.lvCek(g);
       const semua = g.rows.map((o, i) => {
         const ini = o.id === r.id, tolak = o.status === 'ditolak';
         const isi = `<span class="gm-n">${i + 1}</span><span class="gm-t"><b>${esc(o.nama_sekha)}</b>${ini ? '<span class="gm-tag">Sedang dibuka</span>' : ''}${tolak ? '<span class="gm-tag x">Ditolak</span>' : ''}<small>${esc(this.namaJenis(o.jenis))} · daftar ${esc(fmtWaktu(o.created_at).replace(/ \d{4},/, ','))}</small></span><span class="gm-r"><b>No. ${esc(o.nomor_layangan || '—')}${ini ? '' : '<i aria-hidden="true">›</i>'}</b><small${tolak ? ' class="gm-coret"' : ''}>${rupiah(o.harga)}</small></span>`;
@@ -5661,10 +5732,17 @@ const Adm = {
       const kv = [['No. Referensi', b.ref ? `<span class="ck-mono">${esc(b.ref)}</span>` : '—'], ['Rekening pengirim', b.rek4 ? `••${esc(b.rek4)}` : '—'], ['Nama pengirim', esc(b.nama || '—')], ['Nominal', b.nominal ? rupiah(b.nominal) : '—'], ['Waktu transfer', b.waktu ? esc(fmtWaktu(String(b.waktu).slice(0, 19))) : '—']];
       const fl = [];
       if (!g && b.nominal && b.nominal !== r.harga) fl.push(['w', `<b>Nominal ${b.nominal < r.harga ? 'kurang' : 'lebih'} ${rupiah(Math.abs(r.harga - b.nominal))}:</b> bukti ${rupiah(b.nominal)}, harga ${esc(this.namaJenis(r.jenis))} ${rupiah(r.harga)}.`]);
-      if (b.waktu && ms(b.waktu) < Date.parse(r.created_at) - 14 * 864e5) fl.push(['w', `<b>Bukti lama:</b> tanggal transfer ${esc(fmtWaktu(String(b.waktu).slice(0, 19)))}, jauh sebelum mendaftar.`]);
+      const wk = cekWaktuBukti(r, b);
+      if (wk) {
+        const tr = esc(fmtWaktu(wk.waktu)), df = esc(fmtWaktu(wk.daftar)), d = durasiTeks(wk.sel);
+        const sls = g0 && g0.why === 'waktu' && g0.selesai && g0.rec ? ` <i>Sudah dicek: ${g0.rec.hasil === 'bermasalah' ? 'bermasalah' : 'sah'}.</i>` : '';
+        if (wk.k === 'wajar') fl.push(['bad', `<b>Waktu tidak wajar:</b> transfer ${tr} — <b>${d} setelah</b> mendaftar (${df}). Buka bukti dan cocokkan tanggalnya.${sls}`, 'clock']);
+        else if (wk.k === 'sangat') fl.push(['bad', `<b>Bukti sangat lama:</b> transfer ${tr} — <b>${d} sebelum</b> mendaftar (${df}).${sls}`, 'clock']);
+        else fl.push(['w', `<b>Transfer ${d} sebelum daftar.</b> Transfer ${tr} · daftar ${df}. Wajar bila sudah bayar duluan; cek nama pengirim.${sls}`, 'clock']);
+      }
       if (!g) fl.push(['ok', 'Bukti tidak dipakai pendaftaran lain.']);
       h += `<details class="ck-baca"><summary class="ck-baca-h"><span>Terbaca dari bukti</span><span class="ck-baca-r">${b.nominal ? rupiah(b.nominal) : 'lihat'}<svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true"><path d="M6 9l6 6 6-6" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></span></summary>${kv.map(([k, v]) => `<div class="kv"><span>${k}</span><b>${v}</b></div>`).join('')}</details>
-        ${fl.map(([k, t]) => `<div class="ck-fl ${k}">${k === 'ok' ? ico('check') : ico('alert')}<span>${t}</span></div>`).join('')}`;
+        ${fl.map(([k, t, ic]) => `<div class="ck-fl ${k}">${ic ? ico(ic) : k === 'ok' ? ico('check') : ico('alert')}<span>${t}</span></div>`).join('')}`;
     } else if (b && b.gagal) h += `<div class="ck-fl w">${ico('alert')}<span>Bukti tidak terbaca otomatis (buram/terpotong) — cek manual.</span></div>`;
     return h;
   },
@@ -5782,7 +5860,9 @@ const Adm = {
     else if (r.status === 'ditolak' && r.wa_terkirim_at) wa = ['sent', 'WA penolakan sudah dikirim', 'check'];
     const flags = [];
     const g = this.idx.cekGrup.get(r.id);
-    if (g) { const L = { 3: ['r', 'Pasti sama'], 2: ['o', 'Sangat mungkin'], 1: ['y', 'Perlu dicek'], 0: ['g', 'Bayar gabungan'] }[g.lv]; flags.push(`<span class="flag ck-flag ${L[0]}${g.lv > 0 && g.selesai ? ' sls' : ''}" title="Cek Bukti: ${L[1]}${g.lv > 0 && g.selesai ? ' (selesai dicek)' : ''}">${g.lv ? ico('alert') : ico('check')}${L[1]}</span>`); }
+    const wk = this.waktuRow(r);
+    if (wk) { const sls = g && g.why === 'waktu' && g.selesai; flags.push(`<span class="flag ck-flag ${sls ? 'sls' : WK_LABEL[wk.k][0]}" title="Transfer ${esc(fmtWaktu(wk.waktu))} · daftar ${esc(fmtWaktu(wk.daftar))}${sls ? ' (selesai dicek)' : ''}">${ico('clock')}${WK_LABEL[wk.k][1]}${wk.k === 'wajar' ? '' : ` · ${durasiTeks(wk.sel, true)}`}</span>`); }
+    if (g && g.why !== 'waktu') { const L = this.lvCek(g); flags.push(`<span class="flag ck-flag ${L[0]}${g.lv > 0 && g.selesai ? ' sls' : ''}" title="Cek Bukti: ${L[1]}${g.lv > 0 && g.selesai ? ' (selesai dicek)' : ''}">${g.lv ? ico('alert') : ico('check')}${L[1]}</span>`); }
     if (this.idx.baruIds && this.idx.baruIds.has(r.id)) flags.push('<span class="flag baru-tag" title="Pendaftaran baru di kelompok yang sebelumnya sudah selesai dicek">BARU</span>');
     if (!r.bukti_path) flags.push('<span class="flag info">Manual</span>');
     const baru = this.idx.baruIds && this.idx.baruIds.has(r.id);
@@ -7109,6 +7189,7 @@ ACT['adm.cekInfo'] = () => Overlay.modal(`<div><h3>Arti warna Cek Bukti</h3>
   <div class="ck-leg"><div><span class="ck-tile r"><b><i></i></b></span><span><b>Pasti sama</b> — file bukti identik, atau No. Referensi transaksi sama.</span></div>
   <div><span class="ck-tile o"><b><i></i></b></span><span><b>Sangat mungkin</b> — nominal + waktu (≤ 1 menit) + 4 angka rekening pengirim sama.</span></div>
   <div><span class="ck-tile y"><b><i></i></b></span><span><b>Perlu dicek</b> — nominal + waktu + nama pengirim sama, rekening tidak terbaca.</span></div>
+  <div><span class="ck-tile y"><b>${ico('clock')}</b></span><span><b>Perlu dicek · waktu</b> — waktu transfer di bukti <b>lebih dari 24 jam sebelum</b> mendaftar (kuning), <b>lebih dari 14 hari</b> sebelum, atau justru <b>setelah</b> mendaftar (merah). Dihitung di kotak Perlu dicek.</span></div>
   <div><span class="ck-tile g"><b>${ico('check')}</b></span><span><b>Bayar gabungan</b> — satu transfer untuk beberapa layangan dan nominalnya <b>pas sama</b> dengan total tagihan. Wajar, tidak perlu dicek.</span></div></div>
   <p class="hint"><b>Kurang</b> = nominal di bukti lebih kecil dari total tagihan semua pendaftaran yang memakainya. <b>Lebih</b> = nominal lebih besar dari total tagihan (cek apakah ada pendaftaran yang belum masuk, atau perlu dikembalikan). Pendaftaran paling awal dianggap tertutup lebih dulu; sisanya <b>belum terbayar</b>.</p>
   <div class="actions end"><button type="button" class="btn btn-primary" data-act="ovl.tutup">Mengerti</button></div></div>`);
