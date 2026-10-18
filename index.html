@@ -636,7 +636,7 @@ details.tbl-toggle summary { cursor: pointer; font-size: 13px; color: var(--bran
 .ln-qr-k svg { display: block; width: 100%; height: 100%; }
 .ln-qr span { font-size: 6.5pt; font-weight: 800; letter-spacing: .12em; color: #55585f; }
 .ln-lab { display: block; font-size: 8pt; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: #6b6e76; }
-.ln-meta { position: absolute; left: 18mm; right: 18mm; top: 53mm; display: grid; grid-template-columns: 1fr 1fr; gap: 10mm; }
+.ln-meta { position: absolute; left: 18mm; right: 18mm; top: 53mm; display: grid; grid-template-columns: 1fr 1fr 34mm; gap: 8mm; }
 .ln-isi { height: 10.5mm; border-bottom: .25mm solid #9a9da3; display: flex; align-items: flex-end; padding-bottom: 1mm; }
 .ln-isi b { font-size: 13pt; font-weight: 700; }
 .ln-meja { position: absolute; left: 18mm; width: 174mm; border-collapse: collapse; table-layout: fixed; }
@@ -1826,6 +1826,11 @@ fieldset.rentang legend { font-weight: 700; font-size: 14px; padding: 0 6px; }
 .kp-i:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
 .kp-i.ragu::after { content: ""; position: absolute; top: -2px; right: -2px; width: 8px; height: 8px; border-radius: 50%; background: var(--warn); border: 1.5px solid var(--surface); }
 .kp-pop h3 { margin: 0 0 2px; font-size: 17px; }
+.ni-i { all: unset; box-sizing: border-box; display: inline-grid; place-items: center; width: 20px; height: 20px; border-radius: 50%; border: 1.5px solid var(--brand); color: var(--brand); background: var(--surface); font: italic 800 11px Georgia, 'Times New Roman', serif; cursor: pointer; flex: none; }
+.ni-i:hover, .ni-i:focus-visible { background: var(--brand); color: #fff; }
+.ni-i:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
+.ni-kv { display: grid; grid-template-columns: 116px minmax(0, 1fr); gap: 7px 10px; font-size: 13.5px; padding: 10px 0; border-top: 1px dashed var(--line); }
+.ni-kv > span { color: var(--muted); } .ni-kv b { font-weight: 650; overflow-wrap: anywhere; } .ni-kv small { display: block; color: var(--muted); font-weight: 500; font-size: 12.5px; }
 .kp-isi { max-height: var(--mh, none); overflow-y: auto; overscroll-behavior: contain; }
 .kp-sub { margin: 0 0 6px; font-size: 12.5px; color: var(--muted); }
 .kpj { display: grid; grid-template-columns: 32px minmax(0, 1fr); gap: 4px 10px; padding: 10px 0; border-top: 1px dashed var(--line); }
@@ -1874,7 +1879,7 @@ form .kp-foto { margin-bottom: 12px; height: 80px; }
   .nr:not(.nh) .ntot { grid-area: tot; font-size: 17px; line-height: 24px; display: flex; flex-direction: row-reverse; align-items: baseline; gap: 4px; }
   .nr:not(.nh) .ntot small { display: inline; }
   .nr:not(.nh) .nsk { grid-area: sk; gap: 3px 6px; }
-  .nr:not(.nh) .nsk b { font-size: 14.5px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; max-width: 100%; }
+  .nr:not(.nh) .nsk b { font-size: 14.5px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; max-width: calc(100% - 28px); }
   .nr:not(.nh) .nsk .ntag.blm { display: none; }
   .nr:not(.nh) .nsk .ntag { font-size: 10.5px; padding: 0 5px; }
   .nr:not(.nh) .nsk small { font-size: 11.5px; line-height: 1.3; }
@@ -2235,7 +2240,7 @@ function vLembarNilai({ event, juri, qr, pantau = false }) {
     .map(([x, y]) => `<i class="ln-tanda" style="left:${x}mm;top:${y}mm"></i>`).join('');
   return `<section class="ln-hal">${tanda}
     <div class="ln-kepala"><div><h1>${pantau ? 'LEMBAR CATATAN JURI PANTAU' : 'LEMBAR NILAI JURI'}</h1><p>${esc(event)}</p></div><div class="ln-qr"><div class="ln-qr-k">${qr}</div><span>SCAN UNTUK REKAP</span></div></div>
-    <div class="ln-meta"><div><span class="ln-lab">${pantau ? 'Juri pantau' : 'Juri'}</span><div class="ln-isi"><b>${esc(juri)}</b></div></div><div><span class="ln-lab">Jenis layangan</span><div class="ln-isi"></div></div></div>
+    <div class="ln-meta"><div><span class="ln-lab">${pantau ? 'Juri pantau' : 'Juri'}</span><div class="ln-isi"><b>${esc(juri)}</b></div></div><div><span class="ln-lab">Jenis layangan</span><div class="ln-isi"></div></div><div><span class="ln-lab">Seri</span><div class="ln-isi"></div></div></div>
     <table class="ln-meja" style="top:${L.mejaY}mm"><colgroup>${meja.map((w) => `<col style="width:${w}mm">`).join('')}<col style="width:${sisa}mm"></colgroup>
       <thead><tr style="height:${L.kepalaH}mm"><th>#</th><th>Nomor layangan</th>${pantau ? '<th>Keterangan</th>' : '<th class="c">Nilai</th><th>Keterangan singkat</th>'}</tr></thead>
       <tbody>${baris.replace(/<tr>/g, `<tr style="height:${L.barisH}mm">`)}</tbody></table>
@@ -6648,7 +6653,7 @@ const Adm = {
     return `<div class="nr${x.dq ? ' dq' : ''}${x.seri ? ' seri' : ''}" style="${kolom}" data-pid="${id}">
       <span class="nrk"><b class="rk ${kelas}">${x.dq ? '✕' : x.rank || '—'}</b></span>
       <span class="nno">${esc(r.nomor_layangan || '-')}</span>
-      <span class="nsk"><b>${esc(r.nama_sekha)}</b>${tags}
+      <span class="nsk"><b>${esc(r.nama_sekha)}</b><button type="button" class="ni-i" data-act="adm.nilaiInfo" data-pid="${id}" title="Info layangan" aria-label="Info nomor ${esc(r.nomor_layangan || '-')}">i</button>${tags}
         ${x.dq ? `<small class="nal">Alasan: ${esc(x.p.alasan || '-')}</small>` : ''}
         ${x.seri && !ro ? `<button type="button" class="btn btn-xs nnaik" data-act="adm.nilaiNaik" data-pid="${id}" title="Letakkan di atas yang nilainya sama">${ico('arrow-up')} Naikkan</button>` : ''}
         ${x.p.catatan ? `<small class="ncat">${ico('edit')} ${esc(x.p.catatan)}</small>` : ''}</span>
@@ -6689,6 +6694,16 @@ const Adm = {
     const isi = kata.length ? kata.map((w) => `<span class="kpw${w.ragu ? ' ragu' : ''}"${w.ragu ? ' title="Tulisan kurang jelas — sebaiknya dicek"' : ''}>${esc(w.t)}${w.n > 1 ? `<sup>${w.n}</sup>` : ''}</span>`).join('<span class="kps">, </span>') : '<span class="kpk">— belum ada catatan</span>';
     return `<span class="nkp${kata.length ? '' : ' kos'}"><span class="nkp-l">Juri pantau</span><span class="nkp-t">${isi}</span>
       ${n || this.bolehMenilai() ? `<button type="button" class="kp-i${kata.some((w) => w.ragu) ? ' ragu' : ''}" data-act="adm.kpInfo" data-pid="${esc(r.id)}" title="Catatan tiap juri pantau${this.bolehMenilai() ? ' & koreksi' : ''}" aria-label="Catatan juri pantau nomor ${esc(r.nomor_layangan || '-')}">i</button>` : ''}</span>`;
+  },
+  vInfoLayangan(pid) {
+    const d = this.s.data, r = this.baris(pid) || {}, j = this.idx.jenis.get(r.jenis), x = this.idx.seri.get(r.seri_id);
+    const pk = this.peringkat(r.jenis), b = pk.semua.find((y) => y.r.id === pid) || {}, p = b.p || {};
+    const st = b.dq ? 'Diskualifikasi' : b.rank ? `Peringkat ${b.rank}` : b.kosong ? 'Belum dinilai' : 'Nilai belum lengkap';
+    const kv = (k, v) => v ? `<span>${k}</span><b>${v}</b>` : '';
+    return `<h3>No. ${esc(r.nomor_layangan || '-')} · ${esc(r.nama_sekha || '-')}</h3><p class="kp-sub">${esc((j && j.nama) || r.jenis || '')} · ${st}</p>
+      <div class="ni-kv">${kv('Alamat', esc(r.alamat || ''))}${kv('Seri terbang', x ? `${esc(this.labelGrupAdm(x))}${r.kotak ? ` · kotak ${r.kotak}` : ''}<small>${esc(jadwalText(x))}</small>` : '')}</div>
+      ${b.dq || p.catatan ? `<div class="ni-kv">${b.dq ? kv('Alasan DQ', esc(p.alasan || '-')) : ''}${kv('Catatan panitia', esc(p.catatan || ''))}</div>` : ''}
+      <div class="kp-kaki"><button type="button" class="btn btn-sm" data-act="ovl.tutup">Tutup</button></div>`;
   },
   vPantauPop(pid) {
     const d = this.s.data, r = this.baris(pid) || {}, boleh = this.bolehMenilai();
@@ -7877,13 +7892,13 @@ SUB['adm.cetakPantau'] = (form) => {
   cetakLembarNilai(daftar, (d.pengaturan && d.pengaturan.nama_event) || 'Lomba Layangan', true);
 };
 /* ---- juri pantau: kolom keterangan → tombol (i) → catatan tiap juri pantau & koreksi ---- */
-function kpBuka(pid, anchor) {
+function kpBuka(pid, anchor, isi) {
   Overlay.tutupSemua();
-  const it = Overlay.buka(`<div class="ovl center kp-bg" data-ovl-bg><div class="modal kp-pop" role="dialog" aria-modal="true" data-pid="${esc(pid)}"><div class="kp-isi">${Adm.vPantauPop(pid)}</div></div></div>`);
+  const it = Overlay.buka(`<div class="ovl center kp-bg" data-ovl-bg><div class="modal kp-pop" role="dialog" aria-modal="true" ${isi ? '' : `data-pid="${esc(pid)}"`}><div class="kp-isi">${isi || Adm.vPantauPop(pid)}</div></div></div>`);
   const pop = it.el.querySelector('.kp-pop');
   if (anchor && anchor.isConnected && window.matchMedia('(min-width: 761px)').matches) {
     const a = anchor.getBoundingClientRect(), w = pop.offsetWidth, h = pop.offsetHeight, H = window.innerHeight;
-    const left = Math.max(12, Math.min(window.innerWidth - w - 12, a.right - w + 14));
+    const left = Math.max(12, Math.min(window.innerWidth - w - 12, isi ? a.left - 40 : a.right - w + 14));
     const bawah = H - a.bottom - 22, atasRuang = a.top - 22;
     const atas = h > bawah && atasRuang > bawah, ruang = atas ? atasRuang : bawah;
     if (h > ruang) pop.style.setProperty('--mh', Math.max(160, ruang - 30) + 'px');
@@ -7901,6 +7916,7 @@ function kpSegarkan(pid) {
   }
 }
 ACT['adm.kpInfo'] = (el) => kpBuka(el.dataset.pid, el);
+ACT['adm.nilaiInfo'] = (el) => kpBuka(el.dataset.pid, el, Adm.vInfoLayangan(el.dataset.pid));
 ACT['adm.kpKoreksi'] = (el) => {
   const id = Number(el.dataset.id), d = nilaiData(), c = (d.catatan_pantau || []).find((x) => x.id === id); if (!c) return;
   const nm = ((d.juri_pantau || []).find((j) => j.id === c.pantau_id) || {}).nama || 'Juri pantau', r = Adm.baris(c.pendaftaran_id) || {}, foto = urlGambarAman(c.foto_url);
