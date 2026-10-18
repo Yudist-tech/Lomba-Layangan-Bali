@@ -616,6 +616,16 @@ details.tbl-toggle summary { cursor: pointer; font-size: 13px; color: var(--bran
 .ck2-chip { border: 1px solid var(--line); border-radius: 10px; padding: 6px 4px; background: var(--surface); color: var(--muted); font: inherit; font-size: 12px; cursor: pointer; display: grid; justify-items: center; gap: 0; min-width: 0; }
 .ck2-chip b { font-size: 17px; color: var(--ink); line-height: 1.2; } .ck2-chip span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
 .ck2-chip.on { border-color: var(--brand); box-shadow: inset 0 0 0 1px var(--brand); color: var(--ink); }
+.ck-seg.ck2-seg { width: 100%; grid-template-columns: repeat(3, 1fr); margin-bottom: 6px; }
+.ck-seg.ck2-seg button { padding: 7px 4px; gap: 5px; white-space: nowrap; }
+@media (max-width: 400px) { .ck-seg.ck2-seg button { font-size: 12.5px; } .ck-seg.ck2-seg em { padding: 1px 5px; } }
+.ck2-seg button.ck2-masalah.on em { background: var(--ck-r-dot); } .ck2-seg button.ck2-selesai.on em { background: var(--muted); }
+.ck2-ket { margin: 0 0 10px; font-size: 12.5px; color: var(--muted); line-height: 1.45; }
+.cs-head { cursor: default; } .cs-head:hover { background: none; }
+.cs-rows { display: grid; }
+.cs-row { display: flex; justify-content: space-between; align-items: center; gap: 8px; width: 100%; padding: 7px 12px 7px 34px; border: 0; border-top: 1px solid var(--line); background: none; color: inherit; font: inherit; text-align: left; cursor: pointer; }
+.cs-row:hover { background: var(--surface-2); } .cs-nm b { font-size: 13.5px; } .cs-nm small { display: block; color: var(--muted); font-size: 12px; }
+.cr.cs-bad { border-left-color: var(--ck-r-dot); }
 .ck2-go { width: 100%; justify-content: center; margin-bottom: 10px; } .ck2-go small { font-weight: 600; opacity: .8; }
 .ck2-back { display: inline-flex; align-items: center; gap: 5px; border: 0; background: none; font: inherit; font-size: 13px; font-weight: 700; color: var(--brand); cursor: pointer; padding: 2px 0 10px; }
 .ck2-foot { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; margin-top: 10px; }
@@ -680,6 +690,7 @@ details.tbl-toggle summary { cursor: pointer; font-size: 13px; color: var(--bran
 .lk-q { margin: 10px 14px 0; padding: 10px 12px; border-radius: 10px; background: var(--surface-2); font-size: 14px; font-weight: 700; line-height: 1.4; }
 .lk-q small { display: block; font-weight: 500; color: var(--muted); font-size: 12.5px; margin-top: 3px; } .lk-q small b { color: var(--ink); }
 .lk-ac { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; padding: 12px 14px 14px; }
+.lk-ac .btn small { font-weight: 600; opacity: .85; }
 .lk-ac .btn { justify-content: center; padding: 11px; font-size: 14.5px; font-weight: 800; }
 .lk-bad { border-color: var(--ck-r-bd); color: var(--ck-r); } .lk-ok { background: #1f7a46; border-color: #1f7a46; color: #fff; }
 .lk-bawah { display: flex; justify-content: space-between; margin-top: 8px; }
@@ -5217,15 +5228,19 @@ const Adm = {
       g.selesai = !!g.rec && ids.every((x) => sudah.has(x));
       if (g.lv > 0) g.baru.forEach((x) => baruIds.add(x));
     });
+    // tanda terakhir per pendaftaran (Benar / Bermasalah) dari semua catatan pengecekan
+    const tanda = new Map();
+    catatan.forEach((c) => (c.anggota || []).forEach((a) => tanda.set(a, { hasil: c.hasil === 'bermasalah' ? 'bermasalah' : 'sah', rec: c })));
     const perlu = grup.filter((g) => g.lv > 0 && !g.selesai);
     const kat = (k) => perlu.filter((g) => this.katCek(g).k === k).length, perluIds = new Set(perlu.flatMap((g) => g.rows.map((r) => r.id)));
     st.cek = {
       dobel: kat('dobel'), nominal: kat('nominal'), waktu: kat('waktu'), merah: perlu.filter((g) => this.katCek(g).w === 'r').length,
       gabungan: grup.filter((g) => g.lv === 0).length, perlu: perlu.length, selesai: grup.filter((g) => g.lv > 0 && g.selesai).length,
       kembali: perlu.filter((g) => g.baru.length).length,
+      masalah: d.daftar.filter((r) => r.status !== 'ditolak' && (tanda.get(r.id) || {}).hasil === 'bermasalah').length,
       aman: d.daftar.filter((r) => { if (!r.bukti_path || r.status === 'ditolak' || perluIds.has(r.id)) return false; const b = sah(r); return b && !b.gagal; }).length,
     };
-    this.idx = { jenis, seri, perSeri, hash, perWA, st, baca, cekGrup, belumDibaca, baruIds, hari, sesi, kotak };
+    this.idx = { jenis, seri, perSeri, hash, perWA, st, baca, cekGrup, belumDibaca, baruIds, hari, sesi, kotak, tanda };
   },
   baris(id) { return this.s.data && this.s.data.daftar.find((r) => r.id === id); },
   namaJenis(kode) { const j = this.idx && this.idx.jenis.get(kode); return j ? j.nama : kode; },
@@ -5447,6 +5462,7 @@ const Adm = {
       const rinci = [ck.dobel && `${ck.dobel} bukti dobel`, ck.nominal && `${ck.nominal} nominal`, ck.waktu && `${ck.waktu} waktu`].filter(Boolean).join(' · ');
       todo.push(item(ck.merah ? 'bad' : 'warn', 'alert', `${ck.perlu} bukti perlu dicek`, rinci + (ck.kembali ? ` · ${ck.kembali} kembali karena ada pendaftaran <b>baru</b>` : ''), `<button class="btn btn-sm" data-act="adm.filterBukti">Periksa ${ico('arrow-r')}</button>`));
     }
+    if (ck.masalah) todo.push(item('bad', 'alert', `${ck.masalah} pendaftaran bermasalah`, 'Sudah ditandai bermasalah saat cek bukti — tolak atau hubungi pesertanya.', `<button class="btn btn-sm" data-act="adm.filterMasalah">Lihat ${ico('arrow-r')}</button>`));
     if (!ev.bank_no_rek) todo.push(item('bad', 'bank', 'Rekening panitia belum diisi', 'Peserta belum bisa melihat tujuan transfer.', `<a class="btn btn-sm" href="#admin/pengaturan">Isi</a>`));
     if (!d.hari.length) todo.push(item('bad', 'cal', 'Jadwal terbang belum dibuat', 'Peserta baru bisa mendaftar setelah ada hari, seri, dan grup di jadwal terbang.', `<a class="btn btn-sm" href="#admin/seri">Buat</a>`));
     const masalah = this.s.super ? this.sehatMasalah() : [];
@@ -5824,37 +5840,59 @@ const Adm = {
       ket = [g.nominal != null && rupiah(g.nominal), tgl, sbb, g.nominal != null && g.kurang > 0 && `<b>kurang ${rupiah(g.kurang)}</b>`, g.nominal != null && g.kurang < 0 && `<b>lebih ${rupiah(-g.kurang)}</b>`].filter(Boolean).join(' · ');
     }
     const hs = riwayat && g.rec ? `<div class="cr-h"><span class="ck-hasil ${g.hasil === 'bermasalah' ? 'bad' : 'ok'}">${g.hasil === 'bermasalah' ? ico('alert') + ' Bermasalah' : ico('check') + ' Sah'}</span><span>oleh <b>${esc(labelOleh(g.rec.oleh) || 'panitia')}</b> · ${esc(fmtWaktu(g.rec.created_at))}</span><button type="button" class="btn btn-sm btn-ghost" data-act="adm.cekBuka" data-id="${id0}">${ico('undo')} Buka lagi</button></div>` : '';
-    const ulang = !riwayat && g.baru.length ? '<span class="cr-baru">BARU</span>' : !riwayat && g.dicek ? `<span class="cr-sb">${g.dicek}/${g.n} dicek</span>` : '';
+    const ulang = !riwayat && g.baru.length ? `<span class="cr-baru">${g.baru.length} BARU · cek ulang</span>` : !riwayat && g.dicek ? `<span class="cr-sb">${g.dicek}/${g.n} dicek</span>` : '';
     return `<div class="cr ${riwayat ? 'sls' : c.w}"><button type="button" class="cr-main" data-act="${riwayat ? 'adm.buka' : 'adm.cekLangkah'}" data-id="${id0}">
       <span class="cr-t"><b>${ico(c.ikon)}<span>${esc(c.judul)}</span></b><span class="cr-tag">${c.tag}</span></span>
       <span class="cr-p">${siapa} · No. ${esc(nomor)}${ulang}</span><span class="cr-p">${ket}</span></button>${hs}</div>`;
   },
+  /* kartu riwayat (tab Selesai): semua pendaftaran dalam kasus + tandanya */
+  vKartuSelesai(g) {
+    const c = this.katCek(g), id0 = esc(g.rows[0].id), last = g.rec;
+    const baris = g.rows.map((r) => { const h = g.hasilRow.get(r.id);
+      return `<button type="button" class="cs-row" data-act="adm.buka" data-id="${esc(r.id)}"><span class="cs-nm"><b>${esc(r.nama_sekha)}</b><small>No. ${esc(r.nomor_layangan || '—')} · ${esc(this.namaJenis(r.jenis))} · ${esc((STATUS[r.status] || {}).label || r.status)}</small></span>${h ? `<span class="lk-hs ${h === 'bermasalah' ? 'bad' : 'ok'}">${h === 'bermasalah' ? ico('alert') + 'Bermasalah' : ico('check') + 'Benar'}</span>` : ''}</button>`; }).join('');
+    return `<div class="cr sls ${g.hasil === 'bermasalah' ? 'cs-bad' : ''}"><div class="cr-main cs-head"><span class="cr-t"><b>${ico(c.ikon)}<span>${esc(c.judul)}</span></b><span class="cr-tag">${c.tag}</span></span></div>
+      <div class="cs-rows">${baris}</div>
+      <div class="cr-h"><span>dicek oleh <b>${esc(labelOleh(last.oleh) || 'panitia')}</b> · ${esc(fmtWaktu(last.created_at))}</span><button type="button" class="btn btn-sm btn-ghost" data-act="adm.cekBuka" data-id="${id0}">${ico('undo')} Buka lagi</button></div></div>`;
+  },
+  /* kartu tab Bermasalah: per pendaftaran */
+  vKartuMasalah(r) {
+    const tn = this.idx.tanda.get(r.id), g = this.idx.cekGrup.get(r.id), c = g ? this.katCek(g) : null, id = esc(r.id);
+    const lain = g ? g.rows.filter((o) => o.id !== r.id).map((o) => `No. ${esc(o.nomor_layangan || '—')}`).join(', ') : '';
+    return `<div class="cr r"><button type="button" class="cr-main" data-act="adm.buka" data-id="${id}">
+      <span class="cr-t"><b>${ico('alert')}<span>${esc(r.nama_sekha)} · No. ${esc(r.nomor_layangan || '—')}</span></b><span class="cr-tag">${esc((STATUS[r.status] || {}).label || r.status)}</span></span>
+      <span class="cr-p">${c ? esc(c.judul) : 'Ditandai bermasalah saat cek bukti'}${lain ? ` · terkait ${lain}` : ''}</span>
+      <span class="cr-p">${esc(this.namaJenis(r.jenis))} · ${rupiah(r.harga)} · WA ${esc(fmtWA(r.no_wa))}</span></button>
+      <div class="cr-h"><span>ditandai oleh <b>${esc(labelOleh(tn.rec.oleh) || 'panitia')}</b> · ${esc(fmtWaktu(tn.rec.created_at))}</span><button type="button" class="btn btn-sm btn-ghost lk-okb" data-act="adm.jadiBenar" data-id="${id}">${ico('check')} Jadi benar</button></div></div>`;
+  },
   vCekDaftar(rows) {
     const f = this.s.f, st = this.idx.st, ids = new Set(rows.map((r) => r.id));
     const semua = [...new Set([...this.idx.cekGrup.values()])].filter((g) => g.rows.some((r) => ids.has(r.id)));
-    const riwayat = f.cekTab === 'selesai';
+    const tab = ['masalah', 'selesai'].includes(f.cekTab) ? f.cekTab : 'perlu';
     const URUT = { dobel: 0, nominal: 1, waktu: 2 };
-    const perlu = semua.filter((g) => g.lv > 0 && !g.selesai).sort((p, q) => { const a = this.katCek(p), b = this.katCek(q); return (a.w === 'r' ? 0 : 1) - (b.w === 'r' ? 0 : 1) || URUT[a.k] - URUT[b.k] || p.rows[0].created_at.localeCompare(q.rows[0].created_at); });
+    const perlu = semua.filter((g) => g.lv > 0 && !g.selesai).sort((p, q) => { const a = this.katCek(p), b = this.katCek(q); return (q.baru.length ? 1 : 0) - (p.baru.length ? 1 : 0) || (a.w === 'r' ? 0 : 1) - (b.w === 'r' ? 0 : 1) || URUT[a.k] - URUT[b.k] || p.rows[0].created_at.localeCompare(q.rows[0].created_at); });
     const selesai = semua.filter((g) => g.lv > 0 && g.selesai).sort((p, q) => String(q.rec.created_at).localeCompare(String(p.rec.created_at)));
-    const kat = ['dobel', 'nominal', 'waktu'].includes(f.cekLv) ? f.cekLv : '';
-    const n = (k) => perlu.filter((g) => this.katCek(g).k === k).length;
-    const chip = (k, label) => `<button type="button" class="ck2-chip${kat === k ? ' on' : ''}" data-act="adm.cekLv" data-v="${k}" aria-pressed="${kat === k}"><b>${k ? n(k) : perlu.length}</b><span>${label}</span></button>`;
+    const masalah = this.s.data.daftar.filter((r) => r.status !== 'ditolak' && (this.idx.tanda.get(r.id) || {}).hasil === 'bermasalah')
+      .sort((p, q) => String(this.idx.tanda.get(q.id).rec.created_at).localeCompare(String(this.idx.tanda.get(p.id).rec.created_at)));
+    const seg = (k, label, n) => `<button type="button" class="${tab === k ? 'on' : ''} ck2-${k}" data-act="adm.cekTab" data-v="${k}">${label} <em>${n}</em></button>`;
     const catat = [];
     if (st.belumDibaca) catat.push(`${st.belumDibaca} bukti belum diperiksa — klik <b>Periksa bukti</b> supaya ikut dibandingkan.`);
     if (st.tidakTerbaca) catat.push(`${st.tidakTerbaca} bukti tidak terbaca otomatis (gambar buram/terpotong) — cek manual.`);
-    const tampil = riwayat ? selesai : kat ? perlu.filter((g) => this.katCek(g).k === kat) : perlu;
-    this.s.cekAntre = riwayat ? [] : tampil.map((g) => g.rows[0].id);
-    const kosong = riwayat ? 'Belum ada bukti yang selesai dicek.' : kat ? 'Tidak ada yang perlu dicek di kategori ini.' : 'Semua bukti sudah dicek. 👍';
+    this.s.cekAntre = tab === 'perlu' ? perlu.map((g) => g.rows[0].id) : [];
+    let isi;
+    if (tab === 'masalah') isi = masalah.length ? masalah.map((r) => this.vKartuMasalah(r)).join('') : '<div class="empty">Tidak ada pendaftaran bermasalah. 👍</div>';
+    else if (tab === 'selesai') isi = selesai.length ? selesai.map((g) => this.vKartuSelesai(g)).join('') : '<div class="empty">Belum ada kasus yang selesai dicek.</div>';
+    else isi = perlu.length ? perlu.map((g) => this.vKartuRingkas(g, false)).join('') : '<div class="empty">Semua bukti sudah dicek. 👍</div>';
+    const ket = { perlu: perlu.length ? `${perlu.length} kasus perlu dicek` : 'tidak ada yang perlu dicek', masalah: 'Pendaftaran yang ditandai bermasalah — tolak / hubungi peserta, atau ubah jadi benar bila sudah beres.', selesai: 'Riwayat kasus yang sudah dicek. Bila ada pendaftaran baru yang terkait, kasusnya otomatis kembali ke Perlu dicek.' }[tab];
     return `${catat.length ? `<div class="note">${ico('info')}<span>${catat.join('<br>')}</span></div>` : ''}
-      ${this.s.data.selesai == null ? `<div class="note">${ico('info')}<span>Tombol <b>Sah / Bermasalah</b> belum aktif: jalankan <b>bukti-selesai.sql</b> & <b>bukti-cek.sql</b> di Supabase.</span></div>` : ''}
+      ${this.s.data.selesai == null ? `<div class="note">${ico('info')}<span>Tombol <b>Benar / Bermasalah</b> belum aktif: jalankan <b>bukti-selesai.sql</b> & <b>bukti-cek.sql</b> di Supabase.</span></div>` : ''}
       <div class="ck-panel ck2">
-        <div class="ck2-hd"><div><h3>${riwayat ? 'Riwayat pengecekan' : 'Cek bukti transfer'}</h3><small>${riwayat ? `${selesai.length} sudah dicek` : perlu.length ? `${perlu.length} perlu dicek` : 'tidak ada yang perlu dicek'}</small></div>
-          <div class="ck2-r">${riwayat ? '' : `<span class="ck2-aman" title="Bukti unik / bayar gabungan pas — tidak perlu dicek">${ico('check')} ${st.cek.aman} aman</span>`}<button type="button" class="ck-info" data-act="adm.cekInfo" aria-label="Penjelasan" title="Penjelasan">i</button></div></div>
-        ${riwayat ? `<button type="button" class="ck2-back" data-act="adm.cekTab" data-v="perlu">${ico('arrow-l')} Kembali ke yang perlu dicek</button>` : `
-        <div class="ck2-chips">${chip('', 'Semua')}${chip('dobel', 'Bukti dobel')}${chip('nominal', 'Nominal')}${chip('waktu', 'Waktu')}</div>
-        ${tampil.length ? `<button type="button" class="btn btn-primary ck2-go" data-act="adm.cekMulai">${ico('play')} Mulai cek satu per satu <small>(${tampil.length})</small></button>` : ''}`}
-        <div class="cr-list">${tampil.length ? tampil.map((g) => this.vKartuRingkas(g, riwayat)).join('') : `<div class="empty">${kosong}</div>`}</div>
-        ${riwayat ? '' : `<div class="ck2-foot"><span class="ck2-lg"><i class="r"></i>hampir pasti masalah <i class="y"></i>cek sebentar</span>${selesai.length ? `<button type="button" class="ck2-link" data-act="adm.cekTab" data-v="selesai">${ico('history')} Riwayat pengecekan (${selesai.length})</button>` : ''}</div>`}
+        <div class="ck2-hd"><div><h3>Cek bukti transfer</h3></div>
+          <div class="ck2-r"><span class="ck2-aman" title="Bukti unik / bayar gabungan pas — tidak perlu dicek">${ico('check')} ${st.cek.aman} aman</span><button type="button" class="ck-info" data-act="adm.cekInfo" aria-label="Penjelasan" title="Penjelasan">i</button></div></div>
+        <div class="ck-seg ck2-seg" role="group" aria-label="Cek bukti">${seg('perlu', 'Perlu dicek', perlu.length)}${seg('masalah', 'Bermasalah', masalah.length)}${seg('selesai', 'Selesai', selesai.length)}</div>
+        <p class="ck2-ket">${ket}</p>
+        ${tab === 'perlu' && perlu.length ? `<button type="button" class="btn btn-primary ck2-go" data-act="adm.cekMulai">${ico('play')} Mulai cek satu per satu <small>(${perlu.length})</small></button>` : ''}
+        <div class="cr-list">${isi}</div>
+        ${tab === 'perlu' ? '<div class="ck2-foot"><span class="ck2-lg"><i class="r"></i>hampir pasti masalah <i class="y"></i>cek sebentar</span></div>' : ''}
       </div>`;
   },
   /* ---- mode cek satu per satu ---- */
@@ -5877,8 +5915,8 @@ const Adm = {
     const g = this.grupLangkah(), tot = lk.antre.length;
     if (!g) {
       box.innerHTML = `<div class="lk-end"><div class="lk-end-i">${ico('check')}</div><h3>Selesai dicek</h3>
-        <p>${lk.sah} sah · ${lk.masalah} bermasalah${lk.lewat ? ` · ${lk.lewat} dilewati` : ''}</p>
-        ${lk.masalah ? '<p class="hint">Yang bermasalah ada di <b>Riwayat pengecekan</b>. Jangan lupa tolak / hubungi pesertanya.</p>' : ''}
+        <p>${lk.sah} benar · ${lk.masalah} bermasalah${lk.lewat ? ` · ${lk.lewat} dilewati` : ''}</p>
+        ${lk.masalah ? '<p class="hint">Pendaftaran yang bermasalah ada di tab <b>Bermasalah</b>. Jangan lupa tolak / hubungi pesertanya.</p>' : ''}
         <button type="button" class="btn btn-primary" data-act="ovl.tutup">Tutup</button></div>`;
       return;
     }
@@ -5887,13 +5925,15 @@ const Adm = {
     const gambar = g.rows.slice(0, 4).map((r) => `<figure class="lk-im" data-bukti="${esc(r.id)}"><div class="lk-im-box"><span class="lk-load">memuat…</span></div><figcaption><b>No. ${esc(r.nomor_layangan || '—')}</b> · ${esc(fmtWaktu(r.created_at).replace(/ \d{4},/, ','))}</figcaption></figure>`).join('');
     const buka = lk.buka || (lk.buka = new Set());
     const baris = g.rows.map((r, i) => { const st = ST[g.status.get(r.id)], hs = g.hasilRow.get(r.id), id = esc(r.id), on = buka.has(r.id);
-      const tanda = hs ? `<span class="lk-hs ${hs === 'bermasalah' ? 'bad' : 'ok'}">${hs === 'bermasalah' ? ico('alert') + 'Bermasalah' : ico('check') + 'Benar'}</span>` : '';
+      const baruTag = g.baru.includes(r.id) ? '<span class="cr-baru">BARU</span>' : '';
+      const tanda = baruTag + (hs ? `<span class="lk-hs ${hs === 'bermasalah' ? 'bad' : 'ok'}">${hs === 'bermasalah' ? ico('alert') + 'Bermasalah' : ico('check') + 'Benar'}</span>` : '');
       return `<div class="lk-row${on ? ' open' : ''}${hs ? ' done' : ''}" data-row="${id}"><span class="gm-n">${i + 1}</span><span class="gm-t"><b>${esc(r.nama_sekha)}</b>${tanda}<small>${jdot(r.jenis, dj)}${esc(this.namaJenis(r.jenis))} · ${esc((STATUS[r.status] || {}).label || r.status)}</small></span><span class="gm-r"><b>No. ${esc(r.nomor_layangan || '—')}</b><small>${rupiah(r.harga)}${st && g.n > 1 ? ` · <em class="lk-st ${st[0]}">${st[1]}</em>` : ''}</small></span>
         <button type="button" class="lk-tg" data-act="adm.lkRow" data-id="${id}" aria-expanded="${on}" aria-label="${on ? 'Tutup' : 'Buka'} pilihan ${esc(r.nama_sekha)}"><svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="M6 9l6 6 6-6" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
         <div class="lk-more"><button type="button" class="btn btn-sm lk-bad${hs === 'bermasalah' ? ' on' : ''}" data-act="adm.lkSatu" data-v="bermasalah" data-id="${id}">${ico('alert')} Bermasalah</button><button type="button" class="btn btn-sm lk-okb${hs === 'sah' ? ' on' : ''}" data-act="adm.lkSatu" data-v="sah" data-id="${id}">${ico('check')} Benar</button><button type="button" class="btn btn-sm btn-ghost" data-act="adm.lkDetail" data-id="${id}">Detail ${ico('arrow-r')}</button></div></div>`; }).join('');
     let uang = '';
     if (c.k !== 'waktu' && g.nominal != null) uang = `<div class="gm-sum"><span>${g.n > 1 ? `Total tagihan (${g.rows.filter((r) => r.status !== 'ditolak').length} layangan)` : 'Harga'}</span><b>${rupiah(g.total)}</b><span>Nominal di bukti</span><b>${rupiah(g.nominal)}</b>${g.kurang === 0 ? '<span class="gm-ok">Selisih</span><b class="gm-ok">Sesuai</b>' : g.kurang < 0 ? `<span class="gm-lb">Selisih</span><b class="gm-lb">Lebih ${rupiah(-g.kurang)}</b>` : `<span class="gm-kr">Selisih</span><b class="gm-kr">Kurang ${rupiah(g.kurang)}</b>`}</div>`;
-    const ulang = g.baru.length ? `<div class="ck-fl bad">${ico('alert')}<span><b>Ada pendaftaran baru</b> dengan bukti yang sama — sebelumnya sudah dicek oleh ${esc(labelOleh(g.rec.oleh) || 'panitia')}.</span></div>` : '';
+    const nB = [...g.hasilRow.values()].filter((h) => h === 'sah').length, nM = [...g.hasilRow.values()].filter((h) => h === 'bermasalah').length;
+    const ulang = g.baru.length ? `<div class="ck-fl bad">${ico('alert')}<span><b>Ada ${g.baru.length} pendaftaran baru</b> yang terkait kasus yang sudah dicek oleh ${esc(labelOleh(g.rec.oleh) || 'panitia')} (${nB} benar${nM ? `, ${nM} bermasalah` : ''}). Tentukan pendaftaran baru ini masuk <b>Benar</b> atau <b>Bermasalah</b>.</span></div>` : '';
     const wkLain = c.k !== 'waktu' ? g.rows.map((r) => this.waktuRow(r)).find(Boolean) : null;
     const id0 = esc(g.rows[0].id);
     box.innerHTML = `<div class="lk-top"><span>${esc(c.label)}</span><span>${Math.min(lk.i + 1, tot)} dari ${tot}</span><button type="button" class="lk-x" data-act="ovl.tutup" aria-label="Tutup">${ico('x')}</button></div>
@@ -5905,7 +5945,7 @@ const Adm = {
         <div class="lk-rows">${baris}</div>${uang}
         ${wkLain ? `<div class="ck-fl ${wkLain.k === 'lama' ? 'w' : 'bad'}">${ico('clock')}<span><b>${WK_LABEL[wkLain.k][1]}:</b> transfer ${durasiTeks(wkLain.sel)} ${wkLain.k === 'wajar' ? 'setelah' : 'sebelum'} daftar.</span></div>` : ''}${ulang}
         <div class="lk-q">${esc(c.tanya)}<small>${c.saran}${g.n > 1 ? '<br>Bisa juga ditandai satu per satu lewat tombol ⌄ di kanan tiap pendaftaran.' : ''}</small></div>
-        <div class="lk-ac"><button type="button" class="btn lk-bad" data-act="adm.lkHasil" data-v="bermasalah" data-id="${id0}">${ico('x')} Bermasalah</button><button type="button" class="btn lk-ok" data-act="adm.lkHasil" data-v="sah" data-id="${id0}">${ico('check')} Sah, lanjut</button></div>
+        <div class="lk-ac"><button type="button" class="btn lk-bad" data-act="adm.lkHasil" data-v="bermasalah" data-id="${id0}">${ico('x')} Bermasalah${g.dicek ? ` <small>(sisa ${g.n - g.dicek})</small>` : ''}</button><button type="button" class="btn lk-ok" data-act="adm.lkHasil" data-v="sah" data-id="${id0}">${ico('check')} Benar${g.dicek ? ` <small>(sisa ${g.n - g.dicek})</small>` : ', lanjut'}</button></div>
       </section>
       <div class="lk-bawah"><button type="button" class="ck2-link" data-act="adm.lkDetail" data-id="${id0}">${ico('eye')} Buka detail</button><button type="button" class="ck2-link" data-act="adm.lkLewati">Lewati dulu ${ico('arrow-r')}</button></div>`;
     g.rows.slice(0, 4).forEach(async (r) => {
@@ -6066,9 +6106,13 @@ const Adm = {
     else if (r.status === 'ditolak' && r.wa_terkirim_at) wa = ['sent', 'WA penolakan sudah dikirim', 'check'];
     const flags = [];
     const g = this.idx.cekGrup.get(r.id);
-    const wk = this.waktuRow(r);
+    const tn = this.idx.tanda && this.idx.tanda.get(r.id), tutup = g && g.selesai && tn;
+    if (tn && (tutup || !g)) flags.push(tn.hasil === 'bermasalah'
+      ? `<span class="flag ck-flag r" title="Ditandai bermasalah oleh ${esc(labelOleh(tn.rec.oleh) || 'panitia')} · ${esc(fmtWaktu(tn.rec.created_at))}">${ico('alert')}Bermasalah</span>`
+      : `<span class="flag ck-flag sls" title="Sempat masuk Cek Bukti, ditandai benar oleh ${esc(labelOleh(tn.rec.oleh) || 'panitia')} · ${esc(fmtWaktu(tn.rec.created_at))}">${ico('check')}Sempat dicek</span>`);
+    const wk = tutup ? null : this.waktuRow(r);
     if (wk) { const sls = g && g.why === 'waktu' && g.selesai; flags.push(`<span class="flag ck-flag ${sls ? 'sls' : WK_LABEL[wk.k][0]}" title="Transfer ${esc(fmtWaktu(wk.waktu))} · daftar ${esc(fmtWaktu(wk.daftar))}${sls ? ' (selesai dicek)' : ''}">${ico('clock')}${WK_LABEL[wk.k][1]}${wk.k === 'wajar' ? '' : ` · ${durasiTeks(wk.sel, true)}`}</span>`); }
-    if (g && g.why !== 'waktu') { const L = this.lvCek(g); flags.push(`<span class="flag ck-flag ${L[0]}${g.lv > 0 && g.selesai ? ' sls' : ''}" title="Cek Bukti: ${L[1]}${g.lv > 0 && g.selesai ? ' (selesai dicek)' : ''}">${g.lv ? ico('alert') : ico('check')}${L[1]}</span>`); }
+    if (g && g.why !== 'waktu' && !tutup) { const L = this.lvCek(g); flags.push(`<span class="flag ck-flag ${L[0]}${g.lv > 0 && g.selesai ? ' sls' : ''}" title="Cek Bukti: ${L[1]}${g.lv > 0 && g.selesai ? ' (selesai dicek)' : ''}">${g.lv ? ico('alert') : ico('check')}${L[1]}</span>`); }
     if (this.idx.baruIds && this.idx.baruIds.has(r.id)) flags.push('<span class="flag baru-tag" title="Pendaftaran baru di kelompok yang sebelumnya sudah selesai dicek">BARU</span>');
     if (!r.bukti_path) flags.push('<span class="flag info">Manual</span>');
     const baru = this.idx.baruIds && this.idx.baruIds.has(r.id);
@@ -7396,9 +7440,20 @@ ACT['adm.cekInfo'] = () => Overlay.modal(`<div><h3>Cara kerja Cek Bukti</h3>
   <div class="ck-leg"><div><b class="ck2-ic">${ico('copy')}</b><span><b>Bukti dobel</b> — satu bukti dipakai beberapa pendaftaran: file sama / No. Ref sama (<b>pasti</b>), atau nominal + waktu + rekening/nama pengirim sama (<b>mungkin</b>).</span></div>
   <div><b class="ck2-ic">${ico('wallet')}</b><span><b>Nominal</b> — uang di bukti <b>kurang</b> atau <b>lebih</b> dari tagihan.</span></div>
   <div><b class="ck2-ic">${ico('clock')}</b><span><b>Waktu</b> — transfer lebih dari 24 jam / 14 hari sebelum mendaftar, atau justru setelah mendaftar.</span></div></div>
-  <p class="hint"><span class="ck2-lg"><i class="r"></i><b>Merah</b> = hampir pasti bermasalah. <i class="y"></i><b>Kuning</b> = cek sebentar, bisa jadi wajar.</span><br>Klik <b>Mulai cek satu per satu</b>, jawab tiap kasus dengan <b>Sah</b> atau <b>Bermasalah</b>. Hasilnya tersimpan di <b>Riwayat pengecekan</b> dan bisa dibuka lagi.</p>
+  <p class="hint"><span class="ck2-lg"><i class="r"></i><b>Merah</b> = hampir pasti bermasalah. <i class="y"></i><b>Kuning</b> = cek sebentar, bisa jadi wajar.</span><br>Klik <b>Mulai cek satu per satu</b>, jawab tiap kasus dengan <b>Benar</b> atau <b>Bermasalah</b> (bisa juga per pendaftaran lewat tombol ⌄).<br>
+  • <b>Bermasalah</b>: pendaftaran yang ditandai bermasalah — tolak atau ubah jadi benar bila sudah beres.<br>
+  • <b>Selesai</b>: riwayat semua kasus yang sudah dicek. Pendaftaran yang benar kembali ke daftar biasa dengan tanda <b>Sempat dicek</b>.<br>
+  • Bila masuk <b>pendaftaran baru</b> yang terkait kasus lama, kasus itu ditarik lagi ke <b>Perlu dicek</b> lengkap dengan tanda lama, tinggal tentukan yang baru.</p>
   <div class="actions end"><button type="button" class="btn btn-primary" data-act="ovl.tutup">Mengerti</button></div></div>`);
 ACT['adm.cekMulai'] = () => Adm.mulaiLangkah();
+ACT['adm.filterMasalah'] = () => { Adm.s.f = { ...FILTER_AWAL, cek: true, cekTab: 'masalah' }; location.hash = '#admin/pendaftaran'; if (Adm.s.tab === 'pendaftaran') Adm.segarkanTampilan(); };
+ACT['adm.jadiBenar'] = (el) => sibuk(el, async () => {
+  try {
+    const row = await api.tandaiSelesai('cek', [el.dataset.id], 'sah');
+    Adm.s.data.selesai = (Adm.s.data.selesai || []).concat([row]);
+    Adm.indeks(); Adm.segarkanTampilan({ diam: true }); toast('Ditandai benar — kembali ke daftar pendaftaran biasa', 'good');
+  } catch (e) { toast(pesanError(e), 'bad', 6000); }
+});
 ACT['adm.cekLangkah'] = (el) => Adm.mulaiLangkah(el.dataset.id);
 ACT['adm.lkRow'] = (el) => {
   const lk = Adm.s.lk, id = el.dataset.id; if (!lk) return;
@@ -7423,9 +7478,11 @@ ACT['adm.lkHasil'] = (el) => sibuk(el, async () => {
   const g = Adm.idx.cekGrup.get(el.dataset.id), lk = Adm.s.lk; if (!g || !lk) return;
   const hasil = el.dataset.v;
   try {
-    const row = await api.tandaiSelesai('cek', g.rows.map((r) => r.id), hasil);
+    const sisa = g.rows.filter((r) => !g.hasilRow.has(r.id)).map((r) => r.id);      // kasus dicek ulang: tanda lama tetap
+    const row = await api.tandaiSelesai('cek', sisa.length ? sisa : g.rows.map((r) => r.id), hasil);
     Adm.s.data.selesai = (Adm.s.data.selesai || []).concat([row]);
-    if (hasil === 'sah') lk.sah++; else lk.masalah++;
+    Adm.indeks(); const g2 = Adm.idx.cekGrup.get(el.dataset.id);
+    if ((g2 && g2.hasil) === 'bermasalah') lk.masalah++; else lk.sah++;
     lk.i++;
     Adm.indeks(); Adm.segarkanTampilan({ diam: true }); Adm.renderLangkah();
   } catch (e) { toast(pesanError(e), 'bad', 6000); }
