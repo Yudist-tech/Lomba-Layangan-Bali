@@ -662,6 +662,19 @@ details.tbl-toggle summary { cursor: pointer; font-size: 13px; color: var(--bran
 .lk-rows { margin-top: 6px; }
 .lk-row { display: grid; grid-template-columns: 22px 1fr auto; gap: 8px; align-items: center; padding: 8px 14px; border-top: 1px solid var(--line); }
 .lk-row .gm-t small, .lk-row .gm-r small { display: block; color: var(--muted); font-size: 12px; margin-top: 1px; }
+.lk-row { grid-template-columns: 22px 1fr auto 34px !important; }
+.lk-tg { width: 34px; height: 34px; border-radius: 9px; border: 1px solid var(--line); background: var(--surface); color: var(--muted); display: grid; place-items: center; cursor: pointer; padding: 0; }
+.lk-tg:hover { color: var(--ink); background: var(--surface-2); }
+.lk-tg svg { transition: transform .15s; } .lk-row.open .lk-tg { color: var(--ink); background: var(--surface-3); } .lk-row.open .lk-tg svg { transform: rotate(180deg); }
+.lk-more { display: none; grid-column: 2 / -1; gap: 6px; flex-wrap: wrap; padding-top: 4px; }
+.lk-row.open .lk-more { display: grid; grid-template-columns: 1fr 1fr auto; }
+.lk-more .btn { justify-content: center; min-width: 0; padding-left: 8px; padding-right: 8px; } .lk-more .btn-ghost { padding-left: 6px; padding-right: 4px; }
+.lk-more .lk-bad { border-color: var(--ck-r-bd); color: var(--ck-r); } .lk-more .lk-bad.on { background: var(--ck-r-bg); }
+.lk-more .lk-okb { border-color: #1f7a46; color: var(--good-ink); } .lk-more .lk-okb.on { background: var(--good-soft); }
+.lk-row.done { background: var(--surface-2); }
+.lk-hs { display: inline-flex; align-items: center; gap: 3px; margin-left: 6px; font-size: 10.5px; font-weight: 800; border-radius: 5px; padding: 1px 6px; vertical-align: 2px; }
+.lk-hs .ico { width: 11px; height: 11px; } .lk-hs.ok { background: var(--good-soft); color: var(--good-ink); } .lk-hs.bad { background: var(--ck-r-bg); color: var(--ck-r); }
+.cr-sb { display: inline-block; margin-left: 6px; font-size: 10.5px; font-weight: 800; background: var(--surface-3); color: var(--ink-2); border-radius: 5px; padding: 0 5px; vertical-align: 1px; }
 .lk-st { font-style: normal; font-weight: 700; } .lk-st.ok { color: var(--good-ink); } .lk-st.bad { color: var(--ck-r); } .lk-st.n { color: var(--muted); }
 .lk-card .ck-fl { margin: 8px 14px 0; }
 .lk-q { margin: 10px 14px 0; padding: 10px 12px; border-radius: 10px; background: var(--surface-2); font-size: 14px; font-weight: 700; line-height: 1.4; }
@@ -3071,7 +3084,8 @@ class DemoAPI {
     const jam = (j) => new Date(Date.now() - j * 3600e3).toISOString();
     db.selesai = [];
     if (sudah.length === 2) db.selesai.push({ id: 1, jenis: 'cek', hasil: 'bermasalah', anggota: sudah.map((r) => r.id), oleh: 'lpsar214' + ID_DOMAIN, created_at: jam(5) });
-    if (tiga.length === 3) db.selesai.push({ id: 2, jenis: 'sama', anggota: [tiga[0].id, tiga[1].id], oleh: 'mdwia587' + ID_DOMAIN, created_at: jam(20) });
+    if (tiga.length === 3) db.selesai.push({ id: 2, jenis: 'sama', anggota: [tiga[0].id, tiga[1].id], oleh: 'mdwia587' + ID_DOMAIN, created_at: new Date(Math.max(Date.parse(tiga[0].created_at), Date.parse(tiga[1].created_at)) + 60000).toISOString() });
+    if (tiga.length === 3 && Date.parse(tiga[2].created_at) <= Date.parse(db.selesai[db.selesai.length - 1].created_at)) tiga[2].created_at = new Date(Date.parse(db.selesai[db.selesai.length - 1].created_at) + 3600e3).toISOString();
     // contoh bukti mirip: file berbeda (mis. screenshot ulang), tapi nama pengirim, nominal & waktu di bukti sama
     const mirip = rows.filter((r) => r.status === 'menunggu' && !r.bukti_hash).slice(4, 6);
     if (mirip.length === 2) {
@@ -5193,8 +5207,14 @@ const Adm = {
       g.catatan = cocok;
       g.rec = cocok.length ? cocok[cocok.length - 1] : null;
       const sudah = new Set(cocok.flatMap((c) => c.anggota));
-      g.baru = g.rec ? ids.filter((x) => !sudah.has(x)) : [];
-      g.selesai = !!g.rec && !g.baru.length;
+      // hasil per pendaftaran (tandai satu-satu) & hasil kelompok (bermasalah bila ada satu yang bermasalah)
+      g.hasilRow = new Map(); cocok.forEach((c) => (c.anggota || []).forEach((a) => { if (ids.includes(a)) g.hasilRow.set(a, c.hasil === 'bermasalah' ? 'bermasalah' : 'sah'); }));
+      g.hasil = [...g.hasilRow.values()].includes('bermasalah') ? 'bermasalah' : 'sah';
+      g.dicek = ids.filter((x) => sudah.has(x)).length;
+      // "baru" = pendaftaran yang masuk SETELAH kelompok ini pernah dicek (bukan sekadar belum ditandai)
+      const awal = g.rec ? String(cocok[0].created_at) : '';
+      g.baru = g.rec ? g.rows.filter((r) => !sudah.has(r.id) && String(r.created_at) > awal).map((r) => r.id) : [];
+      g.selesai = !!g.rec && ids.every((x) => sudah.has(x));
       if (g.lv > 0) g.baru.forEach((x) => baruIds.add(x));
     });
     const perlu = grup.filter((g) => g.lv > 0 && !g.selesai);
@@ -5202,7 +5222,7 @@ const Adm = {
     st.cek = {
       dobel: kat('dobel'), nominal: kat('nominal'), waktu: kat('waktu'), merah: perlu.filter((g) => this.katCek(g).w === 'r').length,
       gabungan: grup.filter((g) => g.lv === 0).length, perlu: perlu.length, selesai: grup.filter((g) => g.lv > 0 && g.selesai).length,
-      kembali: perlu.filter((g) => g.rec).length,
+      kembali: perlu.filter((g) => g.baru.length).length,
       aman: d.daftar.filter((r) => { if (!r.bukti_path || r.status === 'ditolak' || perluIds.has(r.id)) return false; const b = sah(r); return b && !b.gagal; }).length,
     };
     this.idx = { jenis, seri, perSeri, hash, perWA, st, baca, cekGrup, belumDibaca, baruIds, hari, sesi, kotak };
@@ -5803,8 +5823,8 @@ const Adm = {
       const sbb = { hash: 'file sama', ref: 'No. Ref sama', rek: `rekening ••${esc(g.rek4 || '')} sama`, nama: 'nama pengirim sama' }[g.why];
       ket = [g.nominal != null && rupiah(g.nominal), tgl, sbb, g.nominal != null && g.kurang > 0 && `<b>kurang ${rupiah(g.kurang)}</b>`, g.nominal != null && g.kurang < 0 && `<b>lebih ${rupiah(-g.kurang)}</b>`].filter(Boolean).join(' · ');
     }
-    const hs = riwayat && g.rec ? `<div class="cr-h"><span class="ck-hasil ${g.rec.hasil === 'bermasalah' ? 'bad' : 'ok'}">${g.rec.hasil === 'bermasalah' ? ico('alert') + ' Bermasalah' : ico('check') + ' Sah'}</span><span>oleh <b>${esc(labelOleh(g.rec.oleh) || 'panitia')}</b> · ${esc(fmtWaktu(g.rec.created_at))}</span><button type="button" class="btn btn-sm btn-ghost" data-act="adm.cekBuka" data-id="${id0}">${ico('undo')} Buka lagi</button></div>` : '';
-    const ulang = !riwayat && g.rec ? '<span class="cr-baru">BARU</span>' : '';
+    const hs = riwayat && g.rec ? `<div class="cr-h"><span class="ck-hasil ${g.hasil === 'bermasalah' ? 'bad' : 'ok'}">${g.hasil === 'bermasalah' ? ico('alert') + ' Bermasalah' : ico('check') + ' Sah'}</span><span>oleh <b>${esc(labelOleh(g.rec.oleh) || 'panitia')}</b> · ${esc(fmtWaktu(g.rec.created_at))}</span><button type="button" class="btn btn-sm btn-ghost" data-act="adm.cekBuka" data-id="${id0}">${ico('undo')} Buka lagi</button></div>` : '';
+    const ulang = !riwayat && g.baru.length ? '<span class="cr-baru">BARU</span>' : !riwayat && g.dicek ? `<span class="cr-sb">${g.dicek}/${g.n} dicek</span>` : '';
     return `<div class="cr ${riwayat ? 'sls' : c.w}"><button type="button" class="cr-main" data-act="${riwayat ? 'adm.buka' : 'adm.cekLangkah'}" data-id="${id0}">
       <span class="cr-t"><b>${ico(c.ikon)}<span>${esc(c.judul)}</span></b><span class="cr-tag">${c.tag}</span></span>
       <span class="cr-p">${siapa} · No. ${esc(nomor)}${ulang}</span><span class="cr-p">${ket}</span></button>${hs}</div>`;
@@ -5865,11 +5885,15 @@ const Adm = {
     const c = this.katCek(g), dj = this.s.data.jenis;
     const ST = { tertutup: ['ok', 'Lunas'], belum: ['bad', 'Belum lunas'], ditolak: ['n', 'Ditolak'] };
     const gambar = g.rows.slice(0, 4).map((r) => `<figure class="lk-im" data-bukti="${esc(r.id)}"><div class="lk-im-box"><span class="lk-load">memuat…</span></div><figcaption><b>No. ${esc(r.nomor_layangan || '—')}</b> · ${esc(fmtWaktu(r.created_at).replace(/ \d{4},/, ','))}</figcaption></figure>`).join('');
-    const baris = g.rows.map((r, i) => { const st = ST[g.status.get(r.id)];
-      return `<div class="lk-row"><span class="gm-n">${i + 1}</span><span class="gm-t"><b>${esc(r.nama_sekha)}</b><small>${jdot(r.jenis, dj)}${esc(this.namaJenis(r.jenis))} · ${esc((STATUS[r.status] || {}).label || r.status)}</small></span><span class="gm-r"><b>No. ${esc(r.nomor_layangan || '—')}</b><small>${rupiah(r.harga)}${st && g.n > 1 ? ` · <em class="lk-st ${st[0]}">${st[1]}</em>` : ''}</small></span></div>`; }).join('');
+    const buka = lk.buka || (lk.buka = new Set());
+    const baris = g.rows.map((r, i) => { const st = ST[g.status.get(r.id)], hs = g.hasilRow.get(r.id), id = esc(r.id), on = buka.has(r.id);
+      const tanda = hs ? `<span class="lk-hs ${hs === 'bermasalah' ? 'bad' : 'ok'}">${hs === 'bermasalah' ? ico('alert') + 'Bermasalah' : ico('check') + 'Benar'}</span>` : '';
+      return `<div class="lk-row${on ? ' open' : ''}${hs ? ' done' : ''}" data-row="${id}"><span class="gm-n">${i + 1}</span><span class="gm-t"><b>${esc(r.nama_sekha)}</b>${tanda}<small>${jdot(r.jenis, dj)}${esc(this.namaJenis(r.jenis))} · ${esc((STATUS[r.status] || {}).label || r.status)}</small></span><span class="gm-r"><b>No. ${esc(r.nomor_layangan || '—')}</b><small>${rupiah(r.harga)}${st && g.n > 1 ? ` · <em class="lk-st ${st[0]}">${st[1]}</em>` : ''}</small></span>
+        <button type="button" class="lk-tg" data-act="adm.lkRow" data-id="${id}" aria-expanded="${on}" aria-label="${on ? 'Tutup' : 'Buka'} pilihan ${esc(r.nama_sekha)}"><svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="M6 9l6 6 6-6" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+        <div class="lk-more"><button type="button" class="btn btn-sm lk-bad${hs === 'bermasalah' ? ' on' : ''}" data-act="adm.lkSatu" data-v="bermasalah" data-id="${id}">${ico('alert')} Bermasalah</button><button type="button" class="btn btn-sm lk-okb${hs === 'sah' ? ' on' : ''}" data-act="adm.lkSatu" data-v="sah" data-id="${id}">${ico('check')} Benar</button><button type="button" class="btn btn-sm btn-ghost" data-act="adm.lkDetail" data-id="${id}">Detail ${ico('arrow-r')}</button></div></div>`; }).join('');
     let uang = '';
     if (c.k !== 'waktu' && g.nominal != null) uang = `<div class="gm-sum"><span>${g.n > 1 ? `Total tagihan (${g.rows.filter((r) => r.status !== 'ditolak').length} layangan)` : 'Harga'}</span><b>${rupiah(g.total)}</b><span>Nominal di bukti</span><b>${rupiah(g.nominal)}</b>${g.kurang === 0 ? '<span class="gm-ok">Selisih</span><b class="gm-ok">Sesuai</b>' : g.kurang < 0 ? `<span class="gm-lb">Selisih</span><b class="gm-lb">Lebih ${rupiah(-g.kurang)}</b>` : `<span class="gm-kr">Selisih</span><b class="gm-kr">Kurang ${rupiah(g.kurang)}</b>`}</div>`;
-    const ulang = g.rec ? `<div class="ck-fl bad">${ico('alert')}<span><b>Ada pendaftaran baru</b> dengan bukti yang sama — sebelumnya sudah dicek oleh ${esc(labelOleh(g.rec.oleh) || 'panitia')}.</span></div>` : '';
+    const ulang = g.baru.length ? `<div class="ck-fl bad">${ico('alert')}<span><b>Ada pendaftaran baru</b> dengan bukti yang sama — sebelumnya sudah dicek oleh ${esc(labelOleh(g.rec.oleh) || 'panitia')}.</span></div>` : '';
     const wkLain = c.k !== 'waktu' ? g.rows.map((r) => this.waktuRow(r)).find(Boolean) : null;
     const id0 = esc(g.rows[0].id);
     box.innerHTML = `<div class="lk-top"><span>${esc(c.label)}</span><span>${Math.min(lk.i + 1, tot)} dari ${tot}</span><button type="button" class="lk-x" data-act="ovl.tutup" aria-label="Tutup">${ico('x')}</button></div>
@@ -5880,7 +5904,7 @@ const Adm = {
         ${c.k === 'waktu' ? this.vGarisWaktu(g.wk) : ''}
         <div class="lk-rows">${baris}</div>${uang}
         ${wkLain ? `<div class="ck-fl ${wkLain.k === 'lama' ? 'w' : 'bad'}">${ico('clock')}<span><b>${WK_LABEL[wkLain.k][1]}:</b> transfer ${durasiTeks(wkLain.sel)} ${wkLain.k === 'wajar' ? 'setelah' : 'sebelum'} daftar.</span></div>` : ''}${ulang}
-        <div class="lk-q">${esc(c.tanya)}<small>${c.saran}</small></div>
+        <div class="lk-q">${esc(c.tanya)}<small>${c.saran}${g.n > 1 ? '<br>Bisa juga ditandai satu per satu lewat tombol ⌄ di kanan tiap pendaftaran.' : ''}</small></div>
         <div class="lk-ac"><button type="button" class="btn lk-bad" data-act="adm.lkHasil" data-v="bermasalah" data-id="${id0}">${ico('x')} Bermasalah</button><button type="button" class="btn lk-ok" data-act="adm.lkHasil" data-v="sah" data-id="${id0}">${ico('check')} Sah, lanjut</button></div>
       </section>
       <div class="lk-bawah"><button type="button" class="ck2-link" data-act="adm.lkDetail" data-id="${id0}">${ico('eye')} Buka detail</button><button type="button" class="ck2-link" data-act="adm.lkLewati">Lewati dulu ${ico('arrow-r')}</button></div>`;
@@ -7376,6 +7400,23 @@ ACT['adm.cekInfo'] = () => Overlay.modal(`<div><h3>Cara kerja Cek Bukti</h3>
   <div class="actions end"><button type="button" class="btn btn-primary" data-act="ovl.tutup">Mengerti</button></div></div>`);
 ACT['adm.cekMulai'] = () => Adm.mulaiLangkah();
 ACT['adm.cekLangkah'] = (el) => Adm.mulaiLangkah(el.dataset.id);
+ACT['adm.lkRow'] = (el) => {
+  const lk = Adm.s.lk, id = el.dataset.id; if (!lk) return;
+  const b = lk.buka || (lk.buka = new Set()); if (b.has(id)) b.delete(id); else b.add(id);
+  const row = el.closest('.lk-row'); if (row) { row.classList.toggle('open', b.has(id)); el.setAttribute('aria-expanded', String(b.has(id))); }
+};
+ACT['adm.lkSatu'] = (el) => sibuk(el, async () => {
+  const lk = Adm.s.lk, id = el.dataset.id, g = Adm.idx.cekGrup.get(id); if (!lk || !g) return;
+  try {
+    const row = await api.tandaiSelesai('cek', [id], el.dataset.v);
+    Adm.s.data.selesai = (Adm.s.data.selesai || []).concat([row]);
+    if (lk.buka) lk.buka.delete(id);
+    Adm.indeks();
+    const g2 = Adm.idx.cekGrup.get(id);
+    if (g2 && g2.selesai) { if (g2.hasil === 'bermasalah') lk.masalah++; else lk.sah++; lk.i++; }
+    Adm.segarkanTampilan({ diam: true }); Adm.renderLangkah();
+  } catch (e) { toast(pesanError(e), 'bad', 6000); }
+});
 ACT['adm.lkLewati'] = () => { const lk = Adm.s.lk; if (!lk) return; lk.i++; lk.lewat++; Adm.renderLangkah(); };
 ACT['adm.lkDetail'] = (el) => { const id = el.dataset.id; Overlay.tutup(Adm.s.lk && Adm.s.lk.item); Adm.s.nav = Adm.hasilFilter().map((r) => r.id); Adm.buka(id); };
 ACT['adm.lkHasil'] = (el) => sibuk(el, async () => {
