@@ -643,13 +643,15 @@ details.tbl-toggle summary { cursor: pointer; font-size: 13px; color: var(--bran
 .ck2-back { display: inline-flex; align-items: center; gap: 5px; border: 0; background: none; font: inherit; font-size: 13px; font-weight: 700; color: var(--brand); cursor: pointer; padding: 2px 0 10px; }
 .ck2-foot { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; margin-top: 10px; }
 .ck2-lg { font-size: 12px; color: var(--muted); } .ck2-lg i { display: inline-block; width: 9px; height: 9px; border-radius: 3px; margin: 0 5px 0 0; vertical-align: -1px; }
-.ck2-lg i.y { margin-left: 10px; background: var(--ck-y-dot); } .ck2-lg i.r { background: var(--ck-r-dot); }
+.ck2-lg i.y, .ck2-lg i.g { margin-left: 10px; background: var(--ck-y-dot); } .ck2-lg i.g { background: var(--good-ink); } .ck2-lg i.r { background: var(--ck-r-dot); }
 .ck2-link { display: inline-flex; align-items: center; gap: 5px; border: 0; background: none; font: inherit; font-size: 13px; font-weight: 700; color: var(--brand); cursor: pointer; padding: 4px 0; }
 .ck2-link .ico, .ck2-back .ico { width: 15px; height: 15px; }
 .ck2-ic { display: inline-grid; place-items: center; width: 28px; height: 28px; border-radius: 8px; background: var(--surface-3); flex: none; }
 .cr-list { display: grid; gap: 8px; }
 .cr { background: var(--surface); border: 1px solid var(--line); border-left: 4px solid var(--ck-r-dot); border-radius: 12px; overflow: hidden; }
-.cr.y { border-left-color: var(--ck-y-dot); } .cr.sls { border-left-color: var(--line-strong); }
+.cr.y { border-left-color: var(--ck-y-dot); } .cr.g { border-left-color: var(--good-ink); }
+.cr.g .cr-tag { background: var(--good-soft); color: var(--good-ink); } .cr.g .cr-t b .ico { color: var(--good-ink); }
+.lk-card.g { border-color: color-mix(in srgb, var(--good-ink) 45%, transparent); } .lk-card.g .lk-h { background: var(--good-soft); } .lk-card.g .lk-k { color: var(--good-ink); } .cr.sls { border-left-color: var(--line-strong); }
 .cr-main { display: grid; gap: 2px; width: 100%; padding: 10px 12px; border: 0; background: none; color: inherit; font: inherit; text-align: left; cursor: pointer; }
 .cr-main:hover { background: var(--surface-2); }
 .cr-t { display: flex; justify-content: space-between; gap: 8px; align-items: flex-start; }
@@ -2020,13 +2022,24 @@ async function sha256File(file) {
    "bukti mirip" bila nama pengirim sama + nominal sama + waktu selisih ≤ 1 menit.
    (Kemiripan gambar tidak dipakai: struk berbeda dari aplikasi bank yang sama terlihat
    hampir identik, sehingga tidak bisa membedakan transfer sah dari salinan.) */
-const BACA_VERSI = 3;   // 3 = bukti yang dulu "tidak terbaca" dibaca ulang (gambar diperbesar, tahun dicek)   // naik bila pembaca bukti mendapat kolom baru (2 = No. Referensi & 4 angka rekening) → bukti lama dibaca ulang sekali
+const BACA_VERSI = 4;   // 3 = bukti yang dulu "tidak terbaca" dibaca ulang (gambar diperbesar, tahun dicek)   // naik bila pembaca bukti mendapat kolom baru (2 = No. Referensi & 4 angka rekening) → bukti lama dibaca ulang sekali
 const OCR_SUMBER = ['https://cdn.jsdelivr.net/npm/tesseract.js@5.1.1/dist/tesseract.min.js', 'https://unpkg.com/tesseract.js@5.1.1/dist/tesseract.min.js'];
 const BULAN_TEKS = { jan: 1, januari: 1, january: 1, feb: 2, peb: 2, februari: 2, february: 2, mar: 3, maret: 3, march: 3, apr: 4, april: 4, mei: 5, may: 5, jun: 6, juni: 6, june: 6, jul: 7, juli: 7, july: 7, agu: 8, agt: 8, ags: 8, aug: 8, agustus: 8, august: 8, sep: 9, sept: 9, september: 9, okt: 10, oct: 10, oktober: 10, october: 10, nov: 11, nop: 11, november: 11, nopember: 11, des: 12, dec: 12, desember: 12, december: 12 };
 function angkaRupiah(s) {
   let x = String(s).replace(/\s/g, '').replace(/[.,]\d{2}$/, '').replace(/[.,]/g, '');
   const n = parseInt(x, 10);
   return Number.isFinite(n) && n >= 1000 && n < 1e11 ? n : null;
+}
+/* jarak edit ≤ maks (untuk No. Ref yang salah baca 1–2 karakter) */
+function bedaSedikit(a, b, maks) {
+  if (Math.abs(a.length - b.length) > maks) return false;
+  let prev = Array.from({ length: b.length + 1 }, (_, j) => j);
+  for (let i = 1; i <= a.length; i++) {
+    const cur = [i]; let min = i;
+    for (let j = 1; j <= b.length; j++) { cur[j] = Math.min(prev[j] + 1, cur[j - 1] + 1, prev[j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1)); min = Math.min(min, cur[j]); }
+    if (min > maks) return false; prev = cur;
+  }
+  return prev[b.length] <= maks;
 }
 function bacaTeksBukti(teks, rekPanitia4 = '') {
   const baris = String(teks || '').replace(/\r/g, '').split('\n').map((x) => x.replace(/\s+/g, ' ').replace(/(?<=\d)[Oo]|[Oo](?=\d)/g, '0').replace(/(?<=\d)[lI|](?=\d)/g, '1').trim()).filter(Boolean);
@@ -2079,7 +2092,7 @@ function bacaTeksBukti(teks, rekPanitia4 = '') {
   // --- No. Referensi transaksi (unik per transfer)
   let ref = null;
   const RX_REF = /(no\.?\s*ref(?:erensi)?|nomor\s+referensi|reference(?:\s*(?:no|number))?|ref\.?\s*(?:no|number)?|id\s*transaksi|no\.?\s*transaksi|nomor\s+transaksi|kode\s+transaksi|transaction\s*id|trx\s*id|no\.?\s*resi|no\.?\s*jurnal)\b\s*[:#.\-]?\s*(.*)$/i;
-  const ambilRef = (t) => { const k = String(t || '').toUpperCase().replace(/[^A-Z0-9 ]/g, ' ').split(/\s+/).map((x) => x.trim()).filter((x) => x.length >= 8 && x.length <= 32 && (x.match(/\d/g) || []).length >= 6); return k.length ? k.sort((a, b) => b.length - a.length)[0] : null; };
+  const ambilRef = (t) => { const k = String(t || '').replace(/(?<=\d)[\/](?=\d)/g, '7').toUpperCase().replace(/[^A-Z0-9 ]/g, ' ').split(/\s+/).map((x) => x.trim()).filter((x) => x.length >= 8 && x.length <= 32 && (x.match(/\d/g) || []).length >= 6); return k.length ? k.sort((a, b) => b.length - a.length)[0] : null; };
   for (let i = 0; i < baris.length && !ref; i++) {
     const m = baris[i].match(RX_REF); if (!m) continue;
     ref = ambilRef(m[2].replace(/\s(?=\d)/g, '')) || ambilRef(baris[i + 1]);
@@ -2087,7 +2100,7 @@ function bacaTeksBukti(teks, rekPanitia4 = '') {
   // --- 4 angka terakhir rekening PENGIRIM (bukan rekening tujuan / panitia)
   let rek4 = null, cadangan = null, bagian = '';
   const RX_DARI = /\b(dari|sumber(\s+dana)?|pengirim|rekening\s+sumber|from|sender|asal)\b/i, RX_KE = /\b(ke|tujuan|penerima|rekening\s+tujuan|to|recipient|beneficiary)\b/i;
-  const RX_SAMAR = /(?:[*xX•·]{2,}[\s*xX•·-]*)(\d{3,4})(?!\d)/, RX_PANJANG = /(?<!\d)(\d[\d\s-]{6,22}\d)(?!\d)/;
+  const RX_SAMAR = /(?:[*xX•·]{2,}[\s*xX•·-]*|[.\-+«»~=·•*]{4,}\s*)(\d{3,4})(?!\d)/, RX_PANJANG = /(?<!\d)(\d[\d\s-]{6,22}\d)(?!\d)/;
   for (let i = 0; i < baris.length; i++) {
     const b = baris[i];
     if (RX_DARI.test(b)) bagian = 'dari'; else if (RX_KE.test(b)) bagian = 'ke';
@@ -2130,6 +2143,23 @@ function kanvasOCR(gambar) {
   const w0 = gambar.width, h0 = gambar.height, skala = Math.min(4, Math.max(1, 2000 / Math.max(w0, 1)), 8000 / Math.max(h0, 1));
   const c = document.createElement('canvas'); c.width = Math.round(w0 * skala); c.height = Math.round(h0 * skala);
   const x = c.getContext('2d'); x.filter = 'grayscale(1)'; x.drawImage(gambar, 0, 0, c.width, c.height);
+  return c;
+}
+/* bagian atas gambar diperbesar & dipertajam kontrasnya — untuk baris tanggal / No. Ref yang kecil */
+function kanvasOCRAtas(gambar, bagian = 0.4) {
+  const w0 = gambar.width, h0 = Math.round(gambar.height * bagian), skala = Math.min(6, Math.max(1.5, 2400 / Math.max(w0, 1)));
+  const c = document.createElement('canvas'); c.width = Math.round(w0 * skala); c.height = Math.round(h0 * skala);
+  const x = c.getContext('2d'); x.imageSmoothingQuality = 'high'; x.drawImage(gambar, 0, 0, w0, h0, 0, 0, c.width, c.height);
+  try {
+    const d = x.getImageData(0, 0, c.width, c.height), p = d.data, hist = new Uint32Array(256);
+    for (let i = 0; i < p.length; i += 4) { const g = (p[i] * 299 + p[i + 1] * 587 + p[i + 2] * 114) / 1000 | 0; p[i] = g; hist[g]++; }
+    const n = p.length / 4; let lo = 0, hi = 255, acc = 0;
+    for (; lo < 255 && (acc += hist[lo]) < n * 0.02; lo++);
+    acc = 0; for (; hi > 0 && (acc += hist[hi]) < n * 0.02; hi--);
+    const rentang = Math.max(1, hi - lo);
+    for (let i = 0; i < p.length; i += 4) { const v = Math.max(0, Math.min(255, ((p[i] - lo) * 255) / rentang)); p[i] = p[i + 1] = p[i + 2] = v; }
+    x.putImageData(d, 0, 0);
+  } catch (e) { /* kanvas tidak bisa dibaca: pakai apa adanya */ }
   return c;
 }
 function kompresGambar(file, maxSisi = 2000, kualitas = 0.82, tipe = 'image/jpeg') {
@@ -5251,16 +5281,16 @@ const Adm = {
       const awal = g.rec ? String(cocok[0].created_at) : '';
       g.baru = g.rec ? g.rows.filter((r) => !sudah.has(r.id) && String(r.created_at) > awal).map((r) => r.id) : [];
       g.selesai = !!g.rec && ids.every((x) => sudah.has(x));
-      if (g.lv > 0) g.baru.forEach((x) => baruIds.add(x));
+      g.baru.forEach((x) => baruIds.add(x));
     });
     // tanda terakhir per pendaftaran (Benar / Bermasalah) dari semua catatan pengecekan
     const tanda = new Map();
     catatan.forEach((c) => (c.anggota || []).forEach((a) => tanda.set(a, { hasil: c.hasil === 'bermasalah' ? 'bermasalah' : 'sah', rec: c })));
-    const perlu = grup.filter((g) => g.lv > 0 && !g.selesai);
+    const perlu = grup.filter((g) => !g.selesai);
     const kat = (k) => perlu.filter((g) => this.katCek(g).k === k).length, perluIds = new Set(perlu.flatMap((g) => g.rows.map((r) => r.id)));
     st.cek = {
       dobel: kat('dobel'), nominal: kat('nominal'), waktu: kat('waktu'), merah: perlu.filter((g) => this.katCek(g).w === 'r').length,
-      gabungan: grup.filter((g) => g.lv === 0).length, perlu: perlu.length, selesai: grup.filter((g) => g.lv > 0 && g.selesai).length,
+      gabungan: perlu.filter((g) => g.lv === 0).length, perlu: perlu.length, selesai: grup.filter((g) => g.selesai).length,
       kembali: perlu.filter((g) => g.baru.length).length,
       masalah: d.daftar.filter((r) => r.status !== 'ditolak' && (tanda.get(r.id) || {}).hasil === 'bermasalah').length,
       aman: d.daftar.filter((r) => { if (!r.bukti_path || r.status === 'ditolak' || perluIds.has(r.id)) return false; const b = sah(r); return b && !b.gagal; }).length,
@@ -5484,7 +5514,7 @@ const Adm = {
     if (st.waBelum) todo.push(item('info', 'chat', `${st.waBelum} konfirmasi WhatsApp belum dikirim`, 'Sudah terkonfirmasi tapi peserta belum menerima pesan WA.', `<button class="btn btn-sm" data-act="adm.filterWa">Kirim</button>`));
     const ck = st.cek;
     if (ck.perlu) {
-      const rinci = [ck.dobel && `${ck.dobel} bukti dobel`, ck.nominal && `${ck.nominal} nominal`, ck.waktu && `${ck.waktu} waktu`].filter(Boolean).join(' · ');
+      const rinci = [ck.dobel && `${ck.dobel} bukti dobel`, ck.nominal && `${ck.nominal} nominal`, ck.waktu && `${ck.waktu} waktu`, ck.gabungan && `${ck.gabungan} bayar gabungan`].filter(Boolean).join(' · ');
       todo.push(item(ck.merah ? 'bad' : 'warn', 'alert', `${ck.perlu} bukti perlu dicek`, rinci + (ck.kembali ? ` · ${ck.kembali} kembali karena ada pendaftaran <b>baru</b>` : ''), `<button class="btn btn-sm" data-act="adm.filterBukti">Periksa ${ico('arrow-r')}</button>`));
     }
     if (ck.masalah) todo.push(item('bad', 'alert', `${ck.masalah} pendaftaran bermasalah`, 'Sudah ditandai bermasalah saat cek bukti — tolak atau hubungi pesertanya.', `<button class="btn btn-sm" data-act="adm.filterMasalah">Lihat ${ico('arrow-r')}</button>`));
@@ -5713,13 +5743,21 @@ const Adm = {
     const per = (kunci) => { const m = new Map(); rows.forEach((r, i) => { const k = kunci(r); if (k) { if (!m.has(k)) m.set(k, []); m.get(k).push(i); } }); return m; };
     per((r) => r.bukti_hash).forEach((ii) => ii.slice(1).forEach((k) => gabung(ii[0], k, 3, 'hash')));
     per((r) => { const b = sah(r); return b && b.ref ? String(b.ref).toUpperCase() : null; }).forEach((ii) => ii.slice(1).forEach((k) => gabung(ii[0], k, 3, 'ref')));
+    // No. Ref hampir sama (salah baca 1–2 angka / terpotong di ujung) → tetap dianggap sama
+    const refs = rows.map((r, i) => [i, sah(r)]).filter(([, b]) => b && b.ref && String(b.ref).length >= 12).map(([i, b]) => [i, String(b.ref).toUpperCase()]);
+    for (let x = 0; x < refs.length; x++) for (let y = x + 1; y < refs.length; y++) {
+      const [i, a] = refs[x], [k, c] = refs[y];
+      if (a !== c && (a.startsWith(c) || c.startsWith(a) || bedaSedikit(a, c, 2))) gabung(i, k, 3, 'ref');
+    }
     const ms = (w) => (w ? Date.parse(String(w).slice(0, 19) + 'Z') : NaN);
-    const calon = rows.map((r, i) => [r, i, sah(r)]).filter(([, , b]) => b && b.nominal && b.waktu);
+    const calon = rows.map((r, i) => [r, i, sah(r)]).filter(([, , b]) => b && b.nominal);
     for (let x = 0; x < calon.length; x++) {
       const [r, i, a] = calon[x];
       for (let y = x + 1; y < calon.length; y++) {
         const [o, k, b] = calon[y];
-        if (a.nominal !== b.nominal || !(Math.abs(ms(a.waktu) - ms(b.waktu)) <= 60000)) continue;
+        if (a.nominal !== b.nominal) continue;
+        if (a.waktu && b.waktu) { if (!(Math.abs(ms(a.waktu) - ms(b.waktu)) <= 60000)) continue; }
+        else if (Math.abs(Date.parse(r.created_at) - Date.parse(o.created_at)) > 14 * 864e5) continue;   // waktu tak terbaca: pendaftaran berdekatan saja
         if (a.rek4 && b.rek4) { if (a.rek4 === b.rek4) gabung(i, k, 2, 'rek'); continue; }   // rekening beda = transfer berbeda
         if (cocokNama(r.nama_rekening, o.nama_rekening) || (a.nama && b.nama && cocokNama(a.nama, b.nama))) gabung(i, k, 1, 'nama');
       }
@@ -5767,7 +5805,9 @@ const Adm = {
   bacaSah(r) { const b = this.idx.baca.get(r.id); return b && b.bukti_path === r.bukti_path ? b : null; },
   /* Kategori pengecekan: dobel / nominal / waktu. Hanya 2 warna: r = hampir pasti masalah, y = cek sebentar */
   katCek(g) {
-    if (g.lv === 0) return { k: 'aman', w: 'g', tag: 'SESUAI', ikon: 'check', label: 'Bayar gabungan', judul: `Bayar gabungan ${g.n} layangan — nominal sesuai` };
+    if (g.lv === 0) return { k: 'gabungan', w: 'g', tag: 'SESUAI', ikon: 'check', label: 'Bayar gabungan', judul: `Bayar gabungan ${g.n} layangan — nominal sesuai`,
+      tanya: `Apakah ${g.n} layangan ini memang dibayar dengan 1 transfer?`,
+      saran: `Nominal di bukti <b>pas sama</b> dengan total tagihan ${rupiah(g.total)}${g.why === 'ref' ? ' dan No. Ref-nya sama' : g.why === 'hash' ? ' dan file buktinya sama' : ''}. Bila pendaftarnya memang satu rombongan → tandai benar.` };
     const rp = (x) => rupiah(Math.abs(x));
     if (g.why === 'waktu') {
       const d = durasiTeks(g.wk.sel), k = g.wk.k;
@@ -5893,9 +5933,9 @@ const Adm = {
     const f = this.s.f, st = this.idx.st, ids = new Set(rows.map((r) => r.id));
     const semua = [...new Set([...this.idx.cekGrup.values()])].filter((g) => g.rows.some((r) => ids.has(r.id)));
     const tab = ['masalah', 'selesai'].includes(f.cekTab) ? f.cekTab : 'perlu';
-    const URUT = { dobel: 0, nominal: 1, waktu: 2 };
-    const perlu = semua.filter((g) => g.lv > 0 && !g.selesai).sort((p, q) => { const a = this.katCek(p), b = this.katCek(q); return (q.baru.length ? 1 : 0) - (p.baru.length ? 1 : 0) || (a.w === 'r' ? 0 : 1) - (b.w === 'r' ? 0 : 1) || URUT[a.k] - URUT[b.k] || p.rows[0].created_at.localeCompare(q.rows[0].created_at); });
-    const selesai = semua.filter((g) => g.lv > 0 && g.selesai).sort((p, q) => String(q.rec.created_at).localeCompare(String(p.rec.created_at)));
+    const URUT = { dobel: 0, nominal: 1, waktu: 2, gabungan: 3 };
+    const perlu = semua.filter((g) => !g.selesai).sort((p, q) => { const a = this.katCek(p), b = this.katCek(q); return (q.baru.length ? 1 : 0) - (p.baru.length ? 1 : 0) || ({ r: 0, y: 1, g: 2 }[a.w]) - ({ r: 0, y: 1, g: 2 }[b.w]) || URUT[a.k] - URUT[b.k] || p.rows[0].created_at.localeCompare(q.rows[0].created_at); });
+    const selesai = semua.filter((g) => g.selesai).sort((p, q) => String(q.rec.created_at).localeCompare(String(p.rec.created_at)));
     const masalah = this.s.data.daftar.filter((r) => r.status !== 'ditolak' && (this.idx.tanda.get(r.id) || {}).hasil === 'bermasalah')
       .sort((p, q) => String(this.idx.tanda.get(q.id).rec.created_at).localeCompare(String(this.idx.tanda.get(p.id).rec.created_at)));
     const seg = (k, label, n) => `<button type="button" class="${tab === k ? 'on' : ''} ck2-${k}" data-act="adm.cekTab" data-v="${k}">${label} <em>${n}</em></button>`;
@@ -5917,7 +5957,7 @@ const Adm = {
         <p class="ck2-ket">${ket}</p>
         ${tab === 'perlu' && perlu.length ? `<button type="button" class="btn btn-primary ck2-go" data-act="adm.cekMulai">${ico('play')} Mulai cek satu per satu <small>(${perlu.length})</small></button>` : ''}
         <div class="cr-list">${isi}</div>
-        ${tab === 'perlu' ? '<div class="ck2-foot"><span class="ck2-lg"><i class="r"></i>hampir pasti masalah <i class="y"></i>cek sebentar</span></div>' : ''}
+        ${tab === 'perlu' ? '<div class="ck2-foot"><span class="ck2-lg"><i class="r"></i>hampir pasti masalah <i class="y"></i>cek sebentar <i class="g"></i>bayar gabungan</span></div>' : ''}
       </div>`;
   },
   /* konfirmasi diblokir sampai kasus Cek Bukti selesai */
@@ -5946,7 +5986,7 @@ const Adm = {
   },
   grupLangkah() {
     const lk = this.s.lk; if (!lk) return null;
-    while (lk.i < lk.antre.length) { const g = this.idx.cekGrup.get(lk.antre[lk.i]); if (g && g.lv > 0 && !g.selesai) return g; lk.i++; }
+    while (lk.i < lk.antre.length) { const g = this.idx.cekGrup.get(lk.antre[lk.i]); if (g && !g.selesai) return g; lk.i++; }
     return null;
   },
   renderLangkah() {
@@ -5999,7 +6039,7 @@ const Adm = {
     if (!r || r.status === 'ditolak') return null;
     const tn = this.idx.tanda && this.idx.tanda.get(r.id), g = this.idx.cekGrup.get(r.id);
     if (tn && tn.hasil === 'bermasalah') return { k: 'masalah', tn, g };
-    if (g && g.lv > 0 && !g.selesai && !(g.hasilRow && g.hasilRow.get(r.id) === 'sah')) return { k: 'perlu', g };
+    if (g && !g.selesai && !(g.hasilRow && g.hasilRow.get(r.id) === 'sah')) return { k: 'perlu', g };
     return null;
   },
   /* perbandingan nominal di bukti dengan tagihan (bayar gabungan = total kelompok) */
@@ -6037,7 +6077,7 @@ const Adm = {
       const nAktif = g.rows.filter((o) => o.status !== 'ditolak').length;
       let ring = `<span>Total tagihan (${nAktif} layangan)</span><b>${rupiah(g.total)}</b><span>Nominal di bukti</span><b>${g.nominal != null ? rupiah(g.nominal) : 'tak terbaca'}</b>`;
       if (g.nominal != null) ring += g.kurang === 0 ? `<span class="gm-ok">Selisih</span><b class="gm-ok">Sesuai</b>` : g.kurang < 0 ? `<span class="gm-lb">Selisih</span><b class="gm-lb">Lebih ${rupiah(-g.kurang)}</b>` : `<span class="gm-kr">Selisih</span><b class="gm-kr">Kurang ${rupiah(g.kurang)}</b>`;
-      h += `<section class="ck ck-mini ${LV[0]}"><div class="ck-h"><div class="ck-t"><div class="ck-lv"><i></i>${LV[1]}${g.lv > 0 && g.selesai ? ' · selesai dicek' : ''}</div><div class="ck-why">${this.alasanCek(g)}</div></div>${this.vUangCek(g)}</div>${semua}<div class="gm-sum">${ring}</div></section>`;
+      h += `<section class="ck ck-mini ${LV[0]}"><div class="ck-h"><div class="ck-t"><div class="ck-lv"><i></i>${LV[1]}${g.selesai ? ' · selesai dicek' : ''}</div><div class="ck-why">${this.alasanCek(g)}</div></div>${this.vUangCek(g)}</div>${semua}<div class="gm-sum">${ring}</div></section>`;
     }
     if (b && (b.nominal || b.waktu || b.nama || b.ref)) {
       const ms = (w) => (w ? Date.parse(String(w).slice(0, 19) + 'Z') : NaN);
@@ -6075,7 +6115,7 @@ const Adm = {
   },
   /* bukti yang belum dibaca, langsung dari data terbaru (ikut menangkap pendaftaran yang baru masuk) */
   /* baca ulang: bacaan versi 1 (belum ada No. Ref & rekening), atau yang nominal/waktunya belum terbaca sebelum versi 3 */
-  perluBacaUlang(b) { const v = b.versi || 1; return v < 2 || (v < 3 && (!b.nominal || !b.waktu)); },
+  perluBacaUlang(b) { const v = b.versi || 1; return v < 2 || (v < 4 && (!b.nominal || !b.waktu || !b.ref)); },
   antreanBaca(sudah) {
     const d = this.s.data; if (!d) return [];
     const baca = new Map((d.baca || []).map((b) => [b.pendaftaran_id, b]));
@@ -6105,7 +6145,13 @@ const Adm = {
           let bmp = null;
           try { bmp = res.ok ? await createImageBitmap(await res.blob()) : null; } catch (e) { bmp = null; }   // file rusak/hilang → "tidak terbaca"
           if (bmp) {
-            hasil = bacaTeksBukti((await ocr.recognize(kanvasOCR(bmp))).data.text, String((this.s.data && this.s.data.pengaturan.bank_no_rek) || '').replace(/\D/g, '').slice(-4));
+            const rekP = String((this.s.data && this.s.data.pengaturan.bank_no_rek) || '').replace(/\D/g, '').slice(-4);
+            const teks1 = (await ocr.recognize(kanvasOCR(bmp))).data.text;
+            hasil = bacaTeksBukti(teks1, rekP);
+            if (!hasil.waktu || !hasil.ref || !hasil.nominal) {          // baca ulang bagian atas yang diperbesar
+              const teks2 = (await ocr.recognize(kanvasOCRAtas(bmp))).data.text, h2 = bacaTeksBukti(teks2, rekP), hg = bacaTeksBukti(teks2 + '\n' + teks1, rekP);
+              for (const k of ['waktu', 'ref', 'nominal', 'nama', 'rek4']) if (!hasil[k]) hasil[k] = h2[k] || hg[k] || null;
+            }
             if (bmp.close) bmp.close();
             const thD = (bagianWaktu(r.created_at) || {}).y, thT = hasil.waktu ? +String(hasil.waktu).slice(0, 4) : null;
             if (thT && thD && (thT < thD - 1 || thT > thD)) hasil.waktu = null;   // mis. "2096" hasil salah baca
@@ -6183,7 +6229,7 @@ const Adm = {
       : `<span class="flag ck-flag sls" title="Sempat masuk Cek Bukti, ditandai benar oleh ${esc(labelOleh(tn.rec.oleh) || 'panitia')} · ${esc(fmtWaktu(tn.rec.created_at))}">${ico('check')}Sempat dicek</span>`);
     const wk = tutup ? null : this.waktuRow(r);
     if (wk) { const sls = g && g.why === 'waktu' && g.selesai; flags.push(`<span class="flag ck-flag ${sls ? 'sls' : WK_LABEL[wk.k][0]}" title="Transfer ${esc(fmtWaktu(wk.waktu))} · daftar ${esc(fmtWaktu(wk.daftar))}${sls ? ' (selesai dicek)' : ''}">${ico('clock')}${WK_LABEL[wk.k][1]}${wk.k === 'wajar' ? '' : ` · ${durasiTeks(wk.sel, true)}`}</span>`); }
-    if (g && g.why !== 'waktu' && !tutup) { const L = this.lvCek(g); flags.push(`<span class="flag ck-flag ${L[0]}${g.lv > 0 && g.selesai ? ' sls' : ''}" title="Cek Bukti: ${L[1]}${g.lv > 0 && g.selesai ? ' (selesai dicek)' : ''}">${g.lv ? ico('alert') : ico('check')}${L[1]}</span>`); }
+    if (g && g.why !== 'waktu' && !tutup) { const L = this.lvCek(g); flags.push(`<span class="flag ck-flag ${L[0]}${g.selesai ? ' sls' : ''}" title="Cek Bukti: ${L[1]}${g.selesai ? ' (selesai dicek)' : ''}">${g.lv ? ico('alert') : ico('check')}${L[1]}</span>`); }
     if (this.idx.baruIds && this.idx.baruIds.has(r.id)) flags.push('<span class="flag baru-tag" title="Pendaftaran baru di kelompok yang sebelumnya sudah selesai dicek">BARU</span>');
     if (!r.bukti_path) flags.push('<span class="flag info">Manual</span>');
     const baru = this.idx.baruIds && this.idx.baruIds.has(r.id);
@@ -6665,7 +6711,7 @@ const Adm = {
       <h3>Tolak massal</h3>
       <p class="lead">Untuk membersihkan pendaftaran palsu, dobel, atau yang tidak membayar. Centang yang akan ditolak — ${rows.length} pendaftaran menunggu sesuai filter saat ini.</p>
       <label class="check" style="margin:0 0 8px"><input type="checkbox" data-ch="adm.pilihSemua"><span><b>Pilih semua</b></span></label>
-      <div class="massal-list">${rows.map((r) => `<label class="massal-item"><input type="checkbox" name="pilih" value="${esc(r.id)}"><span><b>${esc(r.nama_sekha)}</b> · <span class="mono">${esc(r.kode)}</span><br><small>${esc(fmtWA(r.no_wa))} · ${esc(this.namaJenis(r.jenis))} · ${esc(relatif(r.created_at))}${this.idx.cekGrup.has(r.id) && this.idx.cekGrup.get(r.id).lv > 0 ? ' · cek bukti' : ''}</small></span></label>`).join('')}</div>
+      <div class="massal-list">${rows.map((r) => `<label class="massal-item"><input type="checkbox" name="pilih" value="${esc(r.id)}"><span><b>${esc(r.nama_sekha)}</b> · <span class="mono">${esc(r.kode)}</span><br><small>${esc(fmtWA(r.no_wa))} · ${esc(this.namaJenis(r.jenis))} · ${esc(relatif(r.created_at))}${this.idx.cekGrup.has(r.id) && !this.idx.cekGrup.get(r.id).selesai ? ' · cek bukti' : ''}</small></span></label>`).join('')}</div>
       <div class="field" style="margin-top:14px"><label class="label" for="alasan-massal">Alasan penolakan</label><input class="input" id="alasan-massal" name="alasan" value="Pendaftaran tidak valid" maxlength="300"></div>
       <div class="actions end"><button type="button" class="btn" data-act="ovl.tutup">Batal</button><button type="submit" class="btn btn-danger-solid">${ico('x')} Tolak yang dipilih</button></div>
     </form>`);
