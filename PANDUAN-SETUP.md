@@ -207,21 +207,33 @@ Pasang sekali: jalankan **`riwayat.sql`** di SQL Editor (hasil 3 ✅).
 
 Pasang sekali, berurutan: **`bukti-mirip.sql`** (2 ✅) → **`bukti-selesai.sql`** (2 ✅) → **`bukti-cek.sql`** (2 ✅). Semua aman dijalankan ulang.
 
-Satu filter **⚠ Cek Bukti** di halaman Pendaftaran menampilkan bukti transfer yang dipakai lebih dari satu pendaftaran, diurutkan dari yang paling pasti:
+Filter **⚠ Cek Bukti** di halaman Pendaftaran hanya menampilkan bukti yang **perlu dilihat panitia**. Bukti unik dan bayar gabungan yang nominalnya pas dihitung **aman** (angka hijau "✓ N aman") dan tidak ditampilkan.
 
-| Tingkat | Artinya |
+**Tiga tab:**
+
+| Tab | Isinya |
 |---|---|
-| 🔴 **Pasti sama** | file bukti identik, atau **No. Referensi transaksi** sama (walau di-screenshot ulang / dipotong) |
-| 🟠 **Sangat mungkin** | nominal + waktu (≤ 1 menit) + **4 angka terakhir rekening pengirim** sama |
-| 🟡 **Perlu dicek** | nominal + waktu + nama pengirim sama, rekening tidak terbaca |
-| ✓ **Bayar gabungan** | satu transfer untuk beberapa layangan dan nominalnya **pas sama** dengan total tagihan → wajar, tidak perlu dicek |
+| **Perlu dicek** | semua kasus yang belum diputuskan, satu kalimat per kasus. Merah = hampir pasti masalah, kuning = cek sebentar |
+| **Bermasalah** | setiap **pendaftaran** yang ditandai bermasalah → tolak / hubungi peserta, atau **Jadi benar** bila sudah beres. Pendaftaran yang ditolak otomatis keluar dari tab ini |
+| **Selesai** | riwayat kasus yang sudah dicek, lengkap dengan tanda **Benar / Bermasalah** tiap pendaftaran, siapa & kapan. **Buka lagi** mengembalikan ke Perlu dicek |
 
-- Di kanan atas tiap kotak tampil **Kurang** (nominal bukti < total tagihan) atau **Lebih** (nominal bukti > total tagihan — cek apakah ada pendaftaran yang belum masuk / perlu dikembalikan). Pendaftaran paling awal dianggap tertutup lebih dulu; sisanya berlabel **belum terbayar** → itulah yang perlu dihubungi / ditolak.
-- Dua transfer bernama sama di menit yang sama tetapi **rekeningnya berbeda** tidak lagi ditandai.
-- Tombol **Tandai bermasalah** / **Sah, selesai** memindahkan kotak ke tab **Selesai** (tercatat siapa & kapan). **Buka lagi** mengembalikannya. Bila masuk pendaftaran baru dengan bukti yang sama, kotak kembali ke **Perlu dicek** dengan label **BARU**.
-- Detail pendaftaran menampilkan **Terbaca dari bukti**: No. Referensi, rekening pengirim (4 angka), nama, nominal, waktu, plus peringatan *nominal tidak sesuai harga* dan *bukti lama*.
-- Di **Ringkasan** ada satu pengingat *"N bukti perlu dicek"* dengan rincian tingkatnya.
-- Pembacaan bukti tetap otomatis di browser panitia (seperti sebelumnya, tombol **Periksa bukti**). Setelah `bukti-cek.sql` dipasang, bukti lama **dibaca ulang sekali** untuk mengisi No. Referensi & rekening.
+**Jenis kasus** (label kecil di kartu):
+
+| Label | Artinya |
+|---|---|
+| ⧉ **PASTI** | file bukti identik, atau **No. Referensi** sama, dipakai beberapa pendaftaran berbeda |
+| ⧉ **MUNGKIN** | nominal + waktu (≤ 1 menit) + rekening pengirim (4 angka) atau nama pengirim sama |
+| 💳 **KURANG / LEBIH** | uang di bukti kurang / lebih dari tagihan (bayar gabungan yang nominalnya tidak pas, atau satu pendaftaran yang nominalnya ≠ harga) |
+| ⏱ **WAKTU** | transfer > 24 jam (kuning) atau > 14 hari (merah) sebelum mendaftar, atau **setelah** mendaftar lebih dari 60 menit (merah) |
+
+**Cara mengecek:** klik **Mulai cek satu per satu** → tiap kasus tampil dalam satu layar: gambar bukti berdampingan, daftar pendaftaran (Lunas / Belum lunas), rincian tagihan–nominal–selisih atau garis waktu, satu pertanyaan + saran → **Benar, lanjut** atau **Bermasalah**. Tiap pendaftaran juga bisa ditandai sendiri lewat tombol **⌄** di kanan barisnya (Benar · Bermasalah · Detail).
+
+- **Lunas / Belum lunas**: uang di bukti dipakai berurutan dari pendaftaran yang **paling awal daftar**; yang tidak kebagian = belum lunas.
+- Di daftar pendaftaran biasa: pendaftaran yang benar diberi tanda **✓ Sempat dicek**, yang bermasalah **⚠ Bermasalah**.
+- Bila masuk **pendaftaran baru yang terkait** kasus yang sudah selesai, kasus itu otomatis kembali ke **Perlu dicek** (label *BARU · cek ulang*) dengan tanda lama tetap terlihat — tinggal tentukan yang baru. Tombol besar hanya menandai yang belum ditandai.
+- Detail pendaftaran: kotak **Terbaca dari bukti** (terlipat, klik untuk buka), daftar semua pendaftaran yang memakai bukti sama, dan peringatan nominal / waktu.
+- Di **Ringkasan**: *"N bukti perlu dicek"* dan *"N pendaftaran bermasalah"*.
+- Pembacaan bukti tetap otomatis di browser panitia (tombol **Periksa bukti**). Setelah `bukti-cek.sql` dipasang, bukti lama **dibaca ulang sekali** untuk mengisi No. Referensi & rekening.
 - Tanda di sini adalah petunjuk, bukan keputusan: buka buktinya sebelum menolak.
 
 ## Tema event & penyelenggara
