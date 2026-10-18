@@ -5960,6 +5960,23 @@ const Adm = {
         ${tab === 'perlu' ? '<div class="ck2-foot"><span class="ck2-lg"><i class="r"></i>hampir pasti masalah <i class="y"></i>cek sebentar <i class="g"></i>bayar gabungan</span></div>' : ''}
       </div>`;
   },
+  /* hapus tanda Benar/Bermasalah satu pendaftaran. Catatan yang juga berisi pendaftaran lain dipecah:
+     catatan lama dihapus, pendaftaran lain ditandai ulang dengan hasil yang sama. */
+  async hapusTanda(id) {
+    const semua = this.s.data.selesai || [], kena = semua.filter((c) => (c.anggota || []).includes(id));
+    if (!kena.length) return;
+    const tandaLain = new Map();
+    kena.forEach((c) => (c.anggota || []).forEach((a) => { if (a !== id) tandaLain.set(a, c.hasil === 'bermasalah' ? 'bermasalah' : 'sah'); }));
+    // tanda lain yang lebih baru (catatan yang tidak ikut dihapus) tetap berlaku — cukup tulis ulang yang hanya ada di catatan terhapus
+    const sisa = semua.filter((c) => !kena.includes(c));
+    const masihAda = new Set(sisa.flatMap((c) => c.anggota || []));
+    await api.bukaLagi(kena.map((c) => c.id));
+    let baru = [];
+    for (const [hasil, ids] of [['sah', []], ['bermasalah', []]].map(([h]) => [h, [...tandaLain].filter(([a, x]) => x === h && !masihAda.has(a)).map(([a]) => a)])) {
+      if (ids.length) baru.push(await api.tandaiSelesai('cek', ids, hasil));
+    }
+    this.s.data.selesai = sisa.concat(baru);
+  },
   /* konfirmasi diblokir sampai kasus Cek Bukti selesai */
   dialogBlokir(r, st) {
     const id = esc(r.id);
@@ -6008,7 +6025,7 @@ const Adm = {
       const baruTag = g.baru.includes(r.id) ? '<span class="cr-baru">BARU</span>' : '';
       const tanda = baruTag;   // tanda Benar/Bermasalah terlihat dari tombol yang menyala
       return `<div class="lk-row open${hs ? ' done' : ''}" data-row="${id}"><span class="gm-n">${i + 1}</span><span class="gm-t"><b>${esc(r.nama_sekha)}</b>${tanda}<small>${jdot(r.jenis, dj)}${esc(this.namaJenis(r.jenis))} · ${esc((STATUS[r.status] || {}).label || r.status)}</small></span><span class="gm-r"><b>No. ${esc(r.nomor_layangan || '—')}</b><small>${rupiah(r.harga)}${st && g.n > 1 ? ` · <em class="lk-st ${st[0]}">${st[1]}</em>` : ''}</small></span>
-        <div class="lk-more"><button type="button" class="btn btn-sm lk-bad${hs === 'bermasalah' ? ' on' : ''}" data-act="adm.lkSatu" data-v="bermasalah" data-id="${id}">${ico('alert')} Bermasalah</button><button type="button" class="btn btn-sm lk-okb${hs === 'sah' ? ' on' : ''}" data-act="adm.lkSatu" data-v="sah" data-id="${id}">${ico('check')} Benar</button><button type="button" class="btn btn-sm btn-ghost" data-act="adm.lkDetail" data-id="${id}">Detail ${ico('arrow-r')}</button></div></div>`; }).join('');
+        <div class="lk-more"><button type="button" class="btn btn-sm lk-bad${hs === 'bermasalah' ? ' on' : ''}" data-act="adm.lkSatu" data-v="bermasalah" data-id="${id}" aria-pressed="${hs === 'bermasalah'}" title="${hs === 'bermasalah' ? 'Klik lagi untuk menghapus tanda' : ''}">${ico('alert')} Bermasalah</button><button type="button" class="btn btn-sm lk-okb${hs === 'sah' ? ' on' : ''}" data-act="adm.lkSatu" data-v="sah" data-id="${id}" aria-pressed="${hs === 'sah'}" title="${hs === 'sah' ? 'Klik lagi untuk menghapus tanda' : ''}">${ico('check')} Benar</button><button type="button" class="btn btn-sm btn-ghost" data-act="adm.lkDetail" data-id="${id}">Detail ${ico('arrow-r')}</button></div></div>`; }).join('');
     let uang = '';
     if (c.k !== 'waktu' && g.nominal != null) uang = `<div class="gm-sum"><span>${g.n > 1 ? `Total tagihan (${g.rows.filter((r) => r.status !== 'ditolak').length} layangan)` : 'Harga'}</span><b>${rupiah(g.total)}</b><span>Nominal di bukti</span><b>${rupiah(g.nominal)}</b>${g.kurang === 0 ? '<span class="gm-ok">Selisih</span><b class="gm-ok">Sesuai</b>' : g.kurang < 0 ? `<span class="gm-lb">Selisih</span><b class="gm-lb">Lebih ${rupiah(-g.kurang)}</b>` : `<span class="gm-kr">Selisih</span><b class="gm-kr">Kurang ${rupiah(g.kurang)}</b>`}</div>`;
     const nB = [...g.hasilRow.values()].filter((h) => h === 'sah').length, nM = [...g.hasilRow.values()].filter((h) => h === 'bermasalah').length;
@@ -7590,6 +7607,11 @@ ACT['adm.lkRow'] = (el) => {
 ACT['adm.lkSatu'] = (el) => sibuk(el, async () => {
   const lk = Adm.s.lk, id = el.dataset.id, g = Adm.idx.cekGrup.get(id); if (!lk || !g) return;
   try {
+    if (g.hasilRow.get(id) === (el.dataset.v === 'sah' ? 'sah' : 'bermasalah')) {     // klik lagi tombol yang menyala → tanda dihapus
+      await Adm.hapusTanda(id);
+      Adm.indeks(); Adm.segarkanTampilan({ diam: true }); Adm.renderLangkah();
+      return;
+    }
     const row = await api.tandaiSelesai('cek', [id], el.dataset.v);
     Adm.s.data.selesai = (Adm.s.data.selesai || []).concat([row]);
     if (lk.buka) lk.buka.delete(id);
