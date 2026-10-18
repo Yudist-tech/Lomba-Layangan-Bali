@@ -625,29 +625,29 @@ details.tbl-toggle summary { cursor: pointer; font-size: 13px; color: var(--bran
   body > *:not(#cetak-root) { display: none !important; }
   #cetak-root { display: block; }
 }
-.ln-hal { position: relative; width: 210mm; height: 297mm; overflow: hidden; background: #fff; color: #111; font-family: Inter, Arial, sans-serif; page-break-after: always; break-after: page; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+.ln-hal { position: relative; width: 210mm; height: 297mm; overflow: hidden; background: #fff; color: #16181d; font-family: Inter, 'Segoe UI', Arial, sans-serif; page-break-after: always; break-after: page; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
 .ln-hal:last-child { page-break-after: auto; break-after: auto; }
 .ln-tanda { position: absolute; width: 7mm; height: 7mm; background: #000; }
-.ln-kepala { position: absolute; left: 18mm; right: 18mm; top: 17mm; height: 32mm; display: flex; justify-content: space-between; align-items: flex-start; border-bottom: .6mm solid #111; }
-.ln-kepala h1 { margin: 4mm 0 0; font-size: 21pt; font-weight: 800; letter-spacing: .02em; }
-.ln-kepala p { margin: 2.5mm 0 0; font-size: 10.5pt; color: #444; }
-.ln-qr { display: flex; flex-direction: column; align-items: center; gap: 1mm; }
-.ln-qr-k { width: 24mm; height: 24mm; padding: 1mm; border: .35mm solid #111; border-radius: 2.5mm; }
+.ln-kepala { position: absolute; left: 18mm; right: 18mm; top: 18mm; height: 31mm; display: flex; justify-content: space-between; align-items: flex-start; border-bottom: .55mm solid #16181d; }
+.ln-kepala h1 { margin: 1mm 0 0; font-size: 22pt; font-weight: 800; letter-spacing: .02em; line-height: 1.1; }
+.ln-kepala p { margin: 2.6mm 0 0; font-size: 11pt; color: #55585f; }
+.ln-qr { display: flex; flex-direction: column; align-items: center; gap: 1.3mm; }
+.ln-qr-k { width: 22mm; height: 22mm; padding: 1mm; border: .4mm solid #16181d; border-radius: 2.8mm; }
 .ln-qr-k svg { display: block; width: 100%; height: 100%; }
-.ln-qr span { font-size: 6.5pt; font-weight: 800; letter-spacing: .08em; color: #555; }
-.ln-meta { position: absolute; left: 18mm; right: 18mm; top: 54mm; display: grid; grid-template-columns: 1fr 1fr; gap: 10mm; font-size: 10pt; }
-.ln-meta span { display: block; color: #444; } .ln-meta b { display: block; font-size: 13pt; margin-top: 1mm; }
-.ln-garis { border-bottom: .3mm solid #111; height: 7mm; }
-.ln-meja { position: absolute; left: 18mm; width: 174mm; border-collapse: collapse; table-layout: fixed; font-size: 9.5pt; }
-.ln-meja th, .ln-meja td { border: .3mm solid #222; padding: 0 2mm; }
-.ln-meja th { background: #eef0f3; text-align: left; font-weight: 700; } .ln-meja th.c { text-align: center; }
-.ln-meja .ln-no, .ln-meja th:first-child { text-align: center; color: #555; background: #f6f7f9; padding: 0; }
+.ln-qr span { font-size: 6.5pt; font-weight: 800; letter-spacing: .12em; color: #55585f; }
+.ln-lab { display: block; font-size: 8pt; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: #6b6e76; }
+.ln-meta { position: absolute; left: 18mm; right: 18mm; top: 53mm; display: grid; grid-template-columns: 1fr 1fr; gap: 10mm; }
+.ln-isi { height: 10.5mm; border-bottom: .25mm solid #9a9da3; display: flex; align-items: flex-end; padding-bottom: 1mm; }
+.ln-isi b { font-size: 13pt; font-weight: 700; }
+.ln-meja { position: absolute; left: 18mm; width: 174mm; border-collapse: collapse; table-layout: fixed; }
+.ln-meja th, .ln-meja td { border: .28mm solid #2a2c31; padding: 0 2.8mm; }
+.ln-meja th { background: #f0f1f4; text-align: left; font-size: 8pt; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: #3a3d44; } .ln-meja th.c { text-align: center; }
+.ln-meja .ln-no, .ln-meja th:first-child { text-align: center; font-size: 9pt; color: #6b6e76; background: #f7f8fa; padding: 0; letter-spacing: 0; }
 .ln-kaki { position: absolute; left: 18mm; right: 18mm; display: flex; justify-content: space-between; align-items: flex-end; gap: 6mm; }
-.ln-kaki p { margin: 0; font-size: 8.5pt; color: #555; line-height: 1.6; }
-.ln-ttd { display: flex; gap: 4mm; align-items: flex-end; flex: none; }
-.ln-tgl { width: 28mm; font-size: 8pt; color: #555; } .ln-tgl .ln-garis { height: 6mm; }
-.ln-paraf { position: relative; width: 44mm; height: 15mm; border: .3mm solid #333; border-radius: 1.5mm; }
-.ln-paraf span { position: absolute; left: 2.5mm; top: 1.5mm; font-size: 7.5pt; color: #555; }
+.ln-kaki p { margin: 0; font-size: 8.5pt; color: #55585f; line-height: 1.7; }
+.ln-ttd { display: flex; gap: 4.5mm; align-items: flex-end; flex: none; }
+.ln-tgl { width: 32mm; } .ln-tgl .ln-isi { height: 15mm; margin-top: 1.4mm; }
+.ln-paraf { width: 42mm; } .ln-paraf div { height: 15mm; margin-top: 1.4mm; border: .28mm solid #2a2c31; border-radius: 1.8mm; }
 /* cek nominal & status di halaman konfirmasi */
 .cn { display: grid; grid-template-columns: auto 1fr auto; gap: 1px 10px; align-items: center; border-radius: 12px; padding: 9px 12px; margin: 0 0 10px; border: 1px solid transparent; }
 .cn .ico { grid-row: span 2; width: 18px; height: 18px; } .cn b { font-size: 14.5px; } .cn .cn-v { font-weight: 800; font-size: 14.5px; text-align: right; white-space: nowrap; }
@@ -2159,7 +2159,7 @@ const QR = (() => {
    Satu lembar untuk semua jenis: jenis layangan ditulis juri. QR berisi kode event + juri
    untuk memastikan saat upload bahwa lembar itu milik juri yang benar di event ini.
    Ukuran dalam mm & posisi tetap — dipakai juga oleh pembaca foto lembar nanti. */
-const LEMBAR = { w: 210, h: 297, tanda: 7, tepi: 8, x0: 18, x1: 192, mejaY: 76, kepalaH: 9, baris: 15, barisH: 11.5, kolom: [9, 52, 30] };
+const LEMBAR = { w: 210, h: 297, tanda: 7, tepi: 8, x0: 18, x1: 192, mejaY: 71, kepalaH: 8.5, baris: 15, barisH: 11.3, kolom: [9, 54, 30] };
 const kodeEventQR = (id) => String(id || '').replace(/[^a-z0-9]/gi, '').slice(0, 10).toLowerCase();
 const isiQRLembar = (eventId, juriId) => `LNJ1|${kodeEventQR(eventId)}|${juriId}`;
 function bacaQRLembar(t) { const m = /^LNJ1\|([a-z0-9]*)\|(\d+)$/.exec(String(t || '').trim()); return m ? { event: m[1], juri: Number(m[2]) } : null; }
@@ -2170,12 +2170,12 @@ function vLembarNilai({ event, juri, qr }) {
     .map(([x, y]) => `<i class="ln-tanda" style="left:${x}mm;top:${y}mm"></i>`).join('');
   return `<section class="ln-hal">${tanda}
     <div class="ln-kepala"><div><h1>LEMBAR NILAI JURI</h1><p>${esc(event)}</p></div><div class="ln-qr"><div class="ln-qr-k">${qr}</div><span>SCAN UNTUK REKAP</span></div></div>
-    <div class="ln-meta"><div><span>Juri</span><b>${esc(juri)}</b></div><div><span>Jenis layangan</span><div class="ln-garis"></div></div></div>
+    <div class="ln-meta"><div><span class="ln-lab">Juri</span><div class="ln-isi"><b>${esc(juri)}</b></div></div><div><span class="ln-lab">Jenis layangan</span><div class="ln-isi"></div></div></div>
     <table class="ln-meja" style="top:${L.mejaY}mm"><colgroup><col style="width:${meja[0]}mm"><col style="width:${meja[1]}mm"><col style="width:${meja[2]}mm"><col style="width:${sisa}mm"></colgroup>
       <thead><tr style="height:${L.kepalaH}mm"><th>#</th><th>Nomor layangan</th><th class="c">Nilai</th><th>Keterangan singkat</th></tr></thead>
       <tbody>${baris.replace(/<tr>/g, `<tr style="height:${L.barisH}mm">`)}</tbody></table>
     <div class="ln-kaki" style="top:${L.mejaY + L.kepalaH + L.baris * L.barisH + 5}mm"><p>Tulis angka jelas di dalam sel, jangan melewati garis.<br>Salah tulis → coret satu baris, tulis ulang di baris baru.</p>
-      <div class="ln-ttd"><div class="ln-tgl"><span>Tanggal</span><div class="ln-garis"></div></div><div class="ln-paraf"><span>Paraf juri</span></div></div></div>
+      <div class="ln-ttd"><div class="ln-tgl"><span class="ln-lab">Tanggal</span><div class="ln-isi"></div></div><div class="ln-paraf"><span class="ln-lab">Paraf juri</span><div></div></div></div></div>
   </section>`;
 }
 function cetakLembarNilai(daftar, event) {
