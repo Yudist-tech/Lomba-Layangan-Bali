@@ -668,7 +668,14 @@ details.tbl-toggle summary { cursor: pointer; font-size: 13px; color: var(--bran
 .lk-im-box img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; cursor: zoom-in; display: block; }
 .lk-im figcaption { position: relative; border-top: 1px solid var(--line); background: var(--surface); }
 .lk-load { font-size: 12px; color: var(--muted); }
-.lk-im figcaption { padding: 5px 8px; font-size: 12px; color: var(--muted); } .lk-im figcaption b { color: var(--ink); }
+.lk-im figcaption { padding: 6px 8px; font-size: 12.5px; line-height: 1.3; } .lk-im figcaption b { display: block; color: var(--ink); overflow-wrap: anywhere; }
+.lk-im figcaption small { display: block; color: var(--muted); font-size: 11.5px; margin-top: 2px; }
+.lk-tip summary { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; list-style: none; cursor: pointer; }
+.lk-tip summary::-webkit-details-marker { display: none; }
+.lk-i { flex: none; width: 24px; height: 24px; margin-top: 3px; border-radius: 50%; display: grid; place-items: center; font: italic 800 13px Georgia, serif; background: var(--surface); color: var(--brand); border: 1px solid var(--line); }
+.lk-tip[open] .lk-i { background: var(--brand); color: #fff; border-color: var(--brand); }
+.lk-tip-isi { margin-top: 8px; padding: 8px 10px; border-radius: 9px; background: var(--surface); font-size: 12.8px; line-height: 1.45; color: var(--ink-2); }
+.lk-tip-isi b { color: var(--ink); }
 .lk-rows { margin-top: 6px; }
 .lk-row { display: grid; grid-template-columns: 22px 1fr auto; gap: 8px; align-items: center; padding: 8px 14px; border-top: 1px solid var(--line); }
 .lk-row .gm-t small, .lk-row .gm-r small { display: block; color: var(--muted); font-size: 12px; margin-top: 1px; }
@@ -5922,7 +5929,7 @@ const Adm = {
     }
     const c = this.katCek(g), dj = this.s.data.jenis;
     const ST = { tertutup: ['ok', 'Lunas'], belum: ['bad', 'Belum lunas'], ditolak: ['n', 'Ditolak'] };
-    const gambar = g.rows.slice(0, 4).map((r) => `<figure class="lk-im" data-bukti="${esc(r.id)}"><div class="lk-im-box"><span class="lk-load">memuat…</span></div><figcaption><b>No. ${esc(r.nomor_layangan || '—')}</b> · ${esc(fmtWaktu(r.created_at).replace(/ \d{4},/, ','))}</figcaption></figure>`).join('');
+    const gambar = g.rows.slice(0, 4).map((r) => `<figure class="lk-im" data-bukti="${esc(r.id)}"><div class="lk-im-box"><span class="lk-load">memuat…</span></div><figcaption><b>${esc(r.nama_sekha)}</b><small>No. ${esc(r.nomor_layangan || '—')} · ${esc(fmtWaktu(r.created_at).replace(/ \d{4},/, ','))}</small></figcaption></figure>`).join('');
     const buka = lk.buka || (lk.buka = new Set());
     const baris = g.rows.map((r, i) => { const st = ST[g.status.get(r.id)], hs = g.hasilRow.get(r.id), id = esc(r.id), on = buka.has(r.id);
       const baruTag = g.baru.includes(r.id) ? '<span class="cr-baru">BARU</span>' : '';
@@ -5939,12 +5946,11 @@ const Adm = {
     box.innerHTML = `<div class="lk-top"><span>${esc(c.label)}</span><span>${Math.min(lk.i + 1, tot)} dari ${tot}</span><button type="button" class="lk-x" data-act="ovl.tutup" aria-label="Tutup">${ico('x')}</button></div>
       <div class="lk-bar"><i style="width:${Math.round((lk.i / tot) * 100)}%"></i></div>
       <section class="lk-card ${c.w}">
-        <div class="lk-h"><div class="lk-k">${ico(c.ikon)} ${esc(c.label)} · ${c.tag}</div><h4>${esc(c.judul)}</h4></div>
+        <div class="lk-h"><div class="lk-k">${ico(c.ikon)} ${esc(c.label)} · ${c.tag}</div><details class="lk-tip"><summary><h4>${esc(c.judul)}</h4><span class="lk-i" aria-label="Penjelasan">i</span></summary><div class="lk-tip-isi"><b>${esc(c.tanya)}</b> ${c.saran}</div></details></div>
         <div class="lk-imgs n${Math.min(g.rows.length, 4)}">${gambar}</div>
         ${c.k === 'waktu' ? this.vGarisWaktu(g.wk) : ''}
         <div class="lk-rows">${baris}</div>${uang}
         ${wkLain ? `<div class="ck-fl ${wkLain.k === 'lama' ? 'w' : 'bad'}">${ico('clock')}<span><b>${WK_LABEL[wkLain.k][1]}:</b> transfer ${durasiTeks(wkLain.sel)} ${wkLain.k === 'wajar' ? 'setelah' : 'sebelum'} daftar.</span></div>` : ''}${ulang}
-        <div class="lk-q">${esc(c.tanya)}<small>${c.saran}${g.n > 1 ? '<br>Bisa juga ditandai satu per satu lewat tombol ⌄ di kanan tiap pendaftaran.' : ''}</small></div>
         <div class="lk-ac"><button type="button" class="btn lk-bad" data-act="adm.lkHasil" data-v="bermasalah" data-id="${id0}">${ico('x')} Bermasalah${g.dicek ? ` <small>(sisa ${g.n - g.dicek})</small>` : ''}</button><button type="button" class="btn lk-ok" data-act="adm.lkHasil" data-v="sah" data-id="${id0}">${ico('check')} Benar${g.dicek ? ` <small>(sisa ${g.n - g.dicek})</small>` : ', lanjut'}</button></div>
       </section>
       <div class="lk-bawah"><button type="button" class="ck2-link" data-act="adm.lkDetail" data-id="${id0}">${ico('eye')} Buka detail</button><button type="button" class="ck2-link" data-act="adm.lkLewati">Lewati dulu ${ico('arrow-r')}</button></div>`;
