@@ -1690,6 +1690,20 @@ fieldset.rentang legend { font-weight: 700; font-size: 14px; padding: 0 6px; }
 @media (max-width: 600px) { .hero-tema { font-size: 15px; margin: -4px 0 12px; } }
 
 /* ===== Penilaian & juara (dashboard) ===== */
+.ja { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; margin: 0 0 14px; }
+.ja-b { display: flex; align-items: center; gap: 12px; min-width: 0; text-align: left; background: var(--surface); border: 1.5px solid var(--line-strong); border-radius: 14px; padding: 12px 14px; font: inherit; color: var(--ink); cursor: pointer; transition: border-color .15s, box-shadow .15s; }
+.ja-b:hover { border-color: var(--brand); box-shadow: 0 0 0 3px rgba(14, 91, 168, .1); }
+.ja-b:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
+.ja-ic { width: 42px; height: 42px; border-radius: 11px; display: grid; place-items: center; flex: none; }
+.ja-ic .ico { width: 21px; height: 21px; }
+.ja-b.j .ja-ic { background: var(--brand-soft); color: var(--brand); }
+.ja-b.p .ja-ic { background: var(--good-soft); color: var(--good-ink); }
+.ja-t { min-width: 0; } .ja-t b { display: block; font-size: 15px; line-height: 1.25; } .ja-t small { color: var(--muted); font-size: 12px; }
+@media (max-width: 760px) { .ja { grid-template-columns: 1fr 1fr; gap: 8px; } .ja-b { padding: 10px; gap: 9px; } .ja-ic { width: 34px; height: 34px; } .ja-ic .ico { width: 18px; height: 18px; } .ja-t b { font-size: 13.5px; } }
+.nj-n { font-size: 12.5px; font-weight: 700; color: var(--ink); text-transform: none; letter-spacing: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.dj-row { display: grid; grid-template-columns: 24px minmax(0, 1fr) 30px; gap: 10px; align-items: center; padding: 7px 2px; border-bottom: 1px solid var(--line); }
+.dj-no { font-weight: 800; color: var(--muted); text-align: center; }
+.dj-row .input { font-weight: 700; }
 .nchips { display: flex; gap: 6px; flex-wrap: wrap; margin: 0 0 12px; }
 .nchip { display: inline-flex; align-items: center; gap: 6px; border: 1px solid var(--line); background: var(--surface); border-radius: 99px; padding: 6px 12px; font: inherit; font-size: 13.5px; font-weight: 700; color: var(--ink-2); cursor: pointer; }
 .nchip small { font-weight: 600; color: var(--muted); font-variant-numeric: tabular-nums; }
@@ -1796,8 +1810,58 @@ fieldset.rentang legend { font-weight: 700; font-size: 14px; padding: 0 6px; }
 .jrow .jl { font-size: 13px; } .jrow .jn { font-weight: 800; } .jrow .js small { display: block; font-size: 12px; color: var(--muted); }
 .jfoto { display: flex; gap: 6px; align-items: center; justify-content: flex-end; flex-wrap: wrap; }
 .jfoto img { width: 40px; height: 40px; border-radius: 9px; object-fit: cover; border: 1px solid var(--line); }
+/* keterangan juri pantau (kolom setelah Total) */
+.nilai-tbl.kp .nr { grid-template-columns: 52px 62px minmax(170px, 1fr) repeat(var(--nj), 104px) 64px minmax(210px, 1.25fr) 132px; min-width: calc(52px + 62px + 170px + var(--nj) * 104px + 64px + 210px + 132px + (var(--nj) + 6) * 8px + 20px); }
+.nkp-h { color: var(--brand); padding-left: 10px; }
+.nkp { position: relative; min-width: 0; padding: 2px 32px 2px 10px; border-left: 2px solid var(--brand-soft); font-size: 13px; line-height: 1.55; color: var(--ink-2); }
+.nkp-l { display: none; }
+.kpw { color: var(--ink); white-space: nowrap; }
+.kpw sup { font-size: 9.5px; font-weight: 800; color: #fff; background: var(--brand); border-radius: 7px; padding: 0 4px; margin-left: 2px; vertical-align: 3px; line-height: 1; }
+.kpw.ragu { background: var(--warn-soft); color: var(--warn-ink); border-bottom: 1.5px dashed var(--warn); border-radius: 3px; padding: 0 2px; }
+.kpw.ragu::after { content: "?"; font-weight: 900; font-size: 10px; margin-left: 2px; }
+.kps { color: var(--muted); }
+.kpk { color: var(--muted); font-style: italic; font-size: 12.5px; opacity: .8; }
+.kp-i { all: unset; box-sizing: border-box; position: absolute; right: 2px; top: 50%; transform: translateY(-50%); width: 24px; height: 24px; border-radius: 50%; border: 1.5px solid var(--brand); color: var(--brand); background: var(--surface); display: grid; place-items: center; font: italic 800 13px Georgia, 'Times New Roman', serif; cursor: pointer; }
+.kp-i:hover, .kp-i:focus-visible { background: var(--brand); color: #fff; }
+.kp-i:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
+.kp-i.ragu::after { content: ""; position: absolute; top: -2px; right: -2px; width: 8px; height: 8px; border-radius: 50%; background: var(--warn); border: 1.5px solid var(--surface); }
+.kp-pop h3 { margin: 0 0 2px; font-size: 17px; }
+.kp-isi { max-height: var(--mh, none); overflow-y: auto; overscroll-behavior: contain; }
+.kp-sub { margin: 0 0 6px; font-size: 12.5px; color: var(--muted); }
+.kpj { display: grid; grid-template-columns: 32px minmax(0, 1fr); gap: 4px 10px; padding: 10px 0; border-top: 1px dashed var(--line); }
+.kp-av { width: 32px; height: 32px; border-radius: 50%; display: grid; place-items: center; color: #fff; font-weight: 800; font-size: 12px; grid-row: span 3; }
+.kpj-h { display: flex; align-items: center; gap: 6px; min-width: 0; }
+.kpj-h b { font-size: 14.5px; } .kpj-h small { color: var(--muted); font-size: 11.5px; white-space: nowrap; }
+.kpj-h .btn { margin-left: auto; flex: none; }
+.kp-foto { display: block; width: 100%; height: 64px; object-fit: contain; object-position: left center; border: 1px solid var(--line); border-radius: 8px; background: #fbfbf8; }
+.kpj-t { font-size: 12.5px; color: var(--muted); } .kpj-t b { color: var(--ink); font-size: 13.5px; }
+.kp-kos { color: var(--muted); font-size: 13.5px; margin: 6px 0; padding-top: 10px; border-top: 1px dashed var(--line); }
+.kp-kaki { display: flex; gap: 8px; justify-content: flex-end; border-top: 1px solid var(--line); padding-top: 10px; margin-top: 2px; }
+.kp-lab { font-size: 13px; font-weight: 700; margin: 0 0 5px; }
+form .kp-foto { margin-bottom: 12px; height: 80px; }
+@media (min-width: 761px) {
+  .ovl.kp-bg { background: transparent; display: block; padding: 0; animation: none; }
+  .kp-pop { position: fixed; width: 440px; max-height: min(560px, calc(100vh - 24px)); padding: 14px 16px; border-radius: 14px; border: 1px solid var(--line-strong); box-shadow: 0 14px 40px rgba(20, 25, 35, .2); overflow: visible; }
+  .kp-pop::before { content: ""; position: absolute; left: var(--panah, 40px); width: 14px; height: 14px; background: var(--surface); transform: rotate(45deg); }
+  .kp-pop.bawah::before { top: -8px; border-left: 1px solid var(--line-strong); border-top: 1px solid var(--line-strong); }
+  .kp-pop.atas::before { bottom: -8px; border-right: 1px solid var(--line-strong); border-bottom: 1px solid var(--line-strong); }
+  .kp-pop:not(.atas):not(.bawah)::before { display: none; }
+}
+.cp-add { display: flex; gap: 8px; align-items: stretch; margin-top: 10px; }
+.cp-add textarea { flex: 1; resize: vertical; min-height: 44px; font-size: 14px; }
+.cp-x { all: unset; cursor: pointer; color: var(--muted); width: 30px; height: 30px; border-radius: 8px; display: grid; place-items: center; flex: none; }
+.cp-x:hover { background: var(--bad-soft); color: var(--bad); } .cp-x .ico { width: 15px; height: 15px; }
+.cp-kos { color: var(--muted); font-size: 13.5px; margin: 10px 2px; }
 @media (max-width: 760px) {
   /* di HP: tiap layangan jadi kartu */
+  .nr.nh .nkp-h { display: none; }
+  .nilai-tbl.kp .nr.nh { min-width: 0; }
+  .nilai-tbl.kp .nr:not(.nh) { grid-template-columns: auto auto minmax(0, 1fr) auto; grid-template-areas: "rk no sk tot" "in in in ak" "kp kp kp kp"; min-width: 0; }
+  .nr:not(.nh) .nkp { grid-area: kp; border-left: 0; background: var(--surface-2); border-radius: 8px; padding: 6px 38px 6px 9px; font-size: 12.5px; }
+  .nr:not(.nh) .nkp-l { display: block; font-size: 10.5px; font-weight: 800; letter-spacing: .04em; text-transform: uppercase; color: var(--muted); }
+  .nr:not(.nh) .nkp.kos { display: none; }
+  .nr:not(.nh) .kp-i { right: 8px; width: 28px; height: 28px; }
+
   .nilai-tbl { border: 0; overflow: visible; }
   .nr.nh { display: flex; flex-wrap: wrap; gap: 6px; border: 1px solid var(--line); border-radius: 12px; margin-bottom: 8px; min-width: 0; }
   .nr.nh > span:nth-child(-n+3), .nr.nh > .r { display: none; }
@@ -2161,31 +2225,32 @@ const QR = (() => {
    Ukuran dalam mm & posisi tetap — dipakai juga oleh pembaca foto lembar nanti. */
 const LEMBAR = { w: 210, h: 297, tanda: 7, tepi: 8, x0: 18, x1: 192, mejaY: 71, kepalaH: 8.5, baris: 15, barisH: 11.3, kolom: [9, 54, 30] };
 const kodeEventQR = (id) => String(id || '').replace(/[^a-z0-9]/gi, '').slice(0, 10).toLowerCase();
-const isiQRLembar = (eventId, juriId) => `LNJ1|${kodeEventQR(eventId)}|${juriId}`;
-function bacaQRLembar(t) { const m = /^LNJ1\|([a-z0-9]*)\|(\d+)$/.exec(String(t || '').trim()); return m ? { event: m[1], juri: Number(m[2]) } : null; }
-function vLembarNilai({ event, juri, qr }) {
-  const L = LEMBAR, meja = L.kolom, kw = L.x1 - L.x0, sisa = kw - meja.reduce((a, b) => a + b, 0);
-  const baris = Array.from({ length: L.baris }, (_, i) => `<tr><td class="ln-no">${i + 1}</td><td></td><td></td><td></td></tr>`).join('');
+/* LNJ1 = lembar nilai juri, LNP1 = lembar catatan juri pantau */
+const isiQRLembar = (eventId, juriId, pantau = false) => `${pantau ? 'LNP1' : 'LNJ1'}|${kodeEventQR(eventId)}|${juriId}`;
+function bacaQRLembar(t) { const m = /^LN([JP])1\|([a-z0-9]*)\|(\d+)$/.exec(String(t || '').trim()); return m ? { pantau: m[1] === 'P', event: m[2], juri: Number(m[3]) } : null; }
+function vLembarNilai({ event, juri, qr, pantau = false }) {
+  const L = LEMBAR, meja = pantau ? [L.kolom[0], L.kolom[1]] : L.kolom, kw = L.x1 - L.x0, sisa = kw - meja.reduce((a, b) => a + b, 0);
+  const baris = Array.from({ length: L.baris }, (_, i) => `<tr><td class="ln-no">${i + 1}</td><td></td>${pantau ? '' : '<td></td>'}<td></td></tr>`).join('');
   const tanda = [[L.tepi, L.tepi], [L.w - L.tepi - L.tanda, L.tepi], [L.tepi, L.h - L.tepi - L.tanda], [L.w - L.tepi - L.tanda, L.h - L.tepi - L.tanda]]
     .map(([x, y]) => `<i class="ln-tanda" style="left:${x}mm;top:${y}mm"></i>`).join('');
   return `<section class="ln-hal">${tanda}
-    <div class="ln-kepala"><div><h1>LEMBAR NILAI JURI</h1><p>${esc(event)}</p></div><div class="ln-qr"><div class="ln-qr-k">${qr}</div><span>SCAN UNTUK REKAP</span></div></div>
-    <div class="ln-meta"><div><span class="ln-lab">Juri</span><div class="ln-isi"><b>${esc(juri)}</b></div></div><div><span class="ln-lab">Jenis layangan</span><div class="ln-isi"></div></div></div>
-    <table class="ln-meja" style="top:${L.mejaY}mm"><colgroup><col style="width:${meja[0]}mm"><col style="width:${meja[1]}mm"><col style="width:${meja[2]}mm"><col style="width:${sisa}mm"></colgroup>
-      <thead><tr style="height:${L.kepalaH}mm"><th>#</th><th>Nomor layangan</th><th class="c">Nilai</th><th>Keterangan singkat</th></tr></thead>
+    <div class="ln-kepala"><div><h1>${pantau ? 'LEMBAR CATATAN JURI PANTAU' : 'LEMBAR NILAI JURI'}</h1><p>${esc(event)}</p></div><div class="ln-qr"><div class="ln-qr-k">${qr}</div><span>SCAN UNTUK REKAP</span></div></div>
+    <div class="ln-meta"><div><span class="ln-lab">${pantau ? 'Juri pantau' : 'Juri'}</span><div class="ln-isi"><b>${esc(juri)}</b></div></div><div><span class="ln-lab">Jenis layangan</span><div class="ln-isi"></div></div></div>
+    <table class="ln-meja" style="top:${L.mejaY}mm"><colgroup>${meja.map((w) => `<col style="width:${w}mm">`).join('')}<col style="width:${sisa}mm"></colgroup>
+      <thead><tr style="height:${L.kepalaH}mm"><th>#</th><th>Nomor layangan</th>${pantau ? '<th>Keterangan</th>' : '<th class="c">Nilai</th><th>Keterangan singkat</th>'}</tr></thead>
       <tbody>${baris.replace(/<tr>/g, `<tr style="height:${L.barisH}mm">`)}</tbody></table>
-    <div class="ln-kaki" style="top:${L.mejaY + L.kepalaH + L.baris * L.barisH + 5}mm"><p>Tulis angka jelas di dalam sel, jangan melewati garis.<br>Salah tulis → coret satu baris, tulis ulang di baris baru.</p>
-      <div class="ln-ttd"><div class="ln-tgl"><span class="ln-lab">Tanggal</span><div class="ln-isi"></div></div><div class="ln-paraf"><span class="ln-lab">Paraf juri</span><div></div></div></div></div>
+    <div class="ln-kaki" style="top:${L.mejaY + L.kepalaH + L.baris * L.barisH + 5}mm"><p>${pantau ? 'Tulis keterangan singkat, pisahkan dengan koma.' : 'Tulis angka jelas di dalam sel, jangan melewati garis.'}<br>Salah tulis → coret satu baris, tulis ulang di baris baru.</p>
+      <div class="ln-ttd"><div class="ln-tgl"><span class="ln-lab">Tanggal</span><div class="ln-isi"></div></div><div class="ln-paraf"><span class="ln-lab">${pantau ? 'Paraf juri pantau' : 'Paraf juri'}</span><div></div></div></div></div>
   </section>`;
 }
-function cetakLembarNilai(daftar, event) {
+function cetakLembarNilai(daftar, event, pantau = false) {
   let root = document.getElementById('cetak-root');
   if (root) root.remove();
   root = document.createElement('div'); root.id = 'cetak-root';
   const qrJuri = new Map();
   root.innerHTML = daftar.map(({ juriId, nama }) => {
-    if (!qrJuri.has(juriId)) qrJuri.set(juriId, QR.svg(isiQRLembar(api.eventId, juriId)));
-    return vLembarNilai({ event, juri: nama, qr: qrJuri.get(juriId) });
+    if (!qrJuri.has(juriId)) qrJuri.set(juriId, QR.svg(isiQRLembar(api.eventId, juriId, pantau)));
+    return vLembarNilai({ event, juri: nama, qr: qrJuri.get(juriId), pantau });
   }).join('');
   document.body.appendChild(root);
   const bersih = () => { window.removeEventListener('afterprint', bersih); setTimeout(() => { const r = document.getElementById('cetak-root'); if (r) r.remove(); }, 300); };
@@ -2366,6 +2431,16 @@ function urlGambarAman(u) {
   u = String(u || '').trim();
   if (!/^https:\/\//i.test(u) && !/^data:image\/(png|jpe?g|webp);base64,/i.test(u)) return '';
   return u.replace(/['"\\\s<>]/g, (c) => encodeURIComponent(c));
+}
+/* demo: gambar "tulisan tangan" tiruan untuk contoh potongan catatan juri pantau */
+function fotoTulisanContoh(teks) {
+  try {
+    const c = document.createElement('canvas'), x = c.getContext('2d'); c.width = 520; c.height = 64;
+    x.fillStyle = '#fbfbf8'; x.fillRect(0, 0, c.width, c.height);
+    x.strokeStyle = '#c9cdd3'; x.lineWidth = 1.5; x.beginPath(); x.moveTo(0, 50); x.lineTo(c.width, 50); x.stroke();
+    x.save(); x.translate(14, 42); x.rotate(-0.025); x.fillStyle = '#1d2f6b'; x.font = 'italic 30px "Segoe Print", "Bradley Hand", "Comic Sans MS", "DejaVu Serif", serif'; x.fillText(teks, 0, 0); x.restore();
+    return c.toDataURL('image/png');
+  } catch (e) { return null; }
 }
 function blobKeDataURL(blob) {
   return new Promise((resolve, reject) => { const r = new FileReader(); r.onload = () => resolve(r.result); r.onerror = reject; r.readAsDataURL(blob); });
@@ -2799,7 +2874,12 @@ class SupabaseAPI {
         this.sb.from('lomba_nilai_riwayat').select('*').eq('event_id', ev).order('at', { ascending: false }).limit(500).then((r) => this._ok(r)).catch(() => null),
         this.sb.from('lomba_event_admin').select('email').eq('event_id', ev).then((r) => this._ok(r).map((x) => x.email)).catch(() => null),
       ]);
-      return { juri, penilaian, nilai, penilai, riwayat_nilai, panitia_event };
+      // juri pantau (juri-pantau.sql); null = belum dipasang
+      const [juri_pantau, catatan_pantau] = await Promise.all([
+        this.sb.from('lomba_juri_pantau').select('*').eq('event_id', ev).order('id').then((r) => this._ok(r)).catch(() => null),
+        this.sb.from('lomba_catatan_pantau').select('*').eq('event_id', ev).order('id').then((r) => this._ok(r)).catch(() => null),
+      ]);
+      return { juri, penilaian, nilai, penilai, riwayat_nilai, panitia_event, juri_pantau, catatan_pantau };
     } catch (e) { return { juri: null, penilaian: null, nilai: null }; }
   }
   /* panitia penilai per event (diatur super admin dari jendela "Atur event"); null = juara.sql belum dipasang */
@@ -2823,6 +2903,13 @@ class SupabaseAPI {
   async tambahJuri(urutan, nama) { return this._ok(await this.sb.from('lomba_juri').insert({ event_id: this._ev(), urutan, nama }).select().single()); }
   async ubahJuri(id, nama) { return this._ok(await this.sb.from('lomba_juri').update({ nama }).eq('id', id).select().single()); }
   async hapusJuri(id) { this._ok(await this.sb.from('lomba_juri').delete().eq('id', id)); }
+  /* juri pantau & catatannya (juri-pantau.sql) */
+  async tambahPantau(nama) { return this._ok(await this.sb.from('lomba_juri_pantau').insert(nama.map((n) => ({ event_id: this._ev(), nama: n }))).select()); }
+  async ubahPantau(id, nama) { return this._ok(await this.sb.from('lomba_juri_pantau').update({ nama }).eq('id', id).select().single()); }
+  async hapusPantau(id) { this._ok(await this.sb.from('lomba_juri_pantau').delete().eq('id', id)); }
+  async tambahCatatanPantau(c) { return this._ok(await this.sb.from('lomba_catatan_pantau').insert({ ...c, event_id: this._ev() }).select().single()); }
+  async ubahCatatanPantau(id, patch) { return this._ok(await this.sb.from('lomba_catatan_pantau').update(patch).eq('id', id).select().single()); }
+  async hapusCatatanPantau(id) { this._ok(await this.sb.from('lomba_catatan_pantau').delete().eq('id', id)); }
   /* baris penilaian dibuat otomatis saat nilai/DQ/catatan pertama disimpan; bila sudah ada (panitia lain), ambil yang ada */
   async tambahPenilaian(pid) {
     const r = await this.sb.from('lomba_penilaian').insert({ pendaftaran_id: pid, event_id: this._ev() }).select().single();
@@ -3820,7 +3907,7 @@ class DemoAPI {
   /* ---- data admin ---- */
   async muatSemua() {
     await this._jeda(250);
-    return this._salin({ pengaturan: this.db.pengaturan, jenis: this.db.jenis, seri: this.db.seri, daftar: this.db.daftar, hari: [...this.db.hari].sort(urutHari), sesi: [...this.db.sesi].sort(urutSesi), baca: Object.values(this.db.baca || {}), selesai: this.db.selesai || [], juara: this.db.juara || [], juara_umum: this.db.juara_umum || [], penilai: this.db.penilai || [], riwayat_nilai: this.db.riwayat_nilai || [], panitia_event: this._super() ? (this.ix.akses[this.eventId] || []) : null, juri: this.db.juri || [], penilaian: this.db.penilaian || [], nilai: this.db.nilai || [] });
+    return this._salin({ pengaturan: this.db.pengaturan, jenis: this.db.jenis, seri: this.db.seri, daftar: this.db.daftar, hari: [...this.db.hari].sort(urutHari), sesi: [...this.db.sesi].sort(urutSesi), baca: Object.values(this.db.baca || {}), selesai: this.db.selesai || [], juara: this.db.juara || [], juara_umum: this.db.juara_umum || [], penilai: this.db.penilai || [], riwayat_nilai: this.db.riwayat_nilai || [], panitia_event: this._super() ? (this.ix.akses[this.eventId] || []) : null, juri: this.db.juri || [], penilaian: this.db.penilaian || [], nilai: this.db.nilai || [], ...this._pantauDb() });
   }
   /* tiruan juara.sql: penilaian */
   _nilaiDb() { const d = this.db; d.juri = d.juri || []; d.penilaian = d.penilaian || []; d.nilai = d.nilai || []; d.penilai = d.penilai || []; d.riwayat_nilai = d.riwayat_nilai || []; return d; }
@@ -3856,6 +3943,38 @@ class DemoAPI {
   async tambahJuri(urutan, nama) { await this._jeda(120); this._wajibPenilai(); const d = this._nilaiDb(); const row = { id: this._idBaru(d.juri), urutan, nama }; d.juri.push(row); this._simpan(); return this._salin(row); }
   async ubahJuri(id, nama) { await this._jeda(120); this._wajibPenilai(); const j = this._nilaiDb().juri.find((x) => x.id === id); Object.assign(j, { nama }); this._simpan(); return this._salin(j); }
   async hapusJuri(id) { await this._jeda(120); this._wajibPenilai(); const d = this._nilaiDb(); d.nilai.filter((x) => x.juri_id === id).forEach((x) => this._wajibTerbuka(this._jenisDari(x.pendaftaran_id))); d.juri = d.juri.filter((x) => x.id !== id); d.nilai = d.nilai.filter((x) => x.juri_id !== id); this._simpan(); }
+  /* tiruan juri-pantau.sql; event contoh yang sudah punya nilai diberi contoh catatan juri pantau */
+  _pantauDb() {
+    const d = this.db;
+    if (!d.juri_pantau) { d.juri_pantau = []; d.catatan_pantau = []; if ((d.nilai || []).length) { this._isiPantauContoh(d); try { this._tulis(d); } catch (e) { /* abaikan */ } } }
+    d.catatan_pantau = d.catatan_pantau || [];
+    return { juri_pantau: d.juri_pantau, catatan_pantau: d.catatan_pantau };
+  }
+  _isiPantauContoh(d) {
+    d.juri_pantau = [{ id: 1, nama: 'Gede Sukarta' }, { id: 2, nama: 'Komang Ari' }, { id: 3, nama: 'Wayan Dodi' }];
+    const urut = [...new Set((d.nilai || []).map((x) => x.pendaftaran_id))];
+    const isi = [
+      [[1, 'stabil, naik cepat'], [2, 'stabil, suara bagus'], [3, 'stabil, suara bagus']],
+      [[1, 'goyang, ekor pendek'], [2, 'agak goyang, warna cerah'], [3, 'tali kndr', 'tali kendor', true]],
+      [[1, 'jatuh 1x'], [3, 'naik lambat']],
+      [[2, 'ekor rapi']],
+    ];
+    let id = 1;
+    isi.forEach((rows, i) => { const pid = urut[i]; if (!pid) return; rows.forEach(([pj, teks, asli, ragu], k) => {
+      d.catatan_pantau.push({ id: id++, pendaftaran_id: pid, pantau_id: pj, teks, teks_baca: teks, ragu: !!ragu, lembar: 1 + (k % 2), baris: i + 2, foto_url: fotoTulisanContoh(asli || teks), oleh: null, updated_at: new Date().toISOString() });
+    }); });
+  }
+  async tambahPantau(nama) { await this._jeda(120); this._wajibPenilai(); const d = this.db; this._pantauDb();
+    const ada = new Set(d.juri_pantau.map((x) => x.nama.trim().toLowerCase()));
+    if (nama.some((n) => ada.has(n.trim().toLowerCase()))) throw new Error('duplicate key value violates unique constraint "lomba_juri_pantau_nama_uq"');
+    const rows = nama.map((n) => { const r = { id: this._idBaru(d.juri_pantau), nama: n }; d.juri_pantau.push(r); return r; }); this._simpan(); return this._salin(rows); }
+  async ubahPantau(id, nama) { await this._jeda(120); this._wajibPenilai(); const d = this.db; this._pantauDb();
+    if (d.juri_pantau.some((x) => x.id !== id && x.nama.trim().toLowerCase() === nama.toLowerCase())) throw new Error('duplicate key value violates unique constraint "lomba_juri_pantau_nama_uq"');
+    const j = d.juri_pantau.find((x) => x.id === id); j.nama = nama; this._simpan(); return this._salin(j); }
+  async hapusPantau(id) { await this._jeda(120); this._wajibPenilai(); const d = this.db; this._pantauDb(); d.juri_pantau = d.juri_pantau.filter((x) => x.id !== id); d.catatan_pantau = d.catatan_pantau.filter((x) => x.pantau_id !== id); this._simpan(); }
+  async tambahCatatanPantau(c) { await this._jeda(120); this._wajibPenilai(); const d = this.db; this._pantauDb(); const r = { id: this._idBaru(d.catatan_pantau), teks_baca: null, ragu: false, lembar: null, baris: null, foto_url: null, ...c, teks: String(c.teks || '').trim().slice(0, 300), oleh: this._email(), updated_at: new Date().toISOString() }; d.catatan_pantau.push(r); this._simpan(); return this._salin(r); }
+  async ubahCatatanPantau(id, patch) { await this._jeda(120); this._wajibPenilai(); const c = this._pantauDb().catatan_pantau.find((x) => x.id === id); Object.assign(c, patch, { teks: String(patch.teks ?? c.teks).trim().slice(0, 300), oleh: this._email(), updated_at: new Date().toISOString() }); this._simpan(); return this._salin(c); }
+  async hapusCatatanPantau(id) { await this._jeda(120); this._wajibPenilai(); const d = this.db; this._pantauDb(); d.catatan_pantau = d.catatan_pantau.filter((x) => x.id !== id); this._simpan(); }
   async tambahPenilaian(pid) {
     await this._jeda(120);
     const d = this._nilaiDb(), p = d.daftar.find((x) => x.id === pid);
@@ -6473,7 +6592,7 @@ const Adm = {
     const nDinilai = (kode) => d.daftar.filter((r) => r.jenis === kode && r.status === 'terkonfirmasi' && adaNilai.has(r.id)).length;
     const chips = jenisList.map((x) => `<button type="button" class="nchip ${x.kode === jk ? 'on' : ''}" data-act="adm.nilaiJenis" data-v="${esc(x.kode)}">${jdot(x.kode, d.jenis)}${esc(x.nama)} <small>${nDinilai(x.kode)}/${nKonf(x.kode)}</small>${this.juaraUmum(x.kode) ? ' <span title="Juara sudah diumumkan">🏆</span>' : ''}</button>`).join('');
     const maks = Number(ev.nilai_maks) || 100;
-    return top + `
+    return top + this.vJuriAlat() + `
       <div class="nchips" role="tablist" aria-label="Jenis layangan">${chips}</div>
       ${bantuan('nilai', 'Cara mengisi nilai', [
         'Ketik <b>nomor layangan</b> di kotak cari lalu tekan <b>Enter</b> — hanya nomor itu yang tampil.',
@@ -6484,7 +6603,6 @@ const Adm = {
       <div class="panel nilai-panel">
         <div class="nilai-alat">
           <label class="nilai-cari">${ico('search')}<input id="nilai-cari" class="input" type="text" inputmode="numeric" placeholder="Ketik nomor layangan lalu Enter" value="${esc(this.s.nilaiCari || '')}" data-in="adm.nilaiCari" autocomplete="off" aria-label="Cari nomor layangan"><button type="button" class="nilai-cari-x" data-act="adm.nilaiCariHapus" aria-label="Hapus pencarian">${ico('x')}</button></label>
-          <button type="button" class="btn btn-sm" data-act="adm.cetakLembar">${ico('print')} Cetak lembar</button>
           ${this.bolehMenilai() ? `<button type="button" class="btn btn-sm" data-act="adm.nilaiMaks">${ico('sliders')} Nilai 1–${maks}</button>` : ''}
         </div>
         <div id="nilai-isi">${this.vIsiNilai(jk, pk, maks)}</div>
@@ -6499,10 +6617,10 @@ const Adm = {
     pk = pk || this.peringkat(jk); maks = maks || Number(this.s.data.pengaturan.nilai_maks) || 100;
     const BATAS = 15, cari = (this.s.nilaiCari || '').trim(), j = this.idx.jenis.get(jk);
     const boleh = this.bolehMenilai(), ro = !boleh || this.terkunci(jk);
-    const kolom = `--nj:${Math.max(1, pk.juri.length)}`;
+    const kolom = `--nj:${Math.max(1, pk.juri.length)}`, kp = this.pantauAktif();
     const head = `<div class="nr nh" style="${kolom}"><span>Rank</span><span>No.</span><span>Sekha</span>
-      ${pk.juri.map((x, i) => `<span class="nj-h"><input class="nj-nama" value="${esc(x.nama)}" placeholder="Juri ${i + 1}" maxlength="30" data-ch="adm.juriNama" data-id="${x.id}" aria-label="Nama juri ${i + 1}" ${boleh ? '' : 'readonly'}>${boleh && pk.juri.length > 1 ? `<button type="button" class="nj-x" data-act="adm.juriHapus" data-id="${x.id}" title="Hapus juri ${i + 1}" aria-label="Hapus juri ${i + 1}">${ico('x')}</button>` : ''}</span>`).join('')}
-      <span class="r">Total</span><span class="nj-tambah">${boleh ? `<button type="button" class="btn btn-xs" data-act="adm.juriTambah">${ico('plus')} Juri</button>` : ''}</span></div>`;
+      ${pk.juri.map((x, i) => `<span class="nj-h"><span class="nj-n" title="${esc(x.nama || 'Juri ' + (i + 1))}">${esc(x.nama || 'Juri ' + (i + 1))}</span></span>`).join('')}
+      <span class="r">Total</span>${kp ? '<span class="nkp-h">Keterangan juri pantau</span>' : ''}<span></span></div>`;
     if (!pk.semua.length) return `<div class="empty">Belum ada layangan ${esc(j ? j.nama : '')} yang terkonfirmasi.</div>`;
     let tampil, info;
     if (cari) {
@@ -6517,7 +6635,7 @@ const Adm = {
     const sisa = cari ? 0 : pk.urut.length - tampil.length;
     const atasSeri = pk.sah.filter((x) => x.seri && x.rank <= 3 + Math.max(6, (this.s.nilaiHarapan || 6)));
     return `<div class="nilai-info">${info}</div>
-      <div class="nilai-tbl${cari ? ' cari' : ''}${ro ? ' ro' : ''}">${head}${tampil.map((x) => this.vBarisNilai(x, pk, maks, kolom, ro)).join('')}</div>
+      <div class="nilai-tbl${cari ? ' cari' : ''}${ro ? ' ro' : ''}${kp ? ' kp' : ''}">${head}${tampil.map((x) => this.vBarisNilai(x, pk, maks, kolom, ro)).join('')}</div>
       ${sisa > 0 ? `<div class="nilai-sisa">${sisa} layangan lain disembunyikan — ketik nomornya di kotak cari untuk memberi nilai · <button type="button" class="btn-link" data-act="adm.nilaiSemua">Tampilkan semua</button></div>` : ''}
       ${!cari && this.s.nilaiSemua && pk.urut.length > BATAS ? `<div class="nilai-sisa"><button type="button" class="btn-link" data-act="adm.nilaiSemua">Tampilkan ${BATAS} teratas saja</button></div>` : ''}
       <div id="nilai-ulang" class="nilai-ulang" hidden><button type="button" class="btn btn-xs" data-act="adm.nilaiUrut" data-v="peringkat">${ico('refresh')} Urutkan ulang</button></div>
@@ -6536,6 +6654,7 @@ const Adm = {
         ${x.p.catatan ? `<small class="ncat">${ico('edit')} ${esc(x.p.catatan)}</small>` : ''}</span>
       <span class="nins">${pk.juri.map((j, i) => `<label class="nin"><span class="nin-l">${esc(j.nama || 'Juri ' + (i + 1))}</span><input type="number" inputmode="numeric" min="0" max="${maks}" step="1" value="${x.skor[i] ?? ''}" data-ch="adm.nilai" data-pid="${id}" data-juri="${j.id}" ${ro ? 'disabled' : ''} aria-label="Nilai ${esc(j.nama || 'juri ' + (i + 1))} untuk nomor ${esc(r.nomor_layangan || '-')}"></label>`).join('')}</span>
       <span class="ntot">${x.kosong ? '' : x.total || (x.lengkap ? 0 : '')}<small>${x.lengkap || x.kosong ? '' : 'sementara'}</small></span>
+      ${this.pantauAktif() ? this.vKetPantau(r) : ''}
       <span class="naksi">${ro ? '' : `
         <details class="ae-menu nak-m"><summary class="ae-dots" aria-label="Aksi untuk nomor ${esc(r.nomor_layangan || '-')}">${ico('more')}</summary><div class="ae-pop">
           <button type="button" data-act="adm.nilaiCatatan" data-pid="${id}">${ico('edit')} Catatan</button>
@@ -6543,6 +6662,48 @@ const Adm = {
         <button type="button" class="btn btn-xs btn-icon nak-d" data-act="adm.nilaiCatatan" data-pid="${id}" title="Catatan" aria-label="Catatan">${ico('edit')}</button>
         <button type="button" class="btn btn-xs nak-d ${x.dq ? '' : 'btn-danger'}" data-act="adm.nilaiDq" data-pid="${id}">${x.dq ? 'Batal DQ' : 'DQ'}</button>`}
       </span></div>`;
+  },
+  /* 4 tombol besar: daftar & cetak form juri / juri pantau */
+  vJuriAlat() {
+    const d = this.s.data, nj = (d.juri || []).length, np = Array.isArray(d.juri_pantau) ? d.juri_pantau.length : null;
+    const b = (act, kls, icon, judul, ket) => `<button type="button" class="ja-b ${kls}" data-act="${act}"><span class="ja-ic">${ico(icon)}</span><span class="ja-t"><b>${judul}</b><small>${ket}</small></span></button>`;
+    return `<div class="ja">${b('adm.daftarJuri', 'j', 'users', 'Daftar Juri', `${nj} juri nilai`)}${b('adm.cetakLembar', 'j', 'print', 'Cetak Form Juri', 'lembar nilai')}${b('adm.daftarPantau', 'p', 'eye', 'Daftar Juri Pantau', np == null ? 'belum aktif' : `${np} juri pantau`)}${b('adm.cetakPantau', 'p', 'print', 'Cetak Form Juri Pantau', 'lembar catatan')}</div>`;
+  },
+  /* ---- juri pantau (juri-pantau.sql) ---- */
+  pantauAktif() { const d = this.s.data; return Array.isArray(d.juri_pantau) && Array.isArray(d.catatan_pantau); },
+  catatanPantau(pid) { return (this.s.data.catatan_pantau || []).filter((c) => c.pendaftaran_id === pid); },
+  /* ringkasan: dipisah koma/titik koma/baris; hanya kata yang persis sama yang digabung (diberi angka) */
+  ringkasPantau(pid) {
+    const m = new Map();
+    this.catatanPantau(pid).forEach((c) => {
+      const seen = new Set();
+      String(c.teks || '').split(/[,;\n]+/).map((t) => t.trim().replace(/\s+/g, ' ')).filter(Boolean).forEach((t) => {
+        const k = t.toLowerCase(); if (seen.has(k)) return; seen.add(k);
+        const w = m.get(k) || { t, n: 0, ragu: false, urut: m.size }; w.n++; w.ragu = w.ragu || !!c.ragu; m.set(k, w);
+      });
+    });
+    return [...m.values()].sort((a, b) => b.n - a.n || a.urut - b.urut);
+  },
+  vKetPantau(r) {
+    const kata = this.ringkasPantau(r.id), n = this.catatanPantau(r.id).length;
+    const isi = kata.length ? kata.map((w) => `<span class="kpw${w.ragu ? ' ragu' : ''}"${w.ragu ? ' title="Tulisan kurang jelas — sebaiknya dicek"' : ''}>${esc(w.t)}${w.n > 1 ? `<sup>${w.n}</sup>` : ''}</span>`).join('<span class="kps">, </span>') : '<span class="kpk">— belum ada catatan</span>';
+    return `<span class="nkp${kata.length ? '' : ' kos'}"><span class="nkp-l">Juri pantau</span><span class="nkp-t">${isi}</span>
+      ${n || this.bolehMenilai() ? `<button type="button" class="kp-i${kata.some((w) => w.ragu) ? ' ragu' : ''}" data-act="adm.kpInfo" data-pid="${esc(r.id)}" title="Catatan tiap juri pantau${this.bolehMenilai() ? ' & koreksi' : ''}" aria-label="Catatan juri pantau nomor ${esc(r.nomor_layangan || '-')}">i</button>` : ''}</span>`;
+  },
+  vPantauPop(pid) {
+    const d = this.s.data, r = this.baris(pid) || {}, boleh = this.bolehMenilai();
+    const nama = new Map((d.juri_pantau || []).map((j) => [j.id, j.nama]));
+    const list = this.catatanPantau(pid).sort((a, b) => a.pantau_id - b.pantau_id || a.id - b.id);
+    const inisial = (t) => String(t || '?').trim().split(/\s+/).slice(0, 2).map((w) => w[0]).join('').toUpperCase();
+    return `<h3>Catatan juri pantau</h3><p class="kp-sub">No. ${esc(r.nomor_layangan || '-')} · ${esc(r.nama_sekha || '-')} · ${list.length} catatan</p>
+      ${list.length ? list.map((c) => { const nm = nama.get(c.pantau_id) || 'Juri pantau'; const foto = urlGambarAman(c.foto_url);
+        return `<div class="kpj"><span class="kp-av" style="background:var(--cat-${((c.pantau_id - 1) % 9) + 1})">${esc(inisial(nm))}</span>
+          <div class="kpj-h"><b>${esc(nm)}</b><small>${c.lembar ? `lembar ${c.lembar}${c.baris ? ` · baris ${c.baris}` : ''}` : 'diketik panitia'}</small>
+            ${boleh ? `<button type="button" class="btn btn-xs" data-act="adm.kpKoreksi" data-id="${c.id}">${ico('edit')} Koreksi</button>` : ''}</div>
+          ${foto ? `<img class="kp-foto" src="${esc(foto)}" alt="Tulisan asli ${esc(nm)}">` : ''}
+          <div class="kpj-t">${foto ? 'Terbaca: ' : ''}<b class="${c.ragu ? 'kpw ragu' : ''}">${esc(c.teks || '—')}</b></div></div>`; }).join('')
+        : '<p class="kp-kos">Belum ada catatan dari juri pantau untuk layangan ini.</p>'}
+      <div class="kp-kaki">${boleh ? `<button type="button" class="btn btn-sm" data-act="adm.kpTambah" data-pid="${esc(pid)}">${ico('plus')} Tambah catatan</button>` : ''}<button type="button" class="btn btn-sm" data-act="ovl.tutup">Tutup</button></div>`;
   },
   /* hasil juara & status pengumuman */
   vHasilJuara(jk) {
@@ -7491,18 +7652,18 @@ async function siapkanJuri() {
 }
 ACT['adm.juriTambah'] = (el) => sibuk(el, async () => {
   const d = nilaiData(), urutan = (d.juri || []).reduce((m, x) => Math.max(m, x.urutan), 0) + 1;
-  try { const row = await api.tambahJuri(urutan, ''); nilaiData().juri.push(row); Adm.tandaiUbah(); Adm.segarkanTampilan({ paksa: true }); toast(`Juri ${urutan} ditambahkan`, 'good'); }
+  try { const row = await api.tambahJuri(urutan, ''); nilaiData().juri.push(row); Adm.tandaiUbah(); Adm.segarkanTampilan({ paksa: true }); djGambar(row.id); toast(`Juri ${urutan} ditambahkan`, 'good'); }
   catch (e) { toast(pesanError(e), 'bad'); }
 });
 CH['adm.juriNama'] = async (el) => {
   const id = Number(el.dataset.id), nama = el.value.trim();
-  try { const row = await api.ubahJuri(id, nama); gantiBarisNilai(nilaiData().juri, (x) => x.id === id, row); Adm.tandaiUbah(); toast('Nama juri disimpan', 'good'); }
+  try { const row = await api.ubahJuri(id, nama); gantiBarisNilai(nilaiData().juri, (x) => x.id === id, row); Adm.tandaiUbah(); Adm.segarkanTampilan({ paksa: true }); toast('Nama juri disimpan', 'good'); }
   catch (e) { toast(pesanError(e), 'bad'); }
 };
 ACT['adm.juriHapus'] = async (el) => {
   const d = nilaiData(), id = Number(el.dataset.id), j = d.juri.find((x) => x.id === id), n = (d.nilai || []).filter((x) => x.juri_id === id).length;
   if (!(await konfirmasiDialog({ judul: `Hapus ${j && j.nama ? j.nama : 'juri ini'}?`, isi: n ? `<b>${n} nilai</b> dari juri ini ikut terhapus, dan total semua layangan dihitung ulang.` : 'Kolom juri ini dihapus dari penilaian.', tombol: 'Hapus juri', bahaya: true }))) return;
-  try { await api.hapusJuri(id); const n2 = nilaiData(); n2.juri = n2.juri.filter((x) => x.id !== id); n2.nilai = (n2.nilai || []).filter((x) => x.juri_id !== id); Adm.tandaiUbah(); Adm.segarkanTampilan({ paksa: true }); toast('Juri dihapus', 'good'); }
+  try { await api.hapusJuri(id); const n2 = nilaiData(); n2.juri = n2.juri.filter((x) => x.id !== id); n2.nilai = (n2.nilai || []).filter((x) => x.juri_id !== id); Adm.tandaiUbah(); Adm.segarkanTampilan({ paksa: true }); djGambar(); toast('Juri dihapus', 'good'); }
   catch (e) { toast(pesanError(e), 'bad'); }
 };
 /* pencarian nomor: hanya nomor itu yang tampil; tabel digambar ulang tanpa menyentuh kotak cari */
@@ -7591,10 +7752,10 @@ ACT['adm.nilaiNaik'] = (el) => sibuk(el, async () => {
 });
 ACT['adm.cetakLembar'] = () => {
   const d = nilaiData(), juri = [...(d.juri || [])].sort((a, b) => a.urutan - b.urutan);
-  if (!juri.length) { toast('Belum ada juri. Tambahkan juri dulu di tabel penilaian.', 'info'); return; }
+  if (!juri.length) { toast('Belum ada juri. Isi dulu lewat tombol "Daftar Juri".', 'info'); return; }
   const nm = (j) => (j.nama || '').trim() || `Juri ${j.urutan}`;
   Overlay.modal(`<form data-submit="adm.cetakLembar" class="cl" novalidate>
-    <h3>Cetak lembar nilai</h3><p class="lead">QR berisi juri &amp; event — jenis layangan ditulis juri di lembar.</p>
+    <h3>Cetak Form Juri</h3><p class="lead">QR berisi juri &amp; event — jenis layangan ditulis juri di lembar.</p>
     <div class="cl-hd"><span>Juri &amp; jumlah lembar</span><button type="button" class="ck2-link" data-act="adm.clSemua">Pilih semua</button></div>
     <div class="cl-list">${juri.map((j) => `<div class="cl-row" data-id="${j.id}">
       <label class="cl-cb"><input type="checkbox" data-ch="adm.clPilih"><span>${esc(nm(j))}${j.nama ? '' : ' <small>(nama belum diisi)</small>'}</span></label>
@@ -7608,7 +7769,8 @@ const clHitung = () => {
   let tot = 0, nj = 0;
   rows.forEach((r) => { const n = Math.max(0, Math.min(200, Number(r.querySelector('input[type=number]').value) || 0)); const on = r.querySelector('input[type=checkbox]').checked && n > 0; r.classList.toggle('off', !r.querySelector('input[type=checkbox]').checked); if (on) { tot += n; nj++; } });
   const sum = document.getElementById('cl-sum'), go = document.getElementById('cl-go');
-  if (sum) sum.innerHTML = tot ? `Akan dicetak <b>${tot} lembar</b> (${nj} juri).` : 'Pilih juri lalu isi jumlah lembar.';
+  const lbl = document.getElementById('cp-list') ? 'juri pantau' : 'juri';
+  if (sum) sum.innerHTML = tot ? `Akan dicetak <b>${tot} lembar</b> (${nj} ${lbl}).` : `Pilih ${lbl} lalu isi jumlah lembar.`;
   if (go) go.disabled = !tot;
 };
 CH['adm.clPilih'] = (el) => { const r = el.closest('.cl-row'), inp = r.querySelector('input[type=number]'); if (el.checked && !(Number(inp.value) > 0)) inp.value = 1; if (!el.checked) inp.value = 0; clHitung(); };
@@ -7626,6 +7788,157 @@ SUB['adm.cetakLembar'] = (form) => {
   if (!daftar.length) return;
   Overlay.tutupYangBerisi(form);
   cetakLembarNilai(daftar, (d.pengaturan && d.pengaturan.nama_event) || 'Lomba Layangan');
+};
+/* ---- juri pantau: cetak lembar (nama tersimpan per event) ---- */
+const PANTAU_BELUM = 'Fitur juri pantau belum aktif — jalankan file juri-pantau.sql di Supabase dulu.';
+/* Daftar Juri (nilai) */
+function djGambar(fokusId) {
+  const box = document.getElementById('dj-list'); if (!box) return;
+  const boleh = Adm.bolehMenilai(), juri = [...(nilaiData().juri || [])].sort((a, b) => a.urutan - b.urutan);
+  box.innerHTML = juri.length ? juri.map((j, i) => `<div class="dj-row"><span class="dj-no">${i + 1}</span>
+    <input class="input" value="${esc(j.nama)}" placeholder="Nama juri ${i + 1}" maxlength="30" data-ch="adm.juriNama" data-id="${j.id}" aria-label="Nama juri ${i + 1}" ${boleh ? '' : 'readonly'}>
+    ${boleh && juri.length > 1 ? `<button type="button" class="cp-x" data-act="adm.juriHapus" data-id="${j.id}" title="Hapus juri ${i + 1}" aria-label="Hapus juri ${i + 1}">${ico('x')}</button>` : '<span></span>'}</div>`).join('') : '<p class="cp-kos">Belum ada juri.</p>';
+  if (fokusId) { const f = box.querySelector(`input[data-id="${fokusId}"]`); if (f) f.focus(); }
+}
+ACT['adm.daftarJuri'] = () => {
+  const boleh = Adm.bolehMenilai();
+  Overlay.modal(`<div class="cl"><h3>Daftar Juri</h3><p class="lead">Juri yang memberi nilai di event ini. Nama tersimpan otomatis setelah diketik.</p>
+    <div class="cl-list" id="dj-list"></div>
+    ${boleh ? `<div class="cp-add"><button type="button" class="btn" data-act="adm.juriTambah">${ico('plus')} Tambah juri</button></div>` : '<p class="hint">Hanya panitia penilai yang bisa mengubah daftar juri.</p>'}
+    <div class="actions end"><button type="button" class="btn btn-primary" data-act="ovl.tutup">Selesai</button></div></div>`);
+  djGambar();
+};
+/* Daftar Juri Pantau */
+function dpGambar() {
+  const box = document.getElementById('dp-list'); if (!box) return;
+  const boleh = Adm.bolehMenilai(), list = nilaiData().juri_pantau || [];
+  box.innerHTML = list.length ? list.map((j, i) => `<div class="dj-row"><span class="dj-no">${i + 1}</span>
+    <input class="input" value="${esc(j.nama)}" maxlength="40" data-ch="adm.dpNama" data-id="${j.id}" aria-label="Nama juri pantau ${i + 1}" ${boleh ? '' : 'readonly'}>
+    ${boleh ? `<button type="button" class="cp-x" data-act="adm.cpHapus" data-id="${j.id}" title="Hapus ${esc(j.nama)}" aria-label="Hapus ${esc(j.nama)}">${ico('x')}</button>` : '<span></span>'}</div>`).join('') : '<p class="cp-kos">Belum ada nama juri pantau. Ketik namanya di bawah.</p>';
+}
+ACT['adm.daftarPantau'] = () => {
+  if (!Adm.pantauAktif()) { toast(PANTAU_BELUM, 'info'); return; }
+  const boleh = Adm.bolehMenilai();
+  Overlay.modal(`<div class="cl"><h3>Daftar Juri Pantau</h3><p class="lead">Juri pantau yang bertugas di event ini. Nama tersimpan otomatis.</p>
+    <div class="cl-list" id="dp-list"></div>
+    ${boleh ? `<div class="cp-add"><textarea class="input" id="cp-nama" rows="2" maxlength="2000" placeholder="Ketik / tempel nama juri pantau… (satu per baris)" aria-label="Nama juri pantau baru"></textarea><button type="button" class="btn" data-act="adm.cpTambah">${ico('plus')} Tambah</button></div>` : '<p class="hint">Hanya panitia penilai yang bisa mengubah daftar juri pantau.</p>'}
+    <div class="actions end"><button type="button" class="btn btn-primary" data-act="ovl.tutup">Selesai</button></div></div>`);
+  dpGambar();
+};
+CH['adm.dpNama'] = async (el) => {
+  const id = Number(el.dataset.id), nama = el.value.trim().replace(/\s+/g, ' ').slice(0, 40), d = nilaiData(), j = (d.juri_pantau || []).find((x) => x.id === id); if (!j) return;
+  if (!nama) { el.value = j.nama; toast('Nama tidak boleh kosong — pakai ✕ untuk menghapus', 'info'); return; }
+  if (nama === j.nama) return;
+  try { const row = await api.ubahPantau(id, nama); gantiBarisNilai(d.juri_pantau, (x) => x.id === id, row); Adm.tandaiUbah(); toast('Nama juri pantau disimpan', 'good'); }
+  catch (e) { el.value = j.nama; toast(/duplicate|23505/i.test(e.message || '') ? 'Nama itu sudah ada di daftar' : pesanError(e), 'bad'); }
+};
+ACT['adm.cpTambah'] = (el) => sibuk(el, async () => {
+  const ta = document.getElementById('cp-nama'); if (!ta) return;
+  const ada = new Set((nilaiData().juri_pantau || []).map((j) => j.nama.trim().toLowerCase()));
+  const baru = [...new Set(ta.value.split(/[\n,;]+/).map((t) => t.trim().replace(/\s+/g, ' ').slice(0, 40)).filter(Boolean))];
+  const dobel = baru.filter((n) => ada.has(n.toLowerCase())), masuk = baru.filter((n) => !ada.has(n.toLowerCase()));
+  if (!masuk.length) { toast(dobel.length ? `${dobel.join(', ')} sudah ada di daftar` : 'Ketik nama juri pantau dulu', 'info'); ta.focus(); return; }
+  try {
+    const rows = await api.tambahPantau(masuk); nilaiData().juri_pantau.push(...rows); Adm.tandaiUbah(); Adm.segarkanTampilan({ paksa: true });
+    ta.value = ''; dpGambar(); toast(`${rows.length} juri pantau ditambahkan${dobel.length ? ` · ${dobel.length} sudah ada` : ''}`, 'good');
+  } catch (e) { toast(/duplicate|23505/i.test(e.message || '') ? 'Nama itu sudah ada di daftar' : pesanError(e), 'bad'); }
+});
+ACT['adm.cpHapus'] = async (el) => {
+  const id = Number(el.dataset.id), d = nilaiData(), j = (d.juri_pantau || []).find((x) => x.id === id); if (!j) return;
+  const n = (d.catatan_pantau || []).filter((c) => c.pantau_id === id).length;
+  if (n && !(await konfirmasiDialog({ judul: `Hapus ${j.nama}?`, isi: `<b>${n} catatan</b> dari juri pantau ini ikut terhapus dari kolom keterangan.`, tombol: 'Hapus', bahaya: true }))) return;
+  try { await api.hapusPantau(id); d.juri_pantau = d.juri_pantau.filter((x) => x.id !== id); d.catatan_pantau = d.catatan_pantau.filter((c) => c.pantau_id !== id); Adm.tandaiUbah(); Adm.segarkanTampilan({ paksa: true }); dpGambar(); toast(`${j.nama} dihapus`, 'good'); }
+  catch (e) { toast(pesanError(e), 'bad'); }
+};
+/* Cetak Form Juri Pantau */
+ACT['adm.cetakPantau'] = () => {
+  if (!Adm.pantauAktif()) { toast(PANTAU_BELUM, 'info'); return; }
+  const list = nilaiData().juri_pantau || [];
+  if (!list.length) { toast('Belum ada juri pantau. Isi dulu lewat tombol "Daftar Juri Pantau".', 'info'); return; }
+  Overlay.modal(`<form data-submit="adm.cetakPantau" class="cl" novalidate>
+    <h3>Cetak Form Juri Pantau</h3><p class="lead">Pilih juri pantau lalu isi jumlah lembar. QR berisi juri pantau &amp; event.</p>
+    <div class="cl-hd"><span>Juri pantau &amp; jumlah lembar</span><button type="button" class="ck2-link" data-act="adm.clSemua">Pilih semua</button></div>
+    <div class="cl-list" id="cp-list">${list.map((j) => `<div class="cl-row off" data-id="${j.id}">
+      <label class="cl-cb"><input type="checkbox" data-ch="adm.clPilih"><span>${esc(j.nama)}</span></label>
+      <div class="cl-st"><button type="button" data-act="adm.clJml" data-v="-1" aria-label="Kurangi">−</button><input type="number" min="0" max="200" value="0" inputmode="numeric" data-in="adm.clIsi" aria-label="Jumlah lembar ${esc(j.nama)}"><button type="button" data-act="adm.clJml" data-v="1" aria-label="Tambah">+</button></div></div>`).join('')}</div>
+    <div class="cl-sum" id="cl-sum">Pilih juri pantau lalu isi jumlah lembar.</div>
+    <div class="actions end"><button type="button" class="btn" data-act="ovl.tutup">Batal</button><button type="submit" class="btn btn-primary" id="cl-go" disabled>${ico('print')} Cetak / simpan PDF</button></div>
+  </form>`);
+};
+SUB['adm.cetakPantau'] = (form) => {
+  const d = nilaiData(), pj = new Map((d.juri_pantau || []).map((j) => [String(j.id), j])), daftar = [];
+  form.querySelectorAll('.cl-row').forEach((r) => {
+    const j = pj.get(r.dataset.id), n = Math.max(0, Math.min(200, Number(r.querySelector('input[type=number]').value) || 0));
+    if (!j || !r.querySelector('input[type=checkbox]').checked) return;
+    for (let i = 0; i < n; i++) daftar.push({ juriId: j.id, nama: j.nama });
+  });
+  if (!daftar.length) return;
+  Overlay.tutupYangBerisi(form);
+  cetakLembarNilai(daftar, (d.pengaturan && d.pengaturan.nama_event) || 'Lomba Layangan', true);
+};
+/* ---- juri pantau: kolom keterangan → tombol (i) → catatan tiap juri pantau & koreksi ---- */
+function kpBuka(pid, anchor) {
+  Overlay.tutupSemua();
+  const it = Overlay.buka(`<div class="ovl center kp-bg" data-ovl-bg><div class="modal kp-pop" role="dialog" aria-modal="true" data-pid="${esc(pid)}"><div class="kp-isi">${Adm.vPantauPop(pid)}</div></div></div>`);
+  const pop = it.el.querySelector('.kp-pop');
+  if (anchor && anchor.isConnected && window.matchMedia('(min-width: 761px)').matches) {
+    const a = anchor.getBoundingClientRect(), w = pop.offsetWidth, h = pop.offsetHeight, H = window.innerHeight;
+    const left = Math.max(12, Math.min(window.innerWidth - w - 12, a.right - w + 14));
+    const bawah = H - a.bottom - 22, atasRuang = a.top - 22;
+    const atas = h > bawah && atasRuang > bawah, ruang = atas ? atasRuang : bawah;
+    if (h > ruang) pop.style.setProperty('--mh', Math.max(160, ruang - 30) + 'px');
+    const tinggi = Math.min(h, Math.max(190, ruang));
+    pop.style.left = left + 'px'; pop.style.top = (atas ? Math.max(12, a.top - 10 - tinggi) : a.bottom + 10) + 'px';
+    pop.style.setProperty('--panah', Math.max(16, Math.min(w - 28, a.left + a.width / 2 - left - 7)) + 'px');
+    pop.classList.add(atas ? 'atas' : 'bawah');
+  }
+}
+function kpSegarkan(pid) {
+  gambarIsiNilai();
+  const pop = document.querySelector('.kp-pop[data-pid]');
+  if (pop && pop.dataset.pid === pid) {
+    pop.querySelector('.kp-isi').innerHTML = Adm.vPantauPop(pid);
+  }
+}
+ACT['adm.kpInfo'] = (el) => kpBuka(el.dataset.pid, el);
+ACT['adm.kpKoreksi'] = (el) => {
+  const id = Number(el.dataset.id), d = nilaiData(), c = (d.catatan_pantau || []).find((x) => x.id === id); if (!c) return;
+  const nm = ((d.juri_pantau || []).find((j) => j.id === c.pantau_id) || {}).nama || 'Juri pantau', r = Adm.baris(c.pendaftaran_id) || {}, foto = urlGambarAman(c.foto_url);
+  Overlay.modal(`<form data-submit="adm.kpSimpan" data-id="${id}" novalidate>
+    <h3>Koreksi catatan · ${esc(nm)}</h3><p class="lead">No. ${esc(r.nomor_layangan || '-')} · ${esc(r.nama_sekha || '-')}${c.lembar ? ` · lembar ${c.lembar}${c.baris ? ` baris ${c.baris}` : ''}` : ''}</p>
+    ${foto ? `<div class="kp-lab">Tulisan asli</div><img class="kp-foto" src="${esc(foto)}" alt="Tulisan asli ${esc(nm)}">` : ''}
+    <div class="field"><label class="label" for="kp-teks">${foto ? 'Terbaca sebagai — ubah bila salah' : 'Keterangan'}</label><input class="input" id="kp-teks" name="teks" maxlength="300" autocomplete="off" value="${esc(c.teks || '')}" autofocus>
+      <p class="hint">Pisahkan tiap keterangan dengan koma. Hanya catatan ${esc(nm)} yang berubah.</p></div>
+    <div class="actions"><button type="button" class="btn btn-danger" data-act="adm.kpHapus" data-id="${id}">${ico('trash')} Hapus catatan</button><span style="flex:1"></span><button type="button" class="btn" data-act="ovl.tutup">Batal</button><button type="submit" class="btn btn-primary">Simpan</button></div>
+  </form>`);
+};
+SUB['adm.kpSimpan'] = async (form) => {
+  const id = Number(form.dataset.id), teks = form.teks.value.trim(), d = nilaiData(), c = (d.catatan_pantau || []).find((x) => x.id === id); if (!c) return;
+  if (!teks) { toast('Keterangan kosong — pakai "Hapus catatan" bila ingin menghapus', 'info'); form.teks.focus(); return; }
+  try { const row = await api.ubahCatatanPantau(id, { teks, ragu: false }); gantiBarisNilai(d.catatan_pantau, (x) => x.id === id, row); Adm.tandaiUbah(); Overlay.tutupYangBerisi(form); kpSegarkan(c.pendaftaran_id); toast('Catatan dikoreksi', 'good'); }
+  catch (e) { toast(pesanError(e), 'bad'); }
+};
+ACT['adm.kpHapus'] = async (el) => {
+  const id = Number(el.dataset.id), d = nilaiData(), c = (d.catatan_pantau || []).find((x) => x.id === id); if (!c) return;
+  const nm = ((d.juri_pantau || []).find((j) => j.id === c.pantau_id) || {}).nama || 'juri pantau';
+  if (!(await konfirmasiDialog({ judul: 'Hapus catatan ini?', isi: `Catatan <b>${esc(nm)}</b> “${esc(c.teks)}” dihapus dari kolom keterangan.`, tombol: 'Hapus catatan', bahaya: true }))) return;
+  try { await api.hapusCatatanPantau(id); d.catatan_pantau = d.catatan_pantau.filter((x) => x.id !== id); Adm.tandaiUbah(); Overlay.tutupYangBerisi(el); kpSegarkan(c.pendaftaran_id); toast('Catatan dihapus', 'good'); }
+  catch (e) { toast(pesanError(e), 'bad'); }
+};
+ACT['adm.kpTambah'] = (el) => {
+  const pid = el.dataset.pid, d = nilaiData(), list = d.juri_pantau || [], r = Adm.baris(pid) || {};
+  if (!list.length) { toast('Belum ada nama juri pantau — tambahkan lewat "Cetak lembar juri pantau"', 'info'); return; }
+  Overlay.modal(`<form data-submit="adm.kpTambah" data-pid="${esc(pid)}" novalidate>
+    <h3>Tambah catatan juri pantau</h3><p class="lead">No. ${esc(r.nomor_layangan || '-')} · ${esc(r.nama_sekha || '-')}</p>
+    <div class="field"><label class="label" for="kp-juri">Juri pantau</label><select class="input" id="kp-juri" name="juri">${list.map((j) => `<option value="${j.id}">${esc(j.nama)}</option>`).join('')}</select></div>
+    <div class="field"><label class="label" for="kp-teks2">Keterangan</label><input class="input" id="kp-teks2" name="teks" maxlength="300" autocomplete="off" placeholder="mis. stabil, naik cepat" autofocus><p class="hint">Pisahkan tiap keterangan dengan koma.</p></div>
+    <div class="actions end"><button type="button" class="btn" data-act="ovl.tutup">Batal</button><button type="submit" class="btn btn-primary">Simpan</button></div>
+  </form>`);
+};
+SUB['adm.kpTambah'] = async (form) => {
+  const pid = form.dataset.pid, teks = form.teks.value.trim(); if (!teks) { form.teks.focus(); return; }
+  try { const row = await api.tambahCatatanPantau({ pendaftaran_id: pid, pantau_id: Number(form.juri.value), teks }); nilaiData().catatan_pantau.push(row); Adm.tandaiUbah(); Overlay.tutupYangBerisi(form); kpSegarkan(pid); toast('Catatan ditambahkan', 'good'); }
+  catch (e) { toast(pesanError(e), 'bad'); }
 };
 ACT['adm.nilaiMaks'] = () => {
   const maks = Number(nilaiData().pengaturan.nilai_maks) || 100;
