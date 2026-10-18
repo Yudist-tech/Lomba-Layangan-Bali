@@ -2742,8 +2742,8 @@ class DemoAPI {
      Semua fungsi lama bekerja pada this.db = data event yang sedang dibuka (pakaiEvent). */
   constructor() {
     this.mode = 'demo';
-    this.KEY = 'lomba_ml_index_v3';
-    this.KEY_EV = 'lomba_ml_event_v3_';
+    this.KEY = 'lomba_ml_index_v4';
+    this.KEY_EV = 'lomba_ml_event_v4_';
     this.KEY_SESI = 'lomba_ml_sesi_v1';
     this.subs = new Set();
     this.eventId = null;
@@ -3700,7 +3700,7 @@ class DemoAPI {
   /* Gambar contoh demo dibuat dari data, jadi isinya sudah diketahui (tanpa OCR). */
   bacaContoh(path) {
     if (!String(path).startsWith('contoh/')) return null;
-    const r = this.db.daftar.find((d) => d.bukti_path === path); if (!r) return null;
+    const r = this._sumberContoh(path); if (!r) return null;
     const w = bagianWaktu(r.bukti_waktu || r.created_at), p = (n) => String(n).padStart(2, '0');
     return { gambar: this._gambarContoh(path), nominal: r.bukti_nominal || r.harga, nama: String(r.nama_rekening || '').toUpperCase(),
       waktu: `${w.y}-${p(w.m)}-${p(w.d)}T${p(w.h)}:${p(w.mi)}:00`,
@@ -3783,8 +3783,13 @@ class DemoAPI {
     if (String(path).startsWith('contoh/')) return this._gambarContoh(path);
     throw new Error('File bukti tidak ditemukan.');
   }
+  /* file bukti identik (hash sama) = gambar & isi sama: ambil dari pendaftaran pertama yang mengunggahnya */
+  _sumberContoh(path) {
+    const r = this.db.daftar.find((d) => d.bukti_path === path); if (!r || !r.bukti_hash) return r;
+    return this.db.daftar.filter((d) => d.bukti_hash === r.bukti_hash).sort((a, b) => a.created_at.localeCompare(b.created_at))[0];
+  }
   _gambarContoh(path) {
-    const r = this.db.daftar.find((d) => d.bukti_path === path) || {};
+    const r = this._sumberContoh(path) || {};
     const c = document.createElement('canvas'); c.width = 480; c.height = 640;
     const x = c.getContext('2d');
     x.fillStyle = '#f4f6f8'; x.fillRect(0, 0, 480, 640);
