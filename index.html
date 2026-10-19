@@ -6661,7 +6661,7 @@ const Adm = {
       ${this.s.data.selesai == null ? `<div class="note">${ico('info')}<span>Tombol <b>Benar / Bermasalah</b> belum aktif: jalankan <b>bukti-selesai.sql</b> & <b>bukti-cek.sql</b> di Supabase.</span></div>` : ''}
       <div class="ck-panel ck2">
         <div class="ck2-hd"><div><h3>Cek bukti transfer</h3></div>
-          <div class="ck2-r"><span class="ck2-aman" title="Bukti unik / bayar gabungan pas — tidak perlu dicek">${ico('check')} ${st.cek.aman} aman</span><button type="button" class="ck-info" data-act="adm.cekInfo" aria-label="Penjelasan" title="Penjelasan">i</button></div></div>
+          <div class="ck2-r"><span class="ck2-aman" title="Bukti unik yang terbaca jelas & nominalnya pas — tidak perlu dicek">${ico('check')} ${st.cek.aman} aman</span><button type="button" class="ck-info" data-act="adm.cekInfo" aria-label="Penjelasan" title="Penjelasan">i</button></div></div>
         <div class="ck-seg ck2-seg" role="group" aria-label="Cek bukti">${seg('perlu', 'Perlu dicek', perlu.length)}${seg('masalah', 'Bermasalah', masalah.length)}${seg('selesai', 'Selesai', selesai.length)}</div>
         <p class="ck2-ket">${ket}</p>
         ${tab === 'perlu' && perlu.length ? `<button type="button" class="btn btn-primary ck2-go" data-act="adm.cekMulai">${ico('play')} Mulai cek satu per satu <small>(${perlu.length})</small></button>` : ''}
@@ -7023,10 +7023,12 @@ const Adm = {
     return top + this.vJuriAlat() + `
       <div class="nchips" role="tablist" aria-label="Jenis layangan">${chips}</div>
       ${bantuan('nilai', 'Cara mengisi nilai', [
-        'Ketik <b>nomor layangan</b> di kotak cari lalu tekan <b>Enter</b> — hanya nomor itu yang tampil.',
-        'Isi nilai juri, tekan <b>Enter</b> untuk pindah ke juri berikutnya. Setelah juri terakhir, kursor kembali ke kotak cari.',
+        'Sebelum lomba: isi <b>Daftar Juri</b> dan <b>Daftar Juri Pantau</b>, lalu <b>Cetak Form Juri</b> / <b>Cetak Form Juri Pantau</b> dan bagikan ke masing-masing juri. Juri menulis <b>jenis layangan</b> dan <b>seri</b> sendiri di form.',
+        'Setelah form diisi: pilih jenis layangan, tekan <b>Upload Form</b>, foto seluruh kertas (4 kotak hitam di sudut harus terlihat). Di layar periksa, betulkan angka yang salah — yang <b>kuning</b> kurang jelas — lalu <b>Simpan</b>.',
+        'Isi manual: ketik <b>nomor layangan</b> di kotak cari (hanya nomor itu yang tampil), tekan <b>Enter</b> untuk lompat ke kolom juri yang masih kosong. <b>Enter</b> lagi pindah ke juri berikutnya; setelah juri terakhir kursor kembali ke kotak cari.',
+        'Tombol <b>i</b> di sebelah nama sekha = info layangan untuk diskusi juri. Tombol <b>i</b> di kolom keterangan = catatan tiap juri pantau, bisa dikoreksi.',
         'Nilai sama → tekan <b>Naikkan</b> pada layangan yang lebih unggul. Diskualifikasi wajib diberi alasan.',
-        'Setelah selesai: <b>Jadikan juara</b> → periksa daftar → <b>Umumkan</b>. Setelah diumumkan, nilai terkunci.'])}
+        'Setelah selesai: <b>Jadikan juara</b> → periksa daftar → <b>Umumkan</b>. Setelah diumumkan nilai terkunci (hanya super admin yang bisa membuka). Semua perubahan nilai dan upload tercatat di <b>Riwayat</b> beserta ID panitia.'])}
       ${this.vCatatanAkses(jk)}
       <div class="panel nilai-panel">
         <div class="nilai-alat">
@@ -7181,7 +7183,7 @@ const Adm = {
     const j = this.idx.jenis.get(jk), nama = esc(j ? j.nama : jk), u = this.juaraUmum(jk), p = this.penilaiList();
     let h = '';
     if (!this.bolehMenilai()) h += `<div class="note nilai-ro">${ico('eye')}<span>Anda <b>bukan penilai</b> untuk event ini — hanya bisa melihat. Penilai: <b>${p.map((e) => esc(labelOleh(e))).join('</b>, <b>')}</b>. Hubungi super admin bila perlu akses.</span></div>`;
-    else if (this.s.super && !p.length) h += `<div class="note">${ico('info')}<span>Belum ada <b>panitia penilai</b> yang ditunjuk, jadi semua panitia event bisa mengisi nilai. Tunjuk penilai di <a href="#panitia">Ruang panitia</a> → tombol ${ico('sliders', 'ico-inline')} <b>Atur event</b> → Admin event.</span></div>`;
+    else if (this.s.super && !p.length) h += `<div class="note">${ico('info')}<span>Belum ada <b>panitia penilai</b> yang ditunjuk, jadi semua panitia event bisa mengisi nilai. Tunjuk penilai di <a href="#panitia">Ruang panitia</a> → tombol ${ico('sliders', 'ico-inline')} <b>Atur event</b> → tab <b>Panitia</b> → nyalakan sakelar <b>Penilai</b>.</span></div>`;
     if (u && !u.terbuka) h += `<div class="note warn nilai-kunci">${ico('lock')}<span>Nilai <b>${nama}</b> terkunci — juara sudah diumumkan.${this.s.super ? '' : ' Hanya super admin yang bisa membuka kunci.'}</span>${this.s.super ? `<button type="button" class="btn btn-sm" data-act="adm.bukaKunci" data-jenis="${esc(jk)}" data-v="1">${ico('unlock')} Buka kunci</button>` : ''}</div>`;
     else if (u && u.terbuka) h += `<div class="note bad nilai-kunci">${ico('unlock')}<span>Kunci nilai <b>${nama}</b> sedang <b>dibuka</b> oleh super admin. Juara sudah diumumkan, jadi perubahan langsung terlihat publik.</span>${this.s.super ? `<button type="button" class="btn btn-sm" data-act="adm.bukaKunci" data-jenis="${esc(jk)}" data-v="0">${ico('lock')} Kunci lagi</button>` : ''}</div>`;
     return h;
@@ -7526,7 +7528,8 @@ const Adm = {
     return `${this.vTopbar('Jenis Layangan', `${d.jenis.length} jenis · nama & harga`, `<a class="btn btn-sm btn-primary" href="#admin/seri">${ico('cal')}<span>Jadwal Terbang</span></a>`)}
       ${bantuan('jenis', 'Cara mengatur jenis layangan', [
         'Jenis baru dibuat dari <a href="#admin/seri">Jadwal Terbang</a>: saat menambah grup dengan jenis baru, sistem menanyakan harganya.',
-        'Di sini Anda bisa mengubah <b>nama</b> & <b>harga</b>, atau <b>menutup</b> jenis.',
+        'Tombol <b>Ubah</b>: ganti <b>nama</b>, <b>harga</b> (berlaku untuk pendaftaran berikutnya), <b>urutan tampil</b>, dan <b>rentang nomor layangan</b>. Sakelar di kanan atas untuk <b>membuka / menutup</b> jenis.',
+        'Jenis yang belum punya pendaftar bisa dihapus; yang sudah ada pendaftarnya cukup ditutup.',
         'Jenis tampil di formulir pendaftaran bila <b>aktif</b> dan punya grup yang dibuka di jadwal.'])}
       ${d.jenis.length ? `<div class="seri-adm">${d.jenis.map((j) => this.vKartuJenis(j)).join('')}</div>`
         : `<div class="empty-sm">Belum ada jenis layangan. <a class="btn btn-xs" href="#admin/seri">${ico('cal')} Buat jadwal terbang</a></div>`}`;
@@ -7576,7 +7579,8 @@ const Adm = {
       ${bantuan('jadwal', 'Cara menyusun jadwal', [
         'Buat <b>Hari</b> → <b>Seri</b> (jam terbang) → <b>Grup</b> A, B, C. Satu grup = satu jenis layangan.',
         'Jenis & grup di sini otomatis menjadi pilihan di formulir pendaftaran.',
-        'Klik <b>nama jenis</b> untuk mengubah grup, <b>kotak kosong</b> untuk menutup/membuka kotak, <b>nomor</b> untuk melihat data peserta.'])}
+        'Klik <b>nama jenis</b> untuk mengubah grup, <b>kotak kosong</b> untuk menutup/membuka kotak, <b>nomor</b> untuk melihat data peserta.',
+        'Tombol <b>Cetak</b> di tiap hari mencetak jadwal hari itu.'])}
       ${d.hari.length ? d.hari.map((h) => `<section class="jt-hari"><div class="jt-hari-h"><h3>${esc(h.nama)}</h3>
           <span class="muted">${h.tanggal ? esc(fmtTanggal(h.tanggal)) : '<span class="jk-warn">tanggal belum diisi</span>'}</span>
           <div class="sa-act">
@@ -8709,11 +8713,13 @@ ACT['adm.fCek'] = () => { Adm.s.f.cek = !Adm.s.f.cek; Adm.s.f.cekLv = ''; Adm.se
 ACT['adm.cekTab'] = (el) => { Adm.s.f.cekTab = el.dataset.v; Adm.segarkanTampilan(); };
 ACT['adm.cekLv'] = (el) => { Adm.s.f.cekLv = Adm.s.f.cekLv === el.dataset.v ? '' : el.dataset.v; Adm.segarkanTampilan(); };
 ACT['adm.cekInfo'] = () => Overlay.modal(`<div><h3>Cara kerja Cek Bukti</h3>
-  <p class="lead">Sistem membaca setiap bukti transfer lalu hanya menampilkan yang <b>perlu dilihat panitia</b>. Bukti unik dan bayar gabungan yang nominalnya pas dihitung <b>aman</b> dan tidak ditampilkan.</p>
+  <p class="lead">Sistem membaca setiap bukti transfer lalu hanya menampilkan yang <b>perlu dilihat panitia</b>. Bukti unik yang terbaca jelas dan nominalnya pas dihitung <b>aman</b> dan tidak ditampilkan.</p>
   <div class="ck-leg"><div><b class="ck2-ic">${ico('copy')}</b><span><b>Bukti dobel</b> — satu bukti dipakai beberapa pendaftaran: file sama / No. Ref sama (<b>pasti</b>), atau nominal + waktu + rekening/nama pengirim sama (<b>mungkin</b>).</span></div>
   <div><b class="ck2-ic">${ico('wallet')}</b><span><b>Nominal</b> — uang di bukti <b>kurang</b> atau <b>lebih</b> dari tagihan.</span></div>
-  <div><b class="ck2-ic">${ico('clock')}</b><span><b>Waktu</b> — transfer lebih dari 24 jam / 14 hari sebelum mendaftar, atau justru setelah mendaftar.</span></div></div>
-  <p class="hint"><span class="ck2-lg"><i class="r"></i><b>Merah</b> = hampir pasti bermasalah. <i class="y"></i><b>Kuning</b> = cek sebentar, bisa jadi wajar.</span><br>Klik <b>Mulai cek satu per satu</b>, jawab tiap kasus dengan <b>Benar</b> atau <b>Bermasalah</b> (bisa juga per pendaftaran lewat tombol ⌄).<br>
+  <div><b class="ck2-ic">${ico('clock')}</b><span><b>Waktu</b> — transfer lebih dari 24 jam / 14 hari sebelum mendaftar, atau lebih dari 1 jam setelah mendaftar.</span></div>
+  <div><b class="ck2-ic">${ico('check')}</b><span><b>Bayar gabungan</b> — satu transfer untuk beberapa layangan. Bila nominalnya pas, tetap ditampilkan (hijau, <b>SESUAI</b>) agar panitia tahu, cukup tandai Benar.</span></div></div>
+  <p class="hint"><span class="ck2-lg"><i class="r"></i><b>Merah</b> = hampir pasti bermasalah. <i class="y"></i><b>Kuning</b> = cek sebentar, bisa jadi wajar. <i class="g"></i><b>Hijau</b> = bayar gabungan sesuai.</span><br>Klik <b>Mulai cek satu per satu</b>, lalu tekan <b>Benar</b> atau <b>Bermasalah</b> di tiap pendaftaran (klik lagi tombol yang sama untuk membatalkan tanda). <b>Detail</b> untuk melihat bukti &amp; data lengkap.<br>
+  • Pendaftaran yang masih di <b>Perlu dicek</b> atau <b>Bermasalah</b> belum bisa dikonfirmasi.<br>
   • <b>Bermasalah</b>: pendaftaran yang ditandai bermasalah — tolak atau ubah jadi benar bila sudah beres.<br>
   • <b>Selesai</b>: riwayat semua kasus yang sudah dicek. Pendaftaran yang benar kembali ke daftar biasa dengan tanda <b>Sempat dicek</b>.<br>
   • Bila masuk <b>pendaftaran baru</b> yang terkait kasus lama, kasus itu ditarik lagi ke <b>Perlu dicek</b> lengkap dengan tanda lama, tinggal tentukan yang baru.</p>
