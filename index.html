@@ -624,6 +624,7 @@ details.tbl-toggle summary { cursor: pointer; font-size: 13px; color: var(--bran
   html, body { background: #fff !important; }
   body > *:not(#cetak-root) { display: none !important; }
   #cetak-root { display: block; }
+  #cetak-root.cetak-hp .ln-hal { transform: scale(.92); transform-origin: top left; margin: 0 -8.4mm -23.76mm 8.4mm; break-inside: avoid; page-break-inside: avoid; }   /* 92%: tinggi 273 mm, di tengah */
 }
 .ln-hal { position: relative; width: 210mm; height: 297mm; overflow: hidden; background: #fff; color: #16181d; font-family: Inter, 'Segoe UI', Arial, sans-serif; page-break-after: always; break-after: page; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
 .ln-hal:last-child { page-break-after: auto; break-after: auto; }
@@ -2296,6 +2297,8 @@ function cetakLembarNilai(daftar, event, pantau = false) {
   let root = document.getElementById('cetak-root');
   if (root) root.remove();
   root = document.createElement('div'); root.id = 'cetak-root';
+  // HP (iPhone/iPad/Android): browser HP menambah margin kertas sendiri → lembar sedikit dikecilkan agar tetap 1 halaman A4
+  if (/iP(hone|ad|od)/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1) || (window.matchMedia && window.matchMedia('(pointer: coarse)').matches)) root.className = 'cetak-hp';
   const qrJuri = new Map();
   root.innerHTML = daftar.map(({ juriId, nama }) => {
     if (!qrJuri.has(juriId)) qrJuri.set(juriId, QR.svg(isiQRLembar(api.eventId, juriId, pantau)));
