@@ -1662,7 +1662,9 @@ fieldset.rentang legend { font-weight: 700; font-size: 14px; padding: 0 6px; }
 .bank-row.br-jml .btn { border-color: #efdca6; color: #7a5a00; }
 
 /* Pemasukan per cara bayar: angka lengkap (tidak dibulatkan) & proporsional di HP */
-.kpis-bayar .kpi .v { white-space: nowrap; font-variant-numeric: tabular-nums; }
+.kpis-bayar .kpi .v, .kpi .v.uang { white-space: nowrap; font-variant-numeric: tabular-nums; }
+.kpi:has(> .v.uang) { container-type: inline-size; }
+.kpi .v.uang { font-size: clamp(17px, 5.2vw, 28px); font-size: min(28px, calc(165cqi / var(--n, 12))); }
 @media (max-width: 600px) {
   /* di HP: tiga baris rapi — keterangan kiri, jumlah kanan */
   .kpis.kpis-bayar { grid-template-columns: minmax(0, 1fr); gap: 8px; }
@@ -6235,14 +6237,14 @@ const Adm = {
     if (tanpaTgl) todo.push(item('info', 'cal', `${tanpaTgl} hari belum punya tanggal`, 'Tanggal tampil di formulir dan pesan WA.', `<a class="btn btn-sm" href="#admin/seri">Atur</a>`));
     const kpi = (label, nilai, sub, opsi = {}) => {
       const tag = opsi.act ? 'button' : 'div';
-      return `<${tag} class="kpi ${opsi.hi ? 'hi' : ''}" ${opsi.act ? `type="button" data-act="${opsi.act}"` : ''}><div class="l">${label}</div><div class="v">${nilai}</div><div class="s">${sub}</div></${tag}>`;
+      return `<${tag} class="kpi ${opsi.hi ? 'hi' : ''}" ${opsi.act ? `type="button" data-act="${opsi.act}"` : ''}><div class="l">${label}</div><div class="v${opsi.uang ? ' uang' : ''}"${opsi.uang ? ` style="--n:${String(nilai).length}"` : ''}>${nilai}</div><div class="s">${sub}</div></${tag}>`;
     };
     return `${this.vTopbar('Ringkasan', `${ev.nama_event || ''}`, `<button class="btn btn-sm" data-act="adm.tambah">${ico('plus')}<span>Tambah manual</span></button>`)}
       ${todo.length ? `<div class="todo">${todo.join('')}</div>` : `<div class="note good">${ico('check')}<span>Semua beres — tidak ada yang perlu ditindaklanjuti.</span></div>`}
       <div class="kpis">
         ${kpi('Menunggu verifikasi', angka(st.menunggu), st.menunggu ? 'Klik untuk mulai verifikasi' : 'Tidak ada antrean', { hi: st.menunggu > 0, act: st.menunggu ? 'adm.verifikasi' : '' })}
         ${kpi('Terkonfirmasi', angka(st.terkonfirmasi), `dari ${angka(st.menunggu + st.terkonfirmasi)} layangan terdaftar`)}
-        ${kpi('Pemasukan terkonfirmasi', rupiahSingkat(st.uangOk), `${rupiah(st.uangTunggu)} masih menunggu verifikasi`)}
+        ${kpi('Pemasukan terkonfirmasi', rupiah(st.uangOk), `${rupiah(st.uangTunggu)} masih menunggu verifikasi`, { uang: true })}
         ${kpi('Sisa kuota', angka(sisa), `dari ${angka(kuotaTotal)} kotak di ${d.seri.filter((x) => x.aktif).length} grup dibuka`)}
       </div>
       <div class="grid2">
