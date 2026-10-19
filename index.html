@@ -624,6 +624,7 @@ details.tbl-toggle summary { cursor: pointer; font-size: 13px; color: var(--bran
   html, body { background: #fff !important; }
   body > *:not(#cetak-root) { display: none !important; }
   #cetak-root { display: block; }
+  #cetak-root.cetak-hp .ln-hal { transform: scale(.92); transform-origin: top left; margin: 0 -8.4mm -23.76mm 8.4mm; break-inside: avoid; page-break-inside: avoid; }   /* 92%: tinggi 273 mm, di tengah */
 }
 .ln-hal { position: relative; width: 210mm; height: 297mm; overflow: hidden; background: #fff; color: #16181d; font-family: Inter, 'Segoe UI', Arial, sans-serif; page-break-after: always; break-after: page; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
 .ln-hal:last-child { page-break-after: auto; break-after: auto; }
@@ -2292,108 +2293,17 @@ function vLembarNilai({ event, juri, qr, pantau = false }) {
       <div class="ln-ttd"><div class="ln-tgl"><span class="ln-lab">Tanggal</span><div class="ln-isi"></div></div><div class="ln-paraf"><span class="ln-lab">${pantau ? 'Paraf juri pantau' : 'Paraf juri'}</span><div></div></div></div></div>
   </section>`;
 }
-/* HP (iPhone/iPad/Android): cetak dari browser HP sering menambah margin sendiri sehingga 1 lembar A4 terpotong
-   jadi 2 halaman. Di HP lembar digambar ulang ke kanvas (meniru tata letak HTML yang sama, ukuran mm tetap)
-   lalu dibungkus jadi PDF A4 — PDF selalu dicetak pas 1 halaman per lembar. */
-const pakaiPdfCetak = () => /iP(hone|ad|od)/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1)
-  || (window.matchMedia && window.matchMedia('(pointer: coarse)').matches);
-function bungkusPdfHalaman(hal, wPt, hPt) { // hal: [{ jpeg: Uint8Array, w, h }]
-  const enc = new TextEncoder(), parts = [], offs = [];
-  let len = 0;
-  const tulis = (x) => { const b = typeof x === 'string' ? enc.encode(x) : x; parts.push(b); len += b.length; };
-  const obj = (n, body) => { offs[n] = len; tulis(`${n} 0 obj\n`); body(); tulis('\nendobj\n'); };
-  tulis('%PDF-1.4\n%\xE2\xE3\xCF\xD3\n');
-  const n = hal.length, idHal = (i) => 3 + i * 3;
-  obj(1, () => tulis('<< /Type /Catalog /Pages 2 0 R >>'));
-  obj(2, () => tulis(`<< /Type /Pages /Kids [${hal.map((_, i) => `${idHal(i)} 0 R`).join(' ')}] /Count ${n} >>`));
-  hal.forEach((h, i) => {
-    const p = idHal(i), isi = `q ${wPt} 0 0 ${hPt} 0 0 cm /Im0 Do Q`;
-    obj(p, () => tulis(`<< /Type /Page /Parent 2 0 R /MediaBox [0 0 ${wPt} ${hPt}] /Resources << /XObject << /Im0 ${p + 1} 0 R >> >> /Contents ${p + 2} 0 R >>`));
-    obj(p + 1, () => { tulis(`<< /Type /XObject /Subtype /Image /Width ${h.w} /Height ${h.h} /ColorSpace /DeviceRGB /BitsPerComponent 8 /Filter /DCTDecode /Length ${h.jpeg.length} >>\nstream\n`); tulis(h.jpeg); tulis('\nendstream'); });
-    obj(p + 2, () => tulis(`<< /Length ${isi.length} >>\nstream\n${isi}\nendstream`));
-  });
-  const total = 3 + n * 3, xref = len;
-  tulis(`xref\n0 ${total}\n0000000000 65535 f \n${Array.from({ length: total - 1 }, (_, i) => String(offs[i + 1]).padStart(10, '0') + ' 00000 n \n').join('')}`);
-  tulis(`trailer\n<< /Size ${total} /Root 1 0 R >>\nstartxref\n${xref}\n%%EOF\n`);
-  return new Blob(parts, { type: 'application/pdf' });
-}
-/* gambar satu <section class="ln-hal"> (sudah tampil di layar) ke kanvas, s px per mm */
-async function lembarKeKanvas(sec, s) {
-  const R = sec.getBoundingClientRect(), k = s / (R.width / 210);
-  const c = document.createElement('canvas'); c.width = Math.round(210 * s); c.height = Math.round(297 * s);
-  const x = c.getContext('2d'); x.fillStyle = '#fff'; x.fillRect(0, 0, c.width, c.height);
-  const pos = (r) => [(r.left - R.left) * k, (r.top - R.top) * k, r.width * k, r.height * k];
-  const kotak = (X, Y, w, h, r) => { x.beginPath(); if (x.roundRect) x.roundRect(X, Y, w, h, r); else x.rect(X, Y, w, h); };
-  const warnaAda = (v) => v && v !== 'transparent' && !/rgba\(.*,\s*0\)$/.test(v);
-  for (const el of [sec, ...sec.querySelectorAll('*')]) {
-    if (el.closest('svg') && el.tagName.toLowerCase() !== 'svg') continue;
-    const cs = getComputedStyle(el), [X, Y, W, H] = pos(el.getBoundingClientRect());
-    if (!W || !H) continue;
-    const rad = (parseFloat(cs.borderTopLeftRadius) || 0) * k;
-    if (warnaAda(cs.backgroundColor) && el !== sec) { x.fillStyle = cs.backgroundColor; kotak(X, Y, W, H, rad); x.fill(); }
-    const bw = ['Top', 'Right', 'Bottom', 'Left'].map((sd) => ((cs[`border${sd}Style`] !== 'none' && parseFloat(cs[`border${sd}Width`])) || 0) * k);
-    const bc = ['Top', 'Right', 'Bottom', 'Left'].map((sd) => cs[`border${sd}Color`]);
-    if (rad && bw.every((v) => v && v === bw[0])) { x.strokeStyle = bc[0]; x.lineWidth = bw[0]; kotak(X + bw[0] / 2, Y + bw[0] / 2, W - bw[0], H - bw[0], Math.max(0, rad - bw[0] / 2)); x.stroke(); }
-    else {
-      if (bw[0]) { x.fillStyle = bc[0]; x.fillRect(X, Y, W, bw[0]); }
-      if (bw[2]) { x.fillStyle = bc[2]; x.fillRect(X, Y + H - bw[2], W, bw[2]); }
-      if (bw[3]) { x.fillStyle = bc[3]; x.fillRect(X, Y, bw[3], H); }
-      if (bw[1]) { x.fillStyle = bc[1]; x.fillRect(X + W - bw[1], Y, bw[1], H); }
-    }
-    if (el.tagName.toLowerCase() === 'svg') {
-      const cl = el.cloneNode(true); cl.setAttribute('width', Math.round(W)); cl.setAttribute('height', Math.round(H));
-      const img = new Image();
-      await new Promise((ok) => { img.onload = ok; img.onerror = ok; img.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(new XMLSerializer().serializeToString(cl)); });
-      if (img.naturalWidth) x.drawImage(img, X, Y, W, H);
-    }
-  }
-  // teks
-  const tw = document.createTreeWalker(sec, NodeFilter.SHOW_TEXT), rg = document.createRange();
-  for (let t = tw.nextNode(); t; t = tw.nextNode()) {
-    const isi = t.nodeValue.replace(/\s+/g, ' ').trim(); if (!isi || t.parentElement.closest('svg')) continue;
-    const cs = getComputedStyle(t.parentElement); rg.selectNodeContents(t);
-    const r = rg.getBoundingClientRect(); if (!r.width) continue;
-    const [X, Y, , H] = pos(r), teks = cs.textTransform === 'uppercase' ? isi.toUpperCase() : isi;
-    x.fillStyle = cs.color; x.font = `${cs.fontStyle} ${cs.fontWeight} ${parseFloat(cs.fontSize) * k}px ${cs.fontFamily}`; x.textBaseline = 'middle';
-    const sp = (parseFloat(cs.letterSpacing) || 0) * k;
-    if (!sp) x.fillText(teks, X, Y + H / 2);
-    else { let px = X; for (const ch of teks) { x.fillText(ch, px, Y + H / 2); px += x.measureText(ch).width + sp; } }
-  }
-  return c;
-}
-async function pdfLembar(html, judul) {
-  const it = Overlay.modal(`<div class="uf-load"><span class="uf-putar" aria-hidden="true"></span><h3>Menyiapkan PDF…</h3><p class="lead">Lembar disusun ukuran A4, 1 lembar = 1 halaman.</p></div>`);
-  const wadah = document.createElement('div');
-  wadah.style.cssText = 'position:fixed;left:-10000px;top:0;width:210mm;pointer-events:none;';
-  wadah.innerHTML = html; document.body.appendChild(wadah);
-  try {
-    try { await document.fonts.ready; } catch (e) { /* abaikan */ }
-    const hal = [];
-    for (const sec of wadah.querySelectorAll('.ln-hal')) {
-      const c = await lembarKeKanvas(sec, 7);
-      const b64 = c.toDataURL('image/jpeg', 0.9).split(',')[1], bin = atob(b64), u = new Uint8Array(bin.length);
-      for (let i = 0; i < bin.length; i++) u[i] = bin.charCodeAt(i);
-      hal.push({ jpeg: u, w: c.width, h: c.height });
-    }
-    const blob = bungkusPdfHalaman(hal, 595.28, 841.89), url = URL.createObjectURL(blob), nama = `${judul.replace(/[^\w]+/g, '-')}.pdf`;
-    Overlay.tutup(it);
-    Overlay.modal(`<div><h3>${ico('print')} PDF siap · ${hal.length} lembar</h3>
-      <p class="lead">Buka PDF lalu tekan tombol <b>Bagikan</b> → <b>Cetak</b>. Setiap lembar pas 1 halaman A4.</p>
-      <div class="actions end"><a class="btn" href="${url}" download="${esc(nama)}">${ico('download')} Unduh</a><a class="btn btn-primary" href="${url}" target="_blank" rel="noopener">${ico('ext')} Buka PDF</a></div></div>`,
-      { onClose: () => setTimeout(() => URL.revokeObjectURL(url), 60000) });
-  } catch (e) { Overlay.tutup(it); toast('PDF gagal dibuat: ' + (e && e.message ? e.message : e), 'bad'); }
-  finally { wadah.remove(); }
-}
 function cetakLembarNilai(daftar, event, pantau = false) {
   let root = document.getElementById('cetak-root');
   if (root) root.remove();
   root = document.createElement('div'); root.id = 'cetak-root';
+  // HP (iPhone/iPad/Android): browser HP menambah margin kertas sendiri → lembar sedikit dikecilkan agar tetap 1 halaman A4
+  if (/iP(hone|ad|od)/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1) || (window.matchMedia && window.matchMedia('(pointer: coarse)').matches)) root.className = 'cetak-hp';
   const qrJuri = new Map();
   const html = daftar.map(({ juriId, nama }) => {
     if (!qrJuri.has(juriId)) qrJuri.set(juriId, QR.svg(isiQRLembar(api.eventId, juriId, pantau)));
     return vLembarNilai({ event, juri: nama, qr: qrJuri.get(juriId), pantau });
   }).join('');
-  if (pakaiPdfCetak()) { pdfLembar(html, pantau ? 'Form-juri-pantau' : 'Form-juri'); return; }
   root.innerHTML = html;
   document.body.appendChild(root);
   const bersih = () => { window.removeEventListener('afterprint', bersih); setTimeout(() => { const r = document.getElementById('cetak-root'); if (r) r.remove(); }, 300); };
