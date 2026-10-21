@@ -1876,6 +1876,8 @@ form .kp-foto { margin-bottom: 12px; height: 80px; }
 .uf-hd.p, .uf-list.p .uf-r { grid-template-columns: 26px 150px 150px minmax(0, 1fr) 30px; }
 .uf-hd.j, .uf-list.j .uf-r { grid-template-columns: 26px 140px minmax(0, 1fr) 110px minmax(170px, 1.15fr) 30px; }
 .uf-kj-kos { color: var(--muted); font-size: 12px; font-style: italic; }
+.uf-cell input.otomatis { border-color: color-mix(in srgb, var(--good) 55%, var(--line)); background: var(--good-soft); }
+.uf-abai { justify-self: start; font-size: 11.5px; font-weight: 600; color: var(--muted); }
 .nin.kj { position: relative; }
 .nin.kj input { border-color: var(--warn); }
 .kj-b { all: unset; box-sizing: border-box; position: absolute; top: -8px; right: -8px; width: 20px; height: 20px; border-radius: 50%; background: var(--warn); color: #4a3200; border: 2px solid var(--surface); box-shadow: 0 1px 3px rgba(0,0,0,.2); display: grid; place-items: center; font: 900 12px/1 Inter, sans-serif; cursor: pointer; z-index: 1; }
@@ -2799,6 +2801,72 @@ function siapkanOCR() {
     _ocrWorker.catch(() => { _ocrWorker = null; });
   }
   return _ocrWorker;
+}
+/* ---- baca tulisan tangan keterangan (juri & juri pantau) ----
+   Tesseract membaca potongan tulisan, lalu tiap kata dicocokkan ke kosakata keterangan lomba
+   (+ kata-kata yang pernah diketik panitia di event ini). Hanya hasil yang cocok jelas dianggap yakin;
+   sisanya diberi tanda kuning agar dirapikan panitia saat pengecekan. */
+const KOSA_KET = ('miring guwangan jatuh mebandung bandung kena kene tali putus kendor tegang goyang oleng stabil tenang naik turun cepat lambat pelan '
+  + 'ekor pendek panjang warna biru merah kuning hijau hitam putih ungu oranye coklat cerah pudar suara bagus bunyi nyaring keras pelan '
+  + 'kelod kaja kangin kauh nyangkut sangkut tersangkut nabrak tabrak tabrakan muter putar berputar melintir nunduk nungging ngulah rapi '
+  + 'sobek robek rusak patah bambu angin tinggi rendah jelek baik kurang lebih telat terlambat lepas jalan mati hidup lurus bengkok berat ringan '
+  + 'kanan kiri atas bawah akhir awal tengah sekali kali dua tiga agak sangat sedikit tidak tak ada belum sudah bisa dan atau di ke dari').split(' ');
+let _ocrTulisan = null;
+function siapkanOCRTulisan() {
+  if (!_ocrTulisan) {
+    _ocrTulisan = (async () => {
+      if (!window.Tesseract) for (const src of OCR_SUMBER) { try { await muatSkrip(src); if (window.Tesseract) break; } catch (e) { /* sumber berikutnya */ } }
+      if (!window.Tesseract) throw new Error('OCR_GAGAL');
+      const w = await window.Tesseract.createWorker('eng');
+      await w.setParameters({ tessedit_pageseg_mode: '7' });   // satu baris tulisan
+      return w;
+    })();
+    _ocrTulisan.catch(() => { _ocrTulisan = null; });
+  }
+  return _ocrTulisan;
+}
+function jarakEdit(a, b) {
+  const m = a.length, n = b.length; let p = Array.from({ length: n + 1 }, (_, j) => j);
+  for (let i = 1; i <= m; i++) { const c = [i]; for (let j = 1; j <= n; j++) c[j] = Math.min(p[j] + 1, c[j - 1] + 1, p[j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1)); p = c; }
+  return p[n];
+}
+function kosaKataKet() {
+  const d = (typeof Adm !== 'undefined' && Adm.s && Adm.s.data) || {}, set = new Set(KOSA_KET);
+  [...(d.catatan_pantau || []), ...(d.ket_juri || [])].forEach((x) => String(x.teks || '').toLowerCase().split(/[^a-z0-9]+/).forEach((w) => { if (w.length >= 3 && !/^\d+$/.test(w)) set.add(w); }));
+  return [...set];
+}
+/* kata hasil OCR → kata kosakata terdekat; { teks, yakin } */
+function rapikanTulisan(kata, cakupan = 1) {
+  const kosa = kosaKataKet(), out = []; let yakin = kata.length > 0 && cakupan >= 0.85;   // ada tinta yang tidak terbaca → tidak yakin
+  for (const k of kata) {
+    const asli = String(k.text || ''), koma = /[,;]$/.test(asli) ? ',' : '';
+    const t = asli.toLowerCase().replace(/[|]/g, 'l').replace(/[^a-z0-9]/g, '');
+    if (!t) continue;
+    if (/^\d+$/.test(t)) { out.push(t + koma); if ((k.confidence || 0) < 70) yakin = false; continue; }
+    if (t.length < 3) { if (KOSA_KET.includes(t) && (k.confidence || 0) >= 60) out.push(t + koma); else yakin = false; continue; }
+    let best = null, bd = 99;
+    for (const w of kosa) { if (Math.abs(w.length - t.length) > 2) continue; const dd = jarakEdit(t, w); if (dd < bd) { bd = dd; best = w; } }
+    const batas = Math.max(1, Math.floor(t.length * 0.34));
+    if (best && bd <= batas) { out.push(best + koma); if (bd > 1 || (k.confidence || 0) < 40) yakin = false; }
+    else if ((k.confidence || 0) >= 80) { out.push(t + koma); yakin = false; }
+    else yakin = false;
+  }
+  return { teks: out.join(' ').replace(/,$/, ''), yakin: yakin && out.length > 0 };
+}
+async function bacaTulisan(dataUrl) {
+  const img = new Image();
+  await new Promise((ok, gagal) => { img.onload = ok; img.onerror = gagal; img.src = dataUrl; });
+  const k = Math.max(1, Math.min(4, 140 / img.height)), c = document.createElement('canvas');
+  c.width = Math.round(img.width * k); c.height = Math.round(img.height * k);
+  const x = c.getContext('2d'); x.filter = 'grayscale(1) contrast(1.6)'; x.drawImage(img, 0, 0, c.width, c.height);
+  const w = await siapkanOCRTulisan(), r = await w.recognize(c);
+  const kata = (r.data.words || []).map((v) => ({ text: v.text, confidence: v.confidence, x0: v.bbox ? v.bbox.x0 : 0, x1: v.bbox ? v.bbox.x1 : 0 }));
+  // cakupan: berapa bagian tinta (per kolom) yang ada di dalam kata yang terbaca
+  const g = x.getImageData(0, 0, c.width, c.height).data, kol = new Uint8Array(c.width);
+  for (let xx = 0; xx < c.width; xx++) { let n = 0; for (let yy = 0; yy < c.height; yy++) if (g[(yy * c.width + xx) * 4] < 110) n++; kol[xx] = n > 2 ? 1 : 0; }
+  let tinta = 0, kena = 0;
+  for (let xx = 0; xx < c.width; xx++) if (kol[xx]) { tinta++; if (kata.some((v) => xx >= v.x0 - 4 && xx <= v.x1 + 4 && String(v.text).replace(/[^a-z0-9]/gi, ''))) kena++; }
+  return rapikanTulisan(kata, tinta ? kena / tinta : 0);
 }
 /* gambar → kanvas yang cukup besar & abu-abu supaya tulisan mudah dibaca */
 function kanvasOCR(gambar) {
@@ -7176,14 +7244,13 @@ const Adm = {
   },
   /* keterangan singkat juri nilai (keterangan-juri.sql) */
   ketJuri(pid, juriId) { const L = this.s.data.ket_juri; return Array.isArray(L) ? L.find((k) => k.pendaftaran_id === pid && k.juri_id === juriId) || null : null; },
-  vKetJuriPop(k, foto) {
+  vKetJuriPop(k) {
     const d = this.s.data, r = this.baris(k.pendaftaran_id) || {}, j = (d.juri || []).find((x) => x.id === k.juri_id) || {}, boleh = this.bolehMenilai();
     const nm = (j.nama || '').trim() || `Juri ${j.urutan || ''}`, nil = (d.nilai || []).find((n) => n.pendaftaran_id === k.pendaftaran_id && n.juri_id === k.juri_id);
     const asal = k.upload_id ? `${ico('camera', 'ico-inline')} Dari upload form · lembar ${esc(k.upload_id)}${k.baris ? ` baris ${esc(k.baris)}` : ''}` : 'Dari form juri';
     return `<form data-submit="adm.kjSimpan" data-id="${k.id}" novalidate><h3>Keterangan · ${esc(nm)}</h3><p class="kp-sub">No. ${esc(r.nomor_layangan || '-')} · ${esc(r.nama_sekha || '-')}${nil ? ` · nilai <b>${esc(nil.nilai)}</b>` : ''}</p>
-      <div class="kj-lab">Tulisan juri di form</div>${foto === undefined ? '<div class="kj-muat">Memuat foto…</div>' : foto ? `<img class="kp-foto kj-foto" src="${esc(foto)}" alt="Tulisan keterangan ${esc(nm)}">` : '<div class="kj-muat">Foto potongan tidak tersimpan.</div>'}
-      <div class="kj-lab"><label for="kj-teks">Diketik (opsional)</label></div><input class="input" id="kj-teks" name="teks" maxlength="300" autocomplete="off" value="${esc(k.teks || '')}" placeholder="${boleh ? 'Ketik isi keterangan…' : 'Belum diketik'}" ${boleh ? '' : 'readonly'}>
-      <p class="kj-meta">${asal} · oleh <b>${esc(labelOleh(k.oleh) || 'panitia')}</b> · ${esc(fmtWaktu(k.updated_at))}</p>
+      <div class="kj-lab"><label for="kj-teks">Keterangan singkat juri</label></div><input class="input" id="kj-teks" name="teks" maxlength="300" autocomplete="off" value="${esc(k.teks || '')}" placeholder="${boleh ? 'Ketik isi keterangan…' : 'Belum diketik'}" ${boleh ? '' : 'readonly'}>
+      <p class="kj-meta">${asal} · oleh <b>${esc(labelOleh(k.oleh) || 'panitia')}</b> · ${esc(fmtWaktu(k.updated_at))}${k.upload_id ? ` · <button type="button" class="btn-link" data-act="adm.ufFoto" data-id="${esc(k.upload_id)}">lihat foto form</button>` : ''}</p>
       <div class="kp-kaki">${boleh ? `<button type="button" class="btn btn-sm" data-act="adm.kjHapus" data-id="${k.id}">${ico('trash')} Hapus keterangan</button>` : ''}<span style="flex:1"></span><button type="button" class="btn btn-sm" data-act="ovl.tutup">Tutup</button>${boleh ? '<button type="submit" class="btn btn-sm btn-primary">Simpan</button>' : ''}</div></form>`;
   },
   vInfoLayangan(pid) {
@@ -7202,12 +7269,11 @@ const Adm = {
     const list = this.catatanPantau(pid).sort((a, b) => a.pantau_id - b.pantau_id || a.id - b.id);
     const inisial = (t) => String(t || '?').trim().split(/\s+/).slice(0, 2).map((w) => w[0]).join('').toUpperCase();
     return `<h3>Catatan juri pantau</h3><p class="kp-sub">No. ${esc(r.nomor_layangan || '-')} · ${esc(r.nama_sekha || '-')} · ${list.length} catatan</p>
-      ${list.length ? list.map((c) => { const nm = nama.get(c.pantau_id) || 'Juri pantau'; const foto = urlGambarAman(c.foto_url);
+      ${list.length ? list.map((c) => { const nm = nama.get(c.pantau_id) || 'Juri pantau';
         return `<div class="kpj"><span class="kp-av" style="background:var(--cat-${((c.pantau_id - 1) % 9) + 1})">${esc(inisial(nm))}</span>
-          <div class="kpj-h"><b>${esc(nm)}</b><small>${c.lembar ? `lembar ${c.lembar}${c.baris ? ` · baris ${c.baris}` : ''}` : 'diketik panitia'}</small>
+          <div class="kpj-h"><b>${esc(nm)}</b><small>${c.lembar ? `lembar ${c.lembar}${c.baris ? ` · baris ${c.baris}` : ''} · <button type="button" class="btn-link" data-act="adm.ufFoto" data-id="${esc(c.lembar)}">foto form</button>` : 'diketik panitia'}</small>
             ${boleh ? `<button type="button" class="btn btn-xs" data-act="adm.kpKoreksi" data-id="${c.id}">${ico('edit')} Koreksi</button>` : ''}</div>
-          ${foto ? `<img class="kp-foto" src="${esc(foto)}" alt="Tulisan asli ${esc(nm)}">` : ''}
-          <div class="kpj-t">${foto ? 'Terbaca: ' : ''}<b class="${c.ragu ? 'kpw ragu' : ''}">${esc(c.teks || '—')}</b></div></div>`; }).join('')
+          <div class="kpj-t"><b class="${c.ragu ? 'kpw ragu' : ''}">${esc(c.teks || '—')}</b></div></div>`; }).join('')
         : '<p class="kp-kos">Belum ada catatan dari juri pantau untuk layangan ini.</p>'}
       <div class="kp-kaki">${boleh ? `<button type="button" class="btn btn-sm" data-act="adm.kpTambah" data-pid="${esc(pid)}">${ico('plus')} Tambah catatan</button>` : ''}<button type="button" class="btn btn-sm" data-act="ovl.tutup">Tutup</button></div>`;
   },
@@ -8416,12 +8482,7 @@ ACT['adm.nilaiInfo'] = (el) => kpBuka(el.dataset.pid, el, Adm.vInfoLayangan(el.d
 /* keterangan singkat juri: tanda "!" di kotak nilai → tulisan asli + teks ketikan */
 ACT['adm.kjBuka'] = async (el) => {
   const k = Adm.ketJuri(el.dataset.pid, Number(el.dataset.juri)); if (!k) return;
-  kpBuka(k.pendaftaran_id, el, Adm.vKetJuriPop(k, undefined));
-  let foto = null; try { foto = urlGambarAman(await api.fotoKetJuri(k.id)); } catch (e) { /* abaikan */ }
-  const isi = document.querySelector('.kp-pop .kp-isi'); if (!isi) return;
-  const teks = isi.querySelector('#kj-teks'), nilaiKetik = teks ? teks.value : null;
-  isi.innerHTML = Adm.vKetJuriPop(k, foto || null);
-  if (nilaiKetik != null) isi.querySelector('#kj-teks').value = nilaiKetik;
+  kpBuka(k.pendaftaran_id, el, Adm.vKetJuriPop(k));
 };
 SUB['adm.kjSimpan'] = async (form) => {
   const id = Number(form.dataset.id), teks = form.teks.value.trim(), d = nilaiData();
@@ -8436,11 +8497,10 @@ ACT['adm.kjHapus'] = async (el) => {
 };
 ACT['adm.kpKoreksi'] = (el) => {
   const id = Number(el.dataset.id), d = nilaiData(), c = (d.catatan_pantau || []).find((x) => x.id === id); if (!c) return;
-  const nm = ((d.juri_pantau || []).find((j) => j.id === c.pantau_id) || {}).nama || 'Juri pantau', r = Adm.baris(c.pendaftaran_id) || {}, foto = urlGambarAman(c.foto_url);
+  const nm = ((d.juri_pantau || []).find((j) => j.id === c.pantau_id) || {}).nama || 'Juri pantau', r = Adm.baris(c.pendaftaran_id) || {};
   Overlay.modal(`<form data-submit="adm.kpSimpan" data-id="${id}" novalidate>
     <h3>Koreksi catatan · ${esc(nm)}</h3><p class="lead">No. ${esc(r.nomor_layangan || '-')} · ${esc(r.nama_sekha || '-')}${c.lembar ? ` · lembar ${c.lembar}${c.baris ? ` baris ${c.baris}` : ''}` : ''}</p>
-    ${foto ? `<div class="kp-lab">Tulisan asli</div><img class="kp-foto" src="${esc(foto)}" alt="Tulisan asli ${esc(nm)}">` : ''}
-    <div class="field"><label class="label" for="kp-teks">${foto ? 'Terbaca sebagai — ubah bila salah' : 'Keterangan'}</label><input class="input" id="kp-teks" name="teks" maxlength="300" autocomplete="off" value="${esc(c.teks || '')}" autofocus>
+    <div class="field"><label class="label" for="kp-teks">Keterangan</label><input class="input" id="kp-teks" name="teks" maxlength="300" autocomplete="off" value="${esc(c.teks || '')}" autofocus>
       <p class="hint">Pisahkan tiap keterangan dengan koma. Hanya catatan ${esc(nm)} yang berubah.</p></div>
     <div class="actions"><button type="button" class="btn btn-danger" data-act="adm.kpHapus" data-id="${id}">${ico('trash')} Hapus catatan</button><span style="flex:1"></span><button type="button" class="btn" data-act="ovl.tutup">Batal</button><button type="submit" class="btn btn-primary">Simpan</button></div>
   </form>`);
@@ -8515,7 +8575,7 @@ ACT['adm.ufLewati'] = (el) => { Overlay.tutupYangBerisi(el); ufLanjut(); };
 function ufBaca() {
   const c = UF.cur; if (!c.tipe) { c.rows = []; return; }
   c.rows = BacaForm.bacaIsi(c.A, c.tipe).map((r) => ({
-    baris: r.baris, gNomor: r.gNomor, gNilai: r.gNilai, gKet: r.gKet, gKetJ: r.gKetJ || null, ketJ: '',
+    baris: r.baris, gNomor: r.gNomor, gNilai: r.gNilai, gKet: r.gKet, gKetJ: r.gKetJ || null, ketJ: '', ketRagu: false, ketAbai: false, teksRagu: false,
     nomor: r.nomor.teks, raguNo: r.nomor.coret || (!r.nomor.kosong && r.nomor.yakin < 0.85),
     nilai: r.nilai ? r.nilai.teks : '', raguNil: r.nilai ? (r.nilai.coret || (!r.nilai.kosong && r.nilai.yakin < 0.85)) : false,
     teks: '', pakai: null,
@@ -8548,7 +8608,10 @@ function ufStatus(i) {
     const lama = (d.nilai || []).find((x) => x.pendaftaran_id === p.id && x.juri_id === c.juriId);
     if (lama && lama.nilai !== v) { out.kelas = out.kelas === 'ok' ? 'warn' : out.kelas; out.pesan.push(`Nilai lama ${lama.nilai} → diganti ${v}`); }
     else if (lama) out.pesan.push('Sama dengan nilai tersimpan');
+    if (r.gKetJ && !r.ketAbai && !String(r.ketJ || '').trim()) { out.kelas = out.kelas === 'ok' ? 'warn' : out.kelas; out.pesan.push('Ketik keterangan singkat dari potongan foto (atau abaikan)'); out.kosongTeks = true; }
+    else if (r.gKetJ && !r.ketAbai && r.ketRagu) { out.kelas = out.kelas === 'ok' ? 'warn' : out.kelas; out.pesan.push('Keterangan kurang jelas terbaca — rapikan, atau tekan “sudah benar”'); out.kosongTeks = true; out.raguKet = true; }
   } else if (!String(r.teks || '').trim()) { out.kelas = out.kelas === 'ok' ? 'warn' : out.kelas; out.pesan.push('Ketik keterangannya dari potongan foto'); out.kosongTeks = true; }
+  else if (r.teksRagu) { out.kelas = out.kelas === 'ok' ? 'warn' : out.kelas; out.pesan.push('Keterangan kurang jelas terbaca — rapikan, atau tekan “sudah benar”'); out.kosongTeks = true; out.raguKet = true; }
   return out;
 }
 const ufPakai = (i) => { const r = UF.cur.rows[i], st = ufStatus(i); return st.kelas !== 'bad' && !st.kosongTeks && (r.pakai == null ? true : r.pakai); };
@@ -8556,7 +8619,8 @@ function ufStatusHtml(i) {
   const st = ufStatus(i);
   return `${st.sekha ? `<b>${esc(st.sekha)}</b>` : `<b class="uf-err">${st.kelas === 'bad' ? 'Belum bisa disimpan' : ''}</b>`}
     ${st.pesan.map((m) => `<small class="${st.kelas === 'bad' ? 'uf-err' : 'uf-warn'}">${m}</small>`).join('')}
-    ${st.saran ? `<button type="button" class="btn btn-xs uf-saran" data-act="adm.ufSaran" data-i="${i}" data-v="${esc(st.saran)}">Mungkin No. ${esc(st.saran)}?</button>` : ''}`;
+    ${st.saran ? `<button type="button" class="btn btn-xs uf-saran" data-act="adm.ufSaran" data-i="${i}" data-v="${esc(st.saran)}">Mungkin No. ${esc(st.saran)}?</button>` : ''}
+    ${st.raguKet ? `<button type="button" class="btn btn-xs uf-saran" data-act="adm.ufKetBenar" data-i="${i}">${ico('check')} Keterangan sudah benar</button>` : ''}`;
 }
 function ufBarisHtml(i) {
   const c = UF.cur, r = c.rows[i], st = ufStatus(i), juri = c.tipe === 'juri';
@@ -8565,14 +8629,17 @@ function ufBarisHtml(i) {
     <label class="uf-cell"><img src="${esc(r.gNomor)}" alt="Tulisan nomor baris ${r.baris}"><input class="${r.raguNo ? 'ragu' : ''}" inputmode="numeric" maxlength="6" value="${esc(r.nomor)}" data-in="adm.ufNo" data-i="${i}" aria-label="Nomor layangan baris ${r.baris}"></label>
     <span class="uf-st">${ufStatusHtml(i)}</span>
     ${juri ? `<label class="uf-cell uf-nil"><img src="${esc(r.gNilai)}" alt="Tulisan nilai baris ${r.baris}"><input class="${r.raguNil ? 'ragu' : ''}" inputmode="numeric" maxlength="3" value="${esc(r.nilai)}" data-in="adm.ufNil" data-i="${i}" aria-label="Nilai baris ${r.baris}"></label>`
-      : `<label class="uf-cell uf-ket"><img src="${esc(r.gKet)}" alt="Tulisan keterangan baris ${r.baris}"><input value="${esc(r.teks)}" maxlength="300" placeholder="Ketik keterangan…" data-in="adm.ufTeks" data-i="${i}" aria-label="Keterangan baris ${r.baris}"></label>`}
-    ${juri ? (r.gKetJ ? `<label class="uf-cell uf-ket uf-kj"><img src="${esc(r.gKetJ)}" alt="Tulisan keterangan singkat baris ${r.baris}"><input value="${esc(r.ketJ)}" maxlength="300" placeholder="Ketik (opsional)…" data-in="adm.ufKetJ" data-i="${i}" aria-label="Keterangan singkat baris ${r.baris}"></label>` : '<span class="uf-kj uf-kj-kos">— tidak ada keterangan</span>') : ''}
+      : `<label class="uf-cell uf-ket"><img src="${esc(r.gKet)}" alt="Tulisan keterangan baris ${r.baris}"><input class="${r.teksRagu ? 'ragu' : r.teks ? 'otomatis' : ''}" value="${esc(r.teks)}" maxlength="300" placeholder="Ketik keterangan…" data-in="adm.ufTeks" data-i="${i}" aria-label="Keterangan baris ${r.baris}"></label>`}
+    ${juri ? (r.gKetJ && !r.ketAbai ? `<span class="uf-cell uf-ket uf-kj"><img src="${esc(r.gKetJ)}" alt="Tulisan keterangan singkat baris ${r.baris}"><input class="${r.ketRagu ? 'ragu' : r.ketJ ? 'otomatis' : ''}" value="${esc(r.ketJ)}" maxlength="300" placeholder="Ketik keterangan…" data-in="adm.ufKetJ" data-i="${i}" aria-label="Keterangan singkat baris ${r.baris}"><button type="button" class="btn-link uf-abai" data-act="adm.ufAbai" data-i="${i}">abaikan keterangan</button></span>`
+      : `<span class="uf-kj uf-kj-kos">${r.gKetJ ? `keterangan diabaikan · <button type="button" class="btn-link" data-act="adm.ufAbai" data-i="${i}">pakai lagi</button>` : '— tidak ada keterangan'}</span>`) : ''}
     <label class="uf-cb" title="${bisa ? 'Simpan baris ini' : 'Betulkan dulu agar bisa disimpan'}"><input type="checkbox" data-ch="adm.ufPakai" data-i="${i}" ${pakai ? 'checked' : ''} ${bisa ? '' : 'disabled'} aria-label="Simpan baris ${r.baris}"></label></div>`;
 }
 function ufRingkas() {
   const c = UF.cur, n = c.rows.length, simpan = c.rows.filter((_, i) => ufPakai(i)).length;
   const ragu = c.rows.filter((r) => r.raguNo || r.raguNil).length, bad = c.rows.filter((_, i) => ufStatus(i).kelas === 'bad').length;
-  return { n, simpan, html: `${n} baris terbaca${ragu ? ` · <b class="uf-warn">${ragu} kurang jelas</b> (kuning)` : ''}${bad ? ` · <b class="uf-err">${bad} belum bisa disimpan</b>` : ''}` };
+  const kp = c.ketProses, raguK = c.rows.filter((r) => r.ketRagu || r.teksRagu).length;
+  const ketInfo = kp ? (kp.gagal ? ' · <b class="uf-warn">tulisan keterangan tidak bisa dibaca otomatis — ketik manual</b>' : !kp.selesai ? ` · membaca tulisan keterangan ${kp.k}/${kp.n}…` : raguK ? ` · <b class="uf-warn">${raguK} keterangan perlu dirapikan</b>` : ' · keterangan terbaca') : '';
+  return { n, simpan, html: `${n} baris terbaca${ragu ? ` · <b class="uf-warn">${ragu} kurang jelas</b> (kuning)` : ''}${bad ? ` · <b class="uf-err">${bad} belum bisa disimpan</b>` : ''}${ketInfo}` };
 }
 function ufIsi() {
   const c = UF.cur, d = nilaiData(), qr = c.qr, jenis = Adm.namaJenis(UF.jenis);
@@ -8599,7 +8666,28 @@ function ufIsi() {
     <div class="actions"><button type="button" class="btn" data-act="adm.ufBatal">${UF.antre.length ? 'Lewati form ini' : 'Batal'}</button><span style="flex:1"></span>
       <button type="button" class="btn btn-primary" id="uf-go" data-act="adm.ufSimpan" ${rk.simpan ? '' : 'disabled'}>${ico('check')} Simpan ${rk.simpan} ${juri ? 'nilai' : 'catatan'}</button></div>`;
 }
-function ufBuka() { Overlay.modal(`<div class="uf" id="uf">${ufIsi()}</div>`, { onClose: () => { if (UF.cur && !UF.cur.selesai) UF.antre = []; } }); }
+function ufBuka() { Overlay.modal(`<div class="uf" id="uf">${ufIsi()}</div>`, { onClose: () => { if (UF.cur && !UF.cur.selesai) UF.antre = []; } }); ufBacaKet(); }
+/* baca tulisan keterangan satu per satu di belakang layar; isian yang sudah diketik panitia tidak ditimpa */
+async function ufBacaKet() {
+  const c = UF.cur; if (!c || !c.tipe || c.ketDibaca) return; c.ketDibaca = true;
+  const juri = c.tipe === 'juri', antre = c.rows.map((r, i) => ({ r, i })).filter(({ r }) => (juri ? r.gKetJ : r.gKet));
+  if (!antre.length) return;
+  c.ketProses = { n: antre.length, k: 0 }; ufSegarRingkas();
+  for (const { r, i } of antre) {
+    if (UF.cur !== c) return;
+    let h = null; try { h = await bacaTulisan(juri ? r.gKetJ : r.gKet); } catch (e) { c.ketProses.gagal = true; break; }
+    c.ketProses.k++;
+    const sel = document.querySelector(`.uf-r[data-i="${i}"] input[data-in="${juri ? 'adm.ufKetJ' : 'adm.ufTeks'}"]`);
+    const sudahDiketik = juri ? r.ketJ.trim() : r.teks.trim();
+    if (h && h.teks && !sudahDiketik) {
+      if (juri) { r.ketJ = h.teks; r.ketRagu = !h.yakin; } else { r.teks = h.teks; r.teksRagu = !h.yakin; }
+      if (sel) { sel.value = h.teks; sel.classList.toggle('ragu', !h.yakin); sel.classList.toggle('otomatis', h.yakin); }
+    }
+    ufSegarBaris(i);
+  }
+  c.ketProses.selesai = true; ufSegarRingkas();
+}
+function ufSegarRingkas() { const rk = ufRingkas(), sum = document.getElementById('uf-sum'); if (sum) sum.innerHTML = rk.html; }
 function ufGambar() { const el = document.getElementById('uf'); if (el) el.innerHTML = ufIsi(); }
 function ufSegarBaris(i) {
   const row = document.querySelector(`.uf-r[data-i="${i}"]`); if (!row) return;
@@ -8614,12 +8702,14 @@ function ufSegarBaris(i) {
 }
 IN['adm.ufNo'] = (el) => { const v = el.value.replace(/\D/g, '').slice(0, 6); if (v !== el.value) el.value = v; const i = Number(el.dataset.i); UF.cur.rows[i].nomor = v; UF.cur.rows[i].raguNo = false; el.classList.remove('ragu'); ufSegarBaris(i); };
 IN['adm.ufNil'] = (el) => { const v = el.value.replace(/\D/g, '').slice(0, 3); if (v !== el.value) el.value = v; const i = Number(el.dataset.i); UF.cur.rows[i].nilai = v; UF.cur.rows[i].raguNil = false; el.classList.remove('ragu'); ufSegarBaris(i); };
-IN['adm.ufTeks'] = (el) => { const i = Number(el.dataset.i); UF.cur.rows[i].teks = el.value; ufSegarBaris(i); };
+IN['adm.ufTeks'] = (el) => { const i = Number(el.dataset.i); UF.cur.rows[i].teks = el.value; UF.cur.rows[i].teksRagu = false; el.classList.remove('ragu', 'otomatis'); ufSegarBaris(i); };
 IN['adm.ufSeri'] = (el) => { UF.cur.seri = el.value; };
-IN['adm.ufKetJ'] = (el) => { UF.cur.rows[Number(el.dataset.i)].ketJ = el.value; };
+IN['adm.ufKetJ'] = (el) => { const i = Number(el.dataset.i), r = UF.cur.rows[i]; r.ketJ = el.value; r.ketRagu = false; el.classList.remove('ragu', 'otomatis'); ufSegarBaris(i); };
+ACT['adm.ufKetBenar'] = (el) => { const i = Number(el.dataset.i), r = UF.cur.rows[i]; r.ketRagu = false; r.teksRagu = false; const inp = document.querySelector(`.uf-r[data-i="${i}"] input[data-in="adm.ufKetJ"], .uf-r[data-i="${i}"] input[data-in="adm.ufTeks"]`); if (inp) inp.classList.remove('ragu'); ufSegarBaris(i); };
+ACT['adm.ufAbai'] = (el) => { const i = Number(el.dataset.i), r = UF.cur.rows[i]; r.ketAbai = !r.ketAbai; const row = document.querySelector(`.uf-r[data-i="${i}"]`); if (row) row.outerHTML = ufBarisHtml(i); ufSegarBaris(i); };
 CH['adm.ufPakai'] = (el) => { const i = Number(el.dataset.i); UF.cur.rows[i].pakai = el.checked; ufSegarBaris(i); };
 ACT['adm.ufSaran'] = (el) => { const i = Number(el.dataset.i); UF.cur.rows[i].nomor = el.dataset.v; UF.cur.rows[i].raguNo = false; const row = document.querySelector(`.uf-r[data-i="${i}"]`); if (row) { const inp = row.querySelector('input[data-in="adm.ufNo"]'); inp.value = el.dataset.v; inp.classList.remove('ragu'); } ufSegarBaris(i); };
-CH['adm.ufPilih'] = (el) => { const [t, id] = String(el.value || '').split(':'); UF.cur.tipe = t || null; UF.cur.juriId = id ? Number(id) : null; ufBaca(); ufGambar(); };
+CH['adm.ufPilih'] = (el) => { const [t, id] = String(el.value || '').split(':'); UF.cur.tipe = t || null; UF.cur.juriId = id ? Number(id) : null; UF.cur.ketDibaca = false; ufBaca(); ufGambar(); ufBacaKet(); };
 ACT['adm.ufLihat'] = () => { const c = UF.cur; if (!c) return; if (!c.url) c.url = URL.createObjectURL(c.file); lightbox(c.url, 'Foto form'); };
 ACT['adm.ufBatal'] = (el) => { if (UF.cur) UF.cur.selesai = true; Overlay.tutupYangBerisi(el); ufLanjut(); };
 ACT['adm.ufSimpan'] = (el) => sibuk(el, async () => {
@@ -8639,12 +8729,12 @@ ACT['adm.ufSimpan'] = (el) => sibuk(el, async () => {
         await pastikanPenilaian(st.pid);
         const row = await api.simpanNilai(st.pid, c.juriId, Number(r.nilai));
         gantiBarisNilai(nilaiData().nilai, (x) => x.pendaftaran_id === st.pid && x.juri_id === c.juriId, row);
-        if (r.gKetJ && Array.isArray(nilaiData().ket_juri)) {   // keterangan singkat juri → tanda "!" di tabel
-          const kj = await api.simpanKetJuri({ pendaftaran_id: st.pid, juri_id: c.juriId, teks: (r.ketJ || '').trim(), foto_url: r.gKetJ, upload_id: up.id, baris: r.baris });
+        if (r.gKetJ && !r.ketAbai && String(r.ketJ || '').trim() && Array.isArray(nilaiData().ket_juri)) {   // keterangan singkat juri → tanda "!" di tabel (teks saja)
+          const kj = await api.simpanKetJuri({ pendaftaran_id: st.pid, juri_id: c.juriId, teks: r.ketJ.trim(), foto_url: null, upload_id: up.id, baris: r.baris });
           gantiBarisNilai(nilaiData().ket_juri, (x) => x.pendaftaran_id === st.pid && x.juri_id === c.juriId, kj);
         }
       } else {
-        const row = await api.tambahCatatanPantau({ pendaftaran_id: st.pid, pantau_id: c.juriId, teks: r.teks.trim(), teks_baca: null, ragu: false, lembar: up.id, baris: r.baris, foto_url: r.gKet });
+        const row = await api.tambahCatatanPantau({ pendaftaran_id: st.pid, pantau_id: c.juriId, teks: r.teks.trim(), teks_baca: null, ragu: false, lembar: up.id, baris: r.baris, foto_url: null });
         nilaiData().catatan_pantau.push(row);
       }
       ok++;
