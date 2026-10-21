@@ -621,10 +621,11 @@ details.tbl-toggle summary { cursor: pointer; font-size: 13px; color: var(--bran
 #cetak-root { display: none; }
 @media print {
   @page { size: A4; margin: 0; }
-  html, body { background: #fff !important; }
+  html, body { background: #fff !important; height: auto !important; min-height: 0 !important; overflow: visible !important; margin: 0 !important; padding: 0 !important; }
   body > *:not(#cetak-root) { display: none !important; }
   #cetak-root { display: block; }
-  #cetak-root.cetak-hp .ln-hal { transform: scale(.92); transform-origin: top left; margin: 0 -8.4mm -23.76mm 8.4mm; break-inside: avoid; page-break-inside: avoid; }   /* 92%: tinggi 273 mm, di tengah */
+  /* HP: zoom (bukan transform) agar ukuran tata letak ikut mengecil → tidak ada sisa ruang yang jadi halaman kosong */
+  #cetak-root.cetak-hp .ln-hal { zoom: .92; margin: 0 auto; break-inside: avoid; page-break-inside: avoid; }
 }
 .ln-hal { position: relative; width: 210mm; height: 297mm; overflow: hidden; background: #fff; color: #16181d; font-family: Inter, 'Segoe UI', Arial, sans-serif; page-break-after: always; break-after: page; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
 .ln-hal:last-child { page-break-after: auto; break-after: auto; }
