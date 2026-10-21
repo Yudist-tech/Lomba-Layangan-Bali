@@ -2517,7 +2517,7 @@ const BacaForm = (() => {
   }
   /* ---------- angka tulisan tangan ---------- */
   const N = 20, B = 16;
-  function normAngka(mask, w, h) {
+  function normAngka(mask, w, h, miring = 0) {
     let x0 = w, x1 = -1, y0 = h, y1 = -1;
     for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) if (mask[y * w + x]) { if (x < x0) x0 = x; if (x > x1) x1 = x; if (y < y0) y0 = y; if (y > y1) y1 = y; }
     const out = new Float32Array(N * N); if (x1 < 0) return out;
@@ -2525,7 +2525,7 @@ const BacaForm = (() => {
     for (let Y = 0; Y < N; Y++) for (let X = 0; X < N; X++) {
       let v = 0;
       for (let a = 0; a < 4; a++) { const sy = Math.floor((Y + (a + 0.5) / 4 - oy) / s); if (sy < 0 || sy >= bh) continue;
-        for (let c = 0; c < 4; c++) { const sx = Math.floor((X + (c + 0.5) / 4 - ox) / s); if (sx < 0 || sx >= bw) continue; if (mask[(y0 + sy) * w + x0 + sx]) v++; } }
+        for (let c = 0; c < 4; c++) { const sx = Math.floor((X + (c + 0.5) / 4 - ox + miring * (Y - N / 2)) / s); if (sx < 0 || sx >= bw) continue; if (mask[(y0 + sy) * w + x0 + sx]) v++; } }
       out[Y * N + X] = v / 16;
     }
     return out;
@@ -2558,7 +2558,7 @@ const BacaForm = (() => {
     let mx = -1e9; for (let k = 0; k < M.no; k++) { let s = M.b2[k]; for (let j = 0; j < M.nh; j++) s += h[j] * M.w2[j * M.no + k]; o[k] = s; if (s > mx) mx = s; }
     let z = 0; for (let k = 0; k < M.no; k++) { o[k] = Math.exp(o[k] - mx); z += o[k]; }
     let d = 0; for (let k = 0; k < M.no; k++) { o[k] /= z; if (o[k] > o[d]) d = k; }
-    return { d, p: o[d] };
+    return { d, p: o[d], o };
   }
   /* sel → potongan angka (kiri ke kanan) */
   function runs(m, w, h, L, horiz) {
@@ -2575,20 +2575,22 @@ const BacaForm = (() => {
     return o;
   }
   function persentil(g, p) { const h = new Array(256).fill(0); for (let i = 0; i < g.length; i++) h[g[i]]++; let t = p * g.length, s = 0; for (let i = 0; i < 256; i++) { s += h[i]; if (s >= t) return i; } return 255; }
-  function segmen(C) {
-    const { g, w, h } = C, bg = persentil(g, 0.85), fg = persentil(g, 0.02);
+  function segmen(C, ambang = 0.62) {
+    const { g, w, h } = C, bg = persentil(g, 0.85), fg = persentil(g, 0.004);
     if (bg - fg < 40) return { kosong: true, angka: [] };
-    const t = fg + (bg - fg) * 0.62;
+    const t = fg + (bg - fg) * ambang;
     let m = new Uint8Array(w * h);
     for (let i = 0; i < g.length; i++) if (g[i] < t) m[i] = 1;
     // hapus sisa garis tabel: garis datar panjang & garis tegak hanya di tepi kiri/kanan sel (angka tidak ikut terhapus)
-    const hl = runs(dil(m, w, h, 2, true), w, h, Math.max(14, Math.floor(w * 0.5)), true), vl = runs(dil(m, w, h, 2, false), w, h, Math.max(12, Math.floor(h * 0.8)), false);
+    const hl = runs(dil(m, w, h, 2, true), w, h, Math.max(14, Math.floor(w * 0.5)), true), vl = runs(dil(m, w, h, 2, false), w, h, Math.max(12, Math.floor(h * 0.93)), false);
     const tepi = Math.max(3, Math.round(w * 0.07));
     for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) { const i = y * w + x; if (hl[i] || (vl[i] && (x < tepi || x >= w - tepi))) m[i] = 0; }
     const { lab, out } = komponen(m, w, h, 1);
-    const sisa = (c) => (c.x0 < w * 0.04 || c.x1 > w * 0.96) && c.bw < h * 0.14;   // sisa garis kolom di tepi sel
+    // sisa garis kolom di tepi sel: tipis, di pinggir, dan setinggi sel (angka "1" yang ditulis mepet tepi tetap dibaca)
+    const sisa = (c) => c.bw < h * 0.14 && (c.x0 < w * 0.04 || c.x1 > w * 0.96) && (c.bh > h * 0.88 || (c.y0 <= 2 && c.y1 >= h - 3));
     const datar = (c) => (c.y0 <= 1 || c.y1 >= h - 2) && c.bh < h * 0.15;                    // sisa garis baris
-    let cs = out.filter((c) => c.n >= Math.max(8, w * h * 0.003) && !(c.bh < h * 0.22 && c.bw < w * 0.06) && !sisa(c) && !datar(c))
+    // potongan kecil dibuang (bintik), kecuali tinggi seperti angka "1" yang tipis
+    let cs = out.filter((c) => (c.n >= Math.max(8, w * h * 0.003) || (c.bh >= h * 0.35 && c.n >= 15)) && !(c.bh < h * 0.22 && c.bw < w * 0.06) && !sisa(c) && !datar(c))
       .map((c) => ({ x0: c.x0, x1: c.x1 + 1, y0: c.y0, y1: c.y1 + 1, ids: [c.id], n: c.n }));
     cs.sort((a, b) => a.x0 - b.x0);
     const gab = [];
@@ -2602,23 +2604,89 @@ const BacaForm = (() => {
       gab.push({ ...c, ids: [...c.ids] });
     }
     const tinta = gab.reduce((s, c) => s + c.n, 0);
-    if (!gab.length || tinta < w * h * 0.006) return { kosong: true, angka: [] };
+    if (!gab.length || tinta < w * h * 0.0035) return { kosong: true, angka: [] };
     return { kosong: false, angka: gab.map((c) => {
       const bw = c.x1 - c.x0, bh = c.y1 - c.y0, mm = new Uint8Array(bw * bh), set = new Set(c.ids);
       for (let y = 0; y < bh; y++) for (let x = 0; x < bw; x++) if (set.has(lab[(c.y0 + y) * w + c.x0 + x])) mm[y * bw + x] = 1;
       return { mask: mm, w: bw, h: bh, padat: c.n / (bw * bh) };
     }) };
   }
-  function bacaAngka(C) {
-    const s = segmen(C);
-    if (s.kosong) return { kosong: true, teks: '', yakin: 1, coret: false };
-    let coret = false, yakin = 1, teks = '';
+  // baca satu sel angka dengan beberapa ambang tinta; tiap cara baca menyimpan peluang 0–9 per angka
+  function bacaPotong(a) {   // satu potongan tinta → peluang 0–9 (dirata-rata dengan versi miring kiri/kanan)
+    const o = new Float32Array(10);
+    for (const mr of [0, 0.2, -0.2]) { const t = tebak(normAngka(a.mask, a.w, a.h, mr)).o; for (let k = 0; k < 10; k++) o[k] += t[k] / 3; }
+    return o;
+  }
+  function belah(a) {   // dua angka yang tulisannya menempel → potong di kolom tinta paling tipis
+    const pr = new Array(a.w).fill(0);
+    for (let y = 0; y < a.h; y++) for (let x = 0; x < a.w; x++) pr[x] += a.mask[y * a.w + x];
+    let best = -1, bv = 1e9;
+    for (let x = Math.floor(a.w * 0.3); x <= Math.ceil(a.w * 0.7); x++) if (pr[x] < bv) { bv = pr[x]; best = x; }
+    if (best < 2 || best > a.w - 3) return null;
+    const ambil = (x0, x1) => { const w = x1 - x0, m = new Uint8Array(w * a.h); for (let y = 0; y < a.h; y++) for (let x = 0; x < w; x++) m[y * w + x] = a.mask[y * a.w + x0 + x]; return { mask: m, w, h: a.h }; };
+    return [ambil(0, best), ambil(best, a.w)];
+  }
+  // baca satu sel angka dengan ambang tinta tertentu; tiap cara baca menyimpan peluang 0–9 per angka
+  function bacaSekali(C, ambang) {
+    const s = segmen(C, ambang);
+    if (s.kosong) return [];
+    // gumpalan tinta yang sangat padat bisa coretan ATAU angka yang ditebalkan (mis. "8") → dibaca sebagai angka,
+    // tapi ada juga versi tanpa gumpalan itu; barisnya ditandai kuning supaya dicek
+    let coret = false; const pot = [], padat = [];
     for (const a of s.angka) {
-      if (a.padat > 0.7 && a.h > C.h * 0.25 && a.w > C.h * 0.25) { coret = true; continue; }
+      if (a.padat > 0.7 && a.h > C.h * 0.25 && a.w > C.h * 0.25) { coret = true; padat.push(pot.length); }
       if (a.w > a.h * 1.6 && s.angka.length === 1) coret = true;
-      const r = tebak(normAngka(a.mask, a.w, a.h)); teks += r.d; yakin = Math.min(yakin, r.p);
+      pot.push(a);
     }
-    return { kosong: !teks && !coret, teks, yakin, coret };
+    const ps = pot.map(bacaPotong), out = [{ ps, coret, pen: 0 }];
+    if (padat.length) out.push({ ps: ps.filter((_, i) => !padat.includes(i)), coret, pen: Math.log(0.5) });
+    // potongan yang lebar (mungkin 2 angka menempel) → coba juga versi dibelah
+    pot.forEach((a, i) => {
+      if (a.w < a.h * 0.85) return;
+      const b = belah(a); if (!b) return;
+      out.push({ ps: [...ps.slice(0, i), ...b.map(bacaPotong), ...ps.slice(i + 1)], coret, pen: Math.log(0.25) });
+    });
+    return out;
+  }
+  function bacaAngka(C) {
+    const cara = [0.62, 0.5, 0.74].flatMap((t, ti) => bacaSekali(C, t).map((c) => ({ ...c, ti })));
+    if (!cara.length || (!cara[0].ps.length && !cara[0].coret)) return { kosong: true, teks: '', yakin: 1, coret: false, cara: [] };
+    const u = cara[0], teks = u.ps.map((o) => o.indexOf(Math.max(...o))).join('');
+    const yakin = u.ps.reduce((m, o) => Math.min(m, Math.max(...o)), 1);
+    return { kosong: !teks && !u.coret, teks, yakin, coret: u.coret, cara };
+  }
+  /* pilih bacaan terbaik dari daftar jawaban yang mungkin (nomor yang terdaftar / nilai 0–maks).
+     Skor = peluang tiap angka; boleh 1 angka hilang/lebih (dengan penalti). Hasil: teks + keyakinan 0–1. */
+  function pilihKandidat(hasil, kandidat) {
+    if (!hasil || hasil.kosong || !hasil.cara || !hasil.cara.length || !kandidat || !kandidat.length) return hasil;
+    const L = (p) => Math.log(Math.max(p, 1e-4)), HILANG = Math.log(0.02), LEBIH = Math.log(0.03);
+    const skorCara = (ps, k) => {   // jarak edit berbobot: cocokkan deret peluang ps dengan teks k
+      const n = ps.length, m = k.length, D = Array.from({ length: n + 1 }, () => new Float64Array(m + 1).fill(-Infinity));
+      D[0][0] = 0;
+      for (let i = 0; i <= n; i++) for (let j = 0; j <= m; j++) {
+        const v = D[i][j]; if (v === -Infinity) continue;
+        if (i < n && j < m) D[i + 1][j + 1] = Math.max(D[i + 1][j + 1], v + L(ps[i][+k[j]]));
+        if (i < n) D[i + 1][j] = Math.max(D[i + 1][j], v + LEBIH);      // potongan tinta lebih (titik, coretan kecil)
+        if (j < m) D[i][j + 1] = Math.max(D[i][j + 1], v + HILANG);     // angka tidak tertangkap (menempel / terlalu tipis)
+      }
+      return D[n][m];
+    };
+    // tiap ambang tinta memberi suara (versi terbaik di ambang itu); suaranya dirata-rata → ambang yang kehilangan/menggabung angka tidak menang sendiri
+    const ambang = [...new Set(hasil.cara.map((c) => c.ti))];
+    const skorK = (k) => ambang.reduce((t, ti) => t + Math.max(...hasil.cara.filter((c) => c.ti === ti).map((c) => (c.ps.length ? skorCara(c.ps, k) : HILANG * k.length) + c.pen)), 0) / ambang.length;
+    // bacaan apa adanya juga ikut bersaing (dengan penalti) — supaya nomor yang memang tidak terdaftar tidak "dipaksa" jadi nomor lain
+    const mentah = [...new Set(hasil.cara.filter((c) => c.ps.length).map((c) => c.ps.map((o) => o.indexOf(Math.max(...o))).join('')))].filter((k) => !kandidat.includes(k));
+    const skor = [...kandidat.map((k) => ({ k, s: skorK(k) })), ...mentah.map((k) => ({ k, s: skorK(k) + Math.log(0.05) }))]
+      .filter((x) => x.s > -Infinity).sort((a, b) => b.s - a.s);
+    if (!skor.length) return hasil;
+    // "007" dan "7" adalah jawaban yang sama → peluangnya digabung
+    const nilaiK = (k) => k.replace(/^0+(?=\d)/, ''), per = new Map();
+    for (const x of skor) per.set(nilaiK(x.k), (per.get(nilaiK(x.k)) || 0) + Math.exp(x.s - skor[0].s));
+    const z = [...per.values()].reduce((t, v) => t + v, 0), terbaik = nilaiK(skor[0].k), post = per.get(terbaik) / z;
+    const ratarata = Math.exp(skor[0].s / Math.max(1, skor[0].k.length));   // peluang rata-rata per angka
+    // jumlah angka berubah dari yang terlihat (angka dianggap hilang/lebih) → selalu ditandai kuning
+    const ubahPanjang = hasil.cara.every((c) => c.ps.length !== skor[0].k.length);
+    return { ...hasil, teks: terbaik, yakin: Math.min(post, ratarata < 0.35 ? 0.5 : 1, ubahPanjang ? 0.6 : 1), mentah: hasil.teks };
   }
   /* ---------- sel & garis tabel ---------- */
   function cariGaris(P, harap, x0, x1, horiz, cari) { // geser garis tabel yang diharapkan ke posisi sebenarnya (±cari mm)
@@ -2666,18 +2734,21 @@ const BacaForm = (() => {
     return { ok: true, P, qr: pilih.qr, foto,
       kepala: { jenis: keGambar(potong(P, 88, 56, 150, 68, 0)), seri: keGambar(potong(P, 158, 56, 192, 68, 0)) } };
   }
-  function bacaIsi(A, tipe) {
+  // opsi.nomor = nomor layangan yang terdaftar di jenis ini, opsi.maks = nilai tertinggi → bacaan dipilih dari jawaban yang mungkin
+  function bacaIsi(A, tipe, opsi = {}) {
     const P = A.P, rows = [], kol = MEJA.kol;
+    const kNo = opsi.nomor && opsi.nomor.length ? [...new Set(opsi.nomor.flatMap((n) => { const t = String(n).replace(/\D/g, ''), b = t.replace(/^0+(?=\d)/, ''); return [t, b, b.padStart(3, '0')]; }).filter(Boolean))] : null;
+    const kNil = opsi.maks ? Array.from({ length: opsi.maks + 1 }, (_, i) => String(i)) : null;
     const yLine = [cariGaris(P, MEJA.y0, kol[0] + 2, kol[1] - 2, true, 3)];
     for (let i = 1; i <= L.baris; i++) yLine.push(cariGaris(P, yLine[i - 1] + L.barisH, kol[0] + 2, kol[1] - 2, true, 1.8));
     const xNo = [cariGaris(P, kol[0], MEJA.y0 + 2, MEJA.y0 + 60, false, 2.5), cariGaris(P, kol[1], MEJA.y0 + 2, MEJA.y0 + 60, false, 2.5)];
     const xNil = tipe === 'juri' ? cariGaris(P, kol[2], MEJA.y0 + 2, MEJA.y0 + 60, false, 2.5) : kol[3];
     for (let i = 0; i < L.baris; i++) {
       const y0 = yLine[i], y1 = yLine[i + 1];
-      const cNo = potong(P, xNo[0], y0, xNo[1], y1, 0.9), no = bacaAngka(cNo);
+      const cNo = potong(P, xNo[0], y0, xNo[1], y1, 0.9), no = pilihKandidat(bacaAngka(cNo), kNo);
       const r = { baris: i + 1, nomor: no, gNomor: null };
       if (tipe === 'juri') {
-        const cNil = potong(P, xNo[1], y0, xNil, y1, 0.9), nil = bacaAngka(cNil);
+        const cNil = potong(P, xNo[1], y0, xNil, y1, 0.9), nil = pilihKandidat(bacaAngka(cNil), kNil);
         if (no.kosong && nil.kosong) continue;
         r.nilai = nil; r.gNomor = keGambar(cNo); r.gNilai = keGambar(cNil);
         const cK = potong(P, xNil, y0, kol[3], y1, 0.6), sk = segmen(cK);   // kolom "Keterangan singkat"
@@ -2691,7 +2762,7 @@ const BacaForm = (() => {
     }
     return rows;
   }
-  return { analisa, bacaIsi, tebak, normAngka, segmen, bacaAngka, cariTanda, abu, muat, _uji: { homografi, luruskan, cocokQR } };
+  return { analisa, bacaIsi, tebak, normAngka, segmen, bacaAngka, pilihKandidat, cariTanda, abu, muat, _uji: { homografi, luruskan, cocokQR } };
 })();
 
 /* jarak edit ≤ maks (untuk No. Ref yang salah baca 1–2 karakter) */
@@ -2837,36 +2908,92 @@ function kosaKataKet() {
 }
 /* kata hasil OCR → kata kosakata terdekat; { teks, yakin } */
 function rapikanTulisan(kata, cakupan = 1) {
-  const kosa = kosaKataKet(), out = []; let yakin = kata.length > 0 && cakupan >= 0.85;   // ada tinta yang tidak terbaca → tidak yakin
+  const kosa = kosaKataKet(), out = []; let yakin = kata.length > 0 && cakupan >= 0.85, cocok = 0;   // ada tinta yang tidak terbaca → tidak yakin
   for (const k of kata) {
     const asli = String(k.text || ''), koma = /[,;]$/.test(asli) ? ',' : '';
     const t = asli.toLowerCase().replace(/[|]/g, 'l').replace(/[^a-z0-9]/g, '');
     if (!t) continue;
-    if (/^\d+$/.test(t)) { out.push(t + koma); if ((k.confidence || 0) < 70) yakin = false; continue; }
-    if (t.length < 3) { if (KOSA_KET.includes(t) && (k.confidence || 0) >= 60) out.push(t + koma); else yakin = false; continue; }
+    if (/^\d+$/.test(t)) { out.push(t + koma); if ((k.confidence || 0) < 70) yakin = false; else cocok++; continue; }
+    if (t.length < 3) { if (KOSA_KET.includes(t) && (k.confidence || 0) >= 60) { out.push(t + koma); cocok++; } else yakin = false; continue; }
     let best = null, bd = 99;
     for (const w of kosa) { if (Math.abs(w.length - t.length) > 2) continue; const dd = jarakEdit(t, w); if (dd < bd) { bd = dd; best = w; } }
-    const batas = Math.max(1, Math.floor(t.length * 0.34));
-    if (best && bd <= batas) { out.push(best + koma); if (bd > 1 || (k.confidence || 0) < 40) yakin = false; }
-    else if ((k.confidence || 0) >= 80) { out.push(t + koma); yakin = false; }
+    const batas = Math.max(1, Math.floor(t.length * 0.4));
+    if (best && bd <= batas) { out.push(best + koma); cocok++; if (bd > 1 || (k.confidence || 0) < 40) yakin = false; }
+    else if ((k.confidence || 0) >= 30 && /[a-z]{3,}/.test(t)) { out.push(t + koma); yakin = false; }   // kata di luar kosakata: tetap ditampilkan (kuning) supaya panitia cukup membetulkan
     else yakin = false;
   }
-  return { teks: out.join(' ').replace(/,$/, ''), yakin: yakin && out.length > 0 };
+  // tidak ada satu kata pun yang dikenali → kosongkan (lebih cepat diketik dari potongan foto daripada menghapus tebakan acak)
+  if (!cocok) return { teks: '', yakin: false, cocok: 0, ragu: kata.length };
+  return { teks: out.join(' ').replace(/,$/, ''), yakin: yakin && out.length > 0, cocok, ragu: kata.length - cocok };
+}
+/* potongan tulisan → 2 versi gambar untuk OCR: (1) abu-abu kontras, (2) hitam-putih bersih tanpa sisa garis tabel,
+   keduanya dipotong rapat ke tinta dan diperbesar ke tinggi huruf yang disukai Tesseract */
+function siapkanTulisan(img) {
+  const W = img.width, H = img.height, c0 = document.createElement('canvas'); c0.width = W; c0.height = H;
+  const x0 = c0.getContext('2d'); x0.drawImage(img, 0, 0);
+  const d = x0.getImageData(0, 0, W, H).data, g = new Uint8Array(W * H), hist = new Uint32Array(256);
+  for (let i = 0; i < g.length; i++) { const v = (d[i * 4] * 299 + d[i * 4 + 1] * 587 + d[i * 4 + 2] * 114) / 1000 | 0; g[i] = v; hist[v]++; }
+  const pct = (p) => { let a = 0; for (let v = 0; v < 256; v++) { a += hist[v]; if (a >= p * g.length) return v; } return 255; };
+  const bg = pct(0.85), fg = pct(0.01);
+  if (bg - fg < 35) return null;
+  const t = fg + (bg - fg) * 0.6, m = new Uint8Array(W * H);
+  for (let i = 0; i < g.length; i++) if (g[i] < t) m[i] = 1;
+  // sisa garis tabel: goresan datar yang sangat panjang (lebih panjang dari huruf mana pun) & garis tegak setinggi potongan di pinggir
+  const hapus = new Uint8Array(W * H), minDatar = Math.max(20, Math.min(W * 0.25, H * 2.5));
+  for (let y = 0; y < H; y++) for (let xx = 0; xx < W;) {
+    if (!(m[y * W + xx] || (y > 0 && m[(y - 1) * W + xx]) || (y < H - 1 && m[(y + 1) * W + xx]))) { xx++; continue; }
+    let k = xx; while (k < W && (m[y * W + k] || (y > 0 && m[(y - 1) * W + k]) || (y < H - 1 && m[(y + 1) * W + k]))) k++;
+    if (k - xx >= minDatar) for (let t2 = xx; t2 < k; t2++) hapus[y * W + t2] = 1;
+    xx = k;
+  }
+  for (let xx = 0; xx < W; xx++) { if (xx > W * 0.06 && xx < W * 0.94) continue; let n = 0; for (let y = 0; y < H; y++) n += m[y * W + xx] || (xx > 0 && m[y * W + xx - 1]) || (xx < W - 1 && m[y * W + xx + 1]) ? 1 : 0; if (n > H * 0.6) for (let y = 0; y < H; y++) hapus[y * W + xx] = 1; }
+  for (let i = 0; i < m.length; i++) if (hapus[i]) { m[i] = 0; g[i] = bg; }
+  // kotak tinta (abaikan bintik kecil di tepi)
+  const kol = new Uint16Array(W), bar = new Uint16Array(H);
+  for (let y = 0; y < H; y++) for (let xx = 0; xx < W; xx++) if (m[y * W + xx]) { kol[xx]++; bar[y]++; }
+  let a = 0, b = W - 1, c = 0, e = H - 1;
+  while (a < W && kol[a] < 2) a++; while (b > a && kol[b] < 2) b--; while (c < H && bar[c] < 2) c++; while (e > c && bar[e] < 2) e--;
+  if (b - a < 4 || e - c < 4) return null;
+  const tinta = kol.reduce((s, v) => s + v, 0);
+  const pad = Math.round((e - c) * 0.35), cw = b - a + 1, ch = e - c + 1, k = Math.max(0.5, Math.min(5, 64 / ch));   // tinggi tulisan ±64 px
+  const buat = (bersih) => {
+    const cv = document.createElement('canvas'); cv.width = Math.round((cw + pad * 2) * k); cv.height = Math.round((ch + pad * 2) * k);
+    const x = cv.getContext('2d'); x.fillStyle = '#fff'; x.fillRect(0, 0, cv.width, cv.height);
+    const src = document.createElement('canvas'); src.width = cw; src.height = ch;
+    const sx = src.getContext('2d'), id = sx.createImageData(cw, ch);
+    for (let y = 0; y < ch; y++) for (let xx = 0; xx < cw; xx++) {
+      const i = (c + y) * W + a + xx, o = (y * cw + xx) * 4;
+      const v = bersih ? (m[i] ? 0 : 255) : Math.max(0, Math.min(255, ((g[i] - fg) * 255) / Math.max(1, bg - fg)));
+      id.data[o] = id.data[o + 1] = id.data[o + 2] = v; id.data[o + 3] = 255;
+    }
+    sx.putImageData(id, 0, 0); x.imageSmoothingQuality = 'high'; x.drawImage(src, pad * k, pad * k, cw * k, ch * k);
+    return cv;
+  };
+  const mentah = () => { const k2 = Math.max(1, Math.min(4, 140 / H)), cv = document.createElement('canvas'); cv.width = Math.round(W * k2); cv.height = Math.round(H * k2);
+    const x = cv.getContext('2d'); x.filter = 'grayscale(1) contrast(1.4)'; x.drawImage(img, 0, 0, cv.width, cv.height); return cv; };
+  return { versi: [() => buat(true), () => buat(false), mentah], tinta };
 }
 async function bacaTulisan(dataUrl) {
   const img = new Image();
   await new Promise((ok, gagal) => { img.onload = ok; img.onerror = gagal; img.src = dataUrl; });
-  const k = Math.max(1, Math.min(4, 140 / img.height)), c = document.createElement('canvas');
-  c.width = Math.round(img.width * k); c.height = Math.round(img.height * k);
-  const x = c.getContext('2d'); x.filter = 'grayscale(1) contrast(1.6)'; x.drawImage(img, 0, 0, c.width, c.height);
-  const w = await siapkanOCRTulisan(), r = await w.recognize(c);
-  const kata = (r.data.words || []).map((v) => ({ text: v.text, confidence: v.confidence, x0: v.bbox ? v.bbox.x0 : 0, x1: v.bbox ? v.bbox.x1 : 0 }));
-  // cakupan: berapa bagian tinta (per kolom) yang ada di dalam kata yang terbaca
-  const g = x.getImageData(0, 0, c.width, c.height).data, kol = new Uint8Array(c.width);
-  for (let xx = 0; xx < c.width; xx++) { let n = 0; for (let yy = 0; yy < c.height; yy++) if (g[(yy * c.width + xx) * 4] < 110) n++; kol[xx] = n > 2 ? 1 : 0; }
-  let tinta = 0, kena = 0;
-  for (let xx = 0; xx < c.width; xx++) if (kol[xx]) { tinta++; if (kata.some((v) => xx >= v.x0 - 4 && xx <= v.x1 + 4 && String(v.text).replace(/[^a-z0-9]/gi, ''))) kena++; }
-  return rapikanTulisan(kata, tinta ? kena / tinta : 0);
+  const sp = siapkanTulisan(img); if (!sp) return { teks: '', yakin: false };
+  const w = await siapkanOCRTulisan(); let best = null;
+  for (const [vi, buatVersi] of sp.versi.entries()) {
+    if (vi === 2 && best && best.cocok > 0) break;   // versi ke-3 (foto apa adanya) hanya kalau dua versi pertama tidak menemukan kata yang dikenal
+    const c = buatVersi(), r = await w.recognize(c);
+    const kata = (r.data.words || []).map((v) => ({ text: v.text, confidence: v.confidence, x0: v.bbox ? v.bbox.x0 : 0, x1: v.bbox ? v.bbox.x1 : 0 }));
+    // cakupan: berapa bagian tinta (per kolom) yang ada di dalam kata yang terbaca
+    const g = c.getContext('2d').getImageData(0, 0, c.width, c.height).data; let tinta = 0, kena = 0;
+    for (let xx = 0; xx < c.width; xx++) {
+      let n = 0; for (let yy = 0; yy < c.height; yy++) if (g[(yy * c.width + xx) * 4] < 110) n++;
+      if (n > 2) { tinta++; if (kata.some((v) => xx >= v.x0 - 4 && xx <= v.x1 + 4 && String(v.text).replace(/[^a-z0-9]/gi, ''))) kena++; }
+    }
+    const h = rapikanTulisan(kata, tinta ? kena / tinta : 0);
+    h.skor = (h.yakin ? 2 : 0) + h.cocok - h.ragu * 0.5;
+    if (!best || h.skor > best.skor) best = h;
+    if (h.yakin) break;   // versi pertama sudah jelas → tidak perlu baca ulang
+  }
+  return best;
 }
 /* gambar → kanvas yang cukup besar & abu-abu supaya tulisan mudah dibaca */
 function kanvasOCR(gambar) {
@@ -8574,10 +8701,11 @@ async function ufLanjut() {
 ACT['adm.ufLewati'] = (el) => { Overlay.tutupYangBerisi(el); ufLanjut(); };
 function ufBaca() {
   const c = UF.cur; if (!c.tipe) { c.rows = []; return; }
-  c.rows = BacaForm.bacaIsi(c.A, c.tipe).map((r) => ({
+  const d = nilaiData(), nomor = d.daftar.filter((r) => r.jenis === UF.jenis && r.status === 'terkonfirmasi' && r.nomor_layangan).map((r) => r.nomor_layangan);
+  c.rows = BacaForm.bacaIsi(c.A, c.tipe, { nomor, maks: Number(d.pengaturan.nilai_maks) || 100 }).map((r) => ({
     baris: r.baris, gNomor: r.gNomor, gNilai: r.gNilai, gKet: r.gKet, gKetJ: r.gKetJ || null, ketJ: '', ketRagu: false, ketAbai: false, teksRagu: false,
-    nomor: r.nomor.teks, raguNo: r.nomor.coret || (!r.nomor.kosong && r.nomor.yakin < 0.85),
-    nilai: r.nilai ? r.nilai.teks : '', raguNil: r.nilai ? (r.nilai.coret || (!r.nilai.kosong && r.nilai.yakin < 0.85)) : false,
+    nomor: r.nomor.teks, raguNo: r.nomor.coret || (!r.nomor.kosong && r.nomor.yakin < 0.8),
+    nilai: r.nilai ? r.nilai.teks : '', raguNil: r.nilai ? (r.nilai.coret || (!r.nilai.kosong && r.nilai.yakin < 0.8)) : false,
     teks: '', pakai: null,
   }));
 }
@@ -8608,10 +8736,15 @@ function ufStatus(i) {
     const lama = (d.nilai || []).find((x) => x.pendaftaran_id === p.id && x.juri_id === c.juriId);
     if (lama && lama.nilai !== v) { out.kelas = out.kelas === 'ok' ? 'warn' : out.kelas; out.pesan.push(`Nilai lama ${lama.nilai} → diganti ${v}`); }
     else if (lama) out.pesan.push('Sama dengan nilai tersimpan');
-    if (r.gKetJ && !r.ketAbai && !String(r.ketJ || '').trim()) { out.kelas = out.kelas === 'ok' ? 'warn' : out.kelas; out.pesan.push('Ketik keterangan singkat dari potongan foto (atau abaikan)'); out.kosongTeks = true; }
-    else if (r.gKetJ && !r.ketAbai && r.ketRagu) { out.kelas = out.kelas === 'ok' ? 'warn' : out.kelas; out.pesan.push('Keterangan kurang jelas terbaca — rapikan, atau tekan “sudah benar”'); out.kosongTeks = true; out.raguKet = true; }
-  } else if (!String(r.teks || '').trim()) { out.kelas = out.kelas === 'ok' ? 'warn' : out.kelas; out.pesan.push('Ketik keterangannya dari potongan foto'); out.kosongTeks = true; }
-  else if (r.teksRagu) { out.kelas = out.kelas === 'ok' ? 'warn' : out.kelas; out.pesan.push('Keterangan kurang jelas terbaca — rapikan, atau tekan “sudah benar”'); out.kosongTeks = true; out.raguKet = true; }
+    // keterangan TIDAK menahan penyimpanan nilai: yang kurang jelas cukup ditandai kuning (boleh dirapikan sekarang atau nanti lewat tanda "!")
+    const kp = c.ketProses, belum = kp && !kp.selesai && !kp.gagal;
+    if (r.gKetJ && !r.ketAbai && !String(r.ketJ || '').trim() && !belum) { out.kelas = out.kelas === 'ok' ? 'warn' : out.kelas; out.pesan.push('Keterangan tidak terbaca — ketik di sini, atau biarkan (tanda “!” tetap muncul di tabel)'); }
+    else if (r.gKetJ && !r.ketAbai && r.ketRagu) { out.kelas = out.kelas === 'ok' ? 'warn' : out.kelas; out.pesan.push('Keterangan mungkin kurang tepat — cek sekilas'); out.raguKet = true; }
+  } else if (!String(r.teks || '').trim()) {
+    const kp = c.ketProses, belum = kp && !kp.selesai && !kp.gagal && r.gKet;
+    out.kelas = out.kelas === 'ok' ? 'warn' : out.kelas; out.pesan.push(belum ? 'Sedang membaca keterangan…' : 'Keterangan tidak terbaca — ketik dari potongan foto'); out.kosongTeks = true;
+  }
+  else if (r.teksRagu) { out.kelas = out.kelas === 'ok' ? 'warn' : out.kelas; out.pesan.push('Keterangan mungkin kurang tepat — cek sekilas (tersimpan dengan tanda “?”)'); out.raguKet = true; }
   return out;
 }
 const ufPakai = (i) => { const r = UF.cur.rows[i], st = ufStatus(i); return st.kelas !== 'bad' && !st.kosongTeks && (r.pakai == null ? true : r.pakai); };
@@ -8638,7 +8771,7 @@ function ufRingkas() {
   const c = UF.cur, n = c.rows.length, simpan = c.rows.filter((_, i) => ufPakai(i)).length;
   const ragu = c.rows.filter((r) => r.raguNo || r.raguNil).length, bad = c.rows.filter((_, i) => ufStatus(i).kelas === 'bad').length;
   const kp = c.ketProses, raguK = c.rows.filter((r) => r.ketRagu || r.teksRagu).length;
-  const ketInfo = kp ? (kp.gagal ? ' · <b class="uf-warn">tulisan keterangan tidak bisa dibaca otomatis — ketik manual</b>' : !kp.selesai ? ` · membaca tulisan keterangan ${kp.k}/${kp.n}…` : raguK ? ` · <b class="uf-warn">${raguK} keterangan perlu dirapikan</b>` : ' · keterangan terbaca') : '';
+  const ketInfo = kp ? (kp.gagal ? ' · <b class="uf-warn">tulisan keterangan tidak bisa dibaca otomatis — ketik manual</b>' : !kp.selesai ? ` · membaca tulisan keterangan ${kp.k}/${kp.n}…` : raguK ? ` · <b class="uf-warn">${raguK} keterangan mungkin kurang tepat</b> (boleh dirapikan)` : ' · keterangan terbaca') : '';
   return { n, simpan, html: `${n} baris terbaca${ragu ? ` · <b class="uf-warn">${ragu} kurang jelas</b> (kuning)` : ''}${bad ? ` · <b class="uf-err">${bad} belum bisa disimpan</b>` : ''}${ketInfo}` };
 }
 function ufIsi() {
@@ -8668,8 +8801,9 @@ function ufIsi() {
 }
 function ufBuka() { Overlay.modal(`<div class="uf" id="uf">${ufIsi()}</div>`, { onClose: () => { if (UF.cur && !UF.cur.selesai) UF.antre = []; } }); ufBacaKet(); }
 /* baca tulisan keterangan satu per satu di belakang layar; isian yang sudah diketik panitia tidak ditimpa */
-async function ufBacaKet() {
-  const c = UF.cur; if (!c || !c.tipe || c.ketDibaca) return; c.ketDibaca = true;
+function ufBacaKet() { const c = UF.cur; if (!c || !c.tipe || c.ketDibaca) return; c.ketJanji = ufBacaKetJalan(c); }
+async function ufBacaKetJalan(c) {
+  c.ketDibaca = true;
   const juri = c.tipe === 'juri', antre = c.rows.map((r, i) => ({ r, i })).filter(({ r }) => (juri ? r.gKetJ : r.gKet));
   if (!antre.length) return;
   c.ketProses = { n: antre.length, k: 0 }; ufSegarRingkas();
@@ -8680,12 +8814,12 @@ async function ufBacaKet() {
     const sel = document.querySelector(`.uf-r[data-i="${i}"] input[data-in="${juri ? 'adm.ufKetJ' : 'adm.ufTeks'}"]`);
     const sudahDiketik = juri ? r.ketJ.trim() : r.teks.trim();
     if (h && h.teks && !sudahDiketik) {
-      if (juri) { r.ketJ = h.teks; r.ketRagu = !h.yakin; } else { r.teks = h.teks; r.teksRagu = !h.yakin; }
+      if (juri) { r.ketJ = h.teks; r.ketRagu = !h.yakin; } else { r.teks = h.teks; r.teksBaca = h.teks; r.teksRagu = !h.yakin; }
       if (sel) { sel.value = h.teks; sel.classList.toggle('ragu', !h.yakin); sel.classList.toggle('otomatis', h.yakin); }
     }
     ufSegarBaris(i);
   }
-  c.ketProses.selesai = true; ufSegarRingkas();
+  c.ketProses.selesai = true; if (UF.cur === c) antre.forEach(({ i }) => ufSegarBaris(i)); ufSegarRingkas();
 }
 function ufSegarRingkas() { const rk = ufRingkas(), sum = document.getElementById('uf-sum'); if (sum) sum.innerHTML = rk.html; }
 function ufGambar() { const el = document.getElementById('uf'); if (el) el.innerHTML = ufIsi(); }
@@ -8714,6 +8848,7 @@ ACT['adm.ufLihat'] = () => { const c = UF.cur; if (!c) return; if (!c.url) c.url
 ACT['adm.ufBatal'] = (el) => { if (UF.cur) UF.cur.selesai = true; Overlay.tutupYangBerisi(el); ufLanjut(); };
 ACT['adm.ufSimpan'] = (el) => sibuk(el, async () => {
   const c = UF.cur, d = nilaiData(); if (!c || !c.tipe || !c.juriId) return;
+  if (c.ketJanji) { try { await c.ketJanji; } catch (e) { /* lanjut tanpa keterangan otomatis */ } }   // tunggu baca keterangan selesai
   const juri = c.tipe === 'juri', pil = ufKandidat().find((k) => k.tipe === c.tipe && k.id === c.juriId);
   const rows = c.rows.map((r, i) => ({ r, i, st: ufStatus(i) })).filter((x) => ufPakai(x.i));
   if (!rows.length) return;
@@ -8729,12 +8864,12 @@ ACT['adm.ufSimpan'] = (el) => sibuk(el, async () => {
         await pastikanPenilaian(st.pid);
         const row = await api.simpanNilai(st.pid, c.juriId, Number(r.nilai));
         gantiBarisNilai(nilaiData().nilai, (x) => x.pendaftaran_id === st.pid && x.juri_id === c.juriId, row);
-        if (r.gKetJ && !r.ketAbai && String(r.ketJ || '').trim() && Array.isArray(nilaiData().ket_juri)) {   // keterangan singkat juri → tanda "!" di tabel (teks saja)
-          const kj = await api.simpanKetJuri({ pendaftaran_id: st.pid, juri_id: c.juriId, teks: r.ketJ.trim(), foto_url: null, upload_id: up.id, baris: r.baris });
+        if (r.gKetJ && !r.ketAbai && Array.isArray(nilaiData().ket_juri)) {   // keterangan singkat juri → tanda "!" di tabel (teks; kosong = tidak terbaca, lihat foto form)
+          const kj = await api.simpanKetJuri({ pendaftaran_id: st.pid, juri_id: c.juriId, teks: String(r.ketJ || '').trim(), foto_url: null, upload_id: up.id, baris: r.baris });
           gantiBarisNilai(nilaiData().ket_juri, (x) => x.pendaftaran_id === st.pid && x.juri_id === c.juriId, kj);
         }
       } else {
-        const row = await api.tambahCatatanPantau({ pendaftaran_id: st.pid, pantau_id: c.juriId, teks: r.teks.trim(), teks_baca: null, ragu: false, lembar: up.id, baris: r.baris, foto_url: null });
+        const row = await api.tambahCatatanPantau({ pendaftaran_id: st.pid, pantau_id: c.juriId, teks: r.teks.trim(), teks_baca: r.teksBaca || null, ragu: !!r.teksRagu, lembar: up.id, baris: r.baris, foto_url: null });
         nilaiData().catatan_pantau.push(row);
       }
       ok++;
