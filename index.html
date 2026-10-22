@@ -7239,7 +7239,7 @@ const Adm = {
   },
   /* susun peringkat satu jenis dari nilai juri */
   // aturan rank: layangan yang sudah dinilai MINIMAL 2 juri (atau semua juri bila jurinya kurang dari 2) ikut peringkat & bisa ditetapkan juara.
-  // Urutan memakai RATA-RATA nilai juri yang sudah masuk (adil bila jumlah juri yang menilai berbeda; bila sama = urut total).
+  // Urutan memakai TOTAL nilai juri yang sudah masuk.
   // Yang baru dinilai < 2 juri tidak diberi rank dan tampil sesuai urutan nomor pendaftaran.
   peringkat(jenis) {
     const d = this.s.data, juri = [...(d.juri || [])].sort((a, b) => a.urutan - b.urutan), minJuri = Math.min(2, juri.length);
@@ -7256,10 +7256,10 @@ const Adm = {
       });
     const urutNo = (a, b) => (a.r.nomor_urut || 1e9) - (b.r.nomor_urut || 1e9);
     const sah = rows.filter((x) => !x.dq && x.lengkap)
-      .sort((a, b) => b.rata - a.rata || (a.p.prioritas ?? 1e9) - (b.p.prioritas ?? 1e9) || urutNo(a, b));
+      .sort((a, b) => b.total - a.total || (a.p.prioritas ?? 1e9) - (b.p.prioritas ?? 1e9) || urutNo(a, b));
     sah.forEach((x, i) => {
       const prev = sah[i - 1];
-      x.rank = prev && prev.rata === x.rata && (prev.p.prioritas ?? null) === (x.p.prioritas ?? null) ? prev.rank : i + 1;
+      x.rank = prev && prev.total === x.total && (prev.p.prioritas ?? null) === (x.p.prioritas ?? null) ? prev.rank : i + 1;
     });
     sah.forEach((x) => { x.seri = sah.some((y) => y !== x && y.rank === x.rank); });
     const belum = rows.filter((x) => !x.dq && !x.lengkap && !x.kosong);
@@ -7291,7 +7291,7 @@ const Adm = {
         'Setelah form diisi: pilih jenis layangan, tekan <b>Upload Form</b>, foto seluruh kertas (4 kotak hitam di sudut harus terlihat). Di layar periksa, betulkan angka yang salah — yang <b>kuning</b> kurang jelas — lalu <b>Simpan</b>.',
         'Isi manual: ketik <b>nomor layangan</b> di kotak cari (hanya nomor itu yang tampil), tekan <b>Enter</b> untuk lompat ke kolom juri yang masih kosong. <b>Enter</b> lagi pindah ke juri berikutnya; setelah juri terakhir kursor kembali ke kotak cari.',
         'Tombol <b>i</b> di sebelah nama sekha = info layangan untuk diskusi juri. Tombol <b>i</b> di kolom keterangan = catatan tiap juri pantau, bisa dikoreksi. Tanda <b>!</b> di kotak nilai = juri menulis keterangan singkat di form — klik untuk melihat tulisan aslinya.',
-        'Rank: layangan yang sudah dinilai <b>minimal 2 juri</b> diurutkan dari <b>rata-rata nilai</b> dan bisa ditetapkan juara. Yang baru dinilai 1 juri belum diberi rank dan tampil sesuai urutan nomor pendaftaran.',
+        'Rank: layangan yang sudah dinilai <b>minimal 2 juri</b> diurutkan dari <b>total nilai</b> dan bisa ditetapkan juara. Yang baru dinilai 1 juri belum diberi rank dan tampil sesuai urutan nomor pendaftaran.',
         'Nilai sama → tekan <b>Naikkan</b> pada layangan yang lebih unggul. Diskualifikasi (<b>DQ</b>) wajib diberi alasan.',
         '<b>Pengaturan nilai</b>: atur batas nilai juri, atau <b>Reset nilai</b> — pilih satu juri / juri pantau lalu seri terbang; hanya nilai (dan keterangan) juri itu di jenis yang sedang dibuka yang terhapus.',
         'Setelah selesai: <b>Jadikan juara</b> → periksa daftar → <b>Umumkan</b>. Setelah diumumkan nilai terkunci (hanya super admin yang bisa membuka). Semua perubahan nilai dan upload tercatat di <b>Riwayat</b> beserta ID panitia.'])}
@@ -7327,7 +7327,7 @@ const Adm = {
       info = `Menampilkan <b>No. ${esc(tampil[0].r.nomor_layangan)}</b> · ${pk.semua.length - tampil.length} layangan lain disembunyikan`;
     } else {
       tampil = this.s.nilaiSemua ? pk.urut : pk.urut.slice(0, BATAS);
-      info = `${this.s.nilaiSemua || pk.urut.length <= BATAS ? `Semua ${pk.urut.length} layangan` : `${BATAS} teratas dari ${pk.urut.length} layangan`} · rank dari rata-rata nilai, minimal ${pk.minJuri} juri · yang belum cukup dinilai urut nomor pendaftaran`;
+      info = `${this.s.nilaiSemua || pk.urut.length <= BATAS ? `Semua ${pk.urut.length} layangan` : `${BATAS} teratas dari ${pk.urut.length} layangan`} · rank dari total nilai, minimal ${pk.minJuri} juri · yang belum cukup dinilai urut nomor pendaftaran`;
     }
     const sisa = cari ? 0 : pk.urut.length - tampil.length;
     const atasSeri = pk.sah.filter((x) => x.seri && x.rank <= 3 + Math.max(6, (this.s.nilaiHarapan || 6)));
@@ -7341,7 +7341,7 @@ const Adm = {
   vBarisNilai(x, pk, maks, kolom, ro) {
     const r = x.r, id = esc(r.id);
     const rk = x.rank, kelas = rk === 1 ? 'g' : rk === 2 ? 's' : rk === 3 ? 'b' : rk ? 'h' : '';
-    const tags = [x.dq ? `<span class="ntag dq">Diskualifikasi</span>` : '', !x.dq && !x.lengkap && !x.kosong ? `<span class="ntag blm">Baru ${x.nJuri} juri</span>` : '', x.seri ? '<span class="ntag seri">Nilai sama</span>' : ''].join('');
+    const tags = [x.dq ? `<span class="ntag dq">Diskualifikasi</span>` : '', '', x.seri ? '<span class="ntag seri">Nilai sama</span>' : ''].join('');
     return `<div class="nr${x.dq ? ' dq' : ''}${x.seri ? ' seri' : ''}" style="${kolom}" data-pid="${id}">
       <span class="nrk"><b class="rk ${kelas}"${!x.dq && !rk && !x.kosong ? ` title="Baru ${x.nJuri} juri yang menilai — rank muncul setelah minimal ${pk.minJuri} juri"` : ''}>${x.dq ? '✕' : rk || '—'}</b></span>
       <span class="nno">${esc(r.nomor_layangan || '-')}</span>
@@ -7350,7 +7350,7 @@ const Adm = {
         ${x.seri && !ro ? `<button type="button" class="btn btn-xs nnaik" data-act="adm.nilaiNaik" data-pid="${id}" title="Letakkan di atas yang nilainya sama">${ico('arrow-up')} Naikkan</button>` : ''}
         ${x.p.catatan ? `<small class="ncat">${ico('edit')} ${esc(x.p.catatan)}</small>` : ''}</span>
       <span class="nins">${pk.juri.map((j, i) => `<label class="nin${this.ketJuri(r.id, j.id) ? ' kj' : ''}"><span class="nin-l">${esc(j.nama || 'Juri ' + (i + 1))}</span><input type="number" inputmode="numeric" min="0" max="${maks}" step="1" value="${x.skor[i] ?? ''}" data-ch="adm.nilai" data-pid="${id}" data-juri="${j.id}" ${ro ? 'disabled' : ''} aria-label="Nilai ${esc(j.nama || 'juri ' + (i + 1))} untuk nomor ${esc(r.nomor_layangan || '-')}">${this.ketJuri(r.id, j.id) ? `<button type="button" class="kj-b" data-act="adm.kjBuka" data-pid="${id}" data-juri="${j.id}" title="Ada keterangan singkat dari ${esc(j.nama || 'juri ' + (i + 1))} — klik untuk melihat" aria-label="Keterangan ${esc(j.nama || 'juri ' + (i + 1))} untuk nomor ${esc(r.nomor_layangan || '-')}">!</button>` : ''}</label>`).join('')}</span>
-      <span class="ntot">${x.kosong ? '' : x.total}<small>${x.kosong || x.penuh ? '' : `${x.nJuri}/${pk.juri.length} juri`}</small></span>
+      <span class="ntot">${x.kosong ? '' : x.total}</span>
       ${this.pantauAktif() ? this.vKetPantau(r) : ''}
       <span class="naksi">${ro ? '' : `
         <details class="ae-menu nak-m"><summary class="ae-dots" aria-label="Aksi untuk nomor ${esc(r.nomor_layangan || '-')}">${ico('more')}</summary><div class="ae-pop">
@@ -7507,7 +7507,7 @@ const Adm = {
       const rk = el.querySelector('.rk');
       rk.className = 'rk ' + (x.rank === 1 ? 'g' : x.rank === 2 ? 's' : x.rank === 3 ? 'b' : x.rank ? 'h' : '');
       rk.textContent = x.dq ? '✕' : x.rank || '—';
-      el.querySelector('.ntot').innerHTML = `${x.kosong ? '' : x.total}<small>${x.kosong || x.penuh ? '' : `${x.nJuri}/${pk.juri.length} juri`}</small>`;
+      el.querySelector('.ntot').innerHTML = `${x.kosong ? '' : x.total}`;
       el.classList.toggle('seri', x.seri);
     }
     const u = $('#nilai-ulang'); if (u) u.hidden = false;
