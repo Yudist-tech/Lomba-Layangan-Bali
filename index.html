@@ -7266,7 +7266,7 @@ const Adm = {
     const kosong = rows.filter((x) => !x.dq && x.kosong);
     const dq = rows.filter((x) => x.dq).sort(urutNo);
     const sisa = [...belum, ...kosong].sort(urutNo);   // < 2 juri: urut nomor pendaftaran
-    return { juri, minJuri, sah, belum: belum.sort(urutNo), kosong: kosong.sort(urutNo), dq, semua: rows, urut: [...sah, ...dq, ...sisa] };
+    return { juri, minJuri, sah, belum: belum.sort(urutNo), kosong: kosong.sort(urutNo), dq, semua: rows, urut: [...sah, ...sisa, ...dq] };   // diskualifikasi selalu paling bawah
   },
   vPenilaian() {
     const d = this.s.data, ev = d.pengaturan;
