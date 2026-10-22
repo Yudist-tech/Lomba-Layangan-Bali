@@ -3513,10 +3513,14 @@ class SupabaseAPI {
         this.sb.from('lomba_catatan_pantau').select('*').eq('event_id', ev).order('id').then((r) => this._ok(r)).catch(() => null),
       ]);
       // upload form (upload-form.sql); null = belum dipasang. Foto tidak ikut dimuat (diambil saat dibuka)
-      const form_upload = await this.sb.from('lomba_form_upload').select('id,jenis,tipe,juri_id,pantau_id,juri_nama,seri,jumlah,qr,oleh,created_at').eq('event_id', ev).order('created_at', { ascending: false }).limit(500).then((r) => this._ok(r)).catch(() => null);
+      const kolomUp = 'id,jenis,tipe,juri_id,pantau_id,juri_nama,seri,jumlah,qr,oleh,created_at', ambilUp = (k) => this.sb.from('lomba_form_upload').select(k).eq('event_id', ev).order('created_at', { ascending: false }).limit(500).then((r) => this._ok(r));
+      // reset-seri.sql: seri yang dipilih panitia saat upload (seri_id) + asal upload tiap nilai (lomba_nilai.upload_id)
+      let seri_upload = true;
+      const form_upload = await ambilUp(kolomUp + ',seri_id').catch(() => { seri_upload = false; return ambilUp(kolomUp).catch(() => null); });
+      this._seriUpload = seri_upload;
       // keterangan singkat juri (keterangan-juri.sql); foto potongan diambil saat dibuka
       const ket_juri = await this.sb.from('lomba_ket_juri').select('id,pendaftaran_id,juri_id,teks,upload_id,baris,oleh,updated_at').eq('event_id', ev).then((r) => this._ok(r)).catch(() => null);
-      return { juri, penilaian, nilai, penilai, riwayat_nilai, panitia_event, juri_pantau, catatan_pantau, form_upload, ket_juri };
+      return { juri, penilaian, nilai, penilai, riwayat_nilai, panitia_event, juri_pantau, catatan_pantau, form_upload, ket_juri, seri_upload };
     } catch (e) { return { juri: null, penilaian: null, nilai: null }; }
   }
   /* panitia penilai per event (diatur super admin dari jendela "Atur event"); null = juara.sql belum dipasang */
@@ -3548,7 +3552,10 @@ class SupabaseAPI {
   async ubahCatatanPantau(id, patch) { return this._ok(await this.sb.from('lomba_catatan_pantau').update(patch).eq('id', id).select().single()); }
   async hapusCatatanPantau(id) { this._ok(await this.sb.from('lomba_catatan_pantau').delete().eq('id', id)); }
   /* upload form (upload-form.sql): catatan siapa meng-upload; foto diambil terpisah */
-  async catatUpload(u) { return this._ok(await this.sb.from('lomba_form_upload').insert({ ...u, event_id: this._ev() }).select('id,jenis,tipe,juri_id,pantau_id,juri_nama,seri,jumlah,qr,oleh,created_at').single()); }
+  async catatUpload(u) {
+    const { seri_id, ...lain } = u, isi = this._seriUpload ? { ...lain, seri_id: seri_id || null } : lain;
+    return this._ok(await this.sb.from('lomba_form_upload').insert({ ...isi, event_id: this._ev() }).select('id,jenis,tipe,juri_id,pantau_id,juri_nama,seri,jumlah,qr,oleh,created_at' + (this._seriUpload ? ',seri_id' : '')).single());
+  }
   async fotoUpload(id) { const r = this._ok(await this.sb.from('lomba_form_upload').select('foto').eq('id', id).single()); return r && r.foto; }
   /* keterangan singkat juri nilai (keterangan-juri.sql); satu per layangan per juri */
   async simpanKetJuri(k) { return this._ok(await this.sb.from('lomba_ket_juri').upsert({ ...k, event_id: this._ev() }, { onConflict: 'pendaftaran_id,juri_id' }).select('id,pendaftaran_id,juri_id,teks,upload_id,baris,oleh,updated_at').single()); }
@@ -3563,10 +3570,12 @@ class SupabaseAPI {
   }
   async ubahPenilaian(pid, patch) { return this._ok(await this.sb.from('lomba_penilaian').update(patch).eq('pendaftaran_id', pid).select().single()); }
   async hapusPenilaian(pid) { this._ok(await this.sb.from('lomba_penilaian').delete().eq('pendaftaran_id', pid)); }
-  async simpanNilai(pid, juriId, nilai) {
+  async simpanNilai(pid, juriId, nilai, uploadId = null) {   // uploadId: nilai ini berasal dari upload form (reset-seri.sql)
     if (nilai == null) { this._ok(await this.sb.from('lomba_nilai').delete().eq('pendaftaran_id', pid).eq('juri_id', juriId)); return null; }
     this._ok(await this.sb.from('lomba_nilai').delete().eq('pendaftaran_id', pid).eq('juri_id', juriId));
-    return this._ok(await this.sb.from('lomba_nilai').insert({ pendaftaran_id: pid, juri_id: juriId, event_id: this._ev(), nilai }).select().single());
+    const row = { pendaftaran_id: pid, juri_id: juriId, event_id: this._ev(), nilai };
+    if (this._seriUpload && uploadId) row.upload_id = uploadId;
+    return this._ok(await this.sb.from('lomba_nilai').insert(row).select().single());
   }
   /* ganti seluruh juara satu jenis: list = [{ kelas, urutan, pendaftaran_id }] */
   async simpanJuaraJenis(jenis, list) {
@@ -4552,7 +4561,7 @@ class DemoAPI {
   /* ---- data admin ---- */
   async muatSemua() {
     await this._jeda(250);
-    return this._salin({ pengaturan: this.db.pengaturan, jenis: this.db.jenis, seri: this.db.seri, daftar: this.db.daftar, hari: [...this.db.hari].sort(urutHari), sesi: [...this.db.sesi].sort(urutSesi), baca: Object.values(this.db.baca || {}), selesai: this.db.selesai || [], juara: this.db.juara || [], juara_umum: this.db.juara_umum || [], penilai: this.db.penilai || [], riwayat_nilai: this.db.riwayat_nilai || [], panitia_event: this._super() ? (this.ix.akses[this.eventId] || []) : null, juri: this.db.juri || [], penilaian: this.db.penilaian || [], nilai: this.db.nilai || [], ...this._pantauDb(), form_upload: (this.db.form_upload || []).map(({ foto, ...x }) => x), ket_juri: this._ketJuriDb().map(({ foto_url, ...x }) => x) });
+    return this._salin({ pengaturan: this.db.pengaturan, jenis: this.db.jenis, seri: this.db.seri, daftar: this.db.daftar, hari: [...this.db.hari].sort(urutHari), sesi: [...this.db.sesi].sort(urutSesi), baca: Object.values(this.db.baca || {}), selesai: this.db.selesai || [], juara: this.db.juara || [], juara_umum: this.db.juara_umum || [], penilai: this.db.penilai || [], riwayat_nilai: this.db.riwayat_nilai || [], panitia_event: this._super() ? (this.ix.akses[this.eventId] || []) : null, juri: this.db.juri || [], penilaian: this.db.penilaian || [], nilai: this.db.nilai || [], ...this._pantauDb(), form_upload: (this.db.form_upload || []).map(({ foto, ...x }) => x), ket_juri: this._ketJuriDb().map(({ foto_url, ...x }) => x), seri_upload: true });
   }
   /* tiruan juara.sql: penilaian */
   _nilaiDb() { const d = this.db; d.juri = d.juri || []; d.penilaian = d.penilaian || []; d.nilai = d.nilai || []; d.penilai = d.penilai || []; d.riwayat_nilai = d.riwayat_nilai || []; return d; }
@@ -4676,7 +4685,7 @@ class DemoAPI {
     Object.assign(r, baru, { oleh: this._email(), updated_at: new Date().toISOString() }); this._simpan(); return this._salin(r);
   }
   async hapusPenilaian(pid) { await this._jeda(120); const d = this._nilaiDb(); d.penilaian = d.penilaian.filter((x) => x.pendaftaran_id !== pid); d.nilai = d.nilai.filter((x) => x.pendaftaran_id !== pid); this._simpan(); }
-  async simpanNilai(pid, juriId, nilai) {
+  async simpanNilai(pid, juriId, nilai, uploadId = null) {
     await this._jeda(80);
     const d = this._nilaiDb();
     this._wajibPenilai(); this._wajibTerbuka(this._jenisDari(pid));
@@ -4686,7 +4695,7 @@ class DemoAPI {
     if ((lama ? lama.nilai : null) !== nilai) this._catatNilai(p.jenis, p.nomor_layangan, 'nilai', { juri: j.nama || ('Juri ' + (j.urutan || '')), lama: lama ? lama.nilai : null, baru: nilai });
     d.nilai = d.nilai.filter((x) => !(x.pendaftaran_id === pid && x.juri_id === juriId));
     if (nilai == null) { this._simpan(); return null; }
-    const row = { pendaftaran_id: pid, juri_id: juriId, nilai, oleh: this._email(), updated_at: new Date().toISOString() };
+    const row = { pendaftaran_id: pid, juri_id: juriId, nilai, upload_id: uploadId || null, oleh: this._email(), updated_at: new Date().toISOString() };
     d.nilai.push(row); this._simpan(); return this._salin(row);
   }
   async simpanJuaraJenis(jenis, list) {
@@ -8410,7 +8419,8 @@ CH['adm.nilai'] = async (el) => {
   el.classList.remove('salah'); el.classList.add('menyimpan');
   try {
     if (v != null) await pastikanPenilaian(pid);
-    const row = await api.simpanNilai(pid, juri, v);
+    const asal = (d.nilai || []).find((x) => x.pendaftaran_id === pid && x.juri_id === juri);
+    const row = await api.simpanNilai(pid, juri, v, asal ? asal.upload_id : null);
     gantiBarisNilai(nilaiData().nilai, (x) => x.pendaftaran_id === pid && x.juri_id === juri, row);
     Adm.tandaiUbah(); Adm.segarkanNilai();
   } catch (e) { el.classList.add('salah'); toast(pesanError(e), 'bad'); }
@@ -8738,7 +8748,7 @@ function ufStatus(i) {
   const p = ufCariNomor(no);
   if (!p) { out.kelas = 'bad'; out.pesan.push(`Nomor ${esc(no)} tidak ada di ${esc(Adm.namaJenis(UF.jenis))}`); const s = ufSaran(no); if (s) out.saran = s; return out; }
   out.pid = p.id; out.sekha = p.nama_sekha;
-  if (c.seriId && p.seri_id != null && p.seri_id !== c.seriId) { out.kelas = 'warn'; out.pesan.push(`Terdaftar di ${esc(Adm.labelSeriPendek(d.seri.find((g) => g.id === p.seri_id)))}`); }
+  if (c.seriId && p.seri_id != null && p.seri_id !== c.seriId) { out.kelas = 'warn'; out.pesan.push(`Terdaftar di ${esc(Adm.labelSeriPendek(d.seri.find((g) => g.id === p.seri_id)))} — tetap dicatat di ${esc(c.seri)}`); }
   const dup = c.rows.findIndex((x, k) => k !== i && normNomor(x.nomor) === normNomor(no));
   if (dup >= 0) { out.kelas = 'warn'; out.pesan.push(`Nomor sama dengan baris ${c.rows[dup].baris}`); }
   const pen = (d.penilaian || []).find((x) => x.pendaftaran_id === p.id);
@@ -8867,7 +8877,7 @@ ACT['adm.ufSimpan'] = (el) => sibuk(el, async () => {
   if (!rows.length) return;
   let up;
   try {
-    up = await api.catatUpload({ jenis: UF.jenis, tipe: c.tipe, juri_id: juri ? c.juriId : null, pantau_id: juri ? null : c.juriId, juri_nama: pil ? pil.nama : null, seri: c.seri, jumlah: rows.length, qr: c.qr.status === 'cocok' ? 'cocok' : 'manual', foto: c.A.foto });
+    up = await api.catatUpload({ jenis: UF.jenis, tipe: c.tipe, juri_id: juri ? c.juriId : null, pantau_id: juri ? null : c.juriId, juri_nama: pil ? pil.nama : null, seri: c.seri, seri_id: c.seriId || null, jumlah: rows.length, qr: c.qr.status === 'cocok' ? 'cocok' : 'manual', foto: c.A.foto });
     d.form_upload.unshift(up);
   } catch (e) { toast(pesanError(e), 'bad'); return; }
   let ok = 0; const gagal = [];
@@ -8875,7 +8885,7 @@ ACT['adm.ufSimpan'] = (el) => sibuk(el, async () => {
     try {
       if (juri) {
         await pastikanPenilaian(st.pid);
-        const row = await api.simpanNilai(st.pid, c.juriId, Number(r.nilai));
+        const row = await api.simpanNilai(st.pid, c.juriId, Number(r.nilai), up.id);
         gantiBarisNilai(nilaiData().nilai, (x) => x.pendaftaran_id === st.pid && x.juri_id === c.juriId, row);
         if (r.gKetJ && !r.ketAbai && Array.isArray(nilaiData().ket_juri)) {   // keterangan singkat juri → tanda "!" di tabel (teks; kosong = tidak terbaca, lihat foto form)
           const kj = await api.simpanKetJuri({ pendaftaran_id: st.pid, juri_id: c.juriId, teks: String(r.ketJ || '').trim(), foto_url: null, upload_id: up.id, baris: r.baris });
@@ -8901,15 +8911,20 @@ ACT['adm.ufFoto'] = (el) => sibuk(el, async () => {
 });
 /* ---- Pengaturan nilai: rentang nilai juri + reset nilai per juri / juri pantau per seri (hanya jenis yang dibuka) ---- */
 const NA = { tab: 'rentang', juri: null, grup: 'semua' };
-function naGrupJenis(jk) {   // grup (seri terbang) yang punya layangan terkonfirmasi di jenis ini
+// seri sebuah nilai/catatan: seri yang dipilih panitia saat upload; bila diketik manual (bukan dari upload) = seri pendaftaran layangannya
+function naSeriUpload(uploadId) { const u = uploadId && (nilaiData().form_upload || []).find((x) => x.id === uploadId); return u && u.seri_id != null ? u.seri_id : null; }
+function naSeriEfektif(pid, uploadId) { const s = naSeriUpload(uploadId); if (s != null) return s; const r = nilaiData().daftar.find((x) => x.id === pid); return r ? r.seri_id : null; }
+function naGrupJenis(jk) {   // grup (seri terbang) yang punya layangan terkonfirmasi di jenis ini + seri yang dipilih saat upload
   const d = nilaiData(), ids = new Set(d.daftar.filter((r) => r.jenis === jk && r.status === 'terkonfirmasi' && r.seri_id != null).map((r) => r.seri_id));
+  (d.form_upload || []).forEach((u) => { if (u.jenis === jk && u.seri_id != null) ids.add(u.seri_id); });
   return d.seri.filter((g) => ids.has(g.id)).sort((x, y) => Adm.labelSeriPendek(x).localeCompare(Adm.labelSeriPendek(y), 'id', { numeric: true }));
 }
 function naTarget(jk) {   // baris yang akan dihapus untuk pilihan sekarang
   const d = nilaiData(), sel = NA.juri; if (!sel) return null;
-  const pid = new Set(d.daftar.filter((r) => r.jenis === jk && r.status === 'terkonfirmasi' && (NA.grup === 'semua' || r.seri_id === NA.grup)).map((r) => r.id));
-  if (sel.tipe === 'juri') return { nilai: (d.nilai || []).filter((n) => n.juri_id === sel.id && pid.has(n.pendaftaran_id)), ket: (d.ket_juri || []).filter((k) => k.juri_id === sel.id && pid.has(k.pendaftaran_id)), catatan: [] };
-  return { nilai: [], ket: [], catatan: (d.catatan_pantau || []).filter((c) => c.pantau_id === sel.id && pid.has(c.pendaftaran_id)) };
+  const diJenis = new Set(d.daftar.filter((r) => r.jenis === jk).map((r) => r.id));
+  const kena = (pid, uploadId) => diJenis.has(pid) && (NA.grup === 'semua' || naSeriEfektif(pid, uploadId) === NA.grup);
+  if (sel.tipe === 'juri') return { nilai: (d.nilai || []).filter((n) => n.juri_id === sel.id && kena(n.pendaftaran_id, n.upload_id)), ket: (d.ket_juri || []).filter((k) => k.juri_id === sel.id && kena(k.pendaftaran_id, k.upload_id)), catatan: [] };
+  return { nilai: [], ket: [], catatan: (d.catatan_pantau || []).filter((c) => c.pantau_id === sel.id && kena(c.pendaftaran_id, c.lembar)) };
 }
 function naJumlahGrup(jk, gid) {
   const sel = NA.juri; if (!sel) return null;
@@ -8940,9 +8955,10 @@ function naIsi() {
     <div class="label">1. Pilih juri</div>
     <div class="na-opt"><div class="na-grp">Juri nilai</div>${juri.map(chip).join('') || '<span class="hint">Belum ada juri.</span>'}
       ${pantau.length ? `<div class="na-grp">Juri pantau</div>${pantau.map(chip).join('')}` : ''}</div>
-    <div class="label">2. Pilih seri terbang</div>
+    <div class="label">2. Pilih seri terbang <span class="hint">(seri yang dipilih saat upload form)</span></div>
     <div class="na-opt">${gchip('semua', 'Semua seri')}${grup.map((g) => gchip(g.id, Adm.labelSeriPendek(g))).join('')}</div>
-    ${ringkas}`}
+    ${ringkas}
+    ${d.seri_upload === false ? `<p class="hint">${ico('info')} Jalankan <b>reset-seri.sql</b> di Supabase agar reset mengikuti seri yang dipilih saat upload. Sebelum itu, reset memakai seri pendaftaran layangan.</p>` : ''}`}
     <div class="actions end"><button type="button" class="btn" data-act="ovl.tutup">Tutup</button>${!kunci && n ? `<button type="button" class="btn btn-danger" data-act="adm.naReset">${ico('trash')} Reset ${n} ${satuan}</button>` : ''}</div></div>`;
 }
 function naGambar() { const el = document.getElementById('na'); if (el) el.innerHTML = naIsi(); }
@@ -8957,10 +8973,11 @@ ACT['adm.naReset'] = (el) => sibuk(el, async () => {
   const gl = NA.grup === 'semua' ? 'semua seri' : Adm.labelSeriPendek(d.seri.find((g) => g.id === NA.grup));
   if (!(await konfirmasiDialog({ judul: `Reset ${n} ${satuan} ${NA.juri.nama}?`, isi: `${esc(Adm.namaJenis(jk))} · ${esc(gl)}${t.ket.length ? ` — termasuk <b>${t.ket.length} keterangan singkat</b>` : ''}. Tidak bisa dibatalkan.`, tombol: `Reset ${n} ${satuan}`, bahaya: true }))) return;
   let ok = 0, gagal = 0;
-  for (const k of t.ket) { try { await api.hapusKetJuri(k.id); d.ket_juri = d.ket_juri.filter((x) => x.id !== k.id); } catch (e) { gagal++; } }
-  for (const v of t.nilai) { try { await api.simpanNilai(v.pendaftaran_id, v.juri_id, null); d.nilai = d.nilai.filter((x) => !(x.pendaftaran_id === v.pendaftaran_id && x.juri_id === v.juri_id)); ok++; } catch (e) { gagal++; } }
-  for (const c of t.catatan) { try { await api.hapusCatatanPantau(c.id); d.catatan_pantau = d.catatan_pantau.filter((x) => x.id !== c.id); ok++; } catch (e) { gagal++; } }
-  Adm.tandaiUbah(); Adm.segarkanTampilan({ paksa: true }); naGambar();
+  // data bisa dimuat ulang otomatis di tengah proses → selalu ubah nilaiData() yang terbaru
+  for (const k of t.ket) { try { await api.hapusKetJuri(k.id); const n = nilaiData(); n.ket_juri = (n.ket_juri || []).filter((x) => x.id !== k.id); } catch (e) { gagal++; } }
+  for (const v of t.nilai) { try { await api.simpanNilai(v.pendaftaran_id, v.juri_id, null); const n = nilaiData(); n.nilai = (n.nilai || []).filter((x) => !(x.pendaftaran_id === v.pendaftaran_id && x.juri_id === v.juri_id)); ok++; } catch (e) { gagal++; } }
+  for (const c of t.catatan) { try { await api.hapusCatatanPantau(c.id); const n = nilaiData(); n.catatan_pantau = (n.catatan_pantau || []).filter((x) => x.id !== c.id); ok++; } catch (e) { gagal++; } }
+  Adm.tandaiUbah(); try { await Adm.muat({ diam: true }); } catch (e) { /* tampilan tetap dari data lokal */ } Adm.segarkanTampilan({ paksa: true }); naGambar();
   toast(gagal ? `${ok} ${satuan} di-reset, ${gagal} gagal — coba lagi.` : `${ok} ${satuan} ${NA.juri.nama} di-reset`, gagal ? 'bad' : 'good', 5000);
 });
 SUB['adm.nilaiMaks'] = async (form) => {
