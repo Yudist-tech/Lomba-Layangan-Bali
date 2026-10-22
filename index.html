@@ -7419,9 +7419,14 @@ const Adm = {
     const d = this.s.data, ev = d.pengaturan, j = this.idx.jenis.get(jk);
     const list = (d.juara || []).filter((x) => x.jenis === jk).sort((a, b) => (a.kelas === b.kelas ? a.urutan - b.urutan : a.kelas === 'juara' ? -1 : 1));
     const umum = this.juaraUmum(jk);
+    // daftar juara berisi layangan yang sudah didiskualifikasi (mis. DQ diberikan sebelum fitur perbarui otomatis) → perlu disusun ulang
+    const dqDiDaftar = list.filter((x) => ((d.penilaian || []).find((p) => p.pendaftaran_id === x.pendaftaran_id) || {}).diskualifikasi);
+    const basi = dqDiDaftar.length && !this.terkunci(jk) && this.bolehMenilai();
+    if (basi && !(this._juaraSegar || (this._juaraSegar = new Set())).has(jk)) { this._juaraSegar.add(jk); setTimeout(() => perbaruiJuaraOtomatis(jk), 0); }
     const status = umum ? `<span class="pill-st good">${ico('check')} Diumumkan ${esc(fmtWaktu(umum.diumumkan_at))}</span>` : list.length ? '<span class="pill-st warn">Draf — belum terlihat publik</span>' : '';
     const wa = (x, r) => r.no_wa ? `<a class="btn btn-xs" target="_blank" rel="noopener" href="${esc(waLink(r.no_wa, `Selamat! Layangan ${j ? j.nama : ''} nomor ${r.nomor_layangan} (${r.nama_sekha}) meraih ${this.labelPeringkat(x.kelas, x.urutan)} di ${ev.nama_event || 'lomba layangan'}. Terima kasih sudah ikut serta.`))}">${ico('chat')} WA</a>` : '';
     return `<div class="panel" style="margin-top:16px"><div class="panel-h"><h3>${ico('trophy')} Juara ${esc(j ? j.nama : '')}</h3>${status}</div>
+      ${basi ? `<div class="note warn">${ico('alert')}<span>${dqDiDaftar.length} layangan di daftar ini sudah didiskualifikasi.</span><button type="button" class="btn btn-sm" data-act="adm.perbaruiJuara" data-jenis="${esc(jk)}">${ico('refresh')} Perbarui daftar juara</button></div>` : ''}
       ${list.length ? `<div class="jlist">${list.map((x) => { const r = this.baris(x.pendaftaran_id) || {}; const foto = ((d.penilaian || []).find((p) => p.pendaftaran_id === x.pendaftaran_id) || {}).foto_url; return `<div class="jrow ${x.kelas}"><b class="jl">${this.labelPeringkat(x.kelas, x.urutan)}</b><span class="jn">No. ${esc(r.nomor_layangan || '-')}</span><span class="js">${esc(r.nama_sekha || '-')}<small>${esc(r.alamat || '')}</small></span><span class="jfoto">${foto ? `<img src="${esc(urlGambarAman(foto))}" alt="Foto layangan No. ${esc(r.nomor_layangan || '')}">${this.bolehMenilai() ? `<button type="button" class="btn btn-xs btn-icon" data-act="adm.fotoHapus" data-pid="${esc(x.pendaftaran_id)}" title="Hapus foto" aria-label="Hapus foto">${ico('x')}</button>` : ''}` : ''}${this.bolehMenilai() ? `<label class="btn btn-xs" title="Foto layangan (opsional) — tampil di halaman juara menggantikan ikon piala">${ico('image')} ${foto ? 'Ganti' : 'Foto'}<input type="file" accept="image/png,image/jpeg,image/webp" hidden data-ch="adm.fotoJuara" data-pid="${esc(x.pendaftaran_id)}"></label>` : ''}${wa(x, r)}</span></div>`; }).join('')}</div>`
         : '<div class="empty">Belum ada juara untuk jenis ini. Isi nilai lalu klik <b>Jadikan juara</b>.</div>'}
       <div class="jaksi">${umum
@@ -8449,6 +8454,7 @@ async function perbaruiJuaraOtomatis(jk) {
     toast(`Daftar juara ${Adm.namaJenis(jk)} diperbarui — peringkat di bawahnya naik.${seri ? ' Ada nilai sama: tentukan urutannya dengan tombol Naikkan.' : ''}`, seri ? 'info' : 'good', 6000);
   } catch (e) { toast('Daftar juara belum ikut diperbarui: ' + pesanError(e), 'bad', 6000); }
 }
+ACT['adm.perbaruiJuara'] = (el) => sibuk(el, () => perbaruiJuaraOtomatis(el.dataset.jenis));
 async function ubahPenilaianLokal(pid, patch, pesan) {
   try { await pastikanPenilaian(pid); const row = await api.ubahPenilaian(pid, patch); gantiBarisNilai(nilaiData().penilaian, (x) => x.pendaftaran_id === pid, row); Adm.tandaiUbah(); Adm.segarkanTampilan({ paksa: true }); if (pesan) toast(pesan, 'good'); return true; }
   catch (e) { toast(pesanError(e), 'bad'); return false; }
