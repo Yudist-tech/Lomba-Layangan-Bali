@@ -8432,6 +8432,23 @@ async function pastikanPenilaian(pid) {
   const row = await api.tambahPenilaian(pid);
   const d = nilaiData(); if (!d.penilaian.some((x) => x.pendaftaran_id === pid)) d.penilaian.push(row);
 }
+/* daftar juara (draf / sudah diumumkan) ikut diperbarui saat ada diskualifikasi: jumlah juara & harapan tetap, isinya mengikuti peringkat terbaru */
+async function perbaruiJuaraOtomatis(jk) {
+  const d = nilaiData(), lama = (d.juara || []).filter((x) => x.jenis === jk);
+  if (!lama.length || Adm.terkunci(jk)) return;
+  const nJ = lama.filter((x) => x.kelas === 'juara').length, nH = lama.filter((x) => x.kelas === 'harapan').length;
+  const pk = Adm.peringkat(jk), ambil = pk.sah.slice(0, nJ + nH);
+  const list = ambil.map((x, i) => (i < nJ ? { kelas: 'juara', urutan: i + 1, pendaftaran_id: x.r.id } : { kelas: 'harapan', urutan: i - nJ + 1, pendaftaran_id: x.r.id }));
+  const kunci = (a) => a.map((x) => `${x.kelas}${x.urutan}:${x.pendaftaran_id}`).sort().join('|');
+  if (kunci(list) === kunci(lama)) return;
+  try {
+    const baru = await api.simpanJuaraJenis(jk, list);
+    const n2 = nilaiData(); n2.juara = (n2.juara || []).filter((x) => x.jenis !== jk).concat(baru || []);
+    Adm.tandaiUbah(); Adm.segarkanTampilan({ paksa: true });
+    const seri = ambil.some((x) => x.seri);
+    toast(`Daftar juara ${Adm.namaJenis(jk)} diperbarui — peringkat di bawahnya naik.${seri ? ' Ada nilai sama: tentukan urutannya dengan tombol Naikkan.' : ''}`, seri ? 'info' : 'good', 6000);
+  } catch (e) { toast('Daftar juara belum ikut diperbarui: ' + pesanError(e), 'bad', 6000); }
+}
 async function ubahPenilaianLokal(pid, patch, pesan) {
   try { await pastikanPenilaian(pid); const row = await api.ubahPenilaian(pid, patch); gantiBarisNilai(nilaiData().penilaian, (x) => x.pendaftaran_id === pid, row); Adm.tandaiUbah(); Adm.segarkanTampilan({ paksa: true }); if (pesan) toast(pesan, 'good'); return true; }
   catch (e) { toast(pesanError(e), 'bad'); return false; }
@@ -8447,7 +8464,7 @@ SUB['adm.nilaiCatatan'] = async (form) => { if (await ubahPenilaianLokal(form.da
 ACT['adm.nilaiDq'] = async (el) => {
   const pid = el.dataset.pid, p = nilaiData().penilaian.find((x) => x.pendaftaran_id === pid) || {}, r = Adm.baris(pid);
   if (p.diskualifikasi) {
-    if (await konfirmasiDialog({ judul: 'Batalkan diskualifikasi?', isi: `No. <b>${esc(r.nomor_layangan || '-')}</b> (${esc(r.nama_sekha)}) kembali masuk peringkat sesuai nilainya.`, tombol: 'Batalkan diskualifikasi' })) ubahPenilaianLokal(pid, { diskualifikasi: false, alasan: null }, 'Diskualifikasi dibatalkan');
+    if (await konfirmasiDialog({ judul: 'Batalkan diskualifikasi?', isi: `No. <b>${esc(r.nomor_layangan || '-')}</b> (${esc(r.nama_sekha)}) kembali masuk peringkat sesuai nilainya.`, tombol: 'Batalkan diskualifikasi' }) && await ubahPenilaianLokal(pid, { diskualifikasi: false, alasan: null }, 'Diskualifikasi dibatalkan')) await perbaruiJuaraOtomatis(r.jenis);
     return;
   }
   Overlay.modal(`<form data-submit="adm.nilaiDq" data-pid="${esc(pid)}" novalidate><h3>Diskualifikasi No. ${esc(r.nomor_layangan || '-')}?</h3>
@@ -8458,7 +8475,7 @@ ACT['adm.nilaiDq'] = async (el) => {
 SUB['adm.nilaiDq'] = async (form) => {
   const alasan = form.alasan.value.trim();
   if (alasan.length < 3) { form.alasan.closest('.field').classList.add('err'); toast('Diskualifikasi wajib diberi alasan.', 'bad'); form.alasan.focus(); return; }
-  if (await ubahPenilaianLokal(form.dataset.pid, { diskualifikasi: true, alasan }, 'Layangan didiskualifikasi')) Overlay.tutupYangBerisi(form);
+  if (await ubahPenilaianLokal(form.dataset.pid, { diskualifikasi: true, alasan }, 'Layangan didiskualifikasi')) { Overlay.tutupYangBerisi(form); const r = Adm.baris(form.dataset.pid); if (r) await perbaruiJuaraOtomatis(r.jenis); }
 };
 /* nilai sama: layangan yang dipilih diletakkan paling atas di antara yang nilainya sama */
 ACT['adm.nilaiNaik'] = (el) => sibuk(el, async () => {
