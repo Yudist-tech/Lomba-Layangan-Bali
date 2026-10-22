@@ -2588,26 +2588,29 @@ const BacaForm = (() => {
   function persentil(g, p) { const h = new Array(256).fill(0); for (let i = 0; i < g.length; i++) h[g[i]]++; let t = p * g.length, s = 0; for (let i = 0; i < 256; i++) { s += h[i]; if (s >= t) return i; } return 255; }
   // bayangan / cahaya tidak rata: kecerahan tiap titik dibagi terang kertas di sekitarnya (filter maksimum)
   function ratakanCahaya(g0, w, h) {
-    const r = Math.max(4, Math.round(h * 0.45)), t = new Uint8Array(w * h), m = new Uint8Array(w * h), g = new Uint8Array(w * h);
-    for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) { let v = 0; for (let k = Math.max(0, x - r); k <= Math.min(w - 1, x + r); k += 2) v = Math.max(v, g0[y * w + k]); t[y * w + x] = v; }
-    for (let x = 0; x < w; x++) for (let y = 0; y < h; y++) { let v = 0; for (let k = Math.max(0, y - r); k <= Math.min(h - 1, y + r); k += 2) v = Math.max(v, t[k * w + x]); m[y * w + x] = v; }
+    // radius kecil (± tebal goresan pulpen ×2): tepi bayangan yang tajam ikut terikuti, jadi tidak dikira tulisan
+    const r = Math.max(3, Math.round(h * 0.12)), t = new Uint8Array(w * h), m = new Uint8Array(w * h), g = new Uint8Array(w * h);
+    for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) { let v = 0; for (let k = Math.max(0, x - r); k <= Math.min(w - 1, x + r); k++) v = Math.max(v, g0[y * w + k]); t[y * w + x] = v; }
+    for (let x = 0; x < w; x++) for (let y = 0; y < h; y++) { let v = 0; for (let k = Math.max(0, y - r); k <= Math.min(h - 1, y + r); k++) v = Math.max(v, t[k * w + x]); m[y * w + x] = v; }
     for (let i = 0; i < g.length; i++) g[i] = Math.min(255, Math.round((g0[i] * 235) / Math.max(40, m[i])));
     return g;
   }
   function segmen(C) {
-    const w = C.w, h = C.h, g = ratakanCahaya(C.g, w, h), bg = persentil(g, 0.85), fg = persentil(g, 0.02);
+    const w = C.w, h = C.h, g = ratakanCahaya(C.g, w, h), bg = persentil(g, 0.85), fg = persentil(g, 0.004);
     if (bg - fg < 40) return { kosong: true, angka: [] };
     const t = fg + (bg - fg) * 0.62;
     let m = new Uint8Array(w * h);
     for (let i = 0; i < g.length; i++) if (g[i] < t) m[i] = 1;
     // hapus sisa garis tabel: garis datar panjang & garis tegak hanya di tepi kiri/kanan sel (angka tidak ikut terhapus)
-    const hl = runs(dil(m, w, h, 2, true), w, h, Math.max(14, Math.floor(w * 0.5)), true), vl = runs(dil(m, w, h, 2, false), w, h, Math.max(12, Math.floor(h * 0.8)), false);
+    const hl = runs(dil(m, w, h, 2, true), w, h, Math.max(14, Math.floor(w * 0.5)), true), vl = runs(dil(m, w, h, 2, false), w, h, Math.max(12, Math.floor(h * 0.93)), false);
     const tepi = Math.max(3, Math.round(w * 0.07));
     for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) { const i = y * w + x; if (hl[i] || (vl[i] && (x < tepi || x >= w - tepi))) m[i] = 0; }
     const { lab, out } = komponen(m, w, h, 1);
-    const sisa = (c) => (c.x0 < w * 0.04 || c.x1 > w * 0.96) && c.bw < h * 0.14;   // sisa garis kolom di tepi sel
+    // sisa garis kolom di tepi sel: tipis, di pinggir, dan setinggi sel (angka "1" yang ditulis mepet tepi tetap dibaca)
+    const sisa = (c) => c.bw < h * 0.14 && (c.x0 < w * 0.04 || c.x1 > w * 0.96) && (c.bh > h * 0.88 || (c.y0 <= 2 && c.y1 >= h - 3));
     const datar = (c) => (c.y0 <= 1 || c.y1 >= h - 2) && c.bh < h * 0.15;                    // sisa garis baris
-    let cs = out.filter((c) => c.n >= Math.max(8, w * h * 0.003) && !(c.bh < h * 0.22 && c.bw < w * 0.06) && !sisa(c) && !datar(c))
+    // potongan kecil dibuang (bintik), kecuali tinggi seperti angka "1" yang tipis
+    let cs = out.filter((c) => (c.n >= Math.max(8, w * h * 0.003) || (c.bh >= h * 0.35 && c.n >= 15)) && !(c.bh < h * 0.22 && c.bw < w * 0.06) && !sisa(c) && !datar(c))
       .map((c) => ({ x0: c.x0, x1: c.x1 + 1, y0: c.y0, y1: c.y1 + 1, ids: [c.id], n: c.n }));
     cs.sort((a, b) => a.x0 - b.x0);
     const gab = [];
@@ -2621,7 +2624,7 @@ const BacaForm = (() => {
       gab.push({ ...c, ids: [...c.ids] });
     }
     const tinta = gab.reduce((s, c) => s + c.n, 0);
-    if (!gab.length || tinta < w * h * 0.006) return { kosong: true, angka: [] };
+    if (!gab.length || tinta < w * h * 0.0035) return { kosong: true, angka: [] };
     return { kosong: false, angka: gab.map((c) => {
       const bw = c.x1 - c.x0, bh = c.y1 - c.y0, mm = new Uint8Array(bw * bh), set = new Set(c.ids);
       for (let y = 0; y < bh; y++) for (let x = 0; x < bw; x++) if (set.has(lab[(c.y0 + y) * w + c.x0 + x])) mm[y * bw + x] = 1;
@@ -2637,7 +2640,7 @@ const BacaForm = (() => {
     const ambil = (x0, x1) => { const w = x1 - x0, m = new Uint8Array(w * a.h); for (let y = 0; y < a.h; y++) for (let x = 0; x < w; x++) m[y * w + x] = a.mask[y * a.w + x0 + x]; return { mask: m, w, h: a.h }; };
     return [ambil(0, best), ambil(best, a.w)];
   }
-  function bacaAngka(C) {
+  function bacaAngka(C, belahMudah = false) {   // belahMudah: kolom nomor (2–3 angka sering menempel)
     const s = segmen(C);
     if (s.kosong) return { kosong: true, teks: '', yakin: 1, coret: false };
     let coret = false, yakin = 1, teks = '';
@@ -2654,10 +2657,10 @@ const BacaForm = (() => {
       if (a.w > a.h * 1.8 && runMaks(a) > a.w * 0.75) { coret = true; continue; }
       if (a.w > a.h * 1.6 && s.angka.length === 1) coret = true;
       const r = tebak(normAngka(a.mask, a.w, a.h));
-      const b = a.w > a.h * 1.5 ? belah(a) : null;   // dua angka yang tulisannya menempel (mis. "70")
+      const b = a.w > a.h * 1.25 ? belah(a) : null;   // dua angka yang tulisannya menempel (mis. "70", "26")
       if (b && b.every((x) => x.w >= a.h * 0.3)) {
-        const r2 = b.map((x) => tebak(normAngka(x.mask, x.w, x.h)));
-        if (Math.min(r2[0].p, r2[1].p) >= 0.8) { teks += r2[0].d + '' + r2[1].d; yakin = Math.min(yakin, r2[0].p, r2[1].p, 0.8); continue; }
+        const r2 = b.map((x) => tebak(normAngka(x.mask, x.w, x.h))), pm = Math.min(r2[0].p, r2[1].p);
+        if (a.w > a.h * 1.8 ? pm >= 0.5 : a.w > a.h * 1.5 ? pm >= 0.8 : belahMudah && pm >= 0.85 && r.p < 0.9) { teks += r2[0].d + '' + r2[1].d; yakin = Math.min(yakin, r2[0].p, r2[1].p, 0.8); continue; }
       }
       teks += r.d; yakin = Math.min(yakin, r.p);
     }
@@ -2732,18 +2735,18 @@ const BacaForm = (() => {
     const P = A.P, rows = [], { yk, xb } = gridTabel(P, tipe);
     const sel = (i, c, inset) => potong(P, xb[i][c], yk[c][i], xb[i][c + 1], yk[c][i + 1], inset);
     for (let i = 0; i < L.baris; i++) {
-      const cNo = sel(i, 0, 0.9), no = bacaAngka(cNo);
+      const cNo = sel(i, 0, 0.9), no = bacaAngka(cNo, true);
       const r = { baris: i + 1, nomor: no, gNomor: null };
       if (tipe === 'juri') {
         const cNil = sel(i, 1, 0.9), nil = bacaAngka(cNil);
         if (no.kosong && nil.kosong) continue;
         r.nilai = nil; r.gNomor = keGambar(cNo); r.gNilai = keGambar(cNil);
         const cK = sel(i, 2, 0.8), sk = segmen(cK);   // kolom "Keterangan singkat"
-        if (!sk.kosong) r.gKetJ = keGambar(cK, 0.75);
+        if (!sk.kosong) r.gKetJ = keGambar({ ...cK, g: ratakanCahaya(cK.g, cK.w, cK.h) }, 0.75);
       } else {
         const cK = sel(i, 1, 0.8), seg = segmen(cK);
         if (no.kosong && seg.kosong) continue;
-        r.gNomor = keGambar(cNo); r.gKet = keGambar(cK, 0.75);
+        r.gNomor = keGambar(cNo); r.gKet = keGambar({ ...cK, g: ratakanCahaya(cK.g, cK.w, cK.h) }, 0.75);
       }
       rows.push(r);
     }
@@ -2864,11 +2867,11 @@ function siapkanOCR() {
    Tesseract membaca potongan tulisan, lalu tiap kata dicocokkan ke kosakata keterangan lomba
    (+ kata-kata yang pernah diketik panitia di event ini). Hanya hasil yang cocok jelas dianggap yakin;
    sisanya diberi tanda kuning agar dirapikan panitia saat pengecekan. */
-const KOSA_KET = ('miring guwangan jatuh mebandung bandung kena kene tali putus kendor tegang goyang oleng stabil tenang naik turun cepat lambat pelan '
+const KOSA_KET = ('miring guwangan guangan nguyengan ngeseng nuncep ngelayap mekolit sing munyi jatuh mebandung bandung kena kene tali putus kendor tegang goyang oleng stabil tenang naik turun cepat lambat pelan '
   + 'ekor pendek panjang warna biru merah kuning hijau hitam putih ungu oranye coklat cerah pudar suara bagus bunyi nyaring keras pelan '
   + 'kelod kaja kangin kauh nyangkut sangkut tersangkut nabrak tabrak tabrakan muter putar berputar melintir nunduk nungging ngulah rapi '
   + 'sobek robek rusak patah bambu angin tinggi rendah jelek baik kurang lebih telat terlambat lepas jalan mati hidup lurus bengkok berat ringan '
-  + 'kanan kiri atas bawah akhir awal tengah sekali kali dua tiga agak sangat sedikit tidak tak ada belum sudah bisa dan atau di ke dari').split(' ');
+  + 'kanan kiri atas bawah akhir awal tengah sekali kali dua tiga agak sangat sedikit tidak belum sudah bisa').split(' ');   // kata sambung pendek (dan, di, ke…) sengaja tidak dimasukkan: terlalu mudah tertebak dari coretan
 let _ocrTulisan = null;
 function siapkanOCRTulisan() {
   if (!_ocrTulisan) {
@@ -2900,6 +2903,7 @@ function rapikanTulisan(kata, cakupan = 1) {
     const asli = String(k.text || ''), koma = /[,;]$/.test(asli) ? ',' : '';
     const t = asli.toLowerCase().replace(/[|]/g, 'l').replace(/[^a-z0-9]/g, '');
     if (!t) continue;
+    if (/^\d+x$/.test(t)) { out.push(t + koma); cocok++; continue; }   // "3x" = tiga kali
     if (/^\d+$/.test(t)) { out.push(t + koma); if ((k.confidence || 0) < 70) yakin = false; else cocok++; continue; }
     if (t.length < 3) { if (KOSA_KET.includes(t) && (k.confidence || 0) >= 60) { out.push(t + koma); cocok++; } else yakin = false; continue; }
     let best = null, bd = 99;
