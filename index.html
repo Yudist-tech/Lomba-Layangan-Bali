@@ -2878,7 +2878,7 @@ function siapkanOCR() {
    Tesseract membaca potongan tulisan, lalu tiap kata dicocokkan ke kosakata keterangan lomba
    (+ kata-kata yang pernah diketik panitia di event ini). Hanya hasil yang cocok jelas dianggap yakin;
    sisanya diberi tanda kuning agar dirapikan panitia saat pengecekan. */
-const KOSA_KET = ('miring guwangan guangan nguyengan ngeseng nuncep ngelayap mekolit sing munyi jatuh mebandung bandung kena kene tali putus kendor tegang goyang oleng stabil tenang naik turun cepat lambat pelan '
+const KOSA_KET = ('miring guwangan guangan nguyengan ngeseng nuncep ngelayap mekolit sing munyi bentuk parus lemuh main maksimal elog seimbang imbang jatuh mebandung bandung kena kene tali putus kendor tegang goyang oleng stabil tenang naik turun cepat lambat pelan '
   + 'ekor pendek panjang warna biru merah kuning hijau hitam putih ungu oranye coklat cerah pudar suara bagus bunyi nyaring keras pelan '
   + 'kelod kaja kangin kauh nyangkut sangkut tersangkut nabrak tabrak tabrakan muter putar berputar melintir nunduk nungging ngulah rapi '
   + 'sobek robek rusak patah bambu angin tinggi rendah jelek baik kurang lebih telat terlambat lepas jalan mati hidup lurus bengkok berat ringan '
@@ -8816,6 +8816,7 @@ function ufIsi() {
   return `<h3>Periksa hasil baca · ${esc(nama)}${juri ? '' : ' <small>(juri pantau)</small>'}</h3>
     <p class="lead">${esc(jenis)} · form ${UF.i} dari ${UF.n} — ${juri ? 'betulkan angka yang salah' : 'nomor dibaca otomatis, keterangan diketik dari potongan foto'}, lalu Simpan.</p>
     ${banner}${meta}
+    ${juri && !Array.isArray(d.ket_juri) ? `<div class="note">${ico('info')}<span>Keterangan singkat juri <b>belum bisa disimpan</b> — jalankan <b>keterangan-juri.sql</b> di Supabase → SQL Editor, lalu muat ulang. Nilai tetap tersimpan.</span></div>` : ''}
     <div class="uf-hd ${juri ? 'j' : 'p'}"><span>#</span><span>Nomor layangan</span><span>Sekha</span><span>${juri ? 'Nilai' : 'Keterangan'}</span>${juri ? '<span>Keterangan singkat</span>' : ''}<span></span></div>
     <div class="uf-list ${juri ? 'j' : 'p'}">${c.rows.length ? c.rows.map((_, i) => ufBarisHtml(i)).join('') : '<p class="cp-kos">Tidak ada baris terisi yang terbaca di form ini.</p>'}</div>
     <div class="cl-sum" id="uf-sum">${rk.html}</div>
