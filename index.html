@@ -1867,6 +1867,17 @@ form .kp-foto { margin-bottom: 12px; height: 80px; }
 .uf-qr .ico { width: 17px; height: 17px; flex: none; }
 .uf-qr.ok { background: var(--good-soft); color: var(--good-ink); } .uf-qr.warn { background: var(--warn-soft); color: var(--warn-ink); }
 .uf-qr select { flex: 1 1 220px; max-width: 320px; }
+.na h3 { margin: 0; } .na .lead { margin: 2px 0 0; }
+.na-tabs { display: flex; gap: 4px; background: var(--surface-2, #f1f3f7); border-radius: 10px; padding: 4px; margin: 12px 0 14px; }
+.na-tabs button { all: unset; box-sizing: border-box; flex: 1; text-align: center; padding: 8px; border-radius: 8px; font-weight: 600; color: var(--muted); cursor: pointer; }
+.na-tabs button.on { background: var(--surface); color: var(--ink); box-shadow: 0 1px 3px rgba(0,0,0,.12); }
+.na .label { margin: 12px 0 6px; }
+.na-opt { display: flex; flex-wrap: wrap; gap: 6px; }
+.na-grp { width: 100%; font-size: 11px; font-weight: 800; letter-spacing: .05em; text-transform: uppercase; color: var(--muted); margin-top: 4px; }
+.na-o { all: unset; box-sizing: border-box; border: 1px solid var(--line); border-radius: 999px; padding: 6px 12px; font-size: 13.5px; cursor: pointer; }
+.na-o small { color: var(--muted); } .na-o.on { border-color: var(--brand); background: var(--brand-soft, #eaf1ff); color: var(--brand); font-weight: 700; }
+.na-o:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
+.na-warn { display: flex; gap: 8px; background: var(--warn-soft); border: 1px solid var(--warn); color: var(--warn-ink); border-radius: 10px; padding: 10px 12px; margin-top: 14px; font-size: 13.5px; }
 .uf-meta { display: flex; gap: 12px; align-items: flex-end; flex-wrap: wrap; margin-bottom: 10px; font-size: 12.5px; }
 .uf-meta > div { display: grid; gap: 3px; } .uf-meta span { font-size: 11px; font-weight: 800; letter-spacing: .05em; text-transform: uppercase; color: var(--muted); }
 .uf-meta img { height: 40px; max-width: 230px; border: 1px solid var(--line); border-radius: 7px; background: #fff; object-fit: contain; }
@@ -7266,14 +7277,15 @@ const Adm = {
         'Setelah form diisi: pilih jenis layangan, tekan <b>Upload Form</b>, foto seluruh kertas (4 kotak hitam di sudut harus terlihat). Di layar periksa, betulkan angka yang salah — yang <b>kuning</b> kurang jelas — lalu <b>Simpan</b>.',
         'Isi manual: ketik <b>nomor layangan</b> di kotak cari (hanya nomor itu yang tampil), tekan <b>Enter</b> untuk lompat ke kolom juri yang masih kosong. <b>Enter</b> lagi pindah ke juri berikutnya; setelah juri terakhir kursor kembali ke kotak cari.',
         'Tombol <b>i</b> di sebelah nama sekha = info layangan untuk diskusi juri. Tombol <b>i</b> di kolom keterangan = catatan tiap juri pantau, bisa dikoreksi. Tanda <b>!</b> di kotak nilai = juri menulis keterangan singkat di form — klik untuk melihat tulisan aslinya.',
-        'Nilai sama → tekan <b>Naikkan</b> pada layangan yang lebih unggul. Diskualifikasi wajib diberi alasan.',
+        'Nilai sama → tekan <b>Naikkan</b> pada layangan yang lebih unggul. Diskualifikasi (<b>DQ</b>) wajib diberi alasan.',
+        '<b>Pengaturan nilai</b>: atur batas nilai juri, atau <b>Reset nilai</b> — pilih satu juri / juri pantau lalu seri terbang; hanya nilai (dan keterangan) juri itu di jenis yang sedang dibuka yang terhapus.',
         'Setelah selesai: <b>Jadikan juara</b> → periksa daftar → <b>Umumkan</b>. Setelah diumumkan nilai terkunci (hanya super admin yang bisa membuka). Semua perubahan nilai dan upload tercatat di <b>Riwayat</b> beserta ID panitia.'])}
       ${this.vCatatanAkses(jk)}
       <div class="panel nilai-panel">
         <div class="nilai-alat">
           <label class="nilai-cari">${ico('search')}<input id="nilai-cari" class="input" type="text" inputmode="numeric" placeholder="Ketik nomor layangan lalu Enter" value="${esc(this.s.nilaiCari || '')}" data-in="adm.nilaiCari" autocomplete="off" aria-label="Cari nomor layangan"><button type="button" class="nilai-cari-x" data-act="adm.nilaiCariHapus" aria-label="Hapus pencarian">${ico('x')}</button></label>
           ${this.bolehMenilai() && !this.terkunci(jk) ? `<label class="btn btn-sm btn-good uf-btn" title="Foto langsung dari kamera atau pilih beberapa foto form juri / juri pantau">${ico('camera')} Upload Form ${esc(j ? j.nama : '')}<input type="file" accept="image/*" multiple hidden data-ch="adm.uploadForm"></label>` : ''}
-          ${this.bolehMenilai() ? `<button type="button" class="btn btn-sm" data-act="adm.nilaiMaks">${ico('sliders')} Nilai 1–${maks}</button>` : ''}
+          ${this.bolehMenilai() ? `<button type="button" class="btn btn-sm" data-act="adm.nilaiAtur">${ico('sliders')} Pengaturan nilai</button>` : ''}
         </div>
         <div id="nilai-isi">${this.vIsiNilai(jk, pk, maks)}</div>
         <div class="nilai-kaki"><span class="hint">${pk.sah.length} layangan berperingkat${pk.belum.length ? ` · ${pk.belum.length} nilai belum lengkap` : ''}${pk.dq.length ? ` · ${pk.dq.length} diskualifikasi` : ''} · ${pk.kosong.length} belum dinilai</span>
@@ -7327,9 +7339,7 @@ const Adm = {
       ${this.pantauAktif() ? this.vKetPantau(r) : ''}
       <span class="naksi">${ro ? '' : `
         <details class="ae-menu nak-m"><summary class="ae-dots" aria-label="Aksi untuk nomor ${esc(r.nomor_layangan || '-')}">${ico('more')}</summary><div class="ae-pop">
-          <button type="button" data-act="adm.nilaiCatatan" data-pid="${id}">${ico('edit')} Catatan</button>
           <button type="button" class="${x.dq ? '' : 'r'}" data-act="adm.nilaiDq" data-pid="${id}">${ico(x.dq ? 'undo' : 'x')} ${x.dq ? 'Batalkan diskualifikasi' : 'Diskualifikasi'}</button></div></details>
-        <button type="button" class="btn btn-xs btn-icon nak-d" data-act="adm.nilaiCatatan" data-pid="${id}" title="Catatan" aria-label="Catatan">${ico('edit')}</button>
         <button type="button" class="btn btn-xs nak-d ${x.dq ? '' : 'btn-danger'}" data-act="adm.nilaiDq" data-pid="${id}">${x.dq ? 'Batal DQ' : 'DQ'}</button>`}
       </span></div>`;
   },
@@ -7816,6 +7826,11 @@ const Adm = {
   },
 
   /* ---------------- JADWAL TERBANG ---------------- */
+  labelSeriPendek(x) {   // "Seri 1A" (seri + grup), dipakai di upload form & reset nilai
+    if (!x) return '-';
+    const sesi = x.sesi_id && this.idx.sesi.get(x.sesi_id);
+    return sesi ? `Seri ${sesi.nama} · Grup ${x.huruf || '-'}` : x.nama;
+  },
   labelGrupAdm(x) {
     if (!x) return '-';
     const sesi = x.sesi_id && this.idx.sesi.get(x.sesi_id), hari = sesi && this.idx.hari.get(sesi.hari_id);
@@ -8686,7 +8701,7 @@ async function ufLanjut() {
   }
   const qr = A.qr, cocok = qr.status === 'cocok';
   UF.cur = { A, file, qr, tipe: cocok ? qr.tipe : null, juriId: cocok ? qr.id : null, seri: '', rows: [] };
-  if (cocok) ufBaca();
+  if (cocok) { ufBaca(); ufSeriOtomatis(); }
   ufBuka();
 }
 ACT['adm.ufLewati'] = (el) => { Overlay.tutupYangBerisi(el); ufLanjut(); };
@@ -8699,6 +8714,12 @@ function ufBaca() {
     nilai: r.nilai ? r.nilai.teks : '', raguNil: r.nilai ? (r.nilai.coret || (!r.nilai.kosong && r.nilai.yakin < 0.85)) : false,
     teks: '', pakai: null,
   }));
+}
+function ufSeriOtomatis() {
+  const c = UF.cur, hit = new Map();
+  c.rows.forEach((r) => { const p = ufCariNomor(r.nomor); if (p && p.seri_id != null) hit.set(p.seri_id, (hit.get(p.seri_id) || 0) + 1); });
+  const best = [...hit.entries()].sort((a, b) => b[1] - a[1])[0];
+  if (best && !c.seriId) { c.seriId = best[0]; c.seriOtomatis = true; c.seri = Adm.labelSeriPendek(nilaiData().seri.find((g) => g.id === best[0])); }
 }
 function ufCariNomor(no) {
   const n = normNomor(no); if (n == null) return null;
@@ -8717,6 +8738,7 @@ function ufStatus(i) {
   const p = ufCariNomor(no);
   if (!p) { out.kelas = 'bad'; out.pesan.push(`Nomor ${esc(no)} tidak ada di ${esc(Adm.namaJenis(UF.jenis))}`); const s = ufSaran(no); if (s) out.saran = s; return out; }
   out.pid = p.id; out.sekha = p.nama_sekha;
+  if (c.seriId && p.seri_id != null && p.seri_id !== c.seriId) { out.kelas = 'warn'; out.pesan.push(`Terdaftar di ${esc(Adm.labelSeriPendek(d.seri.find((g) => g.id === p.seri_id)))}`); }
   const dup = c.rows.findIndex((x, k) => k !== i && normNomor(x.nomor) === normNomor(no));
   if (dup >= 0) { out.kelas = 'warn'; out.pesan.push(`Nomor sama dengan baris ${c.rows[dup].baris}`); }
   const pen = (d.penilaian || []).find((x) => x.pendaftaran_id === p.id);
@@ -8776,7 +8798,7 @@ function ufIsi() {
           <optgroup label="Form juri pantau">${pil.filter((k) => k.tipe === 'pantau').map((k) => `<option value="pantau:${k.id}" ${dipilih === k ? 'selected' : ''}>${esc(k.nama)}</option>`).join('')}</optgroup></select></div>`;
   const nama = dipilih ? dipilih.nama : '';
   const meta = `<div class="uf-meta"><div><span>Jenis di form</span><img src="${esc(c.A.kepala.jenis)}" alt="Tulisan jenis layangan"><small>Harus <b>${esc(jenis)}</b></small></div>
-    <div><span>Seri di form</span><img src="${esc(c.A.kepala.seri)}" alt="Tulisan seri"><input class="input" maxlength="20" placeholder="Ketik seri (opsional)" value="${esc(c.seri)}" data-in="adm.ufSeri" aria-label="Seri"></div>
+    <div><span>Seri di form</span><img src="${esc(c.A.kepala.seri)}" alt="Tulisan seri"><select class="input" data-ch="adm.ufSeri" aria-label="Seri terbang"><option value="">— pilih seri —</option>${naGrupJenis(UF.jenis).map((g) => `<option value="${g.id}" ${c.seriId === g.id ? 'selected' : ''}>${esc(Adm.labelSeriPendek(g))}</option>`).join('')}</select>${c.seriOtomatis && c.seriId ? '<small>dipilih otomatis dari nomor layangan</small>' : ''}</div>
     <button type="button" class="btn btn-sm" data-act="adm.ufLihat">${ico('image')} Foto asli</button></div>`;
   if (!c.tipe) return `<h3>Periksa hasil baca</h3><p class="lead">${esc(jenis)} · form ${UF.i} dari ${UF.n}</p>${banner}${meta}
     <div class="actions"><button type="button" class="btn" data-act="adm.ufBatal">${UF.antre.length ? 'Lewati form ini' : 'Batal'}</button></div>`;
@@ -8828,13 +8850,13 @@ function ufSegarBaris(i) {
 IN['adm.ufNo'] = (el) => { const v = el.value.replace(/\D/g, '').slice(0, 6); if (v !== el.value) el.value = v; const i = Number(el.dataset.i); UF.cur.rows[i].nomor = v; UF.cur.rows[i].raguNo = false; el.classList.remove('ragu'); ufSegarBaris(i); };
 IN['adm.ufNil'] = (el) => { const v = el.value.replace(/\D/g, '').slice(0, 3); if (v !== el.value) el.value = v; const i = Number(el.dataset.i); UF.cur.rows[i].nilai = v; UF.cur.rows[i].raguNil = false; el.classList.remove('ragu'); ufSegarBaris(i); };
 IN['adm.ufTeks'] = (el) => { const i = Number(el.dataset.i); UF.cur.rows[i].teks = el.value; UF.cur.rows[i].teksRagu = false; el.classList.remove('ragu', 'otomatis'); ufSegarBaris(i); };
-IN['adm.ufSeri'] = (el) => { UF.cur.seri = el.value; };
+CH['adm.ufSeri'] = (el) => { const c = UF.cur, id = el.value ? Number(el.value) : null; c.seriId = id; c.seriOtomatis = false; c.seri = id ? Adm.labelSeriPendek(nilaiData().seri.find((g) => g.id === id)) : ''; c.rows.forEach((_, i) => ufSegarBaris(i)); };
 IN['adm.ufKetJ'] = (el) => { const i = Number(el.dataset.i), r = UF.cur.rows[i]; r.ketJ = el.value; r.ketRagu = false; el.classList.remove('ragu', 'otomatis'); ufSegarBaris(i); };
 ACT['adm.ufKetBenar'] = (el) => { const i = Number(el.dataset.i), r = UF.cur.rows[i]; r.ketRagu = false; r.teksRagu = false; const inp = document.querySelector(`.uf-r[data-i="${i}"] input[data-in="adm.ufKetJ"], .uf-r[data-i="${i}"] input[data-in="adm.ufTeks"]`); if (inp) inp.classList.remove('ragu'); ufSegarBaris(i); };
 ACT['adm.ufAbai'] = (el) => { const i = Number(el.dataset.i), r = UF.cur.rows[i]; r.ketAbai = !r.ketAbai; const row = document.querySelector(`.uf-r[data-i="${i}"]`); if (row) row.outerHTML = ufBarisHtml(i); ufSegarBaris(i); };
 CH['adm.ufPakai'] = (el) => { const i = Number(el.dataset.i); UF.cur.rows[i].pakai = el.checked; ufSegarBaris(i); };
 ACT['adm.ufSaran'] = (el) => { const i = Number(el.dataset.i); UF.cur.rows[i].nomor = el.dataset.v; UF.cur.rows[i].raguNo = false; const row = document.querySelector(`.uf-r[data-i="${i}"]`); if (row) { const inp = row.querySelector('input[data-in="adm.ufNo"]'); inp.value = el.dataset.v; inp.classList.remove('ragu'); } ufSegarBaris(i); };
-CH['adm.ufPilih'] = (el) => { const [t, id] = String(el.value || '').split(':'); UF.cur.tipe = t || null; UF.cur.juriId = id ? Number(id) : null; UF.cur.ketDibaca = false; ufBaca(); ufGambar(); ufBacaKet(); };
+CH['adm.ufPilih'] = (el) => { const [t, id] = String(el.value || '').split(':'); UF.cur.tipe = t || null; UF.cur.juriId = id ? Number(id) : null; UF.cur.ketDibaca = false; ufBaca(); ufSeriOtomatis(); ufGambar(); ufBacaKet(); };
 ACT['adm.ufLihat'] = () => { const c = UF.cur; if (!c) return; if (!c.url) c.url = URL.createObjectURL(c.file); lightbox(c.url, 'Foto form'); };
 ACT['adm.ufBatal'] = (el) => { if (UF.cur) UF.cur.selesai = true; Overlay.tutupYangBerisi(el); ufLanjut(); };
 ACT['adm.ufSimpan'] = (el) => sibuk(el, async () => {
@@ -8877,12 +8899,70 @@ ACT['adm.ufFoto'] = (el) => sibuk(el, async () => {
   try { const f = await api.fotoUpload(Number(el.dataset.id)); if (f && /^data:image\/(png|jpe?g|webp);base64,/i.test(f)) lightbox(f, 'Foto form'); else toast('Foto form ini tidak tersimpan.', 'info'); }
   catch (e) { toast(pesanError(e), 'bad'); }
 });
-ACT['adm.nilaiMaks'] = () => {
-  const maks = Number(nilaiData().pengaturan.nilai_maks) || 100;
-  Overlay.modal(`<form data-submit="adm.nilaiMaks" novalidate><h3>Batas nilai juri</h3><p class="lead">Nilai yang boleh dimasukkan tiap juri: angka bulat dari 0 sampai batas ini.</p>
-    <div class="field"><label class="label" for="nm-maks">Nilai maksimal</label><input class="input" id="nm-maks" name="maks" type="number" inputmode="numeric" min="1" max="10000" value="${maks}"></div>
-    <div class="actions end"><button type="button" class="btn" data-act="ovl.tutup">Batal</button><button type="submit" class="btn btn-primary">Simpan</button></div></form>`);
-};
+/* ---- Pengaturan nilai: rentang nilai juri + reset nilai per juri / juri pantau per seri (hanya jenis yang dibuka) ---- */
+const NA = { tab: 'rentang', juri: null, grup: 'semua' };
+function naGrupJenis(jk) {   // grup (seri terbang) yang punya layangan terkonfirmasi di jenis ini
+  const d = nilaiData(), ids = new Set(d.daftar.filter((r) => r.jenis === jk && r.status === 'terkonfirmasi' && r.seri_id != null).map((r) => r.seri_id));
+  return d.seri.filter((g) => ids.has(g.id)).sort((x, y) => Adm.labelSeriPendek(x).localeCompare(Adm.labelSeriPendek(y), 'id', { numeric: true }));
+}
+function naTarget(jk) {   // baris yang akan dihapus untuk pilihan sekarang
+  const d = nilaiData(), sel = NA.juri; if (!sel) return null;
+  const pid = new Set(d.daftar.filter((r) => r.jenis === jk && r.status === 'terkonfirmasi' && (NA.grup === 'semua' || r.seri_id === NA.grup)).map((r) => r.id));
+  if (sel.tipe === 'juri') return { nilai: (d.nilai || []).filter((n) => n.juri_id === sel.id && pid.has(n.pendaftaran_id)), ket: (d.ket_juri || []).filter((k) => k.juri_id === sel.id && pid.has(k.pendaftaran_id)), catatan: [] };
+  return { nilai: [], ket: [], catatan: (d.catatan_pantau || []).filter((c) => c.pantau_id === sel.id && pid.has(c.pendaftaran_id)) };
+}
+function naJumlahGrup(jk, gid) {
+  const sel = NA.juri; if (!sel) return null;
+  const simpan = NA.grup; NA.grup = gid; const t = naTarget(jk); NA.grup = simpan;
+  return sel.tipe === 'juri' ? t.nilai.length : t.catatan.length;
+}
+function naIsi() {
+  const d = nilaiData(), jk = Adm.s.nilaiJenis, jenis = Adm.namaJenis(jk), maks = Number(d.pengaturan.nilai_maks) || 100, kunci = Adm.terkunci(jk);
+  const tabs = `<div class="na-tabs" role="tablist"><button type="button" role="tab" class="${NA.tab === 'rentang' ? 'on' : ''}" data-act="adm.naTab" data-v="rentang">Rentang nilai juri</button><button type="button" role="tab" class="${NA.tab === 'reset' ? 'on' : ''}" data-act="adm.naTab" data-v="reset">Reset nilai</button></div>`;
+  const head = `<h3>Pengaturan nilai</h3><p class="lead">${esc(jenis)}</p>${tabs}`;
+  if (NA.tab === 'rentang') return `<form data-submit="adm.nilaiMaks" novalidate>${head}
+    <div class="label">Nilai yang boleh dimasukkan tiap juri</div>
+    <div class="rentang-isi"><input class="input" value="0" disabled aria-label="Nilai terendah"><span>sampai</span><input class="input" id="nm-maks" name="maks" type="number" inputmode="numeric" min="1" max="10000" value="${maks}" aria-label="Nilai tertinggi"></div>
+    <p class="hint">Angka bulat. Berlaku untuk semua jenis layangan di event ini.</p>
+    <div class="actions end"><button type="button" class="btn" data-act="ovl.tutup">Tutup</button><button type="submit" class="btn btn-primary">Simpan</button></div></form>`;
+  const juri = (d.juri || []).map((j) => ({ tipe: 'juri', id: j.id, nama: (j.nama || '').trim() || `Juri ${j.urutan}` }));
+  const pantau = (d.juri_pantau || []).map((j) => ({ tipe: 'pantau', id: j.id, nama: j.nama }));
+  const on = (x) => NA.juri && NA.juri.tipe === x.tipe && NA.juri.id === x.id;
+  const chip = (x) => `<button type="button" class="na-o ${on(x) ? 'on' : ''}" data-act="adm.naJuri" data-tipe="${x.tipe}" data-id="${x.id}">${esc(x.nama)}</button>`;
+  const grup = naGrupJenis(jk), satuan = NA.juri && NA.juri.tipe === 'pantau' ? 'catatan' : 'nilai';
+  const gchip = (gid, label) => { const n = naJumlahGrup(jk, gid); return `<button type="button" class="na-o ${NA.grup === gid ? 'on' : ''}" data-act="adm.naGrup" data-v="${gid}">${esc(label)}${n != null ? ` <small>· ${n} ${satuan}</small>` : ''}</button>`; };
+  const t = naTarget(jk), n = t ? t.nilai.length + t.catatan.length : 0, gl = NA.grup === 'semua' ? 'semua seri' : Adm.labelSeriPendek(d.seri.find((g) => g.id === NA.grup));
+  const ringkas = !NA.juri ? '<p class="hint">Pilih juri dulu.</p>'
+    : !n ? `<p class="hint">Tidak ada ${satuan} ${esc(NA.juri.nama)} di ${esc(jenis)} · ${esc(gl)}.</p>`
+    : `<div class="na-warn">${ico('alert')} <span>Akan menghapus <b>${n} ${satuan} ${esc(NA.juri.nama)}</b>${t.ket.length ? ` dan <b>${t.ket.length} keterangan singkat</b>` : ''} untuk <b>${esc(jenis)} · ${esc(gl)}</b>.<br>Jenis lain &amp; juri lain tidak berubah. Tercatat di Riwayat dengan ID panitia.</span></div>`;
+  return `<div>${head}
+    ${kunci ? `<div class="na-warn">${ico('alert')} <span>Juara ${esc(jenis)} sudah diumumkan — nilai terkunci, tidak bisa di-reset.</span></div>` : `
+    <div class="label">1. Pilih juri</div>
+    <div class="na-opt"><div class="na-grp">Juri nilai</div>${juri.map(chip).join('') || '<span class="hint">Belum ada juri.</span>'}
+      ${pantau.length ? `<div class="na-grp">Juri pantau</div>${pantau.map(chip).join('')}` : ''}</div>
+    <div class="label">2. Pilih seri terbang</div>
+    <div class="na-opt">${gchip('semua', 'Semua seri')}${grup.map((g) => gchip(g.id, Adm.labelSeriPendek(g))).join('')}</div>
+    ${ringkas}`}
+    <div class="actions end"><button type="button" class="btn" data-act="ovl.tutup">Tutup</button>${!kunci && n ? `<button type="button" class="btn btn-danger" data-act="adm.naReset">${ico('trash')} Reset ${n} ${satuan}</button>` : ''}</div></div>`;
+}
+function naGambar() { const el = document.getElementById('na'); if (el) el.innerHTML = naIsi(); }
+ACT['adm.nilaiAtur'] = () => { NA.tab = 'rentang'; NA.juri = null; NA.grup = 'semua'; Overlay.modal(`<div id="na" class="na">${naIsi()}</div>`); };
+ACT['adm.nilaiMaks'] = ACT['adm.nilaiAtur'];
+ACT['adm.naTab'] = (el) => { NA.tab = el.dataset.v; naGambar(); };
+ACT['adm.naJuri'] = (el) => { NA.juri = { tipe: el.dataset.tipe, id: Number(el.dataset.id), nama: el.textContent.trim() }; naGambar(); };
+ACT['adm.naGrup'] = (el) => { NA.grup = el.dataset.v === 'semua' ? 'semua' : Number(el.dataset.v); naGambar(); };
+ACT['adm.naReset'] = (el) => sibuk(el, async () => {
+  const jk = Adm.s.nilaiJenis, t = naTarget(jk), d = nilaiData(); if (!t || Adm.terkunci(jk)) return;
+  const n = t.nilai.length + t.catatan.length, satuan = NA.juri.tipe === 'pantau' ? 'catatan' : 'nilai';
+  const gl = NA.grup === 'semua' ? 'semua seri' : Adm.labelSeriPendek(d.seri.find((g) => g.id === NA.grup));
+  if (!(await konfirmasiDialog({ judul: `Reset ${n} ${satuan} ${NA.juri.nama}?`, isi: `${esc(Adm.namaJenis(jk))} · ${esc(gl)}${t.ket.length ? ` — termasuk <b>${t.ket.length} keterangan singkat</b>` : ''}. Tidak bisa dibatalkan.`, tombol: `Reset ${n} ${satuan}`, bahaya: true }))) return;
+  let ok = 0, gagal = 0;
+  for (const k of t.ket) { try { await api.hapusKetJuri(k.id); d.ket_juri = d.ket_juri.filter((x) => x.id !== k.id); } catch (e) { gagal++; } }
+  for (const v of t.nilai) { try { await api.simpanNilai(v.pendaftaran_id, v.juri_id, null); d.nilai = d.nilai.filter((x) => !(x.pendaftaran_id === v.pendaftaran_id && x.juri_id === v.juri_id)); ok++; } catch (e) { gagal++; } }
+  for (const c of t.catatan) { try { await api.hapusCatatanPantau(c.id); d.catatan_pantau = d.catatan_pantau.filter((x) => x.id !== c.id); ok++; } catch (e) { gagal++; } }
+  Adm.tandaiUbah(); Adm.segarkanTampilan({ paksa: true }); naGambar();
+  toast(gagal ? `${ok} ${satuan} di-reset, ${gagal} gagal — coba lagi.` : `${ok} ${satuan} ${NA.juri.nama} di-reset`, gagal ? 'bad' : 'good', 5000);
+});
 SUB['adm.nilaiMaks'] = async (form) => {
   const v = Number(form.maks.value), d = nilaiData();
   if (!Number.isInteger(v) || v < 1) return toast('Isi angka bulat, misalnya 100.', 'bad');
