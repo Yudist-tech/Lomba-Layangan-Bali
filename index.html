@@ -1256,6 +1256,19 @@ code { font-family: ui-monospace, Menlo, Consolas, monospace; font-size: .92em; 
 .pop-peserta .pp-t { min-width: 0; display: flex; flex-direction: column; line-height: 1.3; }
 .pop-peserta .pp-t b { font-size: 14px; overflow-wrap: anywhere; }
 .pop-peserta .pp-t span { font-size: 12.5px; color: var(--muted); }
+.jt .jt-ist td, .jt tr.jt-ist > td { padding: 0; border-color: var(--ic); background: var(--ic); color: #fff; }
+.jt-ist-i { position: relative; display: flex; align-items: center; justify-content: center; gap: 10px; height: 20px; padding: 0 12px; white-space: nowrap; }
+.jt-ist-i b { font-size: 11px; font-weight: 800; letter-spacing: .16em; text-transform: uppercase; }
+.jt-ist-i > span:not(.jt-ist-a) { font-size: 11.5px; font-weight: 700; opacity: .92; }
+.jt-ist-a { display: inline-flex; align-items: center; gap: 10px; margin-left: 8px; }
+.jt-ist-a button { all: unset; cursor: pointer; font-size: 11px; font-weight: 700; text-decoration: underline; color: #fff; opacity: .9; }
+.jt-ist-a button:hover { opacity: 1; } .jt-ist-a button:focus-visible { outline: 2px solid #fff; outline-offset: 2px; border-radius: 3px; }
+@media (max-width: 760px) { .jt-ringkas .jt-ist-i { position: sticky; left: 0; width: calc(100vw - 34px); max-width: 100%; justify-content: flex-start; }  }
+.ist-warna { display: flex; gap: 8px; flex-wrap: wrap; }
+.ist-warna label { cursor: pointer; } .ist-warna input { position: absolute; opacity: 0; pointer-events: none; }
+.ist-warna i { display: block; width: 32px; height: 32px; border-radius: 9px; border: 1px solid rgba(0,0,0,.12); }
+.ist-warna input:checked + i { outline: 3px solid var(--brand); outline-offset: 2px; }
+.ist-warna input:focus-visible + i { outline: 3px solid var(--brand); outline-offset: 2px; }
 .jt-legend { display: flex; gap: 6px 16px; flex-wrap: wrap; font-size: 12.5px; color: var(--muted); margin: 10px 2px 0; }
 .jt-legend span { display: inline-flex; align-items: center; gap: 6px; }
 .jt-legend i { display: inline-block; width: 16px; height: 16px; border: 1px solid var(--line-strong); border-radius: 3px; }
@@ -3458,7 +3471,11 @@ class SupabaseAPI {
   _ev() { if (!this.eventId) throw new Error('EVENT_TIDAK_ADA'); return this.eventId; }
 
   /* ---- publik ---- */
-  infoPublik() { return this._rpc('lomba_info_publik', { p_event: this._ev() }); }
+  async infoPublik() {
+    const info = await this._rpc('lomba_info_publik', { p_event: this._ev() });
+    if (info) { try { info.istirahat = (await this._rpc('lomba_istirahat_publik', { p_event: this._ev() })) || []; } catch (e) { info.istirahat = []; } }
+    return info;
+  }
   async uploadBukti(path, blob, contentType) {
     const { error } = await this.sb.storage.from(this.bucket).upload(path, blob, { contentType, upsert: false, cacheControl: '3600' });
     if (error && !/already exists|Duplicate|409/i.test(`${error.message} ${error.statusCode || ''}`)) throw error;
@@ -3566,7 +3583,9 @@ class SupabaseAPI {
       this.sb.from('lomba_sesi').select('*').eq('event_id', ev).order('jam_mulai', { ascending: true, nullsFirst: false }).order('urutan').order('id').then((r) => this._ok(r)),
     ]);
     const [baca, selesai, juara, juara_umum, nilai] = await Promise.all([this.muatBacaan(), this.muatSelesai(), this.muatJuara(), this.muatJuaraUmum(), this.muatNilai()]);
-    return { pengaturan: pengaturan || {}, jenis, seri, daftar, hari, sesi, baca, selesai, juara, juara_umum, ...nilai };
+    let istirahat = null;   // null = istirahat.sql belum dijalankan
+    try { istirahat = this._ok(await this.sb.from('lomba_istirahat').select('*').eq('event_id', ev).order('jam_mulai', { ascending: true, nullsFirst: false }).order('id')); } catch (e) { istirahat = null; }
+    return { pengaturan: pengaturan || {}, jenis, seri, daftar, hari, sesi, istirahat, baca, selesai, juara, juara_umum, ...nilai };
   }
   /* hasil baca bukti (bukti-mirip.sql); null = tabel belum dipasang */
   async muatBacaan() {
@@ -3756,6 +3775,13 @@ class SupabaseAPI {
     this._ok(await this.sb.from('lomba_seri').delete().eq('sesi_id', id));
     this._ok(await this.sb.from('lomba_sesi').delete().eq('id', id));
   }
+  /* istirahat di jadwal (istirahat.sql) */
+  async simpanIstirahat(x) {
+    const { id, ...isi } = x;
+    if (id) return this._ok(await this.sb.from('lomba_istirahat').update(isi).eq('id', id).select().single());
+    return this._ok(await this.sb.from('lomba_istirahat').insert({ ...isi, event_id: this._ev() }).select().single());
+  }
+  async hapusIstirahat(id) { this._ok(await this.sb.from('lomba_istirahat').delete().eq('id', id)); }
   async hapusHari(id) {
     const sesi = this._ok(await this.sb.from('lomba_sesi').select('id').eq('hari_id', id));
     for (const x of sesi) await this.hapusSesi(x.id);
@@ -4275,6 +4301,7 @@ class DemoAPI {
       },
       hari: [...db.hari].sort(urutHari),
       sesi: [...db.sesi].sort(urutSesi),
+      istirahat: db.istirahat || [],
       jenis: [...db.jenis].sort((a, b) => a.urutan - b.urutan).map(({ kode, nama, harga, prefix, aktif, nomor_min, nomor_max, nomor_digit }) => ({ kode, nama, harga, prefix, aktif, nomor_min: nomor_min ?? null, nomor_max: nomor_max ?? null, nomor_digit: nomor_digit || 0 })),
       seri: seri.map((s) => ({
         ...s,
@@ -4664,7 +4691,7 @@ class DemoAPI {
   /* ---- data admin ---- */
   async muatSemua() {
     await this._jeda(250);
-    return this._salin({ pengaturan: this.db.pengaturan, jenis: this.db.jenis, seri: this.db.seri, daftar: this.db.daftar, hari: [...this.db.hari].sort(urutHari), sesi: [...this.db.sesi].sort(urutSesi), baca: Object.values(this.db.baca || {}), selesai: this.db.selesai || [], juara: this.db.juara || [], juara_umum: this.db.juara_umum || [], penilai: this.db.penilai || [], riwayat_nilai: this.db.riwayat_nilai || [], panitia_event: this._super() ? (this.ix.akses[this.eventId] || []) : null, juri: this.db.juri || [], penilaian: this.db.penilaian || [], nilai: this.db.nilai || [], ...this._pantauDb(), form_upload: (this.db.form_upload || []).map(({ foto, ...x }) => x), ket_juri: this._ketJuriDb().map(({ foto_url, ...x }) => x), seri_upload: true });
+    return this._salin({ pengaturan: this.db.pengaturan, jenis: this.db.jenis, seri: this.db.seri, daftar: this.db.daftar, hari: [...this.db.hari].sort(urutHari), sesi: [...this.db.sesi].sort(urutSesi), istirahat: this.db.istirahat || [], baca: Object.values(this.db.baca || {}), selesai: this.db.selesai || [], juara: this.db.juara || [], juara_umum: this.db.juara_umum || [], penilai: this.db.penilai || [], riwayat_nilai: this.db.riwayat_nilai || [], panitia_event: this._super() ? (this.ix.akses[this.eventId] || []) : null, juri: this.db.juri || [], penilaian: this.db.penilaian || [], nilai: this.db.nilai || [], ...this._pantauDb(), form_upload: (this.db.form_upload || []).map(({ foto, ...x }) => x), ket_juri: this._ketJuriDb().map(({ foto_url, ...x }) => x), seri_upload: true });
   }
   /* tiruan juara.sql: penilaian */
   _nilaiDb() { const d = this.db; d.juri = d.juri || []; d.penilaian = d.penilaian || []; d.nilai = d.nilai || []; d.penilai = d.penilai || []; d.riwayat_nilai = d.riwayat_nilai || []; return d; }
@@ -5008,12 +5035,24 @@ class DemoAPI {
     return this.simpanSeri({ id: g.id, tutup: [...set] });
   }
   _sinkronGrup() { this.db.seri.forEach((g) => { if (g.sesi_id) this._hitungGrup(g); }); }
+  async simpanIstirahat(x) {
+    await this._jeda(150);
+    const L = this.db.istirahat || (this.db.istirahat = []);
+    if (x.jam_mulai && x.jam_selesai && x.jam_selesai <= x.jam_mulai) throw new Error('Jam selesai istirahat harus setelah jam mulai');
+    let row;
+    if (x.id) { row = L.find((y) => y.id === Number(x.id)); Object.assign(row, x); }
+    else { row = { warna: 'kuning', jam_mulai: null, jam_selesai: null, ...x, id: (this.db.nextIstirahatId = (this.db.nextIstirahatId || 1)) }; this.db.nextIstirahatId++; L.push(row); }
+    this._simpan();
+    return this._salin(row);
+  }
+  async hapusIstirahat(id) { await this._jeda(120); this.db.istirahat = (this.db.istirahat || []).filter((x) => x.id !== Number(id)); this._simpan(); }
   async hapusSesi(id) {
     await this._jeda(150);
     const grup = this.db.seri.filter((g) => g.sesi_id === Number(id)).map((g) => g.id);
     if (this.db.daftar.some((d) => grup.includes(d.seri_id))) throw new Error('violates foreign key constraint');
     this.db.seri = this.db.seri.filter((g) => !grup.includes(g.id));
     this.db.sesi = this.db.sesi.filter((x) => x.id !== Number(id));
+    this.db.istirahat = (this.db.istirahat || []).filter((x) => x.sesi_id !== Number(id));
     this._simpan();
   }
   async hapusHari(id) {
@@ -5173,6 +5212,7 @@ function hurufBerikut(list) {
   for (let i = 0; i < 26; i++) { const h = String.fromCharCode(65 + i); if (!pakai.has(h)) return h; }
   return 'Z' + (list.length + 1);
 }
+const WARNA_ISTIRAHAT = { kuning: '#e8a317', hijau: '#2f9e6b', biru: '#2a78d6', ungu: '#8b5cf6', merah: '#e05a5a', abu: '#8a909c', hitam: '#16181d' };
 const jamSesi = (x) => (x && x.jam_mulai ? fmtJam(x.jam_mulai) + (x.jam_selesai ? '–' + fmtJam(x.jam_selesai) : '') : 'Jam menyusul');
 /* Nomor layangan milik peserta: angka 1–6 digit, nol di depan dibuang */
 const WARNA_DUP = 6;
@@ -5216,6 +5256,9 @@ function tabelJadwal(o) {
   const sesi = o.sesi.filter((x) => x.hari_id === hari.id).sort(urutSesi);
   const kol = Array.from({ length: KOLOM_JADWAL }, (_, i) => i + 1);
   let body = '';
+  const pemisah = `<tr class="jt-pemisah" aria-hidden="true"><td colspan="${KOLOM_JADWAL + 4}" style="height:8px;background:var(--surface-3)"></td></tr>`;
+  const barisIst = (x) => (o.istirahat || []).filter((i) => i.sesi_id === x.id).sort(urutSesi).map((i) => `${pemisah}<tr class="jt-ist"><td colspan="${KOLOM_JADWAL + 4}" style="--ic:${WARNA_ISTIRAHAT[i.warna] || WARNA_ISTIRAHAT.kuning}"><div class="jt-ist-i"><b>Istirahat</b>${i.jam_mulai ? `<span>${esc(jamSesi(i))}</span>` : ''}${admin
+    ? `<span class="jt-ist-a"><button type="button" data-act="adm.istEdit" data-id="${i.id}">Ubah</button><button type="button" data-act="adm.istHapus" data-id="${i.id}">Hapus</button></span>` : ''}</div></td></tr>`).join('');
   sesi.forEach((x, si) => {
     const grup = o.grup.filter((g) => g.sesi_id === x.id).sort(urutGrup);
     const barisGrup = grup.map((g) => Math.max(1, Math.ceil(g.kotak / KOLOM_JADWAL)));
@@ -5225,6 +5268,7 @@ function tabelJadwal(o) {
       ${admin ? `<div class="sa-act"><button class="btn btn-xs" data-act="adm.grupBaru" data-sesi="${x.id}" aria-label="Tambah grup di Seri ${esc(x.nama)}">${ico('plus')}<span class="sa-teks"> Grup</span></button><button class="btn btn-xs btn-icon" data-act="adm.sesiEdit" data-id="${x.id}" aria-label="Ubah Seri ${esc(x.nama)}">${ico('edit')}<span class="sa-teks-hp">Ubah</span></button></div>` : ''}</th>`;
     if (!grup.length) {
       body += `<tr>${selSeri}<td colspan="${KOLOM_JADWAL + 3}" class="jt-kosong">${admin ? `Belum ada grup. <button class="btn btn-xs" data-act="adm.grupBaru" data-sesi="${x.id}">${ico('plus')} Tambah grup A</button>` : 'Grup menyusul.'}</td></tr>`;
+      body += barisIst(x);
       return;
     }
     grup.forEach((g, gi) => {
@@ -5269,6 +5313,7 @@ function tabelJadwal(o) {
         body += tr + '</tr>';
       }
     });
+    body += barisIst(x);
   });
   if (!sesi.length) body = `<tr><td colspan="${KOLOM_JADWAL + 4}" class="jt-kosong">${admin ? `Belum ada seri. <button class="btn btn-xs" data-act="adm.sesiBaru" data-hari="${hari.id}">${ico('plus')} Tambah Seri I</button>` : 'Jadwal menyusul.'}</td></tr>`;
   const pub = !admin && !o.cetak, ringkas = !o.cetak;   // ringkas = tampilan HP yang rapat (peserta & panitia)
@@ -5852,7 +5897,7 @@ const Pub = {
       <h2 class="h2">Jadwal terbang</h2>
       <p class="lead">Angka di kotak adalah nomor layangan yang sudah terkonfirmasi. Kotak kuning sudah terisi tetapi masih menunggu konfirmasi panitia.${ev.tampilkan_peserta ? ' Ketuk nomor untuk melihat nama sekha dan alamat.' : ''} </p>
       ${hari.length ? hari.map((h) => `<div class="jt-hari"><div class="jt-hari-h"><h3>${esc(h.nama)}</h3>${h.tanggal ? `<span class="muted">${esc(fmtTanggal(h.tanggal))}</span>` : ''}</div>
-        ${tabelJadwal({ hari: h, sesi: info.sesi || [], grup, jenis: info.jenis, kotakIsi: isi, admin: false })}
+        ${tabelJadwal({ hari: h, sesi: info.sesi || [], istirahat: info.istirahat || [], grup, jenis: info.jenis, kotakIsi: isi, admin: false })}
         ${legendaJadwal({ hari: h, sesi: info.sesi || [], grup, kotakIsi: isi, admin: false, tampilNomor: !grup.some((g) => (g.isi || []).some((x) => typeof x !== 'object')) })}</div>`).join('')
         : '<div class="empty">Jadwal terbang belum tersedia.</div>'}
       ${ev.pendaftaran_buka ? `<div class="actions"><a class="btn btn-primary" href="#daftar">${ico('edit')} Daftar sekarang</a></div>` : ''}
@@ -8000,15 +8045,17 @@ const Adm = {
         'Buat <b>Hari</b> → <b>Seri</b> (jam terbang) → <b>Grup</b> A, B, C. Satu grup = satu jenis layangan.',
         'Jenis & grup di sini otomatis menjadi pilihan di formulir pendaftaran.',
         'Klik <b>nama jenis</b> untuk mengubah grup, <b>kotak kosong</b> untuk menutup/membuka kotak, <b>nomor</b> untuk melihat data peserta.',
+        '<b>+ Istirahat</b>: pilih letaknya (setelah seri mana), jam & warna — tampil sebagai baris berwarna di jadwal, halaman peserta & hasil cetak.',
         'Tombol <b>Cetak</b> di tiap hari mencetak jadwal hari itu.'])}
       ${d.hari.length ? d.hari.map((h) => `<section class="jt-hari"><div class="jt-hari-h"><h3>${esc(h.nama)}</h3>
           <span class="muted">${h.tanggal ? esc(fmtTanggal(h.tanggal)) : '<span class="jk-warn">tanggal belum diisi</span>'}</span>
           <div class="sa-act">
             <button class="btn btn-xs" data-act="adm.sesiBaru" data-hari="${h.id}">${ico('plus')} Seri</button>
+            <button class="btn btn-xs" data-act="adm.istBaru" data-hari="${h.id}">${ico('plus')} Istirahat</button>
             <button class="btn btn-xs" data-act="adm.hariEdit" data-id="${h.id}">${ico('edit')} Ubah</button>
             <button class="btn btn-xs" data-act="adm.cetakHari" data-id="${h.id}">${ico('print')} Cetak</button>
           </div></div>
-          ${tabelJadwal({ hari: h, sesi: d.sesi, grup: d.seri.filter((x) => x.sesi_id), jenis: d.jenis, kotakIsi: isi, admin: true })}
+          ${tabelJadwal({ hari: h, sesi: d.sesi, istirahat: d.istirahat || [], grup: d.seri.filter((x) => x.sesi_id), jenis: d.jenis, kotakIsi: isi, admin: true })}
           ${legendaJadwal({ hari: h, sesi: d.sesi, grup: d.seri.filter((x) => x.sesi_id), kotakIsi: isi, admin: true })}
         </section>`).join('')
         : `<div class="panel"><div class="empty">Belum ada jadwal terbang.<div style="margin-top:12px"><button class="btn btn-primary" data-act="adm.hariBaru">${ico('plus')} Buat hari pertama</button></div></div></div>`}
@@ -8052,6 +8099,29 @@ const Adm = {
         <button type="button" class="btn" data-act="ovl.tutup">Batal</button><button type="submit" class="btn btn-primary">${baru ? 'Tambah seri' : 'Simpan'}</button></div>
     </form>`);
   },
+  formIstirahat(x, hariId) {
+    const baru = !x, d = this.s.data;
+    const sesiX = x ? this.idx.sesi.get(x.sesi_id) : null, h = this.idx.hari.get(sesiX ? sesiX.hari_id : hariId);
+    const sesi = d.sesi.filter((y) => y.hari_id === h.id).sort(urutSesi);
+    if (!sesi.length) return toast('Buat seri dulu — istirahat diletakkan setelah sebuah seri.', 'bad');
+    const L = d.istirahat || [];
+    const awal = x ? sesiX : (sesi.find((y, i) => i < sesi.length - 1 && !L.some((t) => t.sesi_id === y.id)) || sesi[0]);
+    const jam = (v) => String(v || '').slice(0, 5);
+    const tambah15 = (t) => { if (!t) return ''; const [hh, mm] = t.split(':').map(Number), n = Math.min(23 * 60 + 59, hh * 60 + mm + 15); return `${String(Math.floor(n / 60)).padStart(2, '0')}:${String(n % 60).padStart(2, '0')}`; };
+    const usul = (y) => { const i = sesi.indexOf(y), nx = sesi[i + 1], m = jam(y.jam_selesai), s0 = nx ? jam(nx.jam_mulai) : ''; return { m, s: s0 && (!m || s0 > m) ? s0 : tambah15(m) }; };
+    const v = x ? { m: jam(x.jam_mulai), s: jam(x.jam_selesai), w: x.warna } : { ...usul(awal), w: 'kuning' };
+    Overlay.modal(`<form data-submit="adm.simpanIst" data-id="${baru ? '' : x.id}" novalidate>
+      <h3>${baru ? `Tambah istirahat · ${esc(h.nama)}` : 'Ubah istirahat'}</h3>
+      <p class="lead">Baris berwarna bertuliskan <b>ISTIRAHAT</b> + jam, di antara seri.</p>
+      <div class="field"><label class="label" for="ist-sesi">Letak</label><select class="input" id="ist-sesi" name="sesi_id" data-ch="adm.istLetak">${sesi.map((y) => { const u = usul(y);
+        return `<option value="${y.id}" data-m="${u.m}" data-s="${u.s}" ${y.id === awal.id ? 'selected' : ''}>Setelah Seri ${esc(y.nama)}${y.jam_selesai ? ` (selesai ${esc(fmtJam(y.jam_selesai))})` : ''}</option>`; }).join('')}</select></div>
+      <div class="field"><span class="label">Jam istirahat (${CONFIG.ZONA_WAKTU})</span><div class="g2" style="gap:8px"><input class="input" type="time" id="ist-mulai" name="jam_mulai" value="${esc(v.m)}" aria-label="Jam mulai"><input class="input" type="time" id="ist-selesai" name="jam_selesai" value="${esc(v.s)}" aria-label="Jam selesai"></div></div>
+      <div class="field"><span class="label">Warna</span><div class="ist-warna" role="radiogroup" aria-label="Warna baris istirahat">${Object.entries(WARNA_ISTIRAHAT).map(([k, c]) => `<label title="${k}"><input type="radio" name="warna" value="${k}" ${k === v.w ? 'checked' : ''}><i style="background:${c}"></i><span class="sr-only">${k}</span></label>`).join('')}</div></div>
+      <div class="actions ${baru ? 'end' : ''}">
+        ${baru ? '' : `<button type="button" class="btn btn-danger" data-act="adm.istHapus" data-id="${x.id}">${ico('trash')} Hapus</button><span style="flex:1"></span>`}
+        <button type="button" class="btn" data-act="ovl.tutup">Batal</button><button type="submit" class="btn btn-primary">${baru ? 'Tambah istirahat' : 'Simpan'}</button></div>
+    </form>`);
+  },
   formGrup(g, sesiId) {
     const baru = !g, d = this.s.data, x = this.idx.sesi.get(g ? g.sesi_id : sesiId), h = this.idx.hari.get(x.hari_id);
     const j = g && this.idx.jenis.get(g.jenis);
@@ -8091,7 +8161,7 @@ const Adm = {
       src.forEach((p, k) => { if (p.status === 'terkonfirmasi') m.set(k, p); });
       return m;
     };
-    const tabel = tabelJadwal({ hari: h, sesi: d.sesi, grup: d.seri.filter((x) => x.sesi_id), jenis: d.jenis, kotakIsi: isi, admin: false, cetak: true });
+    const tabel = tabelJadwal({ hari: h, sesi: d.sesi, istirahat: d.istirahat || [], grup: d.seri.filter((x) => x.sesi_id), jenis: d.jenis, kotakIsi: isi, admin: false, cetak: true });
     const oleh = labelOleh(this.s.sesi && this.s.sesi.email);
     const warna = getComputedStyle(document.documentElement);
     const cat = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((i) => `--cat-${i}:${warna.getPropertyValue('--cat-' + i)}`).join(';');
@@ -8117,6 +8187,7 @@ body{font:10px/1.25 system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;margin:
 .jt .k.tutup{background:#000!important;border-color:#000;padding:0}.jt .k.tutup svg.hitam{display:block;width:100%;height:17px}
 .jt tbody .jt-tot{font-weight:800;font-size:11px}.jt .jt-tot small{display:block;font-weight:400;font-size:8px;color:#444}
 .jt-pemisah td{height:6px!important}.nm-pdk{display:none}
+.jt tr.jt-ist>td{background:var(--ic)!important;border-color:var(--ic);color:#fff}.jt-ist-i{display:flex;align-items:center;justify-content:center;gap:8px;height:11px}.jt-ist-i b{font-size:7.5px;letter-spacing:.16em;text-transform:uppercase}.jt-ist-i span{font-size:7.5px;font-weight:700}
 .jt-wrap{overflow:visible}.kaki{margin-top:6px;font-size:8.5px;color:#555;text-align:right}
 @page{size:A4 landscape;margin:8mm}@media print{body{margin:0}}</style></head><body>
 <header class="kop"><h1 class="kop-ev">${esc(ev.nama_event || 'Lomba Layangan')}</h1>
@@ -9692,6 +9763,35 @@ ACT['adm.sesiHapus'] = async (el) => {
   if (grup.some((g) => { const c = Adm.idx.perSeri.get(g.id); return c.menunggu + c.terkonfirmasi + c.ditolak > 0; })) return toast('Seri ini masih punya pendaftar. Pindahkan atau hapus pendaftarnya dulu.', 'bad', 6000);
   if (!(await konfirmasiDialog({ judul: `Hapus Seri ${x.nama}?`, isi: grup.length ? `${grup.length} grup di dalamnya ikut dihapus.` : 'Seri ini belum punya grup.', tombol: 'Hapus seri', bahaya: true }))) return;
   try { await api.hapusSesi(x.id); Adm.tandaiUbah(); Overlay.tutupSemua(); await Adm.muat({ diam: true }); toast(`Seri ${x.nama} dihapus`, 'good'); }
+  catch (e) { toast(pesanError(e), 'bad', 6000); }
+};
+
+/* jadwal terbang: istirahat (istirahat.sql) */
+const istBelum = () => { if (Adm.s.data.istirahat == null) { toast('Fitur istirahat belum aktif. Jalankan istirahat.sql di Supabase → SQL Editor, lalu muat ulang.', 'bad', 7000); return true; } return false; };
+ACT['adm.istBaru'] = (el) => { if (!istBelum()) Adm.formIstirahat(null, Number(el.dataset.hari)); };
+ACT['adm.istEdit'] = (el) => { const x = (Adm.s.data.istirahat || []).find((i) => i.id === Number(el.dataset.id)); if (x) Adm.formIstirahat(x); };
+CH['adm.istLetak'] = (el) => {
+  const o = el.selectedOptions[0], f = el.form; if (!o || !f || f.dataset.id) return;
+  if (o.dataset.m) f.jam_mulai.value = o.dataset.m;
+  f.jam_selesai.value = o.dataset.s || '';
+};
+SUB['adm.simpanIst'] = async (form) => {
+  const id = Number(form.dataset.id) || null, v = (n) => String(form[n].value).trim();
+  const isi = { sesi_id: Number(v('sesi_id')), jam_mulai: v('jam_mulai') || null, jam_selesai: v('jam_selesai') || null, warna: (form.querySelector('[name=warna]:checked') || {}).value || 'kuning' };
+  if (isi.jam_mulai && isi.jam_selesai && isi.jam_selesai <= isi.jam_mulai) return toast('Jam selesai harus setelah jam mulai.', 'bad');
+  await sibuk(form.querySelector('[type=submit]'), async () => {
+    try {
+      await api.simpanIstirahat(id ? { id, ...isi } : isi);
+      Adm.tandaiUbah(); Overlay.tutupYangBerisi(form);
+      await Adm.muat({ diam: true });
+      toast(id ? 'Istirahat diperbarui' : 'Istirahat ditambahkan', 'good');
+    } catch (e) { toast(pesanError(e), 'bad', 6000); }
+  });
+};
+ACT['adm.istHapus'] = async (el) => {
+  const x = (Adm.s.data.istirahat || []).find((i) => i.id === Number(el.dataset.id)); if (!x) return;
+  if (!(await konfirmasiDialog({ judul: 'Hapus istirahat?', isi: `Baris istirahat ${x.jam_mulai ? jamSesi(x) : ''} dihapus dari jadwal. Seri & layangan tidak berubah.`, tombol: 'Hapus', bahaya: true }))) return;
+  try { await api.hapusIstirahat(x.id); Adm.tandaiUbah(); Overlay.tutupSemua(); await Adm.muat({ diam: true }); toast('Istirahat dihapus', 'good'); }
   catch (e) { toast(pesanError(e), 'bad', 6000); }
 };
 
