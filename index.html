@@ -8385,11 +8385,9 @@ ${rows.map((r, i) => `<tr><td class="n">${i + 1}</td><td class="no">${esc(r.nomo
   vSetHero(linkPublik) {
     const ev = this.s.data.pengaturan;
     linkPublik = linkPublik || location.href.split('#')[0] + hrefEv();
-    const batas = ev.batas_daftar ? fmtWaktu(ev.batas_daftar) : '';
     const wa = `https://wa.me/?text=${encodeURIComponent(`Pendaftaran ${ev.nama_event} sudah dibuka! Daftar online di sini: ${linkPublik}`)}`;
     return `<div class="rk-hero st-hero" id="set-hero"><div class="rk-hh"><h2>Pengaturan</h2><div class="rk-sub">${esc(ev.nama_event || '')}</div></div>
       <div class="st-hb">
-        <label class="st-box switch${ev.pendaftaran_buka ? ' on' : ''}"><input type="checkbox" data-ch="adm.bukaCepat" ${ev.pendaftaran_buka ? 'checked' : ''}><span class="sw"></span><span class="st-bt"><b>Pendaftaran ${ev.pendaftaran_buka ? 'dibuka' : 'ditutup'}</b><small>${batas ? `tutup otomatis ${esc(batas)}` : 'tanpa batas waktu'}</small></span></label>
         <div class="st-box st-link"><code title="${esc(linkPublik)}">${esc(linkPublik.replace(/^https?:\/\//, ''))}</code><button class="btn btn-sm" data-act="salin" data-teks="${esc(linkPublik)}" data-label="Link disalin">${ico('copy')} Salin</button><a class="btn btn-sm btn-good" target="_blank" rel="noopener" href="${esc(wa)}">${ico('share')} Bagikan WA</a></div>
       </div></div>`;
   },
@@ -10067,12 +10065,6 @@ SUB['adm.setEvent'] = (form) => {
 SUB['adm.setDaftar'] = (form) => {
   const b = String(form.batas_daftar.value).trim();
   return simpanPengaturanForm(form, { pendaftaran_buka: form.pendaftaran_buka.checked, batas_daftar: isoDariLokal(b), tampilkan_peserta: form.tampilkan_peserta.checked });
-};
-CH['adm.bukaCepat'] = (el) => {
-  const f = document.querySelector('form[data-submit="adm.setDaftar"]');
-  if (!f) return;
-  f.pendaftaran_buka.checked = el.checked;
-  f.requestSubmit();
 };
 SUB['adm.setBank'] = (form) => {
   const v = (n) => String(form[n].value).trim();
