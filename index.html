@@ -480,45 +480,46 @@ button.kpi:hover { border-color: var(--line-strong); }
 
 .todo { display: flex; flex-direction: column; gap: 8px; margin-bottom: 16px; }
 /* ---- Ringkasan (lega & sederhana) ---- */
-.rk-hero { display: flex; align-items: center; gap: 16px; justify-content: space-between; flex-wrap: wrap; padding: 26px 30px; margin-bottom: 22px; border-radius: 22px; border: 1px solid color-mix(in srgb, var(--brand) 18%, var(--line));
+.rk-hero { display: flex; align-items: center; gap: 16px; justify-content: space-between; flex-wrap: wrap; padding: 18px 22px; margin-bottom: 16px; border-radius: 18px; border: 1px solid color-mix(in srgb, var(--brand) 18%, var(--line));
   background: radial-gradient(520px 260px at 95% 0%, color-mix(in srgb, var(--brand) 16%, transparent) 0%, transparent 70%), linear-gradient(120deg, color-mix(in srgb, var(--brand-soft) 55%, var(--surface)), var(--brand-soft)); }
-.rk-hero h2 { margin: 0; font-size: 26px; line-height: 1.2; letter-spacing: -.01em; color: var(--brand-soft-ink); }
+.rk-hero h2 { margin: 0; font-size: 21px; line-height: 1.2; letter-spacing: -.01em; color: var(--brand-soft-ink); }
 .rk-sub { color: var(--ink-2); margin-top: 4px; }
-.rk-chip { display: inline-block; margin-top: 10px; border-radius: 999px; padding: 4px 12px; font-size: 12.5px; font-weight: 800; background: var(--surface-3); color: var(--muted); }
+.rk-chip { display: inline-block; margin-top: 8px; border-radius: 999px; padding: 4px 12px; font-size: 12.5px; font-weight: 800; background: var(--surface-3); color: var(--muted); }
 .rk-chip.on { background: var(--good-soft); color: var(--good-ink); }
 .rk-ha { display: flex; gap: 8px; } .rk-ha .btn { background: var(--surface); }
-.rk-todo { background: var(--surface); border: 1px solid var(--line); border-top: 4px solid color-mix(in srgb, var(--warn) 75%, var(--surface)); border-radius: 18px; padding: 4px 22px; margin-bottom: 22px; }
-.rk-td { display: flex; align-items: center; gap: 14px; padding: 14px 0; border-top: 1px solid var(--line); }
+.rk-todo { background: var(--surface); border: 1px solid var(--line); border-top: 4px solid color-mix(in srgb, var(--warn) 75%, var(--surface)); border-radius: 16px; padding: 2px 18px; margin-bottom: 16px; }
+.rk-td { display: flex; align-items: center; gap: 12px; padding: 10px 0; border-top: 1px solid var(--line); }
 .rk-td:first-child { border-top: 0; }
-.rk-n { min-width: 48px; height: 38px; padding: 0 8px; border-radius: 12px; display: grid; place-items: center; font-weight: 900; font-size: 17px; flex: none; }
+.rk-n { min-width: 42px; height: 32px; padding: 0 8px; border-radius: 10px; display: grid; place-items: center; font-weight: 850; font-size: 15px; flex: none; }
 .rk-n .ico { width: 18px; height: 18px; }
 .rk-n.warn { background: var(--warn-soft); color: var(--warn-ink); } .rk-n.info { background: var(--brand-soft); color: var(--brand-soft-ink); }
 .rk-n.oren { background: color-mix(in srgb, var(--cat-2) 14%, var(--surface)); color: color-mix(in srgb, var(--cat-2) 80%, var(--ink)); } .rk-n.bad { background: var(--bad-soft); color: var(--bad-ink); }
 .rk-tt { flex: 1; min-width: 0; } .rk-tt b { display: block; } .rk-tt small { color: var(--muted); font-size: 12.5px; }
 .rk-a { all: unset; cursor: pointer; display: inline-flex; align-items: center; gap: 4px; color: var(--brand); font-weight: 700; white-space: nowrap; }
 .rk-a .ico { width: 16px; height: 16px; } .rk-a:hover { text-decoration: underline; } .rk-a:focus-visible { outline: 2px solid var(--brand); outline-offset: 3px; border-radius: 4px; }
-.rk-kpis { display: grid; grid-template-columns: 1fr 1.3fr 1fr; gap: 18px; margin-bottom: 22px; }
-.rk-k { border: 1px solid var(--line); border-radius: 18px; padding: 20px 22px; background: var(--surface); container-type: inline-size; }
-.rk-k .rk-ic { width: 36px; height: 36px; border-radius: 11px; display: grid; place-items: center; margin-bottom: 10px; }
+.rk-kpis { display: grid; grid-template-columns: 1fr 1.3fr 1fr; gap: 14px; margin-bottom: 16px; }
+.rk-k { border: 1px solid var(--line); border-radius: 16px; padding: 14px 18px; background: var(--surface); container-type: inline-size; }
+.rk-k .rk-ic { width: 30px; height: 30px; border-radius: 9px; display: grid; place-items: center; margin-bottom: 6px; }
 .rk-k .l { color: var(--ink-2); font-weight: 600; font-size: 13.5px; }
-.rk-k .v { font-size: 34px; font-weight: 900; letter-spacing: -.02em; line-height: 1.15; margin: 4px 0 2px; }
-.rk-k .v.uang { font-size: min(34px, calc(165cqi / var(--n))); white-space: nowrap; }
+.rk-k .v { font-size: 26px; font-weight: 850; letter-spacing: -.02em; line-height: 1.15; margin: 4px 0 2px; }
+.rk-k .v.uang { font-size: min(26px, calc(165cqi / var(--n))); white-space: nowrap; }
 .rk-k .s { color: var(--muted); font-size: 13px; }
-.rk-bar { height: 7px; border-radius: 9px; background: color-mix(in srgb, var(--ink) 7%, transparent); margin-top: 14px; overflow: hidden; } .rk-bar i { display: block; height: 100%; border-radius: 9px; }
+.rk-bar { height: 6px; border-radius: 9px; background: color-mix(in srgb, var(--ink) 7%, transparent); margin-top: 10px; overflow: hidden; } .rk-bar i { display: block; height: 100%; border-radius: 9px; }
 .rk-k.g { background: linear-gradient(160deg, var(--good-soft), var(--surface) 72%); border-color: color-mix(in srgb, var(--good) 22%, var(--line)); } .rk-k.g .rk-ic { background: color-mix(in srgb, var(--good) 18%, var(--surface)); color: var(--good-ink); } .rk-k.g .v { color: var(--good-ink); } .rk-k.g .rk-bar i { background: var(--good); }
 .rk-k.b { background: linear-gradient(160deg, var(--brand-soft), var(--surface) 75%); border-color: color-mix(in srgb, var(--brand) 20%, var(--line)); } .rk-k.b .rk-ic { background: color-mix(in srgb, var(--brand) 16%, var(--surface)); color: var(--brand); } .rk-k.b .v { color: var(--brand); } .rk-k.b .rk-bar i { background: var(--meter-1); }
 .rk-k.a { background: linear-gradient(160deg, var(--warn-soft), var(--surface) 72%); border-color: color-mix(in srgb, var(--warn) 30%, var(--line)); } .rk-k.a .rk-ic { background: color-mix(in srgb, var(--warn) 25%, var(--surface)); color: var(--warn-ink); } .rk-k.a .v { color: var(--warn-ink); } .rk-k.a .rk-bar i { background: var(--warn); }
-.rk-k .rk-ic .ico { width: 19px; height: 19px; }
-.rk-jenis { margin-bottom: 22px; }
+.rk-k .rk-ic .ico { width: 16px; height: 16px; }
+.rk-jenis { margin-bottom: 16px; }
+.rk-kinerja { margin-bottom: 16px; } .rk-kinerja > .panel { margin-top: 0 !important; }
 .rk-mb { display: inline-block; width: 80px; height: 6px; border-radius: 9px; background: var(--surface-3); vertical-align: middle; margin-left: 12px; overflow: hidden; } .rk-mb i { display: block; height: 100%; border-radius: 9px; }
 .rk-tunggu { color: var(--warn-ink); font-weight: 700; }
-.rk-lipat { background: var(--surface); border: 1px solid var(--line); border-radius: 18px; padding: 4px 22px; }
+.rk-lipat { background: var(--surface); border: 1px solid var(--line); border-radius: 16px; padding: 2px 18px; }
 .rk-lp { border-top: 1px solid var(--line); } .rk-lp:first-child { border-top: 0; }
-.rk-lp > summary { list-style: none; display: flex; align-items: center; gap: 12px; padding: 15px 0; cursor: pointer; }
+.rk-lp > summary { list-style: none; display: flex; align-items: center; gap: 12px; padding: 11px 0; cursor: pointer; }
 .rk-lp > summary::-webkit-details-marker { display: none; }
 .rk-lp > summary b { flex: 1; } .rk-meta { color: var(--muted); font-size: 13px; }
 .rk-chev .ico { width: 18px; height: 18px; color: var(--muted); transition: transform .2s; } .rk-lp[open] .rk-chev .ico { transform: rotate(180deg); }
-.rk-li { width: 30px; height: 30px; border-radius: 9px; display: grid; place-items: center; flex: none; } .rk-li .ico { width: 16px; height: 16px; }
+.rk-li { width: 28px; height: 28px; border-radius: 9px; display: grid; place-items: center; flex: none; } .rk-li .ico { width: 16px; height: 16px; }
 .rk-li.b { background: var(--brand-soft); color: var(--brand); } .rk-li.u { background: color-mix(in srgb, var(--cat-7) 14%, var(--surface)); color: var(--cat-7); }
 .rk-li.g { background: var(--good-soft); color: var(--good-ink); } .rk-li.a { background: var(--warn-soft); color: var(--warn-ink); } .rk-li.r { background: var(--bad-soft); color: var(--bad-ink); }
 .rk-isi { padding: 0 0 16px; } .rk-isi .panel { border: 0; padding: 0; margin: 0 !important; box-shadow: none; background: transparent; }
@@ -530,6 +531,7 @@ button.kpi:hover { border-color: var(--line-strong); }
   .rk-kpis { grid-template-columns: 1fr 1fr; gap: 10px; } .rk-k.b { grid-column: 1 / -1; order: -1; } .rk-k { padding: 15px 16px; } .rk-k .v { font-size: 27px; } .rk-k .rk-ic { display: none; }
   .rk-mb { display: none; }
   .rk-jenis .tbl th, .rk-jenis .tbl td { font-size: 13px; padding-left: 4px; padding-right: 4px; } .rk-jenis .jtag { white-space: normal; }
+  .rk-kinerja .tbl th, .rk-kinerja .tbl td { font-size: 13px; padding-left: 4px; padding-right: 4px; } .rk-kinerja .panel-h .hint { display: none; } .rk-kinerja td b { word-break: break-all; }
 }
 .rk-ps { display: none; } @media (max-width: 760px) { .rk-pj { display: none; } .rk-ps { display: inline; } }
 .todo-item { display: flex; align-items: center; gap: 12px; padding: 12px 14px; border-radius: 13px; background: var(--surface); border: 1px solid var(--line); }
@@ -6570,13 +6572,13 @@ const Adm = {
         ${kpi('a', 'kite', 'Sisa kuota', angka(sisa), `dari ${angka(kuotaTotal)} kotak`, pct(sisa, kuotaTotal))}
       </div>
       ${this.vPerJenis()}
+      ${kinerja ? `<div class="rk-kinerja">${kinerja}</div>` : ''}
       <div class="rk-lipat">
         ${lipat('kuota', 'cal', 'b', 'Kuota per grup', `${aktif.length} grup${penuh ? ` · ${penuh} penuh` : ''}`, this.vKuota())}
         ${lipat('grafik', 'chart', 'u', 'Pendaftaran 14 hari terakhir', `${angka(d.daftar.length)} formulir`, `<div class="panel">${this.vGrafik()}</div>`)}
         ${lipat('bayar', 'wallet', 'g', 'Pemasukan per cara bayar', 'Transfer · Tunai', this.vPemasukan())}
         ${lipat('baru', 'clock', 'a', 'Pendaftaran terbaru', '', `<div class="panel"><div class="panel-h"><h3>Pendaftaran terbaru</h3><a class="btn btn-sm" href="#admin/pendaftaran">Lihat semua ${ico('arrow-r')}</a></div>
           ${d.daftar.length ? `<div class="rows">${d.daftar.slice(0, 6).map((r) => this.vRow(r, 'baru')).join('')}</div>` : '<div class="empty">Belum ada pendaftaran. Bagikan link pendaftaran dari menu Pengaturan.</div>'}</div>`)}
-        ${lipat('kinerja', 'users', 'r', 'Kinerja panitia', '', kinerja)}
       </div>`;
   },
   vMeter(c, kuota, lg) {
@@ -7722,7 +7724,7 @@ const Adm = {
     const rows = [...m.entries()].sort((a, b) => b[1].konfirmasi - a[1].konfirmasi || b[1].wa - a[1].wa);
     if (!rows.length && !tanpa) return '';
     return `<div class="panel" style="margin-top:16px"><div class="panel-h"><h3>Kinerja panitia</h3><span class="hint">dicatat otomatis oleh sistem</span></div>
-      <div class="tbl-wrap"><table class="tbl kinerja"><thead><tr><th>Panitia</th><th class="r">Dikonfirmasi</th><th class="r">Ditolak</th><th class="r">WA dikirim</th></tr></thead><tbody>
+      <div class="tbl-wrap"><table class="tbl kinerja"><thead><tr><th>Panitia</th><th class="r"><span class="rk-pj">Dikonfirmasi</span><span class="rk-ps">Konf.</span></th><th class="r"><span class="rk-pj">Ditolak</span><span class="rk-ps">Tolak</span></th><th class="r"><span class="rk-pj">WA dikirim</span><span class="rk-ps">WA</span></th></tr></thead><tbody>
       ${rows.map(([e, c]) => `<tr><td><b${akunId(e) ? ' class="mono"' : ''}>${esc(labelOleh(e))}</b>${namaLengkap(e) ? `<small>${esc(namaLengkap(e))}</small>` : ''}</td><td class="r">${angka(c.konfirmasi)}</td><td class="r">${angka(c.tolak)}</td><td class="r">${angka(c.wa)}</td></tr>`).join('')}
       ${tanpa ? `<tr class="muted"><td>Belum tercatat <small>dikonfirmasi sebelum pencatatan aktif</small></td><td class="r">${angka(tanpa)}</td><td class="r">–</td><td class="r">–</td></tr>` : ''}
       </tbody></table></div></div>`;
