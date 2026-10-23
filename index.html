@@ -479,6 +479,59 @@ button.kpi:hover { border-color: var(--line-strong); }
 .kpi.hi .l, .kpi.hi .s { color: var(--warn-ink); }
 
 .todo { display: flex; flex-direction: column; gap: 8px; margin-bottom: 16px; }
+/* ---- Ringkasan (lega & sederhana) ---- */
+.rk-hero { display: flex; align-items: center; gap: 16px; justify-content: space-between; flex-wrap: wrap; padding: 26px 30px; margin-bottom: 22px; border-radius: 22px; border: 1px solid color-mix(in srgb, var(--brand) 18%, var(--line));
+  background: radial-gradient(520px 260px at 95% 0%, color-mix(in srgb, var(--brand) 16%, transparent) 0%, transparent 70%), linear-gradient(120deg, color-mix(in srgb, var(--brand-soft) 55%, var(--surface)), var(--brand-soft)); }
+.rk-hero h2 { margin: 0; font-size: 26px; line-height: 1.2; letter-spacing: -.01em; color: var(--brand-soft-ink); }
+.rk-sub { color: var(--ink-2); margin-top: 4px; }
+.rk-chip { display: inline-block; margin-top: 10px; border-radius: 999px; padding: 4px 12px; font-size: 12.5px; font-weight: 800; background: var(--surface-3); color: var(--muted); }
+.rk-chip.on { background: var(--good-soft); color: var(--good-ink); }
+.rk-ha { display: flex; gap: 8px; } .rk-ha .btn { background: var(--surface); }
+.rk-todo { background: var(--surface); border: 1px solid var(--line); border-top: 4px solid color-mix(in srgb, var(--warn) 75%, var(--surface)); border-radius: 18px; padding: 4px 22px; margin-bottom: 22px; }
+.rk-td { display: flex; align-items: center; gap: 14px; padding: 14px 0; border-top: 1px solid var(--line); }
+.rk-td:first-child { border-top: 0; }
+.rk-n { min-width: 48px; height: 38px; padding: 0 8px; border-radius: 12px; display: grid; place-items: center; font-weight: 900; font-size: 17px; flex: none; }
+.rk-n .ico { width: 18px; height: 18px; }
+.rk-n.warn { background: var(--warn-soft); color: var(--warn-ink); } .rk-n.info { background: var(--brand-soft); color: var(--brand-soft-ink); }
+.rk-n.oren { background: color-mix(in srgb, var(--cat-2) 14%, var(--surface)); color: color-mix(in srgb, var(--cat-2) 80%, var(--ink)); } .rk-n.bad { background: var(--bad-soft); color: var(--bad-ink); }
+.rk-tt { flex: 1; min-width: 0; } .rk-tt b { display: block; } .rk-tt small { color: var(--muted); font-size: 12.5px; }
+.rk-a { all: unset; cursor: pointer; display: inline-flex; align-items: center; gap: 4px; color: var(--brand); font-weight: 700; white-space: nowrap; }
+.rk-a .ico { width: 16px; height: 16px; } .rk-a:hover { text-decoration: underline; } .rk-a:focus-visible { outline: 2px solid var(--brand); outline-offset: 3px; border-radius: 4px; }
+.rk-kpis { display: grid; grid-template-columns: 1fr 1.3fr 1fr; gap: 18px; margin-bottom: 22px; }
+.rk-k { border: 1px solid var(--line); border-radius: 18px; padding: 20px 22px; background: var(--surface); container-type: inline-size; }
+.rk-k .rk-ic { width: 36px; height: 36px; border-radius: 11px; display: grid; place-items: center; margin-bottom: 10px; }
+.rk-k .l { color: var(--ink-2); font-weight: 600; font-size: 13.5px; }
+.rk-k .v { font-size: 34px; font-weight: 900; letter-spacing: -.02em; line-height: 1.15; margin: 4px 0 2px; }
+.rk-k .v.uang { font-size: min(34px, calc(165cqi / var(--n))); white-space: nowrap; }
+.rk-k .s { color: var(--muted); font-size: 13px; }
+.rk-bar { height: 7px; border-radius: 9px; background: color-mix(in srgb, var(--ink) 7%, transparent); margin-top: 14px; overflow: hidden; } .rk-bar i { display: block; height: 100%; border-radius: 9px; }
+.rk-k.g { background: linear-gradient(160deg, var(--good-soft), var(--surface) 72%); border-color: color-mix(in srgb, var(--good) 22%, var(--line)); } .rk-k.g .rk-ic { background: color-mix(in srgb, var(--good) 18%, var(--surface)); color: var(--good-ink); } .rk-k.g .v { color: var(--good-ink); } .rk-k.g .rk-bar i { background: var(--good); }
+.rk-k.b { background: linear-gradient(160deg, var(--brand-soft), var(--surface) 75%); border-color: color-mix(in srgb, var(--brand) 20%, var(--line)); } .rk-k.b .rk-ic { background: color-mix(in srgb, var(--brand) 16%, var(--surface)); color: var(--brand); } .rk-k.b .v { color: var(--brand); } .rk-k.b .rk-bar i { background: var(--meter-1); }
+.rk-k.a { background: linear-gradient(160deg, var(--warn-soft), var(--surface) 72%); border-color: color-mix(in srgb, var(--warn) 30%, var(--line)); } .rk-k.a .rk-ic { background: color-mix(in srgb, var(--warn) 25%, var(--surface)); color: var(--warn-ink); } .rk-k.a .v { color: var(--warn-ink); } .rk-k.a .rk-bar i { background: var(--warn); }
+.rk-k .rk-ic .ico { width: 19px; height: 19px; }
+.rk-jenis { margin-bottom: 22px; }
+.rk-mb { display: inline-block; width: 80px; height: 6px; border-radius: 9px; background: var(--surface-3); vertical-align: middle; margin-left: 12px; overflow: hidden; } .rk-mb i { display: block; height: 100%; border-radius: 9px; }
+.rk-tunggu { color: var(--warn-ink); font-weight: 700; }
+.rk-lipat { background: var(--surface); border: 1px solid var(--line); border-radius: 18px; padding: 4px 22px; }
+.rk-lp { border-top: 1px solid var(--line); } .rk-lp:first-child { border-top: 0; }
+.rk-lp > summary { list-style: none; display: flex; align-items: center; gap: 12px; padding: 15px 0; cursor: pointer; }
+.rk-lp > summary::-webkit-details-marker { display: none; }
+.rk-lp > summary b { flex: 1; } .rk-meta { color: var(--muted); font-size: 13px; }
+.rk-chev .ico { width: 18px; height: 18px; color: var(--muted); transition: transform .2s; } .rk-lp[open] .rk-chev .ico { transform: rotate(180deg); }
+.rk-li { width: 30px; height: 30px; border-radius: 9px; display: grid; place-items: center; flex: none; } .rk-li .ico { width: 16px; height: 16px; }
+.rk-li.b { background: var(--brand-soft); color: var(--brand); } .rk-li.u { background: color-mix(in srgb, var(--cat-7) 14%, var(--surface)); color: var(--cat-7); }
+.rk-li.g { background: var(--good-soft); color: var(--good-ink); } .rk-li.a { background: var(--warn-soft); color: var(--warn-ink); } .rk-li.r { background: var(--bad-soft); color: var(--bad-ink); }
+.rk-isi { padding: 0 0 16px; } .rk-isi .panel { border: 0; padding: 0; margin: 0 !important; box-shadow: none; background: transparent; }
+.rk-isi .panel-h h3 { display: none; } .rk-isi .panel-h { margin-bottom: 8px; }
+@media (max-width: 760px) {
+  .rk-hero { padding: 18px 18px; border-radius: 18px; } .rk-hero h2 { font-size: 21px; }
+  .rk-todo, .rk-lipat { padding: 2px 14px; } .rk-td { gap: 10px; padding: 12px 0; } .rk-n { min-width: 42px; height: 34px; font-size: 15px; }
+  .rk-td .btn { padding: 6px 10px; } .rk-tt small { display: none; }
+  .rk-kpis { grid-template-columns: 1fr 1fr; gap: 10px; } .rk-k.b { grid-column: 1 / -1; order: -1; } .rk-k { padding: 15px 16px; } .rk-k .v { font-size: 27px; } .rk-k .rk-ic { display: none; }
+  .rk-mb { display: none; }
+  .rk-jenis .tbl th, .rk-jenis .tbl td { font-size: 13px; padding-left: 4px; padding-right: 4px; } .rk-jenis .jtag { white-space: normal; }
+}
+.rk-ps { display: none; } @media (max-width: 760px) { .rk-pj { display: none; } .rk-ps { display: inline; } }
 .todo-item { display: flex; align-items: center; gap: 12px; padding: 12px 14px; border-radius: 13px; background: var(--surface); border: 1px solid var(--line); }
 .todo-item .ti { width: 34px; height: 34px; border-radius: 10px; display: grid; place-items: center; flex: none; }
 .todo-item .ti.warn { background: var(--warn-soft); color: var(--warn-ink); }
@@ -3131,6 +3184,7 @@ const ICONS = {
   unlock: '<rect x="4.5" y="11" width="15" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 7.8-1.2"/>',
   history: '<path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/><path d="M12 7v5l3 2"/>',
   lock: '<rect x="4" y="10" width="16" height="11" rx="2.5"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/>',
+  chart: '<path d="M4 20V11M10 20V5M16 20v-8M21 20H3"/>',
   kite: '<path d="M12 2.5 19 10l-7 11.5L5 10z"/><path d="M12 2.5v19M5 10h14"/>',
   trophy: '<path d="M8 4h8v5a4 4 0 0 1-8 0z"/><path d="M8 6H5a3 3 0 0 0 3 4M16 6h3a3 3 0 0 1-3 4"/><path d="M12 13v4M8.5 20.5h7M10 17h4l.5 3.5h-5z"/>',
   layers: '<path d="m12 3 9 5-9 5-9-5z"/><path d="m3 13 9 5 9-5"/>',
@@ -6473,45 +6527,56 @@ const Adm = {
   /* ---------------- RINGKASAN ---------------- */
   vRingkasan() {
     const { st } = this.idx, d = this.s.data, ev = d.pengaturan;
-    const kuotaTotal = d.seri.filter((x) => x.aktif).reduce((a, x) => a + x.kuota, 0);
-    const terisiAktif = d.seri.filter((x) => x.aktif).reduce((a, x) => { const c = this.idx.perSeri.get(x.id); return a + c.menunggu + c.terkonfirmasi; }, 0);
+    const aktif = d.seri.filter((x) => x.aktif);
+    const kuotaTotal = aktif.reduce((a, x) => a + x.kuota, 0);
+    const terisiAktif = aktif.reduce((a, x) => { const c = this.idx.perSeri.get(x.id); return a + c.menunggu + c.terkonfirmasi; }, 0);
     const sisa = Math.max(0, kuotaTotal - terisiAktif);
+    // ---- yang perlu dikerjakan: satu kotak, tiap baris angka + judul + satu tombol
     const todo = [];
-    const item = (kls, ikon, judul, sub, tombol) => `<div class="todo-item"><div class="ti ${kls}">${ico(ikon)}</div><div class="tt"><b>${judul}</b><span>${sub}</span></div>${tombol}</div>`;
-    if (st.menunggu) todo.push(item('warn', 'clock', `${st.menunggu} pendaftaran menunggu verifikasi`, 'Cek bukti transfer, lalu konfirmasi atau tolak.', `<button class="btn btn-sm btn-primary" data-act="adm.verifikasi">Verifikasi ${ico('arrow-r')}</button>`));
-    if (st.waBelum) todo.push(item('info', 'chat', `${st.waBelum} konfirmasi WhatsApp belum dikirim`, 'Sudah terkonfirmasi tapi peserta belum menerima pesan WA.', `<button class="btn btn-sm" data-act="adm.filterWa">Kirim</button>`));
+    const item = (kls, n, judul, sub, tombol) => `<div class="rk-td"><span class="rk-n ${kls}">${n}</span><span class="rk-tt"><b>${judul}</b>${sub ? `<small>${sub}</small>` : ''}</span>${tombol}</div>`;
+    const link = (act, teks, href) => href ? `<a class="rk-a" href="${href}">${teks} ${ico('arrow-r')}</a>` : `<button type="button" class="rk-a" data-act="${act}">${teks} ${ico('arrow-r')}</button>`;
+    if (st.menunggu) todo.push(item('warn', angka(st.menunggu), 'Menunggu verifikasi', 'Cek bukti transfer, lalu konfirmasi atau tolak', `<button class="btn btn-sm btn-primary" data-act="adm.verifikasi">Verifikasi ${ico('arrow-r')}</button>`));
+    if (st.waBelum) todo.push(item('info', angka(st.waBelum), 'WA konfirmasi belum dikirim', '', link('adm.filterWa', 'Kirim')));
     const ck = st.cek;
     if (ck.perlu) {
-      const rinci = [ck.dobel && `${ck.dobel} bukti dobel`, ck.nominal && `${ck.nominal} nominal`, ck.waktu && `${ck.waktu} waktu`, ck.gabungan && `${ck.gabungan} bayar gabungan`].filter(Boolean).join(' · ');
-      todo.push(item(ck.merah ? 'bad' : 'warn', 'alert', `${ck.perlu} bukti perlu dicek`, rinci + (ck.kembali ? ` · ${ck.kembali} kembali karena ada pendaftaran <b>baru</b>` : ''), `<button class="btn btn-sm" data-act="adm.filterBukti">Periksa ${ico('arrow-r')}</button>`));
+      const rinci = [ck.dobel && `${ck.dobel} dobel`, ck.nominal && `${ck.nominal} nominal`, ck.waktu && `${ck.waktu} waktu`, ck.gabungan && `${ck.gabungan} bayar gabungan`].filter(Boolean).join(' · ');
+      todo.push(item(ck.merah ? 'bad' : 'oren', ck.perlu, 'Bukti perlu dicek', rinci + (ck.kembali ? ` · ${ck.kembali} kembali karena ada pendaftaran <b>baru</b>` : ''), link('adm.filterBukti', 'Periksa')));
     }
-    if (ck.masalah) todo.push(item('bad', 'alert', `${ck.masalah} pendaftaran bermasalah`, 'Sudah ditandai bermasalah saat cek bukti — tolak atau hubungi pesertanya.', `<button class="btn btn-sm" data-act="adm.filterMasalah">Lihat ${ico('arrow-r')}</button>`));
-    if (!ev.bank_no_rek) todo.push(item('bad', 'bank', 'Rekening panitia belum diisi', 'Peserta belum bisa melihat tujuan transfer.', `<a class="btn btn-sm" href="#admin/pengaturan">Isi</a>`));
-    if (!d.hari.length) todo.push(item('bad', 'cal', 'Jadwal terbang belum dibuat', 'Peserta baru bisa mendaftar setelah ada hari, seri, dan grup di jadwal terbang.', `<a class="btn btn-sm" href="#admin/seri">Buat</a>`));
+    if (ck.masalah) todo.push(item('bad', ck.masalah, 'Pendaftaran bermasalah', 'Tolak atau hubungi pesertanya', link('adm.filterMasalah', 'Lihat')));
+    if (!ev.bank_no_rek) todo.push(item('bad', ico('bank'), 'Rekening panitia belum diisi', 'Peserta belum bisa melihat tujuan transfer', link('', 'Isi', '#admin/pengaturan')));
+    if (!d.hari.length) todo.push(item('bad', ico('cal'), 'Jadwal terbang belum dibuat', 'Peserta baru bisa mendaftar setelah ada hari, seri, dan grup', link('', 'Buat', '#admin/seri')));
     const masalah = this.s.super ? this.sehatMasalah() : [];
-    if (masalah.length) todo.push(item('bad', 'alert', 'Ada kendala sistem', esc(masalah.join(' · ')), `<a class="btn btn-sm" href="${hrefEv('admin/pengaturan')}">Lihat detail</a>`));
+    if (masalah.length) todo.push(item('bad', ico('alert'), 'Ada kendala sistem', esc(masalah.join(' · ')), link('', 'Lihat detail', hrefEv('admin/pengaturan'))));
     const tanpaTgl = d.hari.filter((h) => !h.tanggal).length;
-    if (tanpaTgl) todo.push(item('info', 'cal', `${tanpaTgl} hari belum punya tanggal`, 'Tanggal tampil di formulir dan pesan WA.', `<a class="btn btn-sm" href="#admin/seri">Atur</a>`));
-    const kpi = (label, nilai, sub, opsi = {}) => {
-      const tag = opsi.act ? 'button' : 'div';
-      return `<${tag} class="kpi ${opsi.hi ? 'hi' : ''}" ${opsi.act ? `type="button" data-act="${opsi.act}"` : ''}><div class="l">${label}</div><div class="v${opsi.uang ? ' uang' : ''}"${opsi.uang ? ` style="--n:${String(nilai).length}"` : ''}>${nilai}</div><div class="s">${sub}</div></${tag}>`;
-    };
-    return `${this.vTopbar('Ringkasan', `${ev.nama_event || ''}`, `<button class="btn btn-sm" data-act="adm.tambah">${ico('plus')}<span>Tambah manual</span></button>`)}
-      ${todo.length ? `<div class="todo">${todo.join('')}</div>` : `<div class="note good">${ico('check')}<span>Semua beres — tidak ada yang perlu ditindaklanjuti.</span></div>`}
-      <div class="kpis">
-        ${kpi('Menunggu verifikasi', angka(st.menunggu), st.menunggu ? 'Klik untuk mulai verifikasi' : 'Tidak ada antrean', { hi: st.menunggu > 0, act: st.menunggu ? 'adm.verifikasi' : '' })}
-        ${kpi('Terkonfirmasi', angka(st.terkonfirmasi), `dari ${angka(st.menunggu + st.terkonfirmasi)} layangan terdaftar`)}
-        ${kpi('Pemasukan terkonfirmasi', rupiah(st.uangOk), `${rupiah(st.uangTunggu)} masih menunggu verifikasi`, { uang: true })}
-        ${kpi('Sisa kuota', angka(sisa), `dari ${angka(kuotaTotal)} kotak di ${d.seri.filter((x) => x.aktif).length} grup dibuka`)}
+    if (tanpaTgl) todo.push(item('info', tanpaTgl, 'Hari belum punya tanggal', 'Tanggal tampil di formulir dan pesan WA', link('', 'Atur', '#admin/seri')));
+    // ---- 3 angka penting
+    const pct = (a, b) => (b ? Math.max(0, Math.min(100, (a / b) * 100)) : 0);
+    const kpi = (kls, ikon, label, nilai, sub, persen, uang) => `<div class="rk-k ${kls}"><span class="rk-ic">${ico(ikon)}</span><div class="l">${label}</div>
+      <div class="v${uang ? ' uang' : ''}"${uang ? ` style="--n:${String(nilai).length}"` : ''}>${nilai}</div><div class="s">${sub}</div><div class="rk-bar"><i style="width:${persen.toFixed(1)}%"></i></div></div>`;
+    const tglEv = rentangTanggal(d.hari);
+    const status = ev.pendaftaran_buka ? '<span class="rk-chip on">● Pendaftaran dibuka</span>' : '<span class="rk-chip">Pendaftaran ditutup</span>';
+    // ---- bagian yang dilipat (status buka/tutup diingat selama halaman dibuka)
+    const buka = this.s.rkBuka || (this.s.rkBuka = new Set());
+    const penuh = aktif.filter((x) => { const c = this.idx.perSeri.get(x.id); return c.menunggu + c.terkonfirmasi >= x.kuota; }).length;
+    const lipat = (id, ikon, warna, judul, meta, isi) => isi ? `<details class="rk-lp" data-rk="${id}" ${buka.has(id) ? 'open' : ''}><summary><span class="rk-li ${warna}">${ico(ikon)}</span><b>${judul}</b><span class="rk-meta">${meta}</span><span class="rk-chev">${ico('chev-d')}</span></summary><div class="rk-isi">${isi}</div></details>` : '';
+    const kinerja = this.vKinerja();
+    return `<div class="rk-hero"><div class="rk-hh"><h2>${esc(ev.nama_event || 'Ringkasan')}</h2><div class="rk-sub">${[tglEv, ev.lokasi].filter(Boolean).map(esc).join(' · ')}</div>${status}</div>
+        <div class="rk-ha"><button class="btn btn-sm" data-act="adm.tambah">${ico('plus')}<span>Tambah manual</span></button>
+        <button class="btn btn-sm btn-icon" data-act="adm.muat" title="Muat ulang data">${this.s.loading ? '<span class="spinner"></span>' : ico('refresh')}<span class="sr-only">Muat ulang</span></button></div></div>
+      ${todo.length ? `<div class="rk-todo">${todo.join('')}</div>` : `<div class="note good">${ico('check')}<span>Semua beres — tidak ada yang perlu ditindaklanjuti.</span></div>`}
+      <div class="rk-kpis">
+        ${kpi('g', 'check', 'Terkonfirmasi', angka(st.terkonfirmasi), `dari ${angka(st.menunggu + st.terkonfirmasi)} layangan`, pct(st.terkonfirmasi, st.menunggu + st.terkonfirmasi))}
+        ${kpi('b', 'wallet', 'Pemasukan', rupiah(st.uangOk), st.uangTunggu ? `+ ${rupiah(st.uangTunggu)} masih menunggu` : 'semua sudah terverifikasi', pct(st.uangOk, st.uangOk + st.uangTunggu), true)}
+        ${kpi('a', 'kite', 'Sisa kuota', angka(sisa), `dari ${angka(kuotaTotal)} kotak`, pct(sisa, kuotaTotal))}
       </div>
-      <div class="grid2">
-        <div>${this.vKuota()}</div>
-        <div>${this.vPerJenis()}<div class="panel">${this.vGrafik()}</div></div>
-      </div>
-      ${this.vPemasukan()}
-      ${this.vKinerja()}
-      <div class="panel" style="margin-top:16px"><div class="panel-h"><h3>Pendaftaran terbaru</h3><a class="btn btn-sm" href="#admin/pendaftaran">Lihat semua ${ico('arrow-r')}</a></div>
-        ${d.daftar.length ? `<div class="rows">${d.daftar.slice(0, 6).map((r) => this.vRow(r, 'baru')).join('')}</div>` : '<div class="empty">Belum ada pendaftaran. Bagikan link pendaftaran dari menu Pengaturan.</div>'}
+      ${this.vPerJenis()}
+      <div class="rk-lipat">
+        ${lipat('kuota', 'cal', 'b', 'Kuota per grup', `${aktif.length} grup${penuh ? ` · ${penuh} penuh` : ''}`, this.vKuota())}
+        ${lipat('grafik', 'chart', 'u', 'Pendaftaran 14 hari terakhir', `${angka(d.daftar.length)} formulir`, `<div class="panel">${this.vGrafik()}</div>`)}
+        ${lipat('bayar', 'wallet', 'g', 'Pemasukan per cara bayar', 'Transfer · Tunai', this.vPemasukan())}
+        ${lipat('baru', 'clock', 'a', 'Pendaftaran terbaru', '', `<div class="panel"><div class="panel-h"><h3>Pendaftaran terbaru</h3><a class="btn btn-sm" href="#admin/pendaftaran">Lihat semua ${ico('arrow-r')}</a></div>
+          ${d.daftar.length ? `<div class="rows">${d.daftar.slice(0, 6).map((r) => this.vRow(r, 'baru')).join('')}</div>` : '<div class="empty">Belum ada pendaftaran. Bagikan link pendaftaran dari menu Pengaturan.</div>'}</div>`)}
+        ${lipat('kinerja', 'users', 'r', 'Kinerja panitia', '', kinerja)}
       </div>`;
   },
   vMeter(c, kuota, lg) {
@@ -6535,18 +6600,23 @@ const Adm = {
     </div>`;
   },
   vPerJenis() {
-    const d = this.s.data;
-    let tot = { m: 0, k: 0, t: 0, u: 0 };
-    const rows = d.jenis.map((j) => {
+    const d = this.s.data, BATAS = 5;
+    let tot = { m: 0, k: 0, u: 0 };
+    const data = d.jenis.map((j) => {
       const r = d.daftar.filter((x) => x.jenis === j.kode);
-      const m = r.filter((x) => x.status === 'menunggu').length, k = r.filter((x) => x.status === 'terkonfirmasi'), t = r.filter((x) => x.status === 'ditolak').length;
-      const u = k.reduce((a, x) => a + x.harga, 0);
-      tot = { m: tot.m + m, k: tot.k + k.length, t: tot.t + t, u: tot.u + u };
-      return `<tr><td><span class="jtag">${jdot(j.kode, d.jenis)}${esc(j.nama)}</span><div class="hint">${rupiah(j.harga)}</div></td><td class="r">${m}</td><td class="r">${k.length}</td><td class="r hide-sm">${t}</td><td class="r">${rupiah(u)}</td></tr>`;
-    }).join('');
-    return `<div class="panel"><div class="panel-h"><h3>Per jenis layangan</h3></div><div class="tbl-wrap"><table class="tbl">
-      <thead><tr><th>Jenis</th><th class="r">Menunggu</th><th class="r">Konfirmasi</th><th class="r hide-sm">Ditolak</th><th class="r">Pemasukan</th></tr></thead>
-      <tbody>${rows}</tbody><tfoot><tr><td>Total</td><td class="r">${tot.m}</td><td class="r">${tot.k}</td><td class="r hide-sm">${tot.t}</td><td class="r">${rupiah(tot.u)}</td></tr></tfoot></table></div></div>`;
+      const m = r.filter((x) => x.status === 'menunggu').length, k = r.filter((x) => x.status === 'terkonfirmasi');
+      const u = k.reduce((a, x) => a + x.harga, 0), kuota = d.seri.filter((x) => x.jenis === j.kode && x.aktif).reduce((a, x) => a + x.kuota, 0);
+      tot = { m: tot.m + m, k: tot.k + k.length, u: tot.u + u };
+      return { j, m, k: k.length, u, kuota };
+    });
+    const semua = this.s.rkJenisSemua || data.length <= BATAS + 1, tampil = semua ? data : data.slice(0, BATAS);
+    const warna = (kode) => { const i = d.jenis.findIndex((x) => x.kode === kode); return `var(--cat-${(i % 10) + 1})`; };
+    const rows = tampil.map((x) => `<tr><td><span class="jtag">${jdot(x.j.kode, d.jenis)}${esc(x.j.nama)}</span>${x.kuota ? `<span class="rk-mb" title="${x.k} dari ${x.kuota} kotak"><i style="width:${Math.min(100, (x.k / x.kuota) * 100).toFixed(1)}%;background:${warna(x.j.kode)}"></i></span>` : ''}</td>
+      <td class="r">${x.k}</td><td class="r rk-tunggu">${x.m || '<span class="muted">0</span>'}</td><td class="r">${rupiah(x.u)}</td></tr>`).join('');
+    return `<div class="panel rk-jenis"><div class="panel-h"><h3>Per jenis layangan</h3></div><div class="tbl-wrap"><table class="tbl">
+      <thead><tr><th>Jenis</th><th class="r"><span class="rk-pj">Konfirmasi</span><span class="rk-ps">Konf.</span></th><th class="r"><span class="rk-pj">Menunggu</span><span class="rk-ps">Tunggu</span></th><th class="r">Pemasukan</th></tr></thead>
+      <tbody>${rows}${semua ? '' : `<tr><td colspan="4"><button type="button" class="btn-link" data-act="adm.rkJenisSemua">Tampilkan ${data.length - BATAS} jenis lainnya</button></td></tr>`}</tbody>
+      <tfoot><tr><td>Total</td><td class="r">${tot.k}</td><td class="r">${tot.m}</td><td class="r">${rupiah(tot.u)}</td></tr></tfoot></table></div></div>`;
   },
   /* Pemasukan dipisah menurut cara bayar: transfer (ada bukti) vs tunai (daftar manual panitia) */
   vPemasukan() {
@@ -8935,6 +9005,8 @@ ACT['adm.ufSimpan'] = (el) => sibuk(el, async () => {
   if (c.url) URL.revokeObjectURL(c.url);
   ufLanjut();
 });
+ACT['adm.rkJenisSemua'] = () => { Adm.s.rkJenisSemua = true; Adm.segarkanTampilan({ paksa: true }); };
+document.addEventListener('toggle', (e) => { const el = e.target; if (!(el instanceof HTMLElement) || !el.matches('details[data-rk]')) return; const s = Adm.s.rkBuka || (Adm.s.rkBuka = new Set()); el.open ? s.add(el.dataset.rk) : s.delete(el.dataset.rk); }, true);
 ACT['adm.ufFoto'] = (el) => sibuk(el, async () => {
   try { const f = await api.fotoUpload(Number(el.dataset.id)); if (f && /^data:image\/(png|jpe?g|webp);base64,/i.test(f)) lightbox(f, 'Foto form'); else toast('Foto form ini tidak tersimpan.', 'info'); }
   catch (e) { toast(pesanError(e), 'bad'); }
