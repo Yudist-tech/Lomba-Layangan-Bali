@@ -735,6 +735,28 @@ details.tbl-toggle summary { cursor: pointer; font-size: 13px; color: var(--bran
 .cn-st { display: flex; flex-wrap: wrap; gap: 8px 10px; align-items: center; border-radius: 12px; padding: 9px 12px; margin: 0 0 10px; font-size: 13px; line-height: 1.45; }
 .cn-st > .ico { width: 17px; height: 17px; flex: none; } .cn-st > span { flex: 1 1 200px; } .cn-st .btn { margin-left: auto; }
 .cn-st.bad { background: var(--ck-r-bg); color: var(--ck-r); } .cn-st.warn { background: var(--ck-y-bg); color: var(--ck-y); }
+.dt-no { display: flex; align-items: center; gap: 14px; padding: 10px 16px; border-radius: 14px; background: color-mix(in srgb, var(--good-soft) 70%, var(--surface)); border: 1px solid color-mix(in srgb, var(--good) 22%, var(--line)); color: var(--good-ink); margin-bottom: 16px; }
+.dt-no b { font-size: 30px; font-weight: 900; line-height: 1; letter-spacing: .01em; } .dt-no span { font-size: 13px; font-weight: 600; line-height: 1.35; }
+.drawer-b > .cn-st { margin-bottom: 18px; }
+.cn-st { padding: 12px 14px; border: 1px solid transparent; border-radius: 14px; gap: 10px 12px; }
+.cn-st.warn { border-color: var(--ck-y-bd); } .cn-st.bad { border-color: var(--ck-r-bd); }
+.cn-st > span:not(.cn-ic) { flex: 1 1 220px; } .cn-st b { display: block; font-size: 14.5px; } .cn-st small { display: block; font-size: 12.5px; opacity: .92; margin-top: 2px; }
+.cn-st > .cn-ic { width: 32px; height: 32px; border-radius: 10px; display: grid; place-items: center; flex: none; font-weight: 900; font-size: 16px; }
+.cn-st.warn .cn-ic { background: var(--ck-y-dot); color: #3b2500; } .cn-st.bad .cn-ic { background: var(--ck-r-dot, var(--bad)); color: #fff; }
+.tb-bayar { border: 1px solid var(--line); border-radius: 14px; overflow: hidden; margin: 0 0 12px; background: var(--surface); }
+.tb-r { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; padding: 11px 16px; border-top: 1px solid var(--line); }
+.tb-r:first-child { border-top: 0; }
+.tb-r > span { color: var(--ink-2); min-width: 0; } .tb-r > span small { display: block; color: var(--muted); font-size: 12.5px; margin-top: 1px; }
+.tb-r > span small b { color: var(--ink); font-size: inherit; }
+.tb-r > b { font-size: 16px; font-weight: 800; white-space: nowrap; font-variant-numeric: tabular-nums; }
+.tb-r:first-child > b { font-size: 18px; }
+.tb-r .ico { width: 16px; height: 16px; vertical-align: -3px; }
+.tb-r.ok { background: var(--good-soft); } .tb-r.ok > span, .tb-r.ok > b { color: var(--good-ink); font-weight: 700; }
+.tb-r.kr { background: var(--ck-r-bg); } .tb-r.kr > span, .tb-r.kr > b { color: var(--ck-r); font-weight: 800; }
+.tb-r.lb { background: color-mix(in srgb, var(--ck-p, #5b3fb3) 11%, var(--surface)); } .tb-r.lb > span, .tb-r.lb > b { color: var(--ck-p, #5b3fb3); font-weight: 800; }
+.tb-r.kr > b, .tb-r.lb > b { font-size: 18px; }
+.tb-r.na > b { color: var(--muted); font-size: 14px; }
+.ck-mini { border-radius: 14px; }
 .cn-tb { display: grid; grid-template-columns: 1fr auto; gap: 3px 10px; background: var(--surface-2); border-radius: 10px; padding: 9px 12px; margin: 10px 0; color: var(--ink); font-size: 13.5px; }
 .cn-tb span { color: var(--muted); } .cn-tb b { text-align: right; } .cn-tb .kr { color: var(--ck-r); } .cn-tb .lb { color: var(--ck-p, #5b3fb3); }
 /* ===== Cek Bukti ringkas (kategori + mode satu per satu) ===== */
@@ -7161,6 +7183,22 @@ const Adm = {
     const tagihan = gab ? g.total : (r.harga || 0), bukti = gab ? g.nominal : (b && b.nominal ? b.nominal : null);
     return { tagihan, bukti, sel: bukti == null ? null : tagihan - bukti, gab, n: gab ? g.rows.filter((o) => o.status !== 'ditolak').length : 1, terbaca: !!b, gagal: !!(b && b.gagal) };
   },
+  /* tabel pembayaran di detail: tagihan → (total gabungan) → di bukti → selisih */
+  vTabelBayar(r, j) {
+    const c = this.nominalCek(r);
+    const br = (k, kiri, kanan) => `<div class="tb-r${k ? ' ' + k : ''}"><span>${kiri}</span><b>${kanan}</b></div>`;
+    let h = br('', `Tagihan ${esc((j && j.nama) || '')}<small>Pengirim: <b>${esc(r.nama_rekening || '-')}</b></small>`, rupiah(r.harga));
+    if (c && c.gab) h += br('', `Total tagihan ${c.n} layangan<small>bayar gabungan</small>`, rupiah(c.tagihan));
+    if (c) {
+      if (c.sel == null) h += br('na', `Nominal di bukti transfer<small>${c.gagal ? 'Angka nominal tidak terbaca otomatis — cocokkan manual dengan gambar bukti' : 'Bukti belum diperiksa — cocokkan manual dengan gambar bukti'}</small>`, 'belum terbaca');
+      else {
+        h += br('', 'Nominal di bukti transfer', rupiah(c.bukti));
+        h += c.sel === 0 ? br('ok', `${ico('check')} ${c.gab ? 'Bayar gabungan sesuai' : 'Nominal sesuai'}`, 'Sesuai')
+          : c.sel > 0 ? br('kr', `${ico('alert')} Selisih — uang KURANG`, `− ${rupiah(c.sel)}`) : br('lb', `${ico('alert')} Selisih — uang LEBIH`, `+ ${rupiah(-c.sel)}`);
+      }
+    }
+    return `<div class="tb-bayar">${h}</div>`;
+  },
   vCekNominal(r) {
     const c = this.nominalCek(r); if (!c) return '';
     const tg = c.gab ? `total tagihan ${rupiah(c.tagihan)}` : `tagihan ${rupiah(c.tagihan)}`;
@@ -7172,8 +7210,8 @@ const Adm = {
   vStatusCek(r) {
     const st = this.statusCek(r); if (!st || this.s.data.selesai == null) return '';
     const id = esc(r.id);
-    if (st.k === 'masalah') return `<div class="cn-st bad">${ico('alert')}<span><b>Ditandai bermasalah</b> oleh ${esc(labelOleh(st.tn.rec.oleh) || 'panitia')} · ${esc(fmtWaktu(st.tn.rec.created_at))}. Belum bisa dikonfirmasi — tolak, atau ubah jadi benar bila sudah beres.</span><button type="button" class="btn btn-sm lk-okb" data-act="adm.jadiBenar" data-id="${id}">${ico('check')} Jadi benar</button></div>`;
-    return `<div class="cn-st warn">${ico('alert')}<span><b>Masih di Cek Bukti → Perlu dicek</b> (${esc(this.katCek(st.g).judul)}). Selesaikan kasusnya dulu sebelum konfirmasi.</span><button type="button" class="btn btn-sm" data-act="adm.cekKasus" data-id="${id}">Cek kasusnya ${ico('arrow-r')}</button></div>`;
+    if (st.k === 'masalah') return `<div class="cn-st bad"><span class="cn-ic">!</span><span><b>Ditandai bermasalah</b> oleh ${esc(labelOleh(st.tn.rec.oleh) || 'panitia')} · ${esc(fmtWaktu(st.tn.rec.created_at))}. Belum bisa dikonfirmasi — tolak, atau ubah jadi benar bila sudah beres.</span><button type="button" class="btn btn-sm lk-okb" data-act="adm.jadiBenar" data-id="${id}">${ico('check')} Jadi benar</button></div>`;
+    return `<div class="cn-st warn"><span class="cn-ic">!</span><span><b>Cek bukti dulu sebelum konfirmasi</b><small>Masih di Cek Bukti → Perlu dicek: ${esc(this.katCek(st.g).judul)}</small></span><button type="button" class="btn btn-sm" data-act="adm.cekKasus" data-id="${id}">Cek kasusnya ${ico('arrow-r')}</button></div>`;
   },
   /* ringkasan cek bukti di detail pendaftaran */
   vKotakCek(r) {
@@ -7693,11 +7731,11 @@ const Adm = {
       </div>
       <div class="drawer-b">
         <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:14px">${badgeStatus(r.status)}<span class="badge b-off"><span class="jtag">${jdot(r.jenis, dj)}${esc((j && j.nama) || r.jenis)}</span></span><span class="badge b-off">${esc((x && x.nama) || '-')}</span>${!r.bukti_path ? '<span class="badge b-info">Manual</span>' : ''}</div>
-        ${r.status !== 'ditolak' && r.nomor_layangan ? `<div class="big-no">${ico('kite')}<div><span>Nomor layangan${r.status === 'menunggu' ? ' (belum dikonfirmasi)' : ''}</span><br><b>${esc(r.nomor_layangan)}</b></div></div>` : ''}
+        ${r.status !== 'ditolak' && r.nomor_layangan ? `<div class="dt-no"><b>${esc(r.nomor_layangan)}</b><span>Nomor layangan${r.status === 'menunggu' ? '<br>belum dikonfirmasi' : ''}</span></div>` : ''}
+        ${this.vStatusCek(r)}
         ${r.status === 'ditolak' ? `<div class="note bad">${ico('x')}<span><b>Ditolak:</b> ${esc(r.alasan_tolak || '-')}</span></div>` : ''}
         <div class="sect"><h4>Pembayaran</h4>
-          <div class="total" style="margin:0 0 10px"><div><div class="t-l">Tagihan ${esc((j && j.nama) || '')}</div><div class="t-s">Pengirim: <b>${esc(r.nama_rekening)}</b></div></div><div class="amt">${rupiah(r.harga)}</div></div>
-          ${this.vCekNominal(r)}${this.vStatusCek(r)}
+          ${this.vTabelBayar(r, j)}
           ${this.vKotakCek(r)}
           ${r.bukti_path ? `<div class="bukti-box" id="bukti-box"><div class="empty"><span class="spinner" style="margin:0 auto"></span></div></div><div class="bukti-tools" id="bukti-tools"></div>` : `<div class="empty-sm">${ico('file')} Tanpa bukti transfer — pendaftaran manual oleh panitia.</div>`}
         </div>
