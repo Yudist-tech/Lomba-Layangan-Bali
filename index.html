@@ -8358,7 +8358,7 @@ ${rows.map((r, i) => `<tr><td class="n">${i + 1}</td><td class="no">${esc(r.nomo
       <div class="st-full">${this.vSehat()}</div>
       <div class="st-full st-bahaya"><span class="st-bh">${ico('alert')} Zona berbahaya</span><div class="sa-act">
           <button class="btn btn-sm btn-danger" data-act="adm.reset">${ico('trash')} Hapus semua pendaftaran</button>
-          ${api.mode === 'supabase' ? (this.s.super ? `<button class="btn btn-sm" data-act="adm.yatim">${ico('image')} Bersihkan file bukti tak terpakai (semua event)</button>` : '') : `<button class="btn btn-sm" data-act="adm.demoIsi">${ico('refresh')} Isi ulang data contoh</button><button class="btn btn-sm" data-act="adm.demoKosong">${ico('x')} Kosongkan demo</button>`}
+          ${api.mode === 'supabase' ? (this.s.super ? `<button class="btn btn-sm" data-act="adm.yatim">${ico('image')} Bersihkan foto bukti tak terpakai</button>` : '') : `<button class="btn btn-sm" data-act="adm.demoIsi">${ico('refresh')} Isi ulang data contoh</button><button class="btn btn-sm" data-act="adm.demoKosong">${ico('x')} Kosongkan demo</button>`}
         </div></div>
     </div>`;
   },
@@ -10075,17 +10075,38 @@ ACT['adm.cekSetup'] = (el) => sibuk(el, async () => {
 });
 ACT['adm.reset'] = async () => {
   const n = Adm.s.data.daftar.length;
-  if (!(await konfirmasiDialog({ judul: 'Hapus SEMUA pendaftaran?', isi: `${n} pendaftaran beserta bukti transfernya akan dihapus permanen dan nomor layangan mulai lagi dari 001. Seri, harga & pengaturan tetap.`, tombol: 'Hapus semua', bahaya: true, ketik: 'HAPUS' }))) return;
-  try { const r = await api.resetData(); Adm.s.idsLama = null; await Adm.muat(); toast(`${r.dihapus} pendaftaran dihapus`, 'good'); }
-  catch (e) { toast(pesanError(e), 'bad', 6000); }
+  if (!(await konfirmasiDialog({ judul: 'Hapus SEMUA pendaftaran?', isi: `${n} pendaftaran beserta bukti transfernya akan dihapus permanen dan nomor layangan mulai lagi dari 001. Seri, harga & pengaturan tetap.`, tombol: 'Lanjut', bahaya: true, ketik: 'HAPUS' }))) return;
+  const id = labelOleh(Adm.emailSaya()) || Adm.emailSaya();
+  Overlay.modal(`<form data-submit="adm.resetPw" novalidate>
+    <h3>Masukkan password untuk menghapus</h3>
+    <p class="lead">Langkah terakhir: <b>${n} pendaftaran</b> akan dihapus permanen dan <b>tidak bisa dikembalikan</b>. Masukkan password untuk ID <b>${esc(id)}</b>.</p>
+    <input type="text" name="username" value="${esc(Adm.emailSaya())}" autocomplete="username" hidden>
+    <div class="field"><input class="input" type="password" name="pw" id="reset-pw" autocomplete="current-password" placeholder="Password" aria-label="Password" required autofocus></div>
+    <div class="actions end"><button type="button" class="btn" data-act="ovl.tutup">Batal</button><button type="submit" class="btn btn-danger">${ico('trash')} Hapus semua pendaftaran</button></div>
+  </form>`);
 };
-ACT['adm.yatim'] = (el) => sibuk(el, async () => {
-  try {
+SUB['adm.resetPw'] = async (form) => {
+  const pw = form.pw.value, btn = form.querySelector('button[type=submit]');
+  if (!pw) { form.pw.focus(); return; }
+  await sibuk(btn, async () => {
+    try { await api.cekPassword(pw); }
+    catch (e) {
+      const m = (e && e.message) || '';
+      toast(/PASSWORD_LAMA_SALAH|Invalid login/i.test(m) ? 'Password salah — data tidak dihapus.' : pesanError(e), 'bad');
+      form.pw.value = ''; form.pw.focus(); return;
+    }
+    try { const r = await api.resetData(); Overlay.tutupYangBerisi(form); Adm.s.idsLama = null; await Adm.muat(); toast(`${r.dihapus} pendaftaran dihapus`, 'good'); }
+    catch (e) { toast(pesanError(e), 'bad', 6000); }
+  });
+};
+ACT['adm.yatim'] = async (el) => {
+  if (!(await konfirmasiDialog({ judul: 'Bersihkan foto bukti tak terpakai?', isi: 'Menghapus <b>foto bukti transfer</b> di penyimpanan yang <b>tidak lagi dimiliki pendaftaran mana pun</b> (mis. formulir yang batal dikirim, atau pendaftarannya sudah dihapus) dan berumur lebih dari 1 hari — di semua event. Pendaftaran yang masih ada beserta buktinya <b>tidak tersentuh</b>. Gunanya menghemat ruang penyimpanan.', tombol: 'Bersihkan' }))) return;
+  return sibuk(el, async () => { try {
     const n = await api.bersihkanFileYatim();
-    toast(n ? `${n} file tak terpakai dihapus` : 'Tidak ada file tak terpakai', 'good');
+    toast(n ? `${n} foto bukti tak terpakai dihapus` : 'Tidak ada foto bukti tak terpakai', 'good');
   }
-  catch (e) { toast(pesanError(e), 'bad', 6000); }
-});
+  catch (e) { toast(pesanError(e), 'bad', 6000); } });
+};
 ACT['adm.demoIsi'] = async () => {
   if (!(await konfirmasiDialog({ judul: 'Isi ulang data contoh?', isi: 'Semua data demo diganti dengan data contoh baru.', tombol: 'Isi ulang' }))) return;
   await api.isiContoh(); Adm.s.idsLama = null; Adm.s.url = {}; await Adm.muat(); Adm.render(); toast('Data contoh diisi ulang', 'good');
