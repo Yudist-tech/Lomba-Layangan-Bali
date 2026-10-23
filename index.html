@@ -2238,6 +2238,28 @@ form .kp-foto { margin-bottom: 12px; height: 80px; }
 #adm-main .rk-jenis .tbl td, #adm-main .rk-kinerja .tbl td { padding-top: 7px; padding-bottom: 7px; }
 #adm-main .rk-jenis .tbl th, #adm-main .rk-kinerja .tbl th { padding-top: 6px; padding-bottom: 6px; }
 #adm-main .rk-lipat { padding: 0 16px; border-radius: 14px; } #adm-main .rk-lp > summary { padding: 8px 0; }
+/* ===== Penilaian: tabel nilai muat tanpa geser ke kanan ===== */
+@media (min-width: 761px) {
+  #adm-main .nr { gap: 6px; padding-left: 10px; padding-right: 10px; }
+  #adm-main .nilai-tbl .nin input { height: 34px; font-size: 14.5px; padding: 4px 2px; }
+  #adm-main .nilai-tbl .rk { min-width: 28px; height: 24px; font-size: 12px; }
+  #adm-main .nilai-tbl .nno { font-size: 14px; }
+  #adm-main .nilai-tbl .nsk b { font-size: 13.5px; }
+  #adm-main .nilai-tbl .nkp { font-size: 12.5px; line-height: 1.45; padding-left: 8px; }
+  #adm-main .nilai-tbl .ntot { font-size: 16px; }
+  #adm-main .nilai-tbl .naksi .btn-xs { padding: 0 8px; }
+  #adm-main .nilai-tbl .nr:not(.nh) { padding-top: 8px; padding-bottom: 8px; }
+}
+/* layar laptop kecil: keterangan turun ke baris kedua (tetap tanpa geser) */
+@media (min-width: 761px) and (max-width: 1319px) {
+  #adm-main .nilai-tbl .nr { grid-template-columns: var(--kol2); min-width: 0; }
+  #adm-main .nilai-tbl .nr.nh .nkj-h, #adm-main .nilai-tbl .nr.nh .nkp-h { display: none; }
+  #adm-main .nilai-tbl .nr:not(.nh) .nkp { grid-column: 3 / -1; border-left: 0; background: var(--surface-2); border-radius: 8px; padding: 4px 9px; display: grid; grid-template-columns: 82px minmax(0, 1fr); gap: 6px; align-items: baseline; }
+  #adm-main .nilai-tbl .nr:not(.nh) .nkp.kos { display: none; }
+  #adm-main .nilai-tbl .nr:not(.nh) .nkp-l { display: block; font-size: 10px; font-weight: 800; letter-spacing: .04em; text-transform: uppercase; color: var(--brand); }
+  #adm-main .nilai-tbl .nr:not(.nh) .nkj .nkp-l { color: var(--warn-ink); }
+  #adm-main .nilai-tbl .naksi { grid-column: -2 / -1; grid-row: 1; }
+}
 /* ===== Ukuran huruf seragam di semua halaman panitia ===== */
 #adm-main { --ft-judul: 21px; --ft-sub: 13.5px; --ft-kartu: 16px; --ft-isi: 14px; --ft-label: 12.5px; --ft-kecil: 12.5px; --ft-thead: 11.5px; --ft-tombol: 13.5px; --ft-kpi: 26px; --ft-total: 17px; }
 #adm-main .topbar h2, #adm-main .rk-hero h2 { font-size: var(--ft-judul); letter-spacing: -.01em; }
@@ -7619,8 +7641,8 @@ const Adm = {
     const BATAS = 15, cari = (this.s.nilaiCari || '').trim(), j = this.idx.jenis.get(jk);
     const boleh = this.bolehMenilai(), ro = !boleh || this.terkunci(jk);
     const nj = Math.max(1, pk.juri.length), kp = this.pantauAktif(), kj = this.ketJuriAktif();
-    const lebar = [40, 48, 120, nj * 66, 56, kj ? 160 : 0, kp ? 150 : 0, 84], nKol = 5 + nj + (kj ? 1 : 0) + (kp ? 1 : 0);
-    const kolom = `--nj:${nj};--kol:40px 48px minmax(120px, 1fr) repeat(${nj}, 66px) 56px${kj ? ' minmax(160px, 1.2fr)' : ''}${kp ? ' minmax(150px, 1fr)' : ''} 84px;--mw:${lebar.reduce((a, b) => a + b, 0) + (nKol - 1) * 8 + 24}px`;
+    const lebar = [34, 40, 110, nj * 58, 46, kj ? 130 : 0, kp ? 120 : 0, 76], nKol = 5 + nj + (kj ? 1 : 0) + (kp ? 1 : 0);
+    const kolom = `--nj:${nj};--kol:34px 40px minmax(110px, 1fr) repeat(${nj}, 58px) 46px${kj ? ' minmax(130px, 1.15fr)' : ''}${kp ? ' minmax(120px, 1fr)' : ''} 76px;--kol2:34px 40px minmax(110px, 1fr) repeat(${nj}, 58px) 46px 76px;--mw:${lebar.reduce((a, b) => a + b, 0) + (nKol - 1) * 6 + 20}px`;
     const head = `<div class="nr nh" style="${kolom}"><span>Rank</span><span>No.</span><span>Sekha</span>
       ${pk.juri.map((x, i) => `<span class="nj-h"><span class="nj-n" title="${esc(x.nama || 'Juri ' + (i + 1))}">${esc(x.nama || 'Juri ' + (i + 1))}</span></span>`).join('')}
       <span class="r">Total</span>${kj ? '<span class="nkj-h">Keterangan juri nilai</span>' : ''}${kp ? '<span class="nkp-h">Keterangan juri pantau</span>' : ''}<span></span></div>`;
