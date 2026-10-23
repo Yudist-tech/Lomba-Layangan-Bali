@@ -1838,9 +1838,10 @@ fieldset.rentang legend { font-weight: 700; font-size: 14px; padding: 0 6px; }
 .rw-tag { font-size: 11px; font-weight: 800; color: var(--warn-ink); background: var(--warn-soft); border-radius: 5px; padding: 0 5px; }
 .rw-dq { color: var(--bad-ink); }
 @media (max-width: 600px) { .rw-row { grid-template-columns: 1fr; gap: 2px; } }
-.nilai-tbl { border: 1px solid var(--line); border-radius: 12px; overflow-x: auto; }
+.nilai-tbl { border: 1px solid var(--line); border-radius: 14px; overflow-x: auto; }
+@media (min-width: 761px) { .nilai-tbl .nr:not(.nh) { padding-top: 11px; padding-bottom: 11px; } .nilai-tbl .nin input { height: 38px; } .nilai-tbl .ntot { font-size: 17px; } }
 .nr { display: grid; grid-template-columns: 52px 62px minmax(200px, 1fr) repeat(var(--nj), 104px) 64px 132px; align-items: center; gap: 8px; padding: 8px 10px; border-top: 1px solid var(--line); min-width: calc(52px + 62px + 200px + var(--nj) * 104px + 64px + 132px + (var(--nj) + 5) * 8px + 20px); font-variant-numeric: tabular-nums; }
-.nr.nh { border-top: 0; background: var(--surface-2); font-size: 11.5px; font-weight: 800; letter-spacing: .04em; text-transform: uppercase; color: var(--ink-2); }
+.nr.nh { border-top: 0; background: var(--surface-2); font-size: 11.5px; font-weight: 800; letter-spacing: .04em; text-transform: uppercase; color: var(--muted); padding-top: 10px; padding-bottom: 10px; }
 .nr .r { text-align: right; }
 .nj-h { display: flex; align-items: center; gap: 2px; }
 .nj-nama { width: 100%; min-width: 0; border: 1px dashed color-mix(in srgb, var(--brand) 45%, var(--line)); border-radius: 7px; padding: 4px 6px; font: inherit; font-size: 12.5px; font-weight: 700; color: var(--brand); text-transform: none; letter-spacing: 0; background: var(--surface); }
@@ -1878,7 +1879,32 @@ fieldset.rentang legend { font-weight: 700; font-size: 14px; padding: 0 6px; }
 .nilai-ulang { margin-top: 8px; text-align: right; }
 .nnaik { padding: 2px 8px; min-height: 0; }
 .jaksi { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin-top: 12px; }
-.nilai-kaki { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; margin-top: 12px; }
+.nilai-kaki { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; margin-top: 14px; padding: 12px 14px; border-radius: 12px; background: var(--surface-2); border: 1px solid var(--line); }
+.nilai-kaki .nk-t { flex: 1 1 260px; color: var(--muted); font-weight: 600; font-size: 13.5px; display: inline-flex; align-items: center; gap: 6px; }
+.nilai-kaki.siap { background: color-mix(in srgb, var(--good-soft) 70%, var(--surface)); border-color: color-mix(in srgb, var(--good) 22%, var(--line)); }
+.nilai-kaki.siap .nk-t { color: var(--good-ink); } .nilai-kaki .nk-t .ico { width: 17px; height: 17px; flex: none; }
+/* ---- Penilaian (lega & berwarna) ---- */
+.njks { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 8px; margin: 0 0 14px; }
+.njk { all: unset; box-sizing: border-box; cursor: pointer; min-width: 150px; flex: 0 1 auto; background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 9px 12px 10px; }
+.njk b { display: flex; align-items: center; gap: 7px; font-size: 13.5px; } .njk b .jdot { flex: none; }
+.njk small { display: block; color: var(--muted); font-size: 12px; margin: 2px 0 6px; font-variant-numeric: tabular-nums; }
+.njk-pb { display: block; height: 5px; border-radius: 9px; background: var(--surface-3); overflow: hidden; } .njk-pb i { display: block; height: 100%; border-radius: 9px; background: var(--c); }
+.njk:hover { border-color: color-mix(in srgb, var(--c) 45%, var(--line)); }
+.njk.on { border: 2px solid var(--brand); padding: 8px 11px 9px; background: color-mix(in srgb, var(--brand-soft) 55%, var(--surface)); }
+.njk.on b { color: var(--brand-soft-ink); }
+.njk:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
+.nilai-panel { padding: 18px 20px; }
+.nl-ph { display: flex; align-items: center; gap: 10px 14px; flex-wrap: wrap; margin-bottom: 12px; }
+.nl-ph h3 { margin: 0; font-size: 18px; display: flex; align-items: center; gap: 8px; } .nl-ph h3 .jdot { width: 11px; height: 11px; }
+.nl-pills { display: flex; gap: 6px; flex-wrap: wrap; margin-left: auto; }
+.nl-pill { border-radius: 999px; padding: 3px 11px; font-size: 12.5px; font-weight: 700; }
+.nl-pill.g { background: var(--good-soft); color: var(--good-ink); } .nl-pill.r { background: var(--bad-soft); color: var(--bad-ink); } .nl-pill.m { background: var(--surface-3); color: var(--ink-2); }
+.nilai-panel .nilai-cari { border-width: 1.5px; min-height: 44px; }
+.nl-hero { margin-bottom: 14px; }
+@media (max-width: 760px) {
+  .njks { display: flex; flex-wrap: nowrap; overflow-x: auto; margin: 0 -16px 12px; padding: 0 16px 4px; scrollbar-width: none; } .njks::-webkit-scrollbar { display: none; }
+  .njk { flex: none; min-width: 138px; } .nilai-panel { padding: 14px; } .nl-pills { margin-left: 0; } .nl-ph h3 { font-size: 17px; }
+}
 .pill-st { display: inline-flex; align-items: center; gap: 5px; font-size: 12.5px; font-weight: 700; padding: 3px 10px; border-radius: 99px; }
 .pill-st .ico { width: 14px; height: 14px; }
 .pill-st.good { background: var(--good-soft); color: var(--good-ink); } .pill-st.warn { background: var(--warn-soft); color: var(--warn-ink); }
@@ -7373,7 +7399,10 @@ const Adm = {
   },
   vPenilaian() {
     const d = this.s.data, ev = d.pengaturan;
-    const top = this.vTopbar('Penilaian & juara', 'Nilai juri dijumlah otomatis, lalu diurutkan per jenis');
+    const bukaAtur = this.s.nilaiBuka && this.bolehMenilai() && d.penilaian != null && d.juara != null && this.jenisNilai().length;
+    const top = `<div class="rk-hero nl-hero"><div class="rk-hh"><h2>Penilaian &amp; juara</h2><div class="rk-sub">Pilih jenis → isi / upload nilai juri → <b>Jadikan juara</b></div></div>
+      <div class="rk-ha">${bukaAtur ? `<button type="button" class="btn btn-sm" data-act="adm.nilaiAtur">${ico('sliders')}<span>Pengaturan nilai</span></button>` : ''}
+      <button class="btn btn-sm btn-icon" data-act="adm.muat" title="Muat ulang data">${this.s.loading ? '<span class="spinner"></span>' : ico('refresh')}<span class="sr-only">Muat ulang</span></button></div></div>`;
     if (d.penilaian == null || d.juara == null) return top + `<div class="note">${ico('info')}<span>Fitur penilaian belum aktif. Jalankan <b>juara.sql</b> di Supabase → SQL Editor, lalu muat ulang.</span></div>`;
     if (!this.s.nilaiBuka) return top + this.vGerbangNilai();
     const jenisList = this.jenisNilai();
@@ -7385,10 +7414,13 @@ const Adm = {
     const adaNilai = new Set((d.nilai || []).map((n) => n.pendaftaran_id));
     (d.penilaian || []).forEach((p) => { if (p.diskualifikasi) adaNilai.add(p.pendaftaran_id); });
     const nDinilai = (kode) => d.daftar.filter((r) => r.jenis === kode && r.status === 'terkonfirmasi' && adaNilai.has(r.id)).length;
-    const chips = jenisList.map((x) => `<button type="button" class="nchip ${x.kode === jk ? 'on' : ''}" data-act="adm.nilaiJenis" data-v="${esc(x.kode)}">${jdot(x.kode, d.jenis)}${esc(x.nama)} <small>${nDinilai(x.kode)}/${nKonf(x.kode)}</small>${this.juaraUmum(x.kode) ? ' <span title="Juara sudah diumumkan">🏆</span>' : ''}</button>`).join('');
+    const chips = jenisList.map((x) => { const a = nDinilai(x.kode), t = nKonf(x.kode), pr = t ? Math.round(a / t * 100) : 0;
+      return `<button type="button" class="njk ${x.kode === jk ? 'on' : ''}" style="--c:${warnaJenis(x.kode, d.jenis)}" data-act="adm.nilaiJenis" data-v="${esc(x.kode)}" role="tab" aria-selected="${x.kode === jk}">
+        <b>${jdot(x.kode, d.jenis)}<span class="njk-n">${esc(x.nama)}</span>${this.juaraUmum(x.kode) ? '<span title="Juara sudah diumumkan">🏆</span>' : ''}</b>
+        <small>${a} dari ${t} dinilai</small><span class="njk-pb"><i style="width:${pr}%"></i></span></button>`; }).join('');
     const maks = Number(ev.nilai_maks) || 100;
     return top + this.vJuriAlat() + `
-      <div class="nchips" role="tablist" aria-label="Jenis layangan">${chips}</div>
+      <div class="njks" role="tablist" aria-label="Jenis layangan">${chips}</div>
       ${bantuan('nilai', 'Cara mengisi nilai', [
         'Sebelum lomba: isi <b>Daftar Juri</b> dan <b>Daftar Juri Pantau</b>, lalu <b>Cetak Form Juri</b> / <b>Cetak Form Juri Pantau</b> dan bagikan ke masing-masing juri. Juri menulis <b>jenis layangan</b> dan <b>seri</b> sendiri di form.',
         'Setelah form diisi: pilih jenis layangan, tekan <b>Upload Form</b>, foto seluruh kertas (4 kotak hitam di sudut harus terlihat). Di layar periksa, betulkan angka yang salah — yang <b>kuning</b> kurang jelas — lalu <b>Simpan</b>.',
@@ -7400,13 +7432,13 @@ const Adm = {
         'Setelah selesai: <b>Jadikan juara</b> → periksa daftar → <b>Umumkan</b>. Setelah diumumkan nilai terkunci (hanya super admin yang bisa membuka). Semua perubahan nilai dan upload tercatat di <b>Riwayat</b> beserta ID panitia.'])}
       ${this.vCatatanAkses(jk)}
       <div class="panel nilai-panel">
+        <div class="nl-ph"><h3>${jdot(jk, d.jenis)}${esc(j ? j.nama : jk)}</h3><span class="nl-pills"><span class="nl-pill g">${pk.sah.length} berperingkat</span>${pk.dq.length ? `<span class="nl-pill r">${pk.dq.length} diskualifikasi</span>` : ''}<span class="nl-pill m">${pk.kosong.length} belum dinilai</span></span></div>
         <div class="nilai-alat">
           <label class="nilai-cari">${ico('search')}<input id="nilai-cari" class="input" type="text" inputmode="numeric" placeholder="Ketik nomor layangan lalu Enter" value="${esc(this.s.nilaiCari || '')}" data-in="adm.nilaiCari" autocomplete="off" aria-label="Cari nomor layangan"><button type="button" class="nilai-cari-x" data-act="adm.nilaiCariHapus" aria-label="Hapus pencarian">${ico('x')}</button></label>
           ${this.bolehMenilai() && !this.terkunci(jk) ? `<label class="btn btn-sm btn-good uf-btn" title="Foto langsung dari kamera atau pilih beberapa foto form juri / juri pantau">${ico('camera')} Upload Form ${esc(j ? j.nama : '')}<input type="file" accept="image/*" multiple hidden data-ch="adm.uploadForm"></label>` : ''}
-          ${this.bolehMenilai() ? `<button type="button" class="btn btn-sm" data-act="adm.nilaiAtur">${ico('sliders')} Pengaturan nilai</button>` : ''}
         </div>
         <div id="nilai-isi">${this.vIsiNilai(jk, pk, maks)}</div>
-        <div class="nilai-kaki"><span class="hint">${pk.sah.length} layangan berperingkat${pk.belum.length ? ` · ${pk.belum.length} baru dinilai 1 juri` : ''}${pk.dq.length ? ` · ${pk.dq.length} diskualifikasi` : ''} · ${pk.kosong.length} belum dinilai</span>
+        <div class="nilai-kaki${pk.sah.length ? ' siap' : ''}"><span class="nk-t">${pk.sah.length ? `${ico('check')} ${pk.sah.length} layangan siap dijadikan juara (dinilai minimal ${pk.minJuri} juri)` : `Belum ada layangan yang dinilai minimal ${pk.minJuri} juri`}</span>
           ${this.bolehMenilai() && !this.terkunci(jk) ? `<button type="button" class="btn btn-good" data-act="adm.jadikanJuara" ${pk.sah.length ? '' : 'disabled'}>${ico('trophy')} Jadikan juara</button>` : ''}</div>
       </div>
       ${this.vHasilJuara(jk)}
