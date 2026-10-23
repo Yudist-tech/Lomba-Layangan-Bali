@@ -1195,6 +1195,20 @@ code { font-family: ui-monospace, Menlo, Consolas, monospace; font-size: .92em; 
    JADWAL TERBANG — tabel Hari → Seri → Grup (25 kotak per baris)
    ================================================================ */
 .jt-hari { margin: 0 0 26px; }
+.lk-wrap { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin: 0 0 16px; }
+.lk { display: flex; align-items: center; gap: 10px; background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 9px 14px; }
+.lk b { display: block; font-size: 14px; } .lk small { color: var(--muted); font-size: 12px; }
+.lk-n { width: 28px; height: 28px; border-radius: 50%; display: grid; place-items: center; font-weight: 800; font-size: 13px; background: var(--surface-3); color: var(--ink-2); flex: none; }
+.lk.ok .lk-n { background: var(--good-soft); color: var(--good-ink); } .lk-n .ico { width: 15px; height: 15px; }
+.lk-ar { color: var(--muted); display: grid; } .lk-ar .ico { width: 16px; height: 16px; }
+.jt-klik { display: flex; align-items: center; gap: 7px; flex-wrap: wrap; font-size: 13px; color: var(--ink-2); margin: 0 0 8px; }
+.jt-klik .ico { width: 15px; height: 15px; color: var(--brand); }
+.jn-tip { margin-bottom: 16px; }
+.jn-sw { display: inline-flex; align-items: center; gap: 6px; } .jn-swl { font-size: 12.5px; font-weight: 700; color: var(--muted); }
+.jn-sw input:checked ~ .jn-swl { color: var(--good-ink); }
+.jn-st { display: flex; align-items: center; gap: 6px; font-size: 12.5px; font-weight: 600; border-radius: 9px; padding: 6px 10px; }
+.jn-st .ico { width: 15px; height: 15px; flex: none; } .jn-st.ok { background: var(--good-soft); color: var(--good-ink); } .jn-st.no { background: var(--warn-soft); color: var(--warn-ink); }
+@media (max-width: 760px) { .lk-ar { display: none; } .lk { padding: 7px 10px; } .lk small { display: none; } }
 .jt-hari-h { display: flex; align-items: center; gap: 8px 12px; flex-wrap: wrap; margin: 0 0 10px; }
 .jt-hari-h h3 { margin: 0; font-size: 19px; font-weight: 800; letter-spacing: .05em; text-transform: uppercase; }
 .jt-hari-h .muted { font-size: 14px; }
@@ -5173,7 +5187,7 @@ function tabelJadwal(o) {
     const totalBaris = Math.max(1, barisGrup.reduce((a, n) => a + n, 0));
     if (si > 0) body += `<tr class="jt-pemisah" aria-hidden="true"><td colspan="${KOLOM_JADWAL + 4}" style="height:8px;background:var(--surface-3)"></td></tr>`;
     const selSeri = `<th scope="rowgroup" class="jt-seri" rowspan="${totalBaris}"><b>Seri ${esc(x.nama)}</b><span>${esc(jamSesi(x))}</span>
-      ${admin ? `<div class="sa-act"><button class="btn btn-xs" data-act="adm.grupBaru" data-sesi="${x.id}" aria-label="Tambah grup di Seri ${esc(x.nama)}">${ico('plus')}<span class="sa-teks"> Grup</span></button><button class="btn btn-xs btn-icon" data-act="adm.sesiEdit" data-id="${x.id}" aria-label="Ubah Seri ${esc(x.nama)}">${ico('edit')}<span class="sa-teks-hp">Ubah</span></button></div>` : ''}</th>`;
+      ${admin ? `<div class="sa-act"><button class="btn btn-xs" data-act="adm.grupBaru" data-sesi="${x.id}" aria-label="Tambah grup di Seri ${esc(x.nama)}">${ico('plus')}<span class="sa-teks"> Grup</span></button><button class="btn btn-xs" data-act="adm.sesiEdit" data-id="${x.id}" aria-label="Ubah Seri ${esc(x.nama)}">${ico('edit')}<span> Ubah seri</span></button></div>` : ''}</th>`;
     if (!grup.length) {
       body += `<tr>${selSeri}<td colspan="${KOLOM_JADWAL + 3}" class="jt-kosong">${admin ? `Belum ada grup. <button class="btn btn-xs" data-act="adm.grupBaru" data-sesi="${x.id}">${ico('plus')} Tambah grup A</button>` : 'Grup menyusul.'}</td></tr>`;
       return;
@@ -5606,7 +5620,7 @@ const Pub = {
     if (!ev.pendaftaran_buka) {
       return `<section class="card"><h2 class="h2">Pendaftaran ditutup</h2>
         <p class="lead">Pendaftaran online saat ini tidak menerima peserta baru. Pantau jadwal atau hubungi panitia untuk informasi.</p>
-        <div class="actions"><a class="btn" href="#jadwal">${ico('cal')} Lihat jadwal</a><a class="btn" href="#cek">${ico('search')} Cek status</a></div></section>`;
+        <div class="actions"><a class="btn" href="#jadwal">${ico('cal')} Jadwal</a><a class="btn" href="#cek">${ico('search')} Cek status</a></div></section>`;
     }
     if (s.step === 2) return this.vKonfirmasi();
     if (s.step === 3) return this.vBayar();
@@ -7875,7 +7889,8 @@ const Adm = {
   },
   vJenis() {
     const d = this.s.data;
-    return `${this.vTopbar('Jenis Layangan', `${d.jenis.length} jenis · nama & harga`, `<a class="btn btn-sm btn-primary" href="#admin/seri">${ico('cal')}<span>Jadwal Terbang</span></a>`)}
+    return `${this.vTopbar('Jenis Layangan', 'Jenis yang dilombakan & harganya', `<a class="btn btn-sm btn-primary" href="#admin/seri">${ico('cal')}<span>Jadwal Terbang</span></a>`)}
+      <div class="note jn-tip">${ico('info')}<span><b>Menambah jenis baru?</b> Buka <b>Jadwal Terbang</b> → <b>+ Grup</b> → ketik nama jenis baru, lalu isi harganya. Di halaman ini Anda mengubah nama &amp; harga, serta <b>membuka / menutup</b> pendaftaran tiap jenis.</span></div>
       ${bantuan('jenis', 'Cara mengatur jenis layangan', [
         'Jenis baru dibuat dari <a href="#admin/seri">Jadwal Terbang</a>: saat menambah grup dengan jenis baru, sistem menanyakan harganya.',
         'Tombol <b>Ubah</b>: ganti <b>nama</b>, <b>harga</b> (berlaku untuk pendaftaran berikutnya), <b>urutan tampil</b>, dan <b>rentang nomor layangan</b>. Sakelar di kanan atas untuk <b>membuka / menutup</b> jenis.',
@@ -7890,9 +7905,9 @@ const Adm = {
     return `<div class="sa-card ${j.aktif ? '' : 'nonaktif'}">
       <div class="sa-top"><div style="min-width:0"><b class="jk-nama">${jdot(j.kode, d.jenis)}${esc(j.nama)}</b>
           <div class="sc-when"><span>${rupiah(j.harga)}</span>${adaRentang(j) ? `<span>Nomor ${esc(teksRentang(j))}</span>` : ''}</div></div>
-        <label class="switch" title="${j.aktif ? 'Jenis dibuka' : 'Jenis ditutup'}"><input type="checkbox" ${j.aktif ? 'checked' : ''} data-ch="adm.jenisAktif" data-kode="${esc(j.kode)}"><span class="sw"></span><span class="sr-only">Jenis ${esc(j.nama)} dibuka</span></label></div>
-      <div class="sa-stat"><div><b>${c.terkonfirmasi}</b><span>Konfirmasi</span></div><div><b>${c.menunggu}</b><span>Menunggu</span></div><div><b>${c.seriAktif}/${c.seri}</b><span>Grup dibuka</span></div></div>
-      <div class="hint">Kuota ${c.kuota} kotak${siapTampil ? '' : ` · <span class="jk-warn">${j.aktif ? 'belum ada grup dibuka di jadwal — belum tampil di formulir' : 'ditutup, tidak tampil di formulir'}</span>`}</div>
+        <label class="switch jn-sw" title="${j.aktif ? 'Jenis dibuka' : 'Jenis ditutup'}"><input type="checkbox" ${j.aktif ? 'checked' : ''} data-ch="adm.jenisAktif" data-kode="${esc(j.kode)}"><span class="sw"></span><span class="jn-swl">${j.aktif ? 'Dibuka' : 'Ditutup'}</span><span class="sr-only">Jenis ${esc(j.nama)} dibuka</span></label></div>
+      <div class="sa-stat"><div><b>${c.terkonfirmasi}</b><span>Terkonfirmasi</span></div><div><b>${c.menunggu}</b><span>Menunggu</span></div><div><b>${c.seriAktif}/${c.seri}</b><span>Grup</span></div></div>
+      <div class="jn-st ${siapTampil ? 'ok' : 'no'}">${siapTampil ? `${ico('check')} Tampil di formulir · ${c.kuota} kotak` : `${ico('alert')} ${j.aktif ? 'Belum ada grup di jadwal — belum tampil di formulir' : 'Ditutup — tidak tampil di formulir'}`}</div>
       <div class="sa-act">
         <button class="btn btn-xs" data-act="adm.jenisEdit" data-kode="${esc(j.kode)}">${ico('edit')} Ubah</button>
         <a class="btn btn-xs" href="#admin/seri">${ico('cal')} Jadwal</a>
@@ -7930,7 +7945,10 @@ const Adm = {
     const d = this.s.data;
     const lama = d.seri.filter((x) => !x.sesi_id);
     const isi = (g) => this.idx.kotak.get(g.id) || new Map();
-    return `${this.vTopbar('Jadwal Terbang', `${d.hari.length} hari · ${d.sesi.length} seri · ${d.seri.filter((x) => x.sesi_id).length} grup`, `<button class="btn btn-sm btn-primary" data-act="adm.hariBaru">${ico('plus')}<span>Tambah hari</span></button>`)}
+    const nGrup = d.seri.filter((x) => x.sesi_id).length;
+    const lk = (ok, no, judul, ket) => `<div class="lk ${ok ? 'ok' : ''}"><span class="lk-n">${ok ? ico('check') : no}</span><span><b>${judul}</b><small>${ket}</small></span></div>`;
+    return `${this.vTopbar('Jadwal Terbang', 'Kapan tiap jenis layangan terbang', `<button class="btn btn-sm btn-primary" data-act="adm.hariBaru">${ico('plus')}<span>Tambah hari</span></button>`)}
+      <div class="lk-wrap">${lk(d.hari.length, 1, 'Hari', d.hari.length ? `${d.hari.length} hari` : 'tanggal lomba')}<span class="lk-ar">${ico('arrow-r')}</span>${lk(d.sesi.length, 2, 'Seri', d.sesi.length ? `${d.sesi.length} seri · jam terbang` : 'jam terbang')}<span class="lk-ar">${ico('arrow-r')}</span>${lk(nGrup, 3, 'Grup', nGrup ? `${nGrup} grup · 1 grup = 1 jenis` : '1 grup = 1 jenis layangan')}</div>
       ${bantuan('jadwal', 'Cara menyusun jadwal', [
         'Buat <b>Hari</b> → <b>Seri</b> (jam terbang) → <b>Grup</b> A, B, C. Satu grup = satu jenis layangan.',
         'Jenis & grup di sini otomatis menjadi pilihan di formulir pendaftaran.',
@@ -7939,12 +7957,13 @@ const Adm = {
       ${d.hari.length ? d.hari.map((h) => `<section class="jt-hari"><div class="jt-hari-h"><h3>${esc(h.nama)}</h3>
           <span class="muted">${h.tanggal ? esc(fmtTanggal(h.tanggal)) : '<span class="jk-warn">tanggal belum diisi</span>'}</span>
           <div class="sa-act">
-            <button class="btn btn-xs" data-act="adm.sesiBaru" data-hari="${h.id}">${ico('plus')} Seri</button>
-            <button class="btn btn-xs" data-act="adm.hariEdit" data-id="${h.id}">${ico('edit')} Ubah</button>
-            <button class="btn btn-xs" data-act="adm.cetakHari" data-id="${h.id}">${ico('print')} Cetak</button>
+            <button class="btn btn-xs" data-act="adm.sesiBaru" data-hari="${h.id}">${ico('plus')} Tambah seri</button>
+            <button class="btn btn-xs" data-act="adm.hariEdit" data-id="${h.id}">${ico('edit')} Ubah hari</button>
+            <button class="btn btn-xs" data-act="adm.cetakHari" data-id="${h.id}">${ico('print')} Cetak jadwal</button>
           </div></div>
-          ${tabelJadwal({ hari: h, sesi: d.sesi, grup: d.seri.filter((x) => x.sesi_id), jenis: d.jenis, kotakIsi: isi, admin: true })}
           ${legendaJadwal({ hari: h, sesi: d.sesi, grup: d.seri.filter((x) => x.sesi_id), kotakIsi: isi, admin: true })}
+          <p class="jt-klik">${ico('info')} Klik <b>nama jenis</b> untuk mengubah grup · klik <b>kotak kosong</b> untuk menutup / membuka · klik <b>nomor</b> untuk melihat data peserta</p>
+          ${tabelJadwal({ hari: h, sesi: d.sesi, grup: d.seri.filter((x) => x.sesi_id), jenis: d.jenis, kotakIsi: isi, admin: true })}
         </section>`).join('')
         : `<div class="panel"><div class="empty">Belum ada jadwal terbang.<div style="margin-top:12px"><button class="btn btn-primary" data-act="adm.hariBaru">${ico('plus')} Buat hari pertama</button></div></div></div>`}
       ${lama.length ? `<div class="panel" style="margin-top:20px"><div class="panel-h"><h3>Seri lama (sebelum jadwal terbang)</h3></div>
