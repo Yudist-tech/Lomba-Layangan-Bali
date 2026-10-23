@@ -1097,6 +1097,26 @@ div.sehat { margin: 0 0 16px; }
 .st-bahaya { display: flex; align-items: center; gap: 10px 14px; flex-wrap: wrap; border: 1px solid color-mix(in srgb, var(--bad) 30%, var(--line)); background: color-mix(in srgb, var(--bad-soft) 40%, var(--surface)); border-radius: 14px; padding: 12px 16px; }
 .st-bh { flex: 1; color: var(--bad-ink); font-weight: 800; display: inline-flex; align-items: center; gap: 6px; } .st-bh .ico { width: 17px; height: 17px; }
 @media (min-width: 761px) { .st-hb { margin-left: auto; } }
+/* lebih ringkas: kolom, kartu & gelembung lebih kecil */
+#set-root { gap: 14px; }
+#set-root .st-k { padding: 14px 16px; }
+#set-root .st-h { margin-bottom: 10px; } #set-root .st-h h3 { font-size: 15px; }
+#set-root .st-ic { width: 28px; height: 28px; border-radius: 8px; } #set-root .st-ic .ico { width: 15px; height: 15px; }
+#set-root .st-k .field { margin-bottom: 9px; }
+#set-root .label { font-size: 12px; margin-bottom: 3px; }
+#set-root .input { padding: 6px 10px; font-size: 13.5px; min-height: 34px; border-radius: 9px; }
+#set-root textarea.input { min-height: 0; }
+#set-root .btn-sm { padding: 5px 11px; font-size: 12.5px; }
+#set-root .st-row { padding: 9px 0; } #set-root .st-row .switch { font-size: 13.5px; }
+#set-root .st-bank { padding: 10px 14px; margin-bottom: 10px; } #set-root .st-bank .st-rek { font-size: 17px; margin: 2px 0; } #set-root .st-bank span { font-size: 13px; }
+#set-root .st-slot .media-prev, #set-root .st-slot .media-prev.flyer, #set-root .st-slot .media-prev.logo { height: 92px; }
+#set-root .st-cap { font-size: 12.5px; margin-top: 4px; }
+#set-root .st-wa-m { padding: 10px 12px; } #set-root .st-wa-m + .st-wa-m { margin-top: 10px; } #set-root .st-wa-h { margin-bottom: 8px; }
+#set-root .st-wa-ed textarea { font-size: 12px; line-height: 1.45; }
+#set-root .st-wa-pv { padding: 9px; border-radius: 10px; } #set-root .st-wa-pv .wa-preview { font-size: 12.5px; line-height: 1.4; padding: 8px 10px; max-height: 230px; }
+#set-root .st-bahaya { padding: 10px 14px; }
+.st-hero { padding-top: 14px; padding-bottom: 14px; } .st-box { height: 54px; border-radius: 12px; } .st-bt b { font-size: 13.5px; } .st-link code { font-size: 12px; padding: 4px 7px; }
+.st-hero .btn-sm { padding: 5px 10px; font-size: 12.5px; }
 @media (max-width: 760px) {
   .st-hero { flex-direction: column; align-items: stretch; } .st-hb { flex-direction: column; } .st-box { width: 100%; }
   .st-link { padding: 0 8px 0 10px; gap: 6px; } .st-link code { flex: 1 1 0; min-width: 0; max-width: none; font-size: 11.5px; } .st-hb, .st-box { min-width: 0; max-width: 100%; } .st-link .btn { flex: none; } .st-link .btn { padding: 6px 9px; }
@@ -8353,23 +8373,21 @@ ${rows.map((r, i) => `<tr><td class="n">${i + 1}</td><td class="no">${esc(r.nomo
       </div>
       <div class="st-full">${this.vPanelTampilan()}</div>
       <div class="st-full">${kartu('st-wa', 'chat', 'Pesan WhatsApp', `<button type="button" class="btn btn-sm" data-act="adm.tplDefault">${ico('undo')} Bawaan</button>${simpan}`, `
-        ${pesan('ok', 'Pesan konfirmasi', 'dikirim setelah pembayaran diterima', 't-konf', 'template_wa_konfirmasi', ev.template_wa_konfirmasi || TEMPLATE_WA.konfirmasi, 10, phKonf)}
-        ${pesan('no', 'Pesan penolakan', 'dikirim bila pendaftaran ditolak', 't-tolak', 'template_wa_tolak', ev.template_wa_tolak || TEMPLATE_WA.tolak, 7, phTolak)}`, 'data-submit="adm.setTemplate"')}</div>
+        ${pesan('ok', 'Pesan konfirmasi', 'dikirim setelah pembayaran diterima', 't-konf', 'template_wa_konfirmasi', ev.template_wa_konfirmasi || TEMPLATE_WA.konfirmasi, 9, phKonf)}
+        ${pesan('no', 'Pesan penolakan', 'dikirim bila pendaftaran ditolak', 't-tolak', 'template_wa_tolak', ev.template_wa_tolak || TEMPLATE_WA.tolak, 6, phTolak)}`, 'data-submit="adm.setTemplate"')}</div>
       <div class="st-full">${this.vSehat()}</div>
       <div class="st-full st-bahaya"><span class="st-bh">${ico('alert')} Zona berbahaya</span><div class="sa-act">
           <button class="btn btn-sm btn-danger" data-act="adm.reset">${ico('trash')} Hapus semua pendaftaran</button>
-          ${api.mode === 'supabase' ? (this.s.super ? `<button class="btn btn-sm" data-act="adm.yatim">${ico('image')} Bersihkan file bukti tak terpakai (semua event)</button>` : '') : `<button class="btn btn-sm" data-act="adm.demoIsi">${ico('refresh')} Isi ulang data contoh</button><button class="btn btn-sm" data-act="adm.demoKosong">${ico('x')} Kosongkan demo</button>`}
+          ${api.mode === 'supabase' ? (this.s.super ? `<button class="btn btn-sm" data-act="adm.yatim">${ico('image')} Bersihkan foto bukti tak terpakai</button>` : '') : `<button class="btn btn-sm" data-act="adm.demoIsi">${ico('refresh')} Isi ulang data contoh</button><button class="btn btn-sm" data-act="adm.demoKosong">${ico('x')} Kosongkan demo</button>`}
         </div></div>
     </div>`;
   },
   vSetHero(linkPublik) {
     const ev = this.s.data.pengaturan;
     linkPublik = linkPublik || location.href.split('#')[0] + hrefEv();
-    const batas = ev.batas_daftar ? fmtWaktu(ev.batas_daftar) : '';
     const wa = `https://wa.me/?text=${encodeURIComponent(`Pendaftaran ${ev.nama_event} sudah dibuka! Daftar online di sini: ${linkPublik}`)}`;
     return `<div class="rk-hero st-hero" id="set-hero"><div class="rk-hh"><h2>Pengaturan</h2><div class="rk-sub">${esc(ev.nama_event || '')}</div></div>
       <div class="st-hb">
-        <label class="st-box switch${ev.pendaftaran_buka ? ' on' : ''}"><input type="checkbox" data-ch="adm.bukaCepat" ${ev.pendaftaran_buka ? 'checked' : ''}><span class="sw"></span><span class="st-bt"><b>Pendaftaran ${ev.pendaftaran_buka ? 'dibuka' : 'ditutup'}</b><small>${batas ? `tutup otomatis ${esc(batas)}` : 'tanpa batas waktu'}</small></span></label>
         <div class="st-box st-link"><code title="${esc(linkPublik)}">${esc(linkPublik.replace(/^https?:\/\//, ''))}</code><button class="btn btn-sm" data-act="salin" data-teks="${esc(linkPublik)}" data-label="Link disalin">${ico('copy')} Salin</button><a class="btn btn-sm btn-good" target="_blank" rel="noopener" href="${esc(wa)}">${ico('share')} Bagikan WA</a></div>
       </div></div>`;
   },
@@ -10048,12 +10066,6 @@ SUB['adm.setDaftar'] = (form) => {
   const b = String(form.batas_daftar.value).trim();
   return simpanPengaturanForm(form, { pendaftaran_buka: form.pendaftaran_buka.checked, batas_daftar: isoDariLokal(b), tampilkan_peserta: form.tampilkan_peserta.checked });
 };
-CH['adm.bukaCepat'] = (el) => {
-  const f = document.querySelector('form[data-submit="adm.setDaftar"]');
-  if (!f) return;
-  f.pendaftaran_buka.checked = el.checked;
-  f.requestSubmit();
-};
 SUB['adm.setBank'] = (form) => {
   const v = (n) => String(form[n].value).trim();
   return simpanPengaturanForm(form, { bank_nama: v('bank_nama'), bank_no_rek: v('bank_no_rek'), bank_atas_nama: v('bank_atas_nama') }, 'Rekening disimpan');
@@ -10075,17 +10087,38 @@ ACT['adm.cekSetup'] = (el) => sibuk(el, async () => {
 });
 ACT['adm.reset'] = async () => {
   const n = Adm.s.data.daftar.length;
-  if (!(await konfirmasiDialog({ judul: 'Hapus SEMUA pendaftaran?', isi: `${n} pendaftaran beserta bukti transfernya akan dihapus permanen dan nomor layangan mulai lagi dari 001. Seri, harga & pengaturan tetap.`, tombol: 'Hapus semua', bahaya: true, ketik: 'HAPUS' }))) return;
-  try { const r = await api.resetData(); Adm.s.idsLama = null; await Adm.muat(); toast(`${r.dihapus} pendaftaran dihapus`, 'good'); }
-  catch (e) { toast(pesanError(e), 'bad', 6000); }
+  if (!(await konfirmasiDialog({ judul: 'Hapus SEMUA pendaftaran?', isi: `${n} pendaftaran beserta bukti transfernya akan dihapus permanen dan nomor layangan mulai lagi dari 001. Seri, harga & pengaturan tetap.`, tombol: 'Lanjut', bahaya: true, ketik: 'HAPUS' }))) return;
+  const id = labelOleh(Adm.emailSaya()) || Adm.emailSaya();
+  Overlay.modal(`<form data-submit="adm.resetPw" novalidate>
+    <h3>Masukkan password untuk menghapus</h3>
+    <p class="lead">Langkah terakhir: <b>${n} pendaftaran</b> akan dihapus permanen dan <b>tidak bisa dikembalikan</b>. Masukkan password untuk ID <b>${esc(id)}</b>.</p>
+    <input type="text" name="username" value="${esc(Adm.emailSaya())}" autocomplete="username" hidden>
+    <div class="field"><input class="input" type="password" name="pw" id="reset-pw" autocomplete="current-password" placeholder="Password" aria-label="Password" required autofocus></div>
+    <div class="actions end"><button type="button" class="btn" data-act="ovl.tutup">Batal</button><button type="submit" class="btn btn-danger">${ico('trash')} Hapus semua pendaftaran</button></div>
+  </form>`);
 };
-ACT['adm.yatim'] = (el) => sibuk(el, async () => {
-  try {
+SUB['adm.resetPw'] = async (form) => {
+  const pw = form.pw.value, btn = form.querySelector('button[type=submit]');
+  if (!pw) { form.pw.focus(); return; }
+  await sibuk(btn, async () => {
+    try { await api.cekPassword(pw); }
+    catch (e) {
+      const m = (e && e.message) || '';
+      toast(/PASSWORD_LAMA_SALAH|Invalid login/i.test(m) ? 'Password salah — data tidak dihapus.' : pesanError(e), 'bad');
+      form.pw.value = ''; form.pw.focus(); return;
+    }
+    try { const r = await api.resetData(); Overlay.tutupYangBerisi(form); Adm.s.idsLama = null; await Adm.muat(); toast(`${r.dihapus} pendaftaran dihapus`, 'good'); }
+    catch (e) { toast(pesanError(e), 'bad', 6000); }
+  });
+};
+ACT['adm.yatim'] = async (el) => {
+  if (!(await konfirmasiDialog({ judul: 'Bersihkan foto bukti tak terpakai?', isi: 'Menghapus <b>foto bukti transfer</b> di penyimpanan yang <b>tidak lagi dimiliki pendaftaran mana pun</b> (mis. formulir yang batal dikirim, atau pendaftarannya sudah dihapus) dan berumur lebih dari 1 hari — di semua event. Pendaftaran yang masih ada beserta buktinya <b>tidak tersentuh</b>. Gunanya menghemat ruang penyimpanan.', tombol: 'Bersihkan' }))) return;
+  return sibuk(el, async () => { try {
     const n = await api.bersihkanFileYatim();
-    toast(n ? `${n} file tak terpakai dihapus` : 'Tidak ada file tak terpakai', 'good');
+    toast(n ? `${n} foto bukti tak terpakai dihapus` : 'Tidak ada foto bukti tak terpakai', 'good');
   }
-  catch (e) { toast(pesanError(e), 'bad', 6000); }
-});
+  catch (e) { toast(pesanError(e), 'bad', 6000); } });
+};
 ACT['adm.demoIsi'] = async () => {
   if (!(await konfirmasiDialog({ judul: 'Isi ulang data contoh?', isi: 'Semua data demo diganti dengan data contoh baru.', tombol: 'Isi ulang' }))) return;
   await api.isiContoh(); Adm.s.idsLama = null; Adm.s.url = {}; await Adm.muat(); Adm.render(); toast('Data contoh diisi ulang', 'good');
