@@ -2224,6 +2224,27 @@ form .kp-foto { margin-bottom: 12px; height: 80px; }
 .ev-cta.gold { background: linear-gradient(180deg, #ffd75e, #f2b705); color: #4a3400; border-color: #e0a800; }
 .ev-st.st-juara { background: #fff6d6; color: #7a5600; }
 
+
+/* ===== Ukuran huruf seragam di semua halaman panitia ===== */
+#adm-main { --ft-judul: 21px; --ft-sub: 13.5px; --ft-kartu: 16px; --ft-isi: 14px; --ft-label: 12.5px; --ft-kecil: 12.5px; --ft-thead: 11.5px; --ft-tombol: 13.5px; --ft-kpi: 26px; --ft-total: 17px; }
+#adm-main .topbar h2, #adm-main .rk-hero h2 { font-size: var(--ft-judul); letter-spacing: -.01em; }
+#adm-main .topbar .sub, #adm-main .rk-sub { font-size: var(--ft-sub); }
+#adm-main .panel-h h3, #adm-main .st-h h3, #adm-main .nl-ph h3, #adm-main .jt-hari-h h3, #adm-main .juara-h .h2 { font-size: var(--ft-kartu); }
+#adm-main .label { font-size: var(--ft-label); }
+#adm-main .hint, #adm-main .rk-tt small, #adm-main .rk-k .s, #adm-main .ja-t small, #adm-main .njk small, #adm-main .nilai-info { font-size: var(--ft-kecil); }
+#adm-main .tbl th, #adm-main .nr.nh, #adm-main .rk-jenis .tbl th { font-size: var(--ft-thead); letter-spacing: .04em; text-transform: uppercase; }
+#adm-main .tbl td { font-size: var(--ft-isi); }
+#adm-main .btn-sm, #adm-main .rk-ha .btn { font-size: var(--ft-tombol); }
+#adm-main .kpi .v, #adm-main .rk-k .v { font-size: var(--ft-kpi); }
+#adm-main .rk-k .v.uang { font-size: min(var(--ft-kpi), calc(165cqi / var(--n))); }
+#adm-main .nilai-tbl .ntot { font-size: var(--ft-total); }
+#adm-main .ja-t b, #adm-main .rk-tt b, #adm-main .njk b { font-size: var(--ft-isi); }
+@media (min-width: 761px) {
+  #adm-main .input:not(.nilai-cari .input):not(#ng-pw) { font-size: var(--ft-isi); }
+}
+@media (max-width: 760px) {
+  #adm-main { --ft-judul: 19px; }
+}
 </style>
 </head>
 <body>
