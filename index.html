@@ -1794,6 +1794,7 @@ fieldset.rentang legend { font-weight: 700; font-size: 14px; padding: 0 6px; }
 .ja-t { min-width: 0; } .ja-t b { display: block; font-size: 15px; line-height: 1.25; } .ja-t small { color: var(--muted); font-size: 12px; }
 @media (max-width: 760px) { .ja { grid-template-columns: 1fr 1fr; gap: 8px; } .ja-b { padding: 10px; gap: 9px; } .ja-ic { width: 34px; height: 34px; } .ja-ic .ico { width: 18px; height: 18px; } .ja-t b { font-size: 13.5px; } }
 .nj-n { font-size: 12.5px; font-weight: 700; color: var(--ink); text-transform: none; letter-spacing: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+@media (min-width: 761px) { .nr.nh .nj-h { justify-content: center; } .nr.nh .nj-n { white-space: normal; text-align: center; line-height: 1.2; overflow-wrap: anywhere; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; } }
 .dj-row { display: grid; grid-template-columns: 24px minmax(0, 1fr) 30px; gap: 10px; align-items: center; padding: 7px 2px; border-bottom: 1px solid var(--line); }
 .dj-no { font-weight: 800; color: var(--muted); text-align: center; }
 .dj-row .input { font-weight: 700; }
@@ -1853,7 +1854,7 @@ fieldset.rentang legend { font-weight: 700; font-size: 14px; padding: 0 6px; }
 @media (max-width: 600px) { .rw-row { grid-template-columns: 1fr; gap: 2px; } }
 .nilai-tbl { border: 1px solid var(--line); border-radius: 14px; overflow-x: auto; }
 @media (min-width: 761px) { .nilai-tbl .nr:not(.nh) { padding-top: 11px; padding-bottom: 11px; } .nilai-tbl .nin input { height: 38px; } .nilai-tbl .ntot { font-size: 17px; } }
-.nr { display: grid; grid-template-columns: 52px 62px minmax(200px, 1fr) repeat(var(--nj), 104px) 64px 132px; align-items: center; gap: 8px; padding: 8px 10px; border-top: 1px solid var(--line); min-width: calc(52px + 62px + 200px + var(--nj) * 104px + 64px + 132px + (var(--nj) + 5) * 8px + 20px); font-variant-numeric: tabular-nums; }
+.nr { display: grid; grid-template-columns: var(--kol, 40px 48px minmax(120px, 1fr) repeat(var(--nj), 66px) 56px 84px); align-items: center; gap: 8px; padding: 8px 12px; border-top: 1px solid var(--line); min-width: var(--mw, 0); font-variant-numeric: tabular-nums; }
 .nr.nh { border-top: 0; background: var(--surface-2); font-size: 11.5px; font-weight: 800; letter-spacing: .04em; text-transform: uppercase; color: var(--muted); padding-top: 10px; padding-bottom: 10px; }
 .nr .r { text-align: right; }
 .nj-h { display: flex; align-items: center; gap: 2px; }
@@ -1930,9 +1931,8 @@ fieldset.rentang legend { font-weight: 700; font-size: 14px; padding: 0 6px; }
 .jfoto { display: flex; gap: 6px; align-items: center; justify-content: flex-end; flex-wrap: wrap; }
 .jfoto img { width: 40px; height: 40px; border-radius: 9px; object-fit: cover; border: 1px solid var(--line); }
 /* keterangan juri pantau (kolom setelah Total) */
-.nilai-tbl.kp .nr { grid-template-columns: 52px 62px minmax(170px, 1fr) repeat(var(--nj), 104px) 64px minmax(210px, 1.25fr) 132px; min-width: calc(52px + 62px + 170px + var(--nj) * 104px + 64px + 210px + 132px + (var(--nj) + 6) * 8px + 20px); }
-.nkp-h { color: var(--brand); padding-left: 10px; }
-.nkp { position: relative; min-width: 0; padding: 2px 32px 2px 10px; border-left: 2px solid var(--brand-soft); font-size: 13px; line-height: 1.55; color: var(--ink-2); }
+.nkp-h { color: var(--brand); padding-left: 10px; } .nkj-h { color: var(--warn-ink); padding-left: 10px; }
+.nkp { position: relative; min-width: 0; padding: 2px 4px 2px 10px; border-left: 2px solid var(--brand-soft); font-size: 13px; line-height: 1.55; color: var(--ink-2); }
 .nkp-l { display: none; }
 .kpw { color: var(--ink); white-space: nowrap; }
 .kpw sup { font-size: 9.5px; font-weight: 800; color: #fff; background: var(--brand); border-radius: 7px; padding: 0 4px; margin-left: 2px; vertical-align: 3px; line-height: 1; }
@@ -1945,6 +1945,23 @@ fieldset.rentang legend { font-weight: 700; font-size: 14px; padding: 0 6px; }
 .kp-i:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
 .kp-i.ragu::after { content: ""; position: absolute; top: -2px; right: -2px; width: 8px; height: 8px; border-radius: 50%; background: var(--warn); border: 1.5px solid var(--surface); }
 .kp-pop h3 { margin: 0 0 2px; font-size: 17px; }
+.nkj { border-left-color: color-mix(in srgb, var(--warn) 45%, var(--line)); }
+.nd-i { all: unset; box-sizing: border-box; cursor: pointer; display: inline-flex; align-items: center; gap: 5px; height: 26px; border-radius: 13px; color: var(--brand); flex: none; }
+.nd-i i { width: 24px; height: 24px; border-radius: 50%; border: 1.5px solid var(--brand); display: grid; place-items: center; font: italic 800 13px Georgia, 'Times New Roman', serif; box-sizing: border-box; }
+.nd-i span { display: none; font-size: 12px; font-weight: 800; }
+.nd-i:hover i, .nd-i.on i { background: var(--brand); color: #fff; } .nd-i:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
+.naksi { align-items: center; }
+.nr:has(.nlip) { background: color-mix(in srgb, var(--brand-soft) 45%, var(--surface)); }
+.nlip { grid-column: 1 / -1; display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 340px)); gap: 8px; padding: 2px 0 4px 96px; }
+.nl-k { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 5px 10px 4px; min-width: 0; }
+.nl-k h5 { margin: 0 0 1px; font-size: 10px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; } .nl-k h5.y { color: var(--warn-ink); } .nl-k h5.b { color: var(--brand); }
+.nl-r { display: grid; grid-template-columns: 84px minmax(0, 1fr) auto; gap: 8px; align-items: baseline; padding: 3px 0; border-top: 1px solid var(--line); font-size: 12.5px; }
+.nl-k h5 + .nl-r { border-top: 0; }
+.nl-r b { font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.nl-t { all: unset; cursor: pointer; min-width: 0; overflow-wrap: anywhere; } .nl-t:hover { text-decoration: underline; } .nl-t:focus-visible { outline: 2px solid var(--brand); border-radius: 3px; }
+.nl-tx { min-width: 0; overflow-wrap: anywhere; justify-self: start; }
+.nl-mu { color: var(--muted); font-style: italic; }
+.nl-a { all: unset; cursor: pointer; color: var(--brand); font-size: 11.5px; font-weight: 600; text-decoration: underline; } .nl-a:focus-visible { outline: 2px solid var(--brand); border-radius: 3px; }
 .ni-i { all: unset; box-sizing: border-box; display: inline-grid; place-items: center; width: 20px; height: 20px; border-radius: 50%; border: 1.5px solid var(--brand); color: var(--brand); background: var(--surface); font: italic 800 11px Georgia, 'Times New Roman', serif; cursor: pointer; flex: none; }
 .ni-i:hover, .ni-i:focus-visible { background: var(--brand); color: #fff; }
 .ni-i:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
@@ -2048,20 +2065,23 @@ form .kp-foto { margin-bottom: 12px; height: 80px; }
 .cp-kos { color: var(--muted); font-size: 13.5px; margin: 10px 2px; }
 @media (max-width: 760px) {
   /* di HP: tiap layangan jadi kartu */
-  .nr.nh .nkp-h { display: none; }
-  .nilai-tbl.kp .nr.nh { min-width: 0; }
-  .nilai-tbl.kp .nr:not(.nh) { grid-template-columns: auto auto minmax(0, 1fr) auto; grid-template-areas: "rk no sk tot" "in in in ak" "kp kp kp kp"; min-width: 0; }
-  .nr:not(.nh) .nkp { grid-area: kp; border-left: 0; background: var(--surface-2); border-radius: 8px; padding: 6px 38px 6px 9px; font-size: 12.5px; }
-  .nr:not(.nh) .nkp-l { display: block; font-size: 10.5px; font-weight: 800; letter-spacing: .04em; text-transform: uppercase; color: var(--muted); }
+  .nr.nh .nkp-h, .nr.nh .nkj-h { display: none; }
+  .nr:not(.nh) .nkp { grid-area: kp; border-left: 0; background: var(--surface-2); border-radius: 8px; padding: 5px 9px; font-size: 12.5px; display: grid; grid-template-columns: 76px minmax(0, 1fr); gap: 6px; align-items: baseline; }
+  .nr:not(.nh) .nkj { grid-area: kj; }
+  .nr:not(.nh) .nkp-l { display: block; font-size: 10px; font-weight: 800; letter-spacing: .04em; text-transform: uppercase; color: var(--brand); }
+  .nr:not(.nh) .nkj .nkp-l { color: var(--warn-ink); }
   .nr:not(.nh) .nkp.kos { display: none; }
-  .nr:not(.nh) .kp-i { right: 8px; width: 28px; height: 28px; }
+  .nlip { grid-area: lp; grid-template-columns: minmax(0, 1fr); padding: 0; gap: 6px; }
+  .nl-r { grid-template-columns: 78px minmax(0, 1fr) auto; font-size: 12px; }
+  .nd-i { border: 1.5px solid var(--brand); padding: 0 9px 0 3px; height: 30px; border-radius: 9px; } .nd-i i { border: 0; width: 18px; height: 18px; }
+  .nd-i span { display: inline; } .nd-i.on { background: var(--brand); color: #fff; } .nd-i.on i { background: transparent; }
 
   .nilai-tbl { border: 0; overflow: visible; }
   .nr.nh { display: flex; flex-wrap: wrap; gap: 6px; border: 1px solid var(--line); border-radius: 12px; margin-bottom: 8px; min-width: 0; }
   .nr.nh > span:nth-child(-n+3), .nr.nh > .r { display: none; }
   .nr.nh .nj-h { flex: 1 1 30%; }
   /* kartu ringkas: baris 1 = peringkat · nomor · nama · total, baris 2 = nilai juri (nama juri di dalam kotak) + menu ⋯ */
-  .nr:not(.nh) { align-items: start; grid-template-columns: auto auto minmax(0, 1fr) auto; grid-template-areas: "rk no sk tot" "in in in ak"; gap: 6px 8px; min-width: 0; border: 1px solid var(--line); border-radius: 12px; margin-bottom: 6px; padding: 8px 10px; }
+  .nr:not(.nh) { align-items: start; grid-template-columns: auto auto minmax(0, 1fr) auto; grid-template-areas: "rk no sk tot" "in in in in" "kj kj kj kj" "kp kp kp kp" "lp lp lp lp" "ak ak ak ak"; gap: 6px 8px; min-width: 0; border: 1px solid var(--line); border-radius: 12px; margin-bottom: 6px; padding: 8px 10px; }
   .nr:not(.nh) .nrk { grid-area: rk; } .nr:not(.nh) .rk { min-width: 26px; height: 24px; font-size: 12px; border-radius: 7px; padding: 0 5px; }
   .nr:not(.nh) .nno { grid-area: no; font-size: 16px; font-weight: 900; line-height: 24px; }
   .nr:not(.nh) .nsk { padding-top: 2px; }
@@ -2075,9 +2095,8 @@ form .kp-foto { margin-bottom: 12px; height: 80px; }
   .nr:not(.nh) .nins { grid-area: in; display: grid; grid-template-columns: repeat(var(--nj), minmax(0, 1fr)); gap: 6px; }
   .nr:not(.nh) .nin-l { display: block; font-size: 11px; line-height: 14px; font-weight: 600; color: var(--muted); text-align: center; margin-bottom: 2px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .nr:not(.nh) .nin input { height: 36px; padding: 0 2px; font-size: 15.5px; }
-  .nr:not(.nh) .naksi { grid-area: ak; align-self: end; }
-  .nr:not(.nh) .naksi .nak-d { display: none; }
-  .nr:not(.nh) .naksi .nak-m { display: block; }
+  .nr:not(.nh) .naksi { grid-area: ak; align-self: end; justify-content: flex-end; gap: 6px; }
+  .nr:not(.nh) .naksi .nak-d { height: 30px; padding: 0 12px; }
   .nr:not(.nh) .naksi .ae-dots { width: 34px; height: 36px; }
   .nr.dq:not(.nh) { opacity: .8; }
   .jrow { grid-template-columns: 82px 62px minmax(0, 1fr); }
@@ -7470,7 +7489,7 @@ const Adm = {
         'Sebelum lomba: isi <b>Daftar Juri</b> dan <b>Daftar Juri Pantau</b>, lalu <b>Cetak Form Juri</b> / <b>Cetak Form Juri Pantau</b> dan bagikan ke masing-masing juri. Juri menulis <b>jenis layangan</b> dan <b>seri</b> sendiri di form.',
         'Setelah form diisi: pilih jenis layangan, tekan <b>Upload Form</b>, foto seluruh kertas (4 kotak hitam di sudut harus terlihat). Di layar periksa, betulkan angka yang salah — yang <b>kuning</b> kurang jelas — lalu <b>Simpan</b>.',
         'Isi manual: ketik <b>nomor layangan</b> di kotak cari (hanya nomor itu yang tampil), tekan <b>Enter</b> untuk lompat ke kolom juri yang masih kosong. <b>Enter</b> lagi pindah ke juri berikutnya; setelah juri terakhir kursor kembali ke kotak cari.',
-        'Tombol <b>i</b> di sebelah nama sekha = info layangan untuk diskusi juri. Tombol <b>i</b> di kolom keterangan = catatan tiap juri pantau, bisa dikoreksi. Tanda <b>!</b> di kotak nilai = juri menulis keterangan singkat di form — klik untuk melihat tulisan aslinya.',
+        'Tombol <b>i</b> di sebelah nama sekha = info layangan untuk diskusi juri. Kolom <b>Keterangan juri nilai</b> & <b>Keterangan juri pantau</b> = ringkasan tulisan juri. Tombol <b>i</b> di kanan baris membuka detail: nama tiap juri + keterangannya, foto form, koreksi / tambah.',
         'Rank: layangan yang sudah dinilai <b>minimal 2 juri</b> diurutkan dari <b>total nilai</b> dan bisa ditetapkan juara. Yang baru dinilai 1 juri belum diberi rank dan tampil sesuai urutan nomor pendaftaran.',
         'Nilai sama → tekan <b>Naikkan</b> pada layangan yang lebih unggul. Diskualifikasi (<b>DQ</b>) wajib diberi alasan.',
         '<b>Pengaturan nilai</b>: atur batas nilai juri, atau <b>Reset nilai</b> — pilih satu juri / juri pantau lalu seri terbang; hanya nilai (dan keterangan) juri itu di jenis yang sedang dibuka yang terhapus.',
@@ -7494,10 +7513,12 @@ const Adm = {
     pk = pk || this.peringkat(jk); maks = maks || Number(this.s.data.pengaturan.nilai_maks) || 100;
     const BATAS = 15, cari = (this.s.nilaiCari || '').trim(), j = this.idx.jenis.get(jk);
     const boleh = this.bolehMenilai(), ro = !boleh || this.terkunci(jk);
-    const kolom = `--nj:${Math.max(1, pk.juri.length)}`, kp = this.pantauAktif();
+    const nj = Math.max(1, pk.juri.length), kp = this.pantauAktif(), kj = this.ketJuriAktif();
+    const lebar = [40, 48, 120, nj * 66, 56, kj ? 160 : 0, kp ? 150 : 0, 84], nKol = 5 + nj + (kj ? 1 : 0) + (kp ? 1 : 0);
+    const kolom = `--nj:${nj};--kol:40px 48px minmax(120px, 1fr) repeat(${nj}, 66px) 56px${kj ? ' minmax(160px, 1.2fr)' : ''}${kp ? ' minmax(150px, 1fr)' : ''} 84px;--mw:${lebar.reduce((a, b) => a + b, 0) + (nKol - 1) * 8 + 24}px`;
     const head = `<div class="nr nh" style="${kolom}"><span>Rank</span><span>No.</span><span>Sekha</span>
       ${pk.juri.map((x, i) => `<span class="nj-h"><span class="nj-n" title="${esc(x.nama || 'Juri ' + (i + 1))}">${esc(x.nama || 'Juri ' + (i + 1))}</span></span>`).join('')}
-      <span class="r">Total</span>${kp ? '<span class="nkp-h">Keterangan juri pantau</span>' : ''}<span></span></div>`;
+      <span class="r">Total</span>${kj ? '<span class="nkj-h">Keterangan juri nilai</span>' : ''}${kp ? '<span class="nkp-h">Keterangan juri pantau</span>' : ''}<span></span></div>`;
     if (!pk.semua.length) return `<div class="empty">Belum ada layangan ${esc(j ? j.nama : '')} yang terkonfirmasi.</div>`;
     let tampil, info;
     if (cari) {
@@ -7529,14 +7550,14 @@ const Adm = {
         ${x.dq ? `<small class="nal">Alasan: ${esc(x.p.alasan || '-')}</small>` : ''}
         ${x.seri && !ro ? `<button type="button" class="btn btn-xs nnaik" data-act="adm.nilaiNaik" data-pid="${id}" title="Letakkan di atas yang nilainya sama">${ico('arrow-up')} Naikkan</button>` : ''}
         ${x.p.catatan ? `<small class="ncat">${ico('edit')} ${esc(x.p.catatan)}</small>` : ''}</span>
-      <span class="nins">${pk.juri.map((j, i) => `<label class="nin${this.ketJuri(r.id, j.id) ? ' kj' : ''}"><span class="nin-l">${esc(j.nama || 'Juri ' + (i + 1))}</span><input type="number" inputmode="numeric" min="0" max="${maks}" step="1" value="${x.skor[i] ?? ''}" data-ch="adm.nilai" data-pid="${id}" data-juri="${j.id}" ${ro ? 'disabled' : ''} aria-label="Nilai ${esc(j.nama || 'juri ' + (i + 1))} untuk nomor ${esc(r.nomor_layangan || '-')}">${this.ketJuri(r.id, j.id) ? `<button type="button" class="kj-b" data-act="adm.kjBuka" data-pid="${id}" data-juri="${j.id}" title="Ada keterangan singkat dari ${esc(j.nama || 'juri ' + (i + 1))} — klik untuk melihat" aria-label="Keterangan ${esc(j.nama || 'juri ' + (i + 1))} untuk nomor ${esc(r.nomor_layangan || '-')}">!</button>` : ''}</label>`).join('')}</span>
+      <span class="nins">${pk.juri.map((j, i) => `<label class="nin"><span class="nin-l">${esc(j.nama || 'Juri ' + (i + 1))}</span><input type="number" inputmode="numeric" min="0" max="${maks}" step="1" value="${x.skor[i] ?? ''}" data-ch="adm.nilai" data-pid="${id}" data-juri="${j.id}" ${ro ? 'disabled' : ''} aria-label="Nilai ${esc(j.nama || 'juri ' + (i + 1))} untuk nomor ${esc(r.nomor_layangan || '-')}"></label>`).join('')}</span>
       <span class="ntot">${x.kosong ? '' : x.total}</span>
-      ${this.pantauAktif() ? this.vKetPantau(r) : ''}
-      <span class="naksi">${ro ? '' : `
+      ${this.ketJuriAktif() ? this.vKetJuriSel(r, pk) : ''}${this.pantauAktif() ? this.vKetPantau(r) : ''}
+      <span class="naksi">${this.ketJuriAktif() || this.pantauAktif() ? `<button type="button" class="nd-i${this.s.nilaiLip === r.id ? ' on' : ''}" data-act="adm.nilaiLip" data-pid="${id}" aria-expanded="${this.s.nilaiLip === r.id}" title="Detail keterangan: nama juri & juri pantau" aria-label="Detail keterangan nomor ${esc(r.nomor_layangan || '-')}"><i>i</i><span>${this.s.nilaiLip === r.id ? 'Tutup detail' : 'Detail'}</span></button>` : ''}${ro ? '' : `
         <details class="ae-menu nak-m"><summary class="ae-dots" aria-label="Aksi untuk nomor ${esc(r.nomor_layangan || '-')}">${ico('more')}</summary><div class="ae-pop">
           <button type="button" class="${x.dq ? '' : 'r'}" data-act="adm.nilaiDq" data-pid="${id}">${ico(x.dq ? 'undo' : 'x')} ${x.dq ? 'Batalkan diskualifikasi' : 'Diskualifikasi'}</button></div></details>
         <button type="button" class="btn btn-xs nak-d ${x.dq ? '' : 'btn-danger'}" data-act="adm.nilaiDq" data-pid="${id}">${x.dq ? 'Batal DQ' : 'DQ'}</button>`}
-      </span></div>`;
+      </span>${this.s.nilaiLip === r.id ? this.vLipatKet(r, pk) : ''}</div>`;
   },
   /* 4 tombol besar: daftar & cetak form juri / juri pantau */
   vJuriAlat() {
@@ -7561,11 +7582,32 @@ const Adm = {
   },
   vKetPantau(r) {
     const kata = this.ringkasPantau(r.id), n = this.catatanPantau(r.id).length;
-    const isi = kata.length ? kata.map((w) => `<span class="kpw${w.ragu ? ' ragu' : ''}"${w.ragu ? ' title="Tulisan kurang jelas — sebaiknya dicek"' : ''}>${esc(w.t)}${w.n > 1 ? `<sup>${w.n}</sup>` : ''}</span>`).join('<span class="kps">, </span>') : '<span class="kpk">— belum ada catatan</span>';
-    return `<span class="nkp${kata.length ? '' : ' kos'}"><span class="nkp-l">Juri pantau</span><span class="nkp-t">${isi}</span>
-      ${n || this.bolehMenilai() ? `<button type="button" class="kp-i${kata.some((w) => w.ragu) ? ' ragu' : ''}" data-act="adm.kpInfo" data-pid="${esc(r.id)}" title="Catatan tiap juri pantau${this.bolehMenilai() ? ' & koreksi' : ''}" aria-label="Catatan juri pantau nomor ${esc(r.nomor_layangan || '-')}">i</button>` : ''}</span>`;
+    const isi = kata.length ? kata.map((w) => `<span class="kpw${w.ragu ? ' ragu' : ''}"${w.ragu ? ' title="Tulisan kurang jelas — sebaiknya dicek"' : ''}>${esc(w.t)}${w.n > 1 ? `<sup>${w.n}</sup>` : ''}</span>`).join('<span class="kps">, </span>') : '<span class="kpk">—</span>';
+    return `<span class="nkp${kata.length ? '' : ' kos'}"><span class="nkp-l">Juri pantau</span><span class="nkp-t">${isi}</span></span>`;
   },
   /* keterangan singkat juri nilai (keterangan-juri.sql) */
+  ketJuriAktif() { return Array.isArray(this.s.data.ket_juri); },
+  /* kolom ringkas keterangan juri nilai: semua keterangan digabung dengan koma (tanpa nama juri) */
+  vKetJuriSel(r, pk) {
+    const t = pk.juri.map((j) => this.ketJuri(r.id, j.id)).filter((k) => k && String(k.teks || '').trim()).map((k) => esc(String(k.teks).trim()));
+    return `<span class="nkp nkj${t.length ? '' : ' kos'}"><span class="nkp-l">Juri nilai</span><span class="nkp-t">${t.length ? t.join('<span class="kps">, </span>') : '<span class="kpk">—</span>'}</span></span>`;
+  },
+  /* lipatan detail (tombol i di kanan baris): nama juri + keterangannya, juri nilai & juri pantau */
+  vLipatKet(r, pk) {
+    const d = this.s.data, boleh = this.bolehMenilai(), id = esc(r.id), tidak = '<span class="nl-mu">— tidak menulis</span>';
+    let h = '';
+    if (this.ketJuriAktif()) {
+      h += `<div class="nl-k"><h5 class="y">Keterangan juri nilai</h5>${pk.juri.map((j, i) => { const k = this.ketJuri(r.id, j.id), nm = esc((j.nama || '').trim() || 'Juri ' + (i + 1));
+        return `<div class="nl-r"><b>${nm}</b>${k ? `<button type="button" class="nl-t" data-act="adm.kjBuka" data-pid="${id}" data-juri="${j.id}" title="Lihat / ubah keterangan">${esc(String(k.teks || '').trim()) || '<span class="nl-mu">(belum diketik)</span>'}</button>${k.upload_id ? `<button type="button" class="nl-a" data-act="adm.ufFoto" data-id="${esc(k.upload_id)}">foto</button>` : '<span></span>'}` : `${tidak}<span></span>`}</div>`; }).join('')}</div>`;
+    }
+    if (this.pantauAktif()) {
+      const cat = this.catatanPantau(r.id);
+      h += `<div class="nl-k"><h5 class="b">Keterangan juri pantau</h5>${(d.juri_pantau || []).map((pj) => { const cs = cat.filter((c) => c.pantau_id === pj.id), nm = esc(pj.nama || 'Juri pantau');
+        if (!cs.length) return `<div class="nl-r"><b>${nm}</b>${tidak}${boleh ? `<button type="button" class="nl-a" data-act="adm.kpTambah" data-pid="${id}" data-juri="${pj.id}">tambah</button>` : '<span></span>'}</div>`;
+        return cs.map((c, ci) => `<div class="nl-r"><b>${ci ? '' : nm}</b><span class="nl-tx${c.ragu ? ' kpw ragu' : ''}">${esc(c.teks || '—')}</span>${boleh ? `<button type="button" class="nl-a" data-act="adm.kpKoreksi" data-id="${c.id}">koreksi</button>` : '<span></span>'}</div>`).join(''); }).join('') || '<div class="nl-r"><span class="nl-mu">Belum ada nama juri pantau</span></div>'}</div>`;
+    }
+    return `<div class="nlip">${h}</div>`;
+  },
   ketJuri(pid, juriId) { const L = this.s.data.ket_juri; return Array.isArray(L) ? L.find((k) => k.pendaftaran_id === pid && k.juri_id === juriId) || null : null; },
   vKetJuriPop(k) {
     const d = this.s.data, r = this.baris(k.pendaftaran_id) || {}, j = (d.juri || []).find((x) => x.id === k.juri_id) || {}, boleh = this.bolehMenilai();
@@ -8856,6 +8898,8 @@ function kpSegarkan(pid) {
   }
 }
 ACT['adm.kpInfo'] = (el) => kpBuka(el.dataset.pid, el);
+ACT['adm.nilaiLip'] = (el) => { const pid = el.dataset.pid; Adm.s.nilaiLip = Adm.s.nilaiLip === pid ? null : pid; gambarIsiNilai();
+  const b = document.querySelector(`#nilai-isi .nd-i[data-pid="${CSS.escape(pid)}"]`); if (b) b.focus({ preventScroll: true }); };
 ACT['adm.nilaiInfo'] = (el) => kpBuka(el.dataset.pid, el, Adm.vInfoLayangan(el.dataset.pid));
 /* keterangan singkat juri: tanda "!" di kotak nilai → tulisan asli + teks ketikan */
 ACT['adm.kjBuka'] = async (el) => {
@@ -8869,7 +8913,7 @@ SUB['adm.kjSimpan'] = async (form) => {
 };
 ACT['adm.kjHapus'] = async (el) => {
   const id = Number(el.dataset.id), d = nilaiData(), k = (d.ket_juri || []).find((x) => x.id === id); if (!k) return;
-  if (!(await konfirmasiDialog({ judul: 'Hapus keterangan ini?', isi: 'Tanda <b>!</b> pada nilai ini hilang. Nilainya tidak berubah.', tombol: 'Hapus keterangan', bahaya: true }))) return;
+  if (!(await konfirmasiDialog({ judul: 'Hapus keterangan ini?', isi: 'Keterangan ini hilang dari kolom keterangan juri nilai. Nilainya tidak berubah.', tombol: 'Hapus keterangan', bahaya: true }))) return;
   try { await api.hapusKetJuri(id); d.ket_juri = d.ket_juri.filter((x) => x.id !== id); Adm.tandaiUbah(); Overlay.tutupSemua(); try { const rw = await api.riwayatNilai(); if (rw) d.riwayat_nilai = rw; } catch (e) { /* abaikan */ } Adm.segarkanTampilan({ paksa: true }); toast('Keterangan dihapus', 'good'); }
   catch (e) { toast(pesanError(e), 'bad'); }
 };
@@ -8901,7 +8945,7 @@ ACT['adm.kpTambah'] = (el) => {
   if (!list.length) { toast('Belum ada nama juri pantau — tambahkan lewat "Cetak lembar juri pantau"', 'info'); return; }
   Overlay.modal(`<form data-submit="adm.kpTambah" data-pid="${esc(pid)}" novalidate>
     <h3>Tambah catatan juri pantau</h3><p class="lead">No. ${esc(r.nomor_layangan || '-')} · ${esc(r.nama_sekha || '-')}</p>
-    <div class="field"><label class="label" for="kp-juri">Juri pantau</label><select class="input" id="kp-juri" name="juri">${list.map((j) => `<option value="${j.id}">${esc(j.nama)}</option>`).join('')}</select></div>
+    <div class="field"><label class="label" for="kp-juri">Juri pantau</label><select class="input" id="kp-juri" name="juri">${list.map((j) => `<option value="${j.id}" ${String(j.id) === el.dataset.juri ? 'selected' : ''}>${esc(j.nama)}</option>`).join('')}</select></div>
     <div class="field"><label class="label" for="kp-teks2">Keterangan</label><input class="input" id="kp-teks2" name="teks" maxlength="300" autocomplete="off" placeholder="mis. stabil, naik cepat" autofocus><p class="hint">Pisahkan tiap keterangan dengan koma.</p></div>
     <div class="actions end"><button type="button" class="btn" data-act="ovl.tutup">Batal</button><button type="submit" class="btn btn-primary">Simpan</button></div>
   </form>`);
