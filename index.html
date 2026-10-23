@@ -486,7 +486,7 @@ button.kpi:hover { border-color: var(--line-strong); }
 .rk-sub { color: var(--ink-2); margin-top: 4px; }
 .rk-chip { display: inline-block; margin-top: 8px; border-radius: 999px; padding: 4px 12px; font-size: 12.5px; font-weight: 800; background: var(--surface-3); color: var(--muted); }
 .rk-chip.on { background: var(--good-soft); color: var(--good-ink); }
-.rk-ha { display: flex; gap: 8px; } .rk-ha .btn { background: var(--surface); }
+.rk-ha { display: flex; gap: 8px; } .rk-ha .btn:not(.btn-primary) { background: var(--surface); }
 .rk-todo { background: var(--surface); border: 1px solid var(--line); border-top: 4px solid color-mix(in srgb, var(--warn) 75%, var(--surface)); border-radius: 16px; padding: 2px 18px; margin-bottom: 16px; }
 .rk-td { display: flex; align-items: center; gap: 12px; padding: 10px 0; border-top: 1px solid var(--line); }
 .rk-td:first-child { border-top: 0; }
@@ -619,7 +619,7 @@ details.tbl-toggle summary { cursor: pointer; font-size: 13px; color: var(--bran
 .res-info .btn { margin-left: auto; }
 
 .rows { background: var(--surface); border: 1px solid var(--line); border-radius: 16px; overflow: hidden; }
-.row { display: grid; grid-template-columns: 148px minmax(0, 1.6fr) 116px minmax(0, 1fr) 86px 104px 34px; gap: 12px; align-items: center; padding: 12px 16px; border-top: 1px solid var(--line); cursor: pointer; width: 100%; text-align: left; background: transparent; border-left: 0; border-right: 0; border-bottom: 0; font: inherit; color: inherit; }
+.row { display: grid; grid-template-columns: 84px minmax(0, 1.6fr) minmax(0, 1.2fr) minmax(0, 1.15fr) 104px 104px; gap: 14px; align-items: center; padding: 12px 18px; border-top: 1px solid var(--line); cursor: pointer; width: 100%; text-align: left; background: transparent; border-left: 0; border-right: 0; border-bottom: 0; font: inherit; color: inherit; }
 .row:first-child { border-top: 0; }
 .row:hover { background: var(--surface-2); }
 .row.head { cursor: default; background: var(--surface-2); font-size: 12px; font-weight: 700; color: var(--muted); padding-top: 9px; padding-bottom: 9px; }
@@ -638,6 +638,25 @@ details.tbl-toggle summary { cursor: pointer; font-size: 13px; color: var(--bran
 .c-wa.sent { color: var(--good); }
 .c-wa.need { color: var(--warn-ink); }
 .c-meta { display: none; }
+/* ---- Pendaftaran (lega & berwarna) ---- */
+.pd-hero { margin-bottom: 14px; }
+.pd-st { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
+.pd-k { all: unset; box-sizing: border-box; cursor: pointer; display: flex; align-items: center; justify-content: space-between; gap: 10px; background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 11px 16px; }
+.pd-k b { display: block; font-size: 14.5px; } .pd-k small { display: block; color: var(--muted); font-size: 12px; }
+.pd-k:hover { border-color: var(--line-strong); } .pd-k:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
+.pd-k.on { border: 2px solid var(--brand); background: color-mix(in srgb, var(--brand-soft) 60%, var(--surface)); padding: 10px 15px; }
+.pd-n { font-size: 22px; font-weight: 850; font-variant-numeric: tabular-nums; }
+.pd-k.semua .pd-n { color: var(--brand); } .pd-k.menunggu .pd-n { color: var(--warn-ink); } .pd-k.terkonfirmasi .pd-n { color: var(--good-ink); } .pd-k.ditolak .pd-n { color: var(--bad-ink); }
+.pd-sc { font-size: 13px; color: var(--muted); }
+.pd-no { display: inline-grid; place-items: center; min-width: 54px; height: 36px; padding: 0 8px; border-radius: 11px; font-weight: 850; font-size: 15.5px; font-variant-numeric: tabular-nums;
+  color: color-mix(in srgb, var(--c) 85%, var(--ink)); background: color-mix(in srgb, var(--c) 13%, var(--surface)); }
+.c-jenis { min-width: 0; } .c-jenis small { display: block; font-size: 12px; color: var(--muted); margin-top: 2px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.c-jenis .jtag { font-weight: 600; }
+.c-aksi { text-align: right; }
+.pd-cek { display: inline-block; background: var(--brand); color: var(--brand-ink); border-radius: 9px; padding: 5px 11px; font-weight: 700; font-size: 12.5px; white-space: nowrap; }
+.pd-wa { display: inline-flex; align-items: center; gap: 4px; border-radius: 8px; padding: 3px 8px; font-weight: 700; font-size: 12px; white-space: nowrap; }
+.pd-wa .ico { width: 13px; height: 13px; } .pd-wa.sent { background: var(--good-soft); color: var(--good-ink); } .pd-wa.need { background: var(--brand-soft); color: var(--brand-soft-ink); }
+.row.pd-menunggu { box-shadow: inset 4px 0 0 var(--warn); } .row.pd-ditolak { box-shadow: inset 4px 0 0 var(--bad); } .row.pd-ditolak > span:not(.c-st) { opacity: .65; }
 .flags { display: flex; gap: 5px; flex-wrap: wrap; }
 .flag { font-size: 11px; font-weight: 800; padding: 1px 7px; border-radius: 6px; background: var(--bad-soft); color: var(--bad-ink); white-space: nowrap; }
 /* ===== Cek Bukti (pengganti Bukti Transfer Sama & Mirip) ===== */
@@ -1094,7 +1113,7 @@ div.sehat { margin: 0 0 16px; }
    RESPONSIF
    ================================================================ */
 @media (max-width: 1080px) {
-  .row { grid-template-columns: 140px minmax(0, 1.5fr) 110px minmax(0, 1fr) 80px 34px; }
+  .row { grid-template-columns: 76px minmax(0, 1.5fr) minmax(0, 1.1fr) minmax(0, 1.1fr) 96px; }
   .row .c-harga { display: none; }
 }
 @media (max-width: 980px) {
@@ -1102,14 +1121,16 @@ div.sehat { margin: 0 0 16px; }
   .kpis.kpis-3 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .kpis.kpis-3 .kpi.hi { grid-column: 1 / -1; }
   .grid2, .set-grid { grid-template-columns: minmax(0, 1fr); }
-  .row { grid-template-columns: minmax(0, 1fr) auto; grid-template-areas: "st wa" "sekha no" "meta meta"; gap: 4px 12px; padding: 12px 14px; }
+  .row { grid-template-columns: auto minmax(0, 1fr) auto; grid-template-areas: "no sekha sekha" "no meta meta" "no st aksi"; gap: 4px 12px; padding: 12px 14px; align-items: start; }
   .row.head { display: none; }
   .dup-grup .row.head + .row { border-top: 0; }
-  .c-st { grid-area: st; flex-direction: row; align-items: center; gap: 8px; }
+  .c-st { grid-area: st; flex-direction: row; align-items: center; gap: 8px; } .c-st .kd { display: none; }
   .c-sekha { grid-area: sekha; }
-  .c-no { grid-area: no; justify-self: end; align-self: start; }
-  .c-wa { grid-area: wa; }
+  .c-no { grid-area: no; align-self: start; }
+  .c-aksi { grid-area: aksi; justify-self: end; align-self: center; }
   .c-jenis, .c-seri, .row .c-harga { display: none; }
+  .pd-st { grid-template-columns: 1fr 1fr; gap: 8px; } .pd-k small { display: none; } .pd-k { padding: 9px 12px; } .pd-n { font-size: 18px; }
+  .pd-tip { display: none; } .pd-sc { display: none; }
   .c-meta { display: flex; grid-area: meta; gap: 6px 10px; flex-wrap: wrap; font-size: 12.5px; color: var(--ink-2); align-items: center; }
 }
 @media (max-width: 860px) {
@@ -6395,8 +6416,9 @@ const Adm = {
       const mt = $('#adm-main .mtop'); if (mt) mt.outerHTML = this.vMtop();
     } else if (this.s.tab === 'pendaftaran' && this.s.data && $('#adm-search')) {
       $('#adm-filters').innerHTML = this.vFilter();
+      const stp = $('#adm-status'); if (stp) stp.innerHTML = this.vStatusPd();
       $('#adm-list').innerHTML = this.vList();
-      const sub = $('#adm-sub'); if (sub) sub.textContent = `${angka(this.idx.st.total)} layangan tercatat`;
+      const sub = $('.pd-hero .rk-sub'); if (sub) sub.firstChild.textContent = `${angka(this.idx.st.total)} layangan tercatat`;
     } else {
       main.innerHTML = this.vUtama();
     }
@@ -6697,10 +6719,13 @@ const Adm = {
 
   /* ---------------- PENDAFTARAN ---------------- */
   vPendaftaran() {
-    return `${this.vTopbar('Pendaftaran', `${angka(this.idx.st.total)} layangan tercatat`,
-      `<button class="btn btn-sm btn-primary" data-act="adm.tambah">${ico('plus')}<span>Tambah manual</span></button><button class="btn btn-sm" data-act="adm.ekspor">${ico('download')}<span>Excel</span></button>`)}
+    return `<div class="rk-hero pd-hero"><div class="rk-hh"><h2>Pendaftaran</h2><div class="rk-sub">${angka(this.idx.st.total)} layangan tercatat<span class="pd-tip"> · klik baris untuk melihat bukti &amp; data lengkap</span></div></div>
+        <div class="rk-ha"><button class="btn btn-sm" data-act="adm.ekspor">${ico('download')}<span>Excel</span></button>
+        <button class="btn btn-sm btn-icon" data-act="adm.muat" title="Muat ulang data">${this.s.loading ? '<span class="spinner"></span>' : ico('refresh')}<span class="sr-only">Muat ulang</span></button>
+        <button class="btn btn-sm btn-primary" data-act="adm.tambah">${ico('plus')}<span>Tambah manual</span></button></div></div>
       <div class="filters">
-        <div class="f-row"><div class="search">${ico('search')}<input id="adm-search" class="input input-sm" type="search" placeholder="Cari kode, sekha, alamat, WA, nomor layangan, nama rekening…" value="${esc(this.s.f.q)}" data-in="adm.q" autocomplete="off" aria-label="Cari pendaftaran"></div></div>
+        <div id="adm-status">${this.vStatusPd()}</div>
+        <div class="f-row"><div class="search">${ico('search')}<input id="adm-search" class="input input-sm" type="search" placeholder="Cari nama sekha, nomor layangan, kode, WA, alamat…" value="${esc(this.s.f.q)}" data-in="adm.q" autocomplete="off" aria-label="Cari pendaftaran"></div></div>
         <div id="adm-filters">${this.vFilter()}</div>
       </div>
       <div id="adm-list">${this.vList()}</div>`;
@@ -6709,17 +6734,21 @@ const Adm = {
     const f = this.s.f, st = this.idx.st, d = this.s.data;
     const seg = [['semua', 'Semua', st.total], ['menunggu', 'Menunggu', st.menunggu], ['terkonfirmasi', 'Terkonfirmasi', st.terkonfirmasi], ['ditolak', 'Ditolak', st.ditolak]];
     const seriOpsi = d.seri.filter((x) => !f.jenis || x.jenis === f.jenis);
-    return `<div class="f-row"><div class="seg" role="group" aria-label="Filter status">${seg.map(([v, l, n]) => `<button type="button" class="${f.status === v ? 'on' : ''}" data-act="adm.fStatus" data-v="${v}" aria-pressed="${f.status === v}">${l} <small>${n}</small></button>`).join('')}</div></div>
-      <div class="f-pilih">
+    return `<div class="f-pilih">
         <select class="input input-sm" data-ch="adm.fJenis" aria-label="Filter jenis"><option value="">Semua jenis</option>${d.jenis.map((j) => `<option value="${esc(j.kode)}" ${f.jenis === j.kode ? 'selected' : ''}>${esc(j.nama)}</option>`).join('')}</select>
         <select class="input input-sm f-seri" data-ch="adm.fSeri" aria-label="Filter seri"><option value="">Semua seri</option>${seriOpsi.map((x) => `<option value="${x.id}" ${String(f.seri) === String(x.id) ? 'selected' : ''}>${esc(this.namaJenis(x.jenis))} · ${esc(x.nama)}</option>`).join('')}</select>
         <select class="input input-sm" data-ch="adm.fUrut" aria-label="Urutan">${[['terbaru', 'Terbaru'], ['terlama', 'Terlama'], ['nomor', 'Nomor layangan'], ['sekha', 'Nama sekha'], ['seri', 'Seri']].map(([v, l]) => `<option value="${v}" ${f.urut === v ? 'selected' : ''}>Urut: ${l}</option>`).join('')}</select>
       </div>
-      <div class="f-row gulir f-tombol">
+      <div class="f-row gulir f-tombol"><span class="pd-sc">Saring cepat:</span>
+        <button type="button" class="tgl tgl-cek ${f.cek ? 'on' : ''}" data-act="adm.fCek" aria-pressed="${!!f.cek}">${ico('alert')} Bukti perlu dicek${st.cek && st.cek.perlu ? ` <small class="perlu">${st.cek.perlu}</small>` : ''}</button>
         <button type="button" class="tgl ${f.wa ? 'on' : ''}" data-act="adm.fWa" aria-pressed="${f.wa}">${ico('chat')} WA belum dikirim <small>${st.waBelum}</small></button>
-        <button type="button" class="tgl tgl-cek ${f.cek ? 'on' : ''}" data-act="adm.fCek" aria-pressed="${!!f.cek}">${ico('alert')} Cek Bukti${st.cek && st.cek.perlu ? ` <small class="perlu">${st.cek.perlu}</small>` : ''}</button>
         ${this.vTombolPeriksa()}
       </div>`;
+  },
+  vStatusPd() {   // 4 status sebagai kotak besar berwarna
+    const f = this.s.f, st = this.idx.st;
+    const k = [['semua', 'Semua', st.total, 'semua pendaftar'], ['menunggu', 'Menunggu', st.menunggu, 'perlu dicek bukti bayarnya'], ['terkonfirmasi', 'Terkonfirmasi', st.terkonfirmasi, 'sudah sah'], ['ditolak', 'Ditolak', st.ditolak, 'tidak sah']];
+    return `<div class="pd-st" role="group" aria-label="Filter status">${k.map(([v, l, n, ket]) => `<button type="button" class="pd-k ${v}${f.status === v ? ' on' : ''}" data-act="adm.fStatus" data-v="${v}" aria-pressed="${f.status === v}"><span><b>${l}</b><small>${ket}</small></span><span class="pd-n">${angka(n)}</span></button>`).join('')}</div>`;
   },
   hasilFilter() {
     const f = this.s.f, d = this.s.data;
@@ -6756,7 +6785,7 @@ const Adm = {
     const info = `<div class="res-info"><span>Menampilkan <b>${rows.length}</b> dari ${total}</span>${adaFilter ? `<button class="btn btn-xs btn-ghost" data-act="adm.fReset">${ico('x')} Reset filter</button>` : ''}${nTunggu > 1 ? `<button class="btn btn-xs btn-ghost" data-act="adm.tolakMassal" style="${adaFilter ? 'margin-left:0' : ''}">${ico('layers')} Tolak massal…</button>` : ''}</div>`;
     if (!rows.length && !f.cek) return info + `<div class="rows"><div class="empty">${total ? 'Tidak ada pendaftaran yang cocok dengan filter.' : 'Belum ada pendaftaran masuk.'}</div></div>`;
     const tampil = rows.slice(0, this.s.batas);
-    const kepala = `<div class="row head" aria-hidden="true"><span>Status · kode</span><span>Sekha</span><span>Jenis</span><span>Seri</span><span>Nomor</span><span class="c-harga">Biaya</span><span></span></div>`;
+    const kepala = `<div class="row head" aria-hidden="true"><span>Nomor</span><span>Sekha</span><span>Jenis &amp; seri</span><span>Status</span><span class="c-harga">Biaya</span><span class="c-aksi">Tindakan</span></div>`;
     if (f.cek) return info + this.vCekDaftar(rows);
     const isi = `<div class="rows">${kepala}${tampil.map((r) => this.vRow(r)).join('')}</div>`;
     return info + `${isi}${rows.length > tampil.length ? `<div class="actions"><button class="btn" data-act="adm.lebih">Tampilkan lebih banyak (${rows.length - tampil.length} lagi)</button></div>` : ''}`;
@@ -7290,15 +7319,17 @@ const Adm = {
     if (this.idx.baruIds && this.idx.baruIds.has(r.id)) flags.push('<span class="flag baru-tag" title="Pendaftaran baru di kelompok yang sebelumnya sudah selesai dicek">BARU</span>');
     if (!r.bukti_path) flags.push('<span class="flag info">Manual</span>');
     const baru = this.idx.baruIds && this.idx.baruIds.has(r.id);
-    return `<div class="row${baru ? ' baru-cek' : ''}" role="button" tabindex="0" data-act="adm.buka" data-id="${esc(r.id)}" data-asal="${asal}">
-      <span class="c-st">${badgeStatus(r.status)}<span class="kd">${esc(r.kode)}</span></span>
+    const seri = x ? (x.sesi_id ? this.labelSeriPendek(x) : x.nama) : '-';
+    const aksi = r.status === 'menunggu' ? `<span class="pd-cek">Cek bukti</span>`
+      : wa[0] === 'need' ? `<span class="pd-wa need" title="${wa[1]}">${ico('chat')} WA belum</span>` : wa[0] === 'sent' ? `<span class="pd-wa sent" title="${wa[1]}">${ico('check')} WA</span>` : '';
+    return `<div class="row pd-${esc(r.status)}${baru ? ' baru-cek' : ''}" role="button" tabindex="0" data-act="adm.buka" data-id="${esc(r.id)}" data-asal="${asal}">
+      <span class="c-no"><span class="pd-no" style="--c:${warnaJenis(r.jenis, dj)}">${esc(r.nomor_layangan || '—')}</span></span>
       <span class="c-sekha"><b>${esc(r.nama_sekha)}</b><span>${esc(r.alamat)}</span>${flags.length ? `<span class="flags">${flags.join('')}</span>` : ''}</span>
-      <span class="c-jenis"><span class="jtag">${jdot(r.jenis, dj)}${esc((j && j.nama) || r.jenis)}</span></span>
-      <span class="c-seri">${esc((x && x.nama) || '-')}<span>${esc(relatif(r.created_at))}</span></span>
-      <span class="c-no">${esc(r.nomor_layangan || '—')}</span>
+      <span class="c-jenis"><span class="jtag">${jdot(r.jenis, dj)}${esc((j && j.nama) || r.jenis)}</span><small>${esc(seri)}</small></span>
+      <span class="c-st">${badgeStatus(r.status)}<span class="kd">${esc(r.kode)} · ${esc(relatif(r.created_at))}</span></span>
       <span class="c-harga">${rupiah(r.harga)}</span>
-      <span class="c-wa ${wa[0]}" title="${wa[1]}">${wa[2] ? ico(wa[2]) + `<span class="sr-only">${wa[1]}</span>` : ''}</span>
-      <span class="c-meta"><span class="jtag">${jdot(r.jenis, dj)}${esc((j && j.nama) || r.jenis)}</span><span>· ${esc((x && x.nama) || '-')}</span><span>· ${rupiah(r.harga)}</span><span>· ${esc(relatif(r.created_at))}</span></span>
+      <span class="c-aksi">${aksi}</span>
+      <span class="c-meta"><span class="jtag">${jdot(r.jenis, dj)}${esc((j && j.nama) || r.jenis)}</span><span>· ${esc(seri)}</span><span>· ${rupiah(r.harga)}</span></span>
     </div>`;
   },
 
