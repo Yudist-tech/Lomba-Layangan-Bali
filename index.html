@@ -1054,6 +1054,56 @@ div.sehat { margin: 0 0 16px; }
 .health div { display: flex; justify-content: space-between; gap: 10px; font-size: 14px; padding: 8px 0; border-top: 1px solid var(--line); }
 .health div:first-child { border-top: 0; }
 .danger-zone { border-color: var(--bad-soft); }
+/* ---- Pengaturan (lega & berwarna) ---- */
+.st-hero { margin-bottom: 16px; }
+.st-hb { display: flex; gap: 12px; flex-wrap: wrap; }
+.st-box { height: 62px; display: flex; align-items: center; gap: 10px; background: var(--surface); border: 1px solid color-mix(in srgb, var(--brand) 16%, var(--line)); border-radius: 14px; padding: 0 12px 0 14px; min-width: 0; }
+.st-box.switch { cursor: pointer; } .st-bt b { display: block; line-height: 1.25; color: var(--muted); } .st-box.on .st-bt b { color: var(--good-ink); }
+.st-bt small { display: block; color: var(--muted); font-size: 12px; font-weight: 500; }
+.st-link code { font: 600 12.5px ui-monospace, Menlo, monospace; color: var(--brand-soft-ink); background: var(--brand-soft); border-radius: 7px; padding: 5px 8px; max-width: 230px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.st-grid { gap: 16px; }
+.st-full { grid-column: 1 / -1; min-width: 0; }
+.st-k { border-top: 4px solid var(--c); margin: 0 !important; }
+.st-biru { --c: var(--cat-1, #2a78d6); } .st-hijau { --c: var(--good); } .st-kuning { --c: #e0a800; } .st-ungu { --c: #8b5cf6; } .st-wa { --c: #1fa855; }
+.st-h { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; }
+.st-h h3 { margin: 0; font-size: 16.5px; } .st-ha { margin-left: auto; display: flex; gap: 8px; }
+.st-ic { width: 34px; height: 34px; border-radius: 10px; display: grid; place-items: center; flex: none; background: color-mix(in srgb, var(--c) 14%, var(--surface)); color: color-mix(in srgb, var(--c) 80%, var(--ink)); }
+.st-ic .ico { width: 18px; height: 18px; }
+.st-lock { font-size: 11.5px; font-weight: 600; color: var(--muted); } .st-lock .ico { width: 12px; height: 12px; vertical-align: -1px; }
+.st-k .field { margin-bottom: 12px; }
+.st-row { padding: 12px 0; border-top: 1px solid var(--line); } .st-row:first-of-type { border-top: 0; padding-top: 2px; }
+.st-row .switch { font-size: 14.5px; } .st-batas .input { max-width: 260px; margin-top: 4px; }
+.st-bank { border-radius: 14px; padding: 14px 18px; margin-bottom: 14px; background: linear-gradient(135deg, color-mix(in srgb, #e0a800 6%, var(--surface)), color-mix(in srgb, #e0a800 20%, var(--surface))); border: 1px solid color-mix(in srgb, #e0a800 35%, var(--line)); color: color-mix(in srgb, #e0a800 35%, var(--ink)); }
+.st-bank small { display: block; font-size: 11.5px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; opacity: .85; }
+.st-bank .st-rek { display: block; font: 800 21px ui-monospace, Menlo, monospace; letter-spacing: .06em; margin: 4px 0; color: var(--ink); overflow-wrap: anywhere; }
+.st-bank span { font-weight: 700; }
+.st-media { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+.st-slot .media-prev { width: 100%; height: 120px; cursor: pointer; text-align: center; padding: 8px; }
+.st-slot .media-prev.flyer, .st-slot .media-prev.logo { width: 100%; height: 120px; }
+.st-slot .media-prev span { display: grid; gap: 2px; justify-items: center; font-weight: 700; font-size: 13px; } .st-slot .media-prev span .ico { width: 18px; height: 18px; }
+.st-slot .media-prev small { font-weight: 500; font-size: 11.5px; color: var(--muted); }
+.st-slot .media-prev:hover { border-color: var(--brand); } .st-slot .media-prev:focus-within { outline: 2px solid var(--brand); outline-offset: 2px; }
+.st-cap { text-align: center; font-size: 13px; margin-top: 6px; } .st-lk { all: unset; cursor: pointer; text-decoration: underline; color: var(--brand); font-weight: 600; } .st-lk.merah { color: var(--bad-ink); }
+.st-wa-m { border: 1px solid var(--line); border-radius: 14px; padding: 12px 14px; } .st-wa-m + .st-wa-m { margin-top: 12px; }
+.st-wa-h { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; } .st-wa-h small { color: var(--muted); font-size: 12.5px; }
+.st-wt { width: 22px; height: 22px; border-radius: 7px; display: grid; place-items: center; flex: none; } .st-wt .ico { width: 13px; height: 13px; }
+.st-wt.ok { background: var(--good-soft); color: var(--good-ink); } .st-wt.no { background: var(--bad-soft); color: var(--bad-ink); }
+.st-wa-g { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 12px; align-items: start; }
+.st-wa-ed textarea { font: 13px/1.5 ui-monospace, Menlo, monospace; resize: vertical; }
+.st-wa-pv { background: color-mix(in srgb, #d9cfc4 60%, var(--surface)); border-radius: 12px; padding: 12px; }
+.st-wa-pv .wa-preview { border-radius: 10px 10px 2px 10px; max-height: 300px; box-shadow: 0 1px 1px rgba(0,0,0,.1); }
+.st-sisip { margin-top: 6px; } .st-sisip summary { cursor: pointer; color: var(--brand); font-weight: 700; font-size: 13px; list-style: none; display: inline-flex; align-items: center; gap: 4px; }
+.st-sisip summary::-webkit-details-marker { display: none; } .st-sisip summary .ico { width: 14px; height: 14px; }
+.st-bahaya { display: flex; align-items: center; gap: 10px 14px; flex-wrap: wrap; border: 1px solid color-mix(in srgb, var(--bad) 30%, var(--line)); background: color-mix(in srgb, var(--bad-soft) 40%, var(--surface)); border-radius: 14px; padding: 12px 16px; }
+.st-bh { flex: 1; color: var(--bad-ink); font-weight: 800; display: inline-flex; align-items: center; gap: 6px; } .st-bh .ico { width: 17px; height: 17px; }
+@media (min-width: 761px) { .st-hb { margin-left: auto; } }
+@media (max-width: 760px) {
+  .st-hero { flex-direction: column; align-items: stretch; } .st-hb { flex-direction: column; } .st-box { width: 100%; }
+  .st-link { padding: 0 8px 0 10px; gap: 6px; } .st-link code { flex: 1 1 0; min-width: 0; max-width: none; font-size: 11.5px; } .st-hb, .st-box { min-width: 0; max-width: 100%; } .st-link .btn { flex: none; } .st-link .btn { padding: 6px 9px; }
+  .st-media { gap: 8px; } .st-slot .media-prev, .st-slot .media-prev.flyer, .st-slot .media-prev.logo { height: 90px; } .st-slot .media-prev small { display: none; }
+  .st-wa-g { grid-template-columns: minmax(0, 1fr); } .st-wa-h small { display: none; } .st-wa-m { padding: 10px; }
+  .st-batas .input { max-width: none; }
+}
 .danger-zone .panel-h h3 { color: var(--bad-ink); }
 .inline-form { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr) 90px auto; gap: 8px; align-items: end; padding: 10px 0; border-top: 1px solid var(--line); }
 .inline-form:first-of-type { border-top: 0; padding-top: 0; }
@@ -6503,6 +6553,7 @@ const Adm = {
     if (this.s.tab === 'pengaturan' && this.s.data && $('#set-root')) {
       const h = $('#health'); if (h) h.outerHTML = this.vSehat();
       const t = $('#set-tampilan'); if (t) t.outerHTML = this.vPanelTampilan();
+      const sh = $('#set-hero'); if (sh) sh.outerHTML = this.vSetHero();
       const mt = $('#adm-main .mtop'); if (mt) mt.outerHTML = this.vMtop();
     } else if (this.s.tab === 'pendaftaran' && this.s.data && $('#adm-search')) {
       $('#adm-filters').innerHTML = this.vFilter();
@@ -8270,75 +8321,68 @@ ${rows.map((r, i) => `<tr><td class="n">${i + 1}</td><td class="no">${esc(r.nomo
     const batas = lokalDariIso(ev.batas_daftar);
     const phKonf = ['nama_event', 'jenis', 'nama_sekha', 'alamat', 'no_wa', 'nomor_layangan', 'seri', 'kotak', 'link_konfirmasi', 'jadwal', 'tanggal', 'jam', 'kode', 'harga', 'penyelenggara', 'lokasi'];
     const phTolak = ['nama_event', 'jenis', 'nama_sekha', 'kode', 'alasan', 'seri', 'harga', 'penyelenggara', 'wa_panitia'];
-    return `${this.vTopbar('Pengaturan', 'Event, pembayaran, harga & pesan WhatsApp')}
-    <div class="set-grid" id="set-root"><div class="set-col">
-      <form class="panel" data-submit="adm.setEvent" novalidate><div class="panel-h"><h3>Informasi event</h3></div>
-        ${this.s.super ? '' : `<div class="note">${ico('lock')}<span>Nama, tanggal, dan lokasi event diatur oleh super admin. Hubungi super admin bila perlu diubah.</span></div>`}
-        ${fieldInput({ id: 'p-nama', name: 'nama_event', label: 'Nama event', value: ev.nama_event, maxlength: 120, readonly: !this.s.super })}
-        ${fieldInput({ id: 'p-tema', name: 'tema', label: 'Tema event', value: ev.tema || '', maxlength: 80, opsional: true, readonly: !('tema' in ev), hint: 'tema' in ev ? 'Kosongkan bila tidak ada tema.' : 'Belum aktif: jalankan tema-event.sql di Supabase.' })}
-        ${fieldInput({ id: 'p-org', name: 'penyelenggara', label: 'Penyelenggara', value: ev.penyelenggara, maxlength: 120, opsional: true, hint: 'Kosongkan bila tidak ingin ditampilkan di halaman peserta.' })}
-        ${fieldInput({ id: 'p-lokasi', name: 'lokasi', label: 'Lokasi lomba', value: ev.lokasi, maxlength: 160, readonly: !this.s.super })}
-        <div class="g2">${fieldInput({ id: 'p-mulai', name: 'tanggal_mulai', label: 'Tanggal mulai', value: ev.tanggal_mulai || '', type: 'date', readonly: !this.s.super })}
-        ${fieldInput({ id: 'p-selesai', name: 'tanggal_selesai', label: 'Tanggal selesai', value: ev.tanggal_selesai || '', type: 'date', readonly: !this.s.super, hint: 'Dipakai di halaman depan semua event.' })}</div>
-        ${fieldInput({ id: 'p-wa', name: 'wa_admin', label: 'Nomor WA panitia', value: ev.wa_admin ? fmtWA(ev.wa_admin) : '', type: 'tel', inputmode: 'tel', maxlength: 20, hint: 'Dipakai tombol "Tanya panitia" di halaman peserta.' })}
-        ${fieldInput({ id: 'p-info', name: 'info', label: 'Info & ketentuan lomba', value: ev.info, textarea: true, rows: 4, maxlength: 2000, opsional: true, hint: 'Tampil di atas formulir pendaftaran.' })}
-        <div class="actions end"><button class="btn btn-primary btn-sm" type="submit">Simpan</button></div></form>
-      ${this.vPanelTampilan()}
-      <form class="panel" data-submit="adm.setDaftar" novalidate><div class="panel-h"><h3>Status pendaftaran</h3></div>
-        <label class="switch" style="margin-bottom:14px"><input type="checkbox" name="pendaftaran_buka" ${ev.pendaftaran_buka ? 'checked' : ''}><span class="sw"></span>Pendaftaran online dibuka</label>
-        ${fieldInput({ id: 'p-batas', name: 'batas_daftar', label: 'Tutup otomatis pada', value: batas, type: 'datetime-local', opsional: true, hint: `Waktu ${CONFIG.ZONA_WAKTU}. Kosongkan jika tidak ada batas.` })}
-        <label class="switch"><input type="checkbox" name="tampilkan_peserta" ${ev.tampilkan_peserta ? 'checked' : ''}><span class="sw"></span>Tampilkan nama sekha & alamat saat nomor di halaman Jadwal diklik</label>
-        <p class="hint" style="margin:6px 0 0">Nomor layangan selalu tampil di jadwal. Opsi ini hanya mengatur pop-up nama sekha & alamat.</p>
-        <div class="actions end"><button class="btn btn-primary btn-sm" type="submit">Simpan</button></div></form>
-      <form class="panel" data-submit="adm.setBank" novalidate><div class="panel-h"><h3>Rekening pembayaran</h3></div>
-        ${fieldInput({ id: 'p-bank', name: 'bank_nama', label: 'Nama bank', value: ev.bank_nama, maxlength: 60 })}
-        ${fieldInput({ id: 'p-rek', name: 'bank_no_rek', label: 'Nomor rekening', value: ev.bank_no_rek, maxlength: 40, inputmode: 'numeric' })}
-        ${fieldInput({ id: 'p-an', name: 'bank_atas_nama', label: 'Atas nama', value: ev.bank_atas_nama, maxlength: 120 })}
-        <div class="actions end"><button class="btn btn-primary btn-sm" type="submit">Simpan</button></div></form>
-    </div><div class="set-col">
-      <form class="panel" data-submit="adm.setTemplate" novalidate><div class="panel-h"><h3>Pesan WhatsApp</h3></div>
-        <div class="field"><label class="label" for="t-konf">Konfirmasi (setelah pembayaran diterima)</label>
-          <div class="ph-chips">${phKonf.map((p) => `<button type="button" data-act="adm.sisip" data-target="t-konf" data-v="{${p}}">{${p}}</button>`).join('')}</div>
-          <textarea class="input" id="t-konf" name="template_wa_konfirmasi" rows="9" data-in="adm.tpl">${esc(ev.template_wa_konfirmasi || TEMPLATE_WA.konfirmasi)}</textarea></div>
-        <div class="field"><span class="label">Pratinjau</span><div class="wa-preview" id="prev-konf"></div></div>
-        <div class="field"><label class="label" for="t-tolak">Penolakan</label>
-          <div class="ph-chips">${phTolak.map((p) => `<button type="button" data-act="adm.sisip" data-target="t-tolak" data-v="{${p}}">{${p}}</button>`).join('')}</div>
-          <textarea class="input" id="t-tolak" name="template_wa_tolak" rows="6" data-in="adm.tpl">${esc(ev.template_wa_tolak || TEMPLATE_WA.tolak)}</textarea></div>
-        <div class="field"><span class="label">Pratinjau</span><div class="wa-preview" id="prev-tolak"></div></div>
-        <div class="actions end"><button type="button" class="btn btn-sm" data-act="adm.tplDefault">${ico('undo')} Kembalikan bawaan</button><button class="btn btn-primary btn-sm" type="submit">Simpan</button></div></form>
-      <div class="panel"><div class="panel-h"><h3>Link & berbagi</h3></div>
-        <div class="field"><span class="label">Link pendaftaran peserta</span><div class="copy-row"><input class="input input-sm" readonly value="${esc(linkPublik)}" aria-label="Link pendaftaran"><button class="btn btn-sm" data-act="salin" data-teks="${esc(linkPublik)}" data-label="Link disalin">${ico('copy')}</button></div></div>
-        <div class="sa-act"><a class="btn btn-sm" target="_blank" rel="noopener" href="${esc(`https://wa.me/?text=${encodeURIComponent(`Pendaftaran ${ev.nama_event} sudah dibuka! Daftar online di sini: ${linkPublik}`)}`)}">${ico('share')} Bagikan via WA</a>
-        <a class="btn btn-sm" href="${hrefEv('daftar')}" target="_blank" rel="noopener">${ico('globe')} Buka halaman peserta</a></div>
-        <p class="hint" style="margin:12px 0 0">Dashboard: <b>${esc(linkPublik)}/admin</b></p>
+    const kunci = this.s.super ? '' : ' <span class="st-lock" title="Diatur super admin">' + ico('lock') + ' super admin</span>';
+    const fi = (o) => fieldInput(o).replace(/(<label class="label"[^>]*>[^<]*)/, `$1${o.readonly && o.kunci ? kunci : ''}`);
+    const kartu = (cls, ikon, judul, kanan, isi, attr = '') => `<${attr ? 'form' : 'div'} class="panel st-k ${cls}" ${attr} novalidate><div class="st-h"><span class="st-ic">${ico(ikon)}</span><h3>${judul}</h3><span class="st-ha">${kanan}</span></div>${isi}</${attr ? 'form' : 'div'}>`;
+    const simpan = '<button class="btn btn-primary btn-sm" type="submit">Simpan</button>';
+    const pesan = (k, judul, ket, id, name, nilai, rows, ph) => `<div class="st-wa-m"><div class="st-wa-h"><span class="st-wt ${k}">${ico(k === 'ok' ? 'check' : 'x')}</span><b>${judul}</b><small>${ket}</small></div>
+      <div class="st-wa-g"><div class="st-wa-ed"><label class="sr-only" for="${id}">${judul}</label><textarea class="input" id="${id}" name="${name}" rows="${rows}" data-in="adm.tpl">${esc(nilai)}</textarea>
+        <details class="st-sisip"><summary>${ico('plus')} Sisipkan data</summary><div class="ph-chips">${ph.map((x) => `<button type="button" data-act="adm.sisip" data-target="${id}" data-v="{${x}}">{${x}}</button>`).join('')}</div></details></div>
+      <div class="st-wa-pv"><div class="wa-preview" id="prev-${id.slice(2)}"></div></div></div></div>`;
+    return `${this.vSetHero(linkPublik)}
+    <div class="set-grid st-grid" id="set-root">
+      ${kartu('st-biru', 'cal', 'Informasi event', simpan, `
+        ${fi({ id: 'p-nama', name: 'nama_event', label: 'Nama event', value: ev.nama_event, maxlength: 120, readonly: !this.s.super, kunci: 1 })}
+        <div class="g2">${fi({ id: 'p-mulai', name: 'tanggal_mulai', label: 'Tanggal mulai', value: ev.tanggal_mulai || '', type: 'date', readonly: !this.s.super, kunci: 1 })}
+        ${fi({ id: 'p-selesai', name: 'tanggal_selesai', label: 'Tanggal selesai', value: ev.tanggal_selesai || '', type: 'date', readonly: !this.s.super, kunci: 1 })}</div>
+        ${fi({ id: 'p-lokasi', name: 'lokasi', label: 'Lokasi lomba', value: ev.lokasi, maxlength: 160, readonly: !this.s.super, kunci: 1 })}
+        <div class="g2">${fieldInput({ id: 'p-org', name: 'penyelenggara', label: 'Penyelenggara', value: ev.penyelenggara, maxlength: 120, opsional: true })}
+        ${fieldInput({ id: 'p-wa', name: 'wa_admin', label: 'WA panitia', value: ev.wa_admin ? fmtWA(ev.wa_admin) : '', type: 'tel', inputmode: 'tel', maxlength: 20 })}</div>
+        ${fieldInput({ id: 'p-tema', name: 'tema', label: 'Tema', value: ev.tema || '', maxlength: 80, opsional: true, readonly: !('tema' in ev), hint: 'tema' in ev ? '' : 'Belum aktif: jalankan tema-event.sql di Supabase.' })}
+        ${fieldInput({ id: 'p-info', name: 'info', label: 'Info & ketentuan lomba', value: ev.info, textarea: true, rows: 4, maxlength: 2000, opsional: true, placeholder: 'Tampil di atas formulir pendaftaran' })}`, 'data-submit="adm.setEvent"')}
+      <div class="set-col">
+        ${kartu('st-hijau', 'check', 'Pendaftaran', simpan, `
+          <div class="st-row"><label class="switch"><input type="checkbox" name="pendaftaran_buka" ${ev.pendaftaran_buka ? 'checked' : ''}><span class="sw"></span>Pendaftaran online dibuka</label></div>
+          <div class="st-row st-batas"><label class="label" for="p-batas">Tutup otomatis <span class="opt-lbl">(${CONFIG.ZONA_WAKTU}, kosong = tanpa batas)</span></label><input class="input" id="p-batas" name="batas_daftar" type="datetime-local" value="${esc(batas)}"></div>
+          <div class="st-row"><label class="switch"><input type="checkbox" name="tampilkan_peserta" ${ev.tampilkan_peserta ? 'checked' : ''}><span class="sw"></span>Nama sekha &amp; alamat tampil saat nomor di jadwal diklik</label></div>`, 'data-submit="adm.setDaftar"')}
+        ${kartu('st-kuning', 'wallet', 'Rekening pembayaran', simpan, `
+          <div class="st-bank"><small>${esc(ev.bank_nama || 'Nama bank')}</small><b class="st-rek">${esc(ev.bank_no_rek || '—')}</b><span>a.n. ${esc(ev.bank_atas_nama || '—')}</span></div>
+          <div class="g2">${fieldInput({ id: 'p-bank', name: 'bank_nama', label: 'Bank', value: ev.bank_nama, maxlength: 60 })}
+          ${fieldInput({ id: 'p-rek', name: 'bank_no_rek', label: 'No. rekening', value: ev.bank_no_rek, maxlength: 40, inputmode: 'numeric' })}</div>
+          ${fieldInput({ id: 'p-an', name: 'bank_atas_nama', label: 'Atas nama', value: ev.bank_atas_nama, maxlength: 120 })}`, 'data-submit="adm.setBank"')}
       </div>
-      ${this.vSehat()}
-      <div class="panel danger-zone"><div class="panel-h"><h3>Zona berbahaya</h3></div>
-        <p class="hint" style="margin:0 0 12px">Dipakai setelah uji coba, sebelum pendaftaran resmi dibuka.</p>
-        <div class="sa-act">
+      <div class="st-full">${this.vPanelTampilan()}</div>
+      <div class="st-full">${kartu('st-wa', 'chat', 'Pesan WhatsApp', `<button type="button" class="btn btn-sm" data-act="adm.tplDefault">${ico('undo')} Bawaan</button>${simpan}`, `
+        ${pesan('ok', 'Pesan konfirmasi', 'dikirim setelah pembayaran diterima', 't-konf', 'template_wa_konfirmasi', ev.template_wa_konfirmasi || TEMPLATE_WA.konfirmasi, 10, phKonf)}
+        ${pesan('no', 'Pesan penolakan', 'dikirim bila pendaftaran ditolak', 't-tolak', 'template_wa_tolak', ev.template_wa_tolak || TEMPLATE_WA.tolak, 7, phTolak)}`, 'data-submit="adm.setTemplate"')}</div>
+      <div class="st-full">${this.vSehat()}</div>
+      <div class="st-full st-bahaya"><span class="st-bh">${ico('alert')} Zona berbahaya</span><div class="sa-act">
           <button class="btn btn-sm btn-danger" data-act="adm.reset">${ico('trash')} Hapus semua pendaftaran</button>
           ${api.mode === 'supabase' ? (this.s.super ? `<button class="btn btn-sm" data-act="adm.yatim">${ico('image')} Bersihkan file bukti tak terpakai (semua event)</button>` : '') : `<button class="btn btn-sm" data-act="adm.demoIsi">${ico('refresh')} Isi ulang data contoh</button><button class="btn btn-sm" data-act="adm.demoKosong">${ico('x')} Kosongkan demo</button>`}
-        </div>
-      </div>
-    </div></div>`;
+        </div></div>
+    </div>`;
+  },
+  vSetHero(linkPublik) {
+    const ev = this.s.data.pengaturan;
+    linkPublik = linkPublik || location.href.split('#')[0] + hrefEv();
+    const batas = ev.batas_daftar ? fmtWaktu(ev.batas_daftar) : '';
+    const wa = `https://wa.me/?text=${encodeURIComponent(`Pendaftaran ${ev.nama_event} sudah dibuka! Daftar online di sini: ${linkPublik}`)}`;
+    return `<div class="rk-hero st-hero" id="set-hero"><div class="rk-hh"><h2>Pengaturan</h2><div class="rk-sub">${esc(ev.nama_event || '')}</div></div>
+      <div class="st-hb">
+        <label class="st-box switch${ev.pendaftaran_buka ? ' on' : ''}"><input type="checkbox" data-ch="adm.bukaCepat" ${ev.pendaftaran_buka ? 'checked' : ''}><span class="sw"></span><span class="st-bt"><b>Pendaftaran ${ev.pendaftaran_buka ? 'dibuka' : 'ditutup'}</b><small>${batas ? `tutup otomatis ${esc(batas)}` : 'tanpa batas waktu'}</small></span></label>
+        <div class="st-box st-link"><code title="${esc(linkPublik)}">${esc(linkPublik.replace(/^https?:\/\//, ''))}</code><button class="btn btn-sm" data-act="salin" data-teks="${esc(linkPublik)}" data-label="Link disalin">${ico('copy')} Salin</button><a class="btn btn-sm btn-good" target="_blank" rel="noopener" href="${esc(wa)}">${ico('share')} Bagikan WA</a></div>
+      </div></div>`;
   },
   vPanelTampilan() {
     const ev = this.s.data.pengaturan;
     const baris = (k, judul, ket) => {
       const u = urlGambarAman(ev[k + '_url']);
-      return `<div class="media-row">
-        <div class="media-prev ${k} ${u ? 'isi' : ''}" ${u ? `style="background-image:url('${esc(u)}')"` : ''}>${u ? '' : 'Belum ada'}</div>
-        <div class="media-info"><b>${judul}</b><span class="hint">${ket}</span>
-          <div class="sa-act">
-            <label class="btn btn-xs">${ico('upload')} ${u ? 'Ganti' : 'Unggah'}<input type="file" class="sr-only" accept="image/png,image/jpeg,image/webp" data-ch="adm.media" data-k="${k}"></label>
-            ${u ? `<button type="button" class="btn btn-xs btn-danger" data-act="adm.mediaHapus" data-k="${k}">${ico('trash')} Hapus</button>` : ''}
-          </div></div></div>`;
+      return `<div class="st-slot">
+        <label class="media-prev ${k} ${u ? 'isi' : ''}" ${u ? `style="background-image:url('${esc(u)}')"` : ''} title="${u ? 'Ganti' : 'Unggah'} ${judul}">${u ? '' : `<span>${ico('upload')} ${judul}<small>${ket}</small></span>`}<input type="file" class="sr-only" accept="image/png,image/jpeg,image/webp" data-ch="adm.media" data-k="${k}"></label>
+        <div class="st-cap"><b>${judul}</b>${u ? ` · <label class="st-lk">Ganti<input type="file" class="sr-only" accept="image/png,image/jpeg,image/webp" data-ch="adm.media" data-k="${k}"></label> · <button type="button" class="st-lk merah" data-act="adm.mediaHapus" data-k="${k}">Hapus</button>` : ''}</div></div>`;
     };
-    return `<div class="panel" id="set-tampilan"><div class="panel-h"><h3>Tampilan halaman peserta</h3><a class="btn btn-xs" href="${hrefEv('daftar')}" target="_blank" rel="noopener">${ico('globe')} Lihat</a></div>
-      ${baris('logo', 'Logo', 'Tampil di atas nama event. PNG transparan paling bagus.')}
-      ${baris('flyer', 'Flyer event', 'Tampil di halaman depan semua event & bisa diperbesar peserta. Ukuran bebas (tegak paling bagus), JPG atau PNG.')}
-      ${baris('bg', 'Gambar latar', 'Latar bagian atas halaman. Gambar mendatar (landscape), dibuat sedikit gelap agar tulisan terbaca.')}
-      <p class="hint" style="margin:0">Kosongkan untuk memakai tampilan bawaan. Gambar otomatis diperkecil sebelum diunggah.</p></div>`;
+    return `<div class="panel st-k st-ungu" id="set-tampilan"><div class="st-h"><span class="st-ic">${ico('image')}</span><h3>Tampilan halaman peserta</h3><span class="st-ha"><a class="btn btn-sm" href="${hrefEv('daftar')}" target="_blank" rel="noopener">${ico('globe')} Lihat</a></span></div>
+      <div class="st-media">${baris('logo', 'Logo', 'PNG transparan')}${baris('flyer', 'Flyer', 'tegak, JPG/PNG')}${baris('bg', 'Gambar latar', 'mendatar')}</div></div>`;
   },
   /* status sistem: dicek otomatis sekali per sesi; masalah hanya dirinci untuk super admin */
   sehatMasalah() {
@@ -10003,6 +10047,12 @@ SUB['adm.setEvent'] = (form) => {
 SUB['adm.setDaftar'] = (form) => {
   const b = String(form.batas_daftar.value).trim();
   return simpanPengaturanForm(form, { pendaftaran_buka: form.pendaftaran_buka.checked, batas_daftar: isoDariLokal(b), tampilkan_peserta: form.tampilkan_peserta.checked });
+};
+CH['adm.bukaCepat'] = (el) => {
+  const f = document.querySelector('form[data-submit="adm.setDaftar"]');
+  if (!f) return;
+  f.pendaftaran_buka.checked = el.checked;
+  f.requestSubmit();
 };
 SUB['adm.setBank'] = (form) => {
   const v = (n) => String(form[n].value).trim();
