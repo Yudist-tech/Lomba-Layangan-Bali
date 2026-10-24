@@ -2357,6 +2357,25 @@ form .kp-foto { margin-bottom: 12px; height: 80px; }
   .lp-top.lp-langit .lp-bar { margin-bottom: 22px; } .lp-top.lp-langit p { max-width: 30ch; }
 }
 @media (prefers-reduced-motion: reduce) { .lp-awan, .lp-angin { animation: none; } .lp-angin { opacity: .6; } }
+
+/* Tepi bawah header: garis rata dengan 2 tonjolan berisi statistik */
+.lp-top.lp-langit { padding-bottom: 88px; }
+.lp-top.lp-langit + .lp-main { padding-top: 16px; }
+.lp-tabs { position: absolute; left: 0; right: 0; bottom: -1px; z-index: 2; display: flex; justify-content: center; gap: clamp(40px, 12vw, 180px); padding: 0 16px; }
+.lp-tab { position: relative; background: var(--page); border-radius: 16px 16px 0 0; padding: 8px 8px 3px; }
+.lp-tab::before, .lp-tab::after { content: ''; position: absolute; bottom: 0; width: 16px; height: 16px; }
+.lp-tab::before { left: -16px; background: radial-gradient(circle at 0 0, transparent 15.5px, var(--page) 16px); }
+.lp-tab::after { right: -16px; background: radial-gradient(circle at 100% 0, transparent 15.5px, var(--page) 16px); }
+.lp-stat { display: flex; align-items: center; gap: 8px; background: var(--surface); color: var(--ink); border: 1px solid var(--line); border-radius: 10px; padding: 6px 12px; }
+.lp-stat b { font-size: 18px; line-height: 1; font-weight: 800; }
+.lp-stat span { display: flex; align-items: center; gap: 5px; font-size: 13px; font-weight: 600; line-height: 1.2; color: var(--muted); }
+.lp-stat .ico { width: 14px; height: 14px; } .lp-stat .dot { width: 7px; height: 7px; border-radius: 50%; background: #22a55b; box-shadow: 0 0 0 3px rgba(34,165,91,.18); flex: none; }
+@media (max-width: 760px) {
+  .lp-top.lp-langit { padding-bottom: 84px; }
+  .lp-tabs { gap: 26px; }
+  .lp-tab { padding: 6px 6px 3px; }
+  .lp-stat { gap: 6px; padding: 5px 9px; } .lp-stat b { font-size: 16px; } .lp-stat span { font-size: 11.5px; }
+}
 </style>
 </head>
 <body>
@@ -10592,8 +10611,8 @@ const Beranda = {
         <h1 class="lp-h1">Siap <span class="lp-rot">terbang?</span></h1>
         ${teks ? `<p>${esc(teks)}</p>` : ''}
         <label class="lp-cari">${ico('search')}<input type="search" placeholder="Cari event, lokasi, atau penyelenggara…" value="${esc(this.s.cari || '')}" data-in="lp.cari" aria-label="Cari event" autocomplete="off"></label>
-        ${this.s.list ? `<div class="hero-chips"><span class="chip"><i class="dot"></i>${nBuka} event buka pendaftaran</span><span class="chip">${ico('cal')}${nAktif} event mendatang</span></div>` : ''}
-      </div>${HERO_WAVES}</header>
+      </div>
+      <div class="lp-tabs"><div class="lp-tab"><div class="lp-stat"><b>${this.s.list ? nBuka : '–'}</b><span><i class="dot"></i>event buka pendaftaran</span></div></div><div class="lp-tab"><div class="lp-stat"><b>${this.s.list ? nAktif : '–'}</b><span>${ico('cal')}event mendatang</span></div></div></div></header>
       <main class="lp-main" id="main"><div id="lp-isi">${isi}</div>
         <footer class="pub-foot"><div class="foot-s">${esc(st.nama)} · <a href="#panitia">Masuk panitia</a></div></footer>
       </main>`;
