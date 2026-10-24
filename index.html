@@ -2327,6 +2327,55 @@ form .kp-foto { margin-bottom: 12px; height: 80px; }
 #adm-main #set-root .st-bh { font-size: 15px; }
 #adm-main .st-hero .rk-sub { font-size: 14px; } #adm-main .st-link code { font-size: 13px; }
 @media (max-width: 760px) { #adm-main #set-root .input { font-size: 16px; } }
+
+/* ===== Beranda: langit, awan tipis, angin & janggan (tetap ada walau latar diganti) ===== */
+.lp-top.lp-langit { background: linear-gradient(180deg, #2f7fd1 0%, #5aa6e6 55%, #9fd0f5 100%); padding-bottom: 64px; }
+.lp-top.lp-langit.has-bg { background-color: #2f7fd1; }
+.lp-udara { position: absolute; inset: 0; z-index: 0; pointer-events: none; overflow: hidden; }
+.lp-awan { position: absolute; left: 0; border-radius: 50%; background: radial-gradient(closest-side, rgba(255,255,255,.75), rgba(255,255,255,0)); animation: lp-geser linear infinite; }
+.lp-awan.a1 { width: 300px; height: 64px; top: 14%; animation-duration: 80s; animation-delay: -25s; }
+.lp-awan.a2 { width: 200px; height: 46px; top: 46%; animation-duration: 60s; animation-delay: -45s; opacity: .8; }
+.lp-awan.a3 { width: 360px; height: 74px; top: 70%; animation-duration: 100s; animation-delay: -5s; opacity: .7; }
+@keyframes lp-geser { from { transform: translateX(-40vw); } to { transform: translateX(130vw); } }
+.lp-angin { position: absolute; height: 2px; border-radius: 2px; background: linear-gradient(90deg, transparent, rgba(255,255,255,.85), transparent); animation: lp-hembus 3.4s linear infinite; }
+.lp-angin.g1 { left: 6%; top: 30%; width: 130px; } .lp-angin.g2 { left: 30%; top: 60%; width: 90px; animation-delay: 1.1s; }
+.lp-angin.g3 { left: 52%; top: 22%; width: 150px; animation-delay: 2s; } .lp-angin.g4 { left: 74%; top: 74%; width: 110px; animation-delay: 2.7s; }
+@keyframes lp-hembus { 0% { transform: translateX(-160px); opacity: 0; } 20% { opacity: 1; } 100% { transform: translateX(260px); opacity: 0; } }
+.lp-jg { position: absolute; z-index: 0; pointer-events: none; filter: drop-shadow(0 10px 14px rgba(0,30,70,.25)); }
+.lp-jg svg { display: block; width: 100%; height: auto; }
+.lp-jg.j1 { right: max(170px, calc(50% - 420px)); top: 40px; width: 140px; }
+.lp-jg.j2 { right: max(30px, calc(50% - 570px)); top: 96px; width: 90px; opacity: .92; }
+.lp-h1 { margin-bottom: 8px !important; } .lp-rot { display: inline-block; background: #f2b705; color: #1a1300; border-radius: 12px; padding: 0 12px; text-shadow: none; }
+.lp-top.lp-langit h1, .lp-top.lp-langit p { text-shadow: 0 2px 14px rgba(0,40,90,.35); }
+.lp-cari { display: flex; align-items: center; gap: 8px; margin-top: 16px; max-width: 520px; background: #fff; color: var(--ink); border-radius: 14px; padding: 0 14px; box-shadow: 0 10px 26px rgba(0,40,90,.25); }
+.lp-cari .ico { width: 18px; height: 18px; color: #8a909c; flex: none; }
+.lp-cari input { flex: 1; min-width: 0; border: 0; outline: 0; background: transparent; font: inherit; font-size: 16px; padding: 12px 0; color: #16181d; }
+.lp-cari:focus-within { box-shadow: 0 0 0 3px rgba(242,183,5,.6), 0 10px 26px rgba(0,40,90,.25); }
+.lp-top.lp-langit .hero-chips .chip { background: rgba(255,255,255,.2); border-color: rgba(255,255,255,.4); }
+@media (max-width: 760px) {
+  .lp-jg.j2 { display: none; } .lp-jg.j1 { right: -4px; top: 74px; width: 78px; opacity: .85; }
+  .lp-top.lp-langit .lp-bar { margin-bottom: 22px; } .lp-top.lp-langit p { max-width: 30ch; }
+}
+@media (prefers-reduced-motion: reduce) { .lp-awan, .lp-angin { animation: none; } .lp-angin { opacity: .6; } }
+
+/* Tepi bawah header: garis rata dengan 2 tonjolan berisi statistik */
+.lp-top.lp-langit { padding-bottom: 88px; }
+.lp-top.lp-langit + .lp-main { padding-top: 16px; }
+.lp-tabs { position: absolute; left: 0; right: 0; bottom: -1px; z-index: 2; display: flex; justify-content: center; gap: clamp(40px, 12vw, 180px); padding: 0 16px; }
+.lp-tab { position: relative; background: var(--page); border-radius: 16px 16px 0 0; padding: 8px 8px 3px; }
+.lp-tab::before, .lp-tab::after { content: ''; position: absolute; bottom: 0; width: 16px; height: 16px; }
+.lp-tab::before { left: -16px; background: radial-gradient(circle at 0 0, transparent 15.5px, var(--page) 16px); }
+.lp-tab::after { right: -16px; background: radial-gradient(circle at 100% 0, transparent 15.5px, var(--page) 16px); }
+.lp-stat { display: flex; align-items: center; gap: 8px; background: var(--surface); color: var(--ink); border: 1px solid var(--line); border-radius: 10px; padding: 6px 12px; }
+.lp-stat b { font-size: 18px; line-height: 1; font-weight: 800; }
+.lp-stat span { display: flex; align-items: center; gap: 5px; font-size: 13px; font-weight: 600; line-height: 1.2; color: var(--muted); }
+.lp-stat .ico { width: 14px; height: 14px; } .lp-stat .dot { width: 7px; height: 7px; border-radius: 50%; background: #22a55b; box-shadow: 0 0 0 3px rgba(34,165,91,.18); flex: none; }
+@media (max-width: 760px) {
+  .lp-top.lp-langit { padding-bottom: 84px; }
+  .lp-tabs { gap: 26px; }
+  .lp-tab { padding: 6px 6px 3px; }
+  .lp-stat { gap: 6px; padding: 5px 9px; } .lp-stat b { font-size: 16px; } .lp-stat span { font-size: 11.5px; }
+}
 </style>
 </head>
 <body>
@@ -10457,10 +10506,69 @@ function flyerBawaan(e) {
 function stEvent(st) { return `<span class="ev-st st-${st.k}">${st.k === 'live' ? '<i></i>' : ''}${esc(st.label)}</span>`; }
 
 /* ---------- HALAMAN DEPAN: semua event ---------- */
+
+/* ===== Beranda: layangan janggan animasi (ekor kain panjang berkibar) ===== */
+const JG = { mx: 0, siap: false };
+function pasangJanggan(root) {
+  if (!JG.siap) { JG.siap = true;
+    addEventListener('pointermove', (e) => { JG.mx = (e.clientX / innerWidth - .5) * 2; }, { passive: true });
+    addEventListener('deviceorientation', (e) => { if (e.gamma != null) JG.mx = Math.max(-1, Math.min(1, e.gamma / 30)); }, { passive: true }); }
+  (root || document).querySelectorAll('[data-janggan]:not([data-siap])').forEach((el, idx) => { el.dataset.siap = '1'; buatJanggan(el, { panjang: Number(el.dataset.panjang) || 2200, id: idx + Math.random().toString(36).slice(2, 6), fase: Number(el.dataset.fase) || 0, angin: Number(el.dataset.angin) || 1 }); });
+}
+function buatJanggan(el, opt) {
+  const S = 'http://www.w3.org/2000/svg', panjang = opt.panjang, lebar = 176, id = opt.id;
+  const K = '#16181d', M = '#d62828', P = '#f4f4f2', Y = '#f2b705';
+  const garis = [[K,8],[Y,4],[K,5],[P,8],[K,6],[M,7],[K,4],[P,5],[K,4],[M,22],[K,4],[P,5],[K,4],[M,7],[K,6],[P,8],[K,5],[Y,4],[K,8]];
+  const tot = garis.reduce((a, g) => a + g[1], 0);
+  const svg = document.createElementNS(S, 'svg'); svg.setAttribute('viewBox', `-70 -14 340 ${260 + panjang}`); svg.setAttribute('aria-hidden', 'true'); svg.style.overflow = 'visible';
+  const bar = (y) => `<path d="M0 ${y} Q100 ${y + 7} 200 ${y}" stroke="#4a3b2a" stroke-width="2.2" fill="none" stroke-linecap="round"/><path d="M0 ${y} Q100 ${y - 5} 200 ${y}" stroke="#4a3b2a" stroke-width=".9" fill="none"/><path d="M0 ${y - 3}V${y + 3}M200 ${y - 3}V${y + 3}" stroke="#4a3b2a" stroke-width="2"/>`;
+  svg.innerHTML = `<defs><linearGradient id="jgs${id}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fbfbfa"/><stop offset="1" stop-color="#d9dde2"/></linearGradient></defs><g class="jg-ekor"></g>
+    <g class="jg-badan">
+      <path d="M100 0 C103 28 106 50 148 71 L52 71 C94 50 97 28 100 0Z" fill="#a3172a"/><path d="M100 0 C102 24 103 40 112 60 L88 60 C97 40 98 24 100 0Z" fill="#7a0f1f"/>
+      <path d="M96 3 Q100 -10 104 3 Z" fill="#3f5a1e"/>
+      ${bar(53)}
+      <path d="M-8 93 C22 76 52 70 100 70 C148 70 178 76 208 93 C204 116 178 146 158 159 L42 159 C22 146 -4 116 -8 93Z" fill="url(#jgs${id})" stroke="#8d8a80" stroke-width="1.6" stroke-linejoin="round"/>
+      <path d="M100 70V159M100 132L84 159M100 132L116 159M40 72C36 104 36 134 42 159M160 72C164 104 164 134 158 159" stroke="#b9bcc2" stroke-width="1" fill="none"/>
+      <path d="M42 159 L158 159 Q128 181 168 203 C140 232 60 232 32 203 Q72 181 42 159Z" fill="#16181d"/>
+      ${bar(181)}
+      <path d="M32 203 C60 232 140 232 168 203 L186 245 C150 282 50 282 14 245Z" fill="url(#jgs${id})" stroke="#8d8a80" stroke-width="1.6" stroke-linejoin="round"/>
+      <path d="M64 222L52 262M136 222L148 262M100 225V273" stroke="#b9bcc2" stroke-width="1" fill="none"/>
+    </g>`;
+  el.appendChild(svg);
+  const gEkor = svg.querySelector('.jg-ekor'), badan = svg.querySelector('.jg-badan');
+  const paths = garis.map(([c]) => { const q = document.createElementNS(S, 'path'); q.setAttribute('fill', c); gEkor.appendChild(q); return q; });
+  const N = 150, y0 = 241, diam = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+  let gx = 0;
+  const gambar = (t) => {
+    gx += (JG.mx - gx) * 0.04;
+    const angin = opt.angin * (0.85 + 0.15 * Math.sin(t * 0.7)), pts = [];
+    for (let i = 0; i <= N; i++) { const u = i / N, d = u * panjang, y = y0 + d, k = Math.min(1, d / 420), amp = 2 + k * 26 * angin;
+      pts.push([100 - Math.pow(d / 900, 1.4) * 34 * angin * (1 + gx * .6) + amp * Math.sin(d / 95 - t * 3.4 + opt.fase) + 7 * k * Math.sin(d / 41 - t * 5.2), y]); }
+    let off = -tot / 2;
+    garis.forEach(([, gw], gi) => { const a = off / tot, b = (off + gw) / tot; off += gw; let kiri = '', kanan = '';
+      for (let i = 0; i <= N; i++) { const [x, y] = pts[i], p0 = pts[Math.max(0, i - 1)], p1 = pts[Math.min(N, i + 1)], dx = p1[0] - p0[0], dy = p1[1] - p0[1], L = Math.hypot(dx, dy) || 1, nx = dy / L, ny = -dx / L;
+        const ww = lebar * (1 + Math.min(1, i / N * 8) * .1) * (0.95 + 0.05 * Math.cos(i / N * 30 - t * 3.4));
+        kiri += `${i ? 'L' : 'M'}${(x + nx * a * ww).toFixed(1)} ${(y + ny * a * ww).toFixed(1)}`; kanan = `L${(x + nx * b * ww).toFixed(1)} ${(y + ny * b * ww).toFixed(1)}` + kanan; }
+      paths[gi].setAttribute('d', kiri + kanan + 'Z'); });
+    const sway = Math.sin(t * 1.3) * 3 + gx * 4;
+    badan.setAttribute('transform', `rotate(${sway.toFixed(2)} 100 120)`); gEkor.setAttribute('transform', `rotate(${(sway * .5).toFixed(2)} 100 241)`);
+    el.style.transform = `translate(${(Math.sin(t * .9) * 8 + gx * 14).toFixed(1)}px, ${(Math.sin(t * 1.4) * 10).toFixed(1)}px)`;
+  };
+  if (diam) { gambar(0); return; }
+  const loop = (t) => { if (!el.isConnected) return; if (!document.hidden) gambar(t / 1000); requestAnimationFrame(loop); };
+  requestAnimationFrame(loop);
+}
+const KATA_BERANDA = ['terbang?', 'juara?', 'daftar?'];
+setInterval(() => { const r = document.querySelector('.lp-rot'); if (!r || document.hidden || (window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches)) return;
+  const i = (KATA_BERANDA.indexOf(r.textContent) + 1) % KATA_BERANDA.length;
+  if (!r.animate) { r.textContent = KATA_BERANDA[i]; return; }
+  r.animate([{ transform: 'translateY(0)', opacity: 1 }, { transform: 'translateY(-10px)', opacity: 0 }], { duration: 180 }).onfinish = () => { r.textContent = KATA_BERANDA[i]; r.animate([{ transform: 'translateY(10px)', opacity: 0 }, { transform: 'translateY(0)', opacity: 1 }], { duration: 220 }); };
+}, 2400);
+
 const SITUS_AWAL = {
   nama: 'Lomba Layangan Bali',
   judul: 'Semua lomba layangan, satu tempat daftar.',
-  teks: 'Pilih event, isi data layangan, transfer, dan unggah bukti. Nomor & jadwal terbang langsung terlihat.',
+  teks: 'Kalender lomba layangan se-Bali — daftar dari HP dalam 2 menit.',
   logo_url: '', bg_url: '',
 };
 const logoSitus = (st, cls = '') => {
@@ -10483,7 +10591,7 @@ const Beranda = {
     if (this.s.situs) document.title = `${this.s.situs.nama} — Semua event`;
     this.render();
   },
-  render() { if (Router.aktif === 'beranda') $('#app').innerHTML = this.halaman(); },
+  render() { if (Router.aktif === 'beranda') { $('#app').innerHTML = this.halaman(); pasangJanggan($('#app')); } },
   vTidakAda(slug) {
     document.body.classList.remove('is-admin');
     $('#app').innerHTML = `${demoBar()}<div class="login-wrap"><div class="card login">
@@ -10492,7 +10600,31 @@ const Beranda = {
       <a class="btn btn-primary btn-block" href="#">${ico('arrow-l')} Lihat semua event</a></div></div>`;
   },
   halaman() {
-    const list = (this.s.list || []).map((e) => ({ ...e, _st: statusEvent(e) })).sort(urutEvent);
+    const semua = (this.s.list || []).map((e) => ({ ...e, _st: statusEvent(e) })).sort(urutEvent), list = semua;
+    const nAktif = list.filter((e) => e._st.k !== 'selesai').length, nBuka = list.filter((e) => e.pendaftaran_buka && e._st.k !== 'selesai').length;
+    const isi = this.vIsi();
+    const st = this.s.situs || SITUS_AWAL, bg = urlGambarAman(st.bg_url);
+    const teks = st.teks === 'Pilih event, isi data layangan, transfer, dan unggah bukti. Nomor & jadwal terbang langsung terlihat.' ? SITUS_AWAL.teks : st.teks;
+    const gayaBg = bg ? ` style="background-image:linear-gradient(170deg,rgba(6,28,56,.62) 0%,rgba(6,28,56,.28) 55%,rgba(6,28,56,.55) 100%),url('${esc(bg)}')"` : '';
+    return `${demoBar()}<header class="lp-top lp-langit${bg ? ' has-bg' : ''}"${gayaBg}>
+      <div class="lp-udara" aria-hidden="true"><i class="lp-awan a1"></i><i class="lp-awan a2"></i><i class="lp-awan a3"></i><i class="lp-angin g1"></i><i class="lp-angin g2"></i><i class="lp-angin g3"></i><i class="lp-angin g4"></i></div>
+      <div class="lp-jg j1" data-janggan data-panjang="2400"></div><div class="lp-jg j2" data-janggan data-panjang="2200" data-fase="1.7" data-angin=".8"></div>
+      <div class="lp-in">
+        <div class="lp-bar"><a class="lp-brand" href="#">${logoSitus(st)}<b>${esc(st.nama)}</b></a>
+          <a class="btn btn-sm lp-masuk" href="#panitia">${ico('lock')} Masuk panitia</a></div>
+        <h1 class="lp-h1">Siap <span class="lp-rot">terbang?</span></h1>
+        ${teks ? `<p>${esc(teks)}</p>` : ''}
+        <label class="lp-cari">${ico('search')}<input type="search" placeholder="Cari event, lokasi, atau penyelenggara…" value="${esc(this.s.cari || '')}" data-in="lp.cari" aria-label="Cari event" autocomplete="off"></label>
+      </div>
+      <div class="lp-tabs"><div class="lp-tab"><div class="lp-stat"><b>${this.s.list ? nBuka : '–'}</b><span><i class="dot"></i>event buka pendaftaran</span></div></div><div class="lp-tab"><div class="lp-stat"><b>${this.s.list ? nAktif : '–'}</b><span>${ico('cal')}event mendatang</span></div></div></div></header>
+      <main class="lp-main" id="main"><div id="lp-isi">${isi}</div>
+        <footer class="pub-foot"><div class="foot-s">${esc(st.nama)} · <a href="#panitia">Masuk panitia</a></div></footer>
+      </main>`;
+  },
+  vIsi() {
+    const q = (this.s.cari || '').trim().toLowerCase();
+    const list = (this.s.list || []).map((e) => ({ ...e, _st: statusEvent(e) })).sort(urutEvent)
+      .filter((e) => !q || [e.nama_event, e.lokasi, e.penyelenggara].some((v) => String(v || '').toLowerCase().includes(q)));
     const dekat = list.filter((e) => e._st.k === 'live' || e._st.k === 'segera');
     const jauh = list.filter((e) => e._st.k === 'jauh' || e._st.k === 'tbd');
     const selesai = list.filter((e) => e._st.k === 'selesai');
@@ -10515,19 +10647,8 @@ const Beranda = {
         <div class="kal-card selesai">${selesai.map((e) => this.vBaris(e, true)).join('')}</div>
       </section>` : ''}`;
     }
-    const nAktif = list.filter((e) => e._st.k !== 'selesai').length, nBuka = list.filter((e) => e.pendaftaran_buka && e._st.k !== 'selesai').length;
-    const st = this.s.situs || SITUS_AWAL, bg = urlGambarAman(st.bg_url);
-    const gayaBg = bg ? ` style="background-image:linear-gradient(170deg,rgba(6,28,56,.74) 0%,rgba(6,28,56,.42) 55%,rgba(6,28,56,.66) 100%),url('${esc(bg)}')"` : '';
-    return `${demoBar()}<header class="lp-top${bg ? ' has-bg' : ''}"${gayaBg}><div class="lp-in">
-        <div class="lp-bar"><a class="lp-brand" href="#">${logoSitus(st)}<b>${esc(st.nama)}</b></a>
-          <a class="btn btn-sm lp-masuk" href="#panitia">${ico('lock')} Masuk panitia</a></div>
-        <h1>${esc(st.judul)}</h1>
-        ${st.teks ? `<p>${esc(st.teks)}</p>` : ''}
-        ${this.s.list ? `<div class="hero-chips"><span class="chip"><i class="dot"></i>${nBuka} event buka pendaftaran</span><span class="chip">${ico('cal')}${nAktif} event mendatang</span></div>` : ''}
-      </div>${bg ? '' : HERO_ART}${HERO_WAVES}</header>
-      <main class="lp-main" id="main">${isi}
-        <footer class="pub-foot"><div class="foot-s">${esc(st.nama)} · <a href="#panitia">Masuk panitia</a></div></footer>
-      </main>`;
+    if (q && this.s.list && !list.length) isi = `<div class="lp-kosong">${ico('search')}<span>Tidak ada event yang cocok dengan “${esc(this.s.cari.trim())}”.</span></div>`;
+    return isi;
   },
   /* poster ala tiket bioskop */
   /* kartu event: flyer A4 dari panitia di kiri, info di kanan */
@@ -10579,6 +10700,7 @@ const Beranda = {
   },
 };
 ACT['lp.muat'] = () => Beranda.muat();
+IN['lp.cari'] = (el) => { Beranda.s.cari = el.value; const box = document.getElementById('lp-isi'); if (box) box.innerHTML = Beranda.vIsi(); };
 ACT['lp.flyer'] = (el, e) => { if (e) { e.preventDefault(); e.stopPropagation(); } lightbox(el.dataset.url, el.dataset.judul || 'Flyer event'); };
 
 /* ---------- RUANG PANITIA: daftar event, buat event (super admin), akses panitia ---------- */
