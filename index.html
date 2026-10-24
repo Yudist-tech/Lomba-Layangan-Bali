@@ -796,6 +796,15 @@ details.tbl-toggle summary { cursor: pointer; font-size: 13px; color: var(--bran
 .lk-imgs { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; padding: 12px 14px 4px; }
 .lk-imgs.n1 { grid-template-columns: minmax(0, 260px); justify-content: center; }
 .lk-imgs.n3, .lk-imgs.n4 { grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); }
+.lk-imgs.geser { display: flex; overflow-x: auto; scroll-snap-type: x mandatory; padding-bottom: 8px; scrollbar-width: thin; }
+.lk-imgs.geser .lk-im { flex: 0 0 calc((100% - 24px) / 4); min-width: 130px; scroll-snap-align: start; }
+.lk-geser { display: flex; align-items: center; gap: 5px; justify-content: flex-end; font-size: 12.5px; color: var(--muted); padding: 2px 14px 0; } .lk-geser .ico { width: 14px; height: 14px; }
+.lk-im.tolak { border-color: color-mix(in srgb, var(--bad) 55%, var(--line)); }
+.lk-im.tolak .lk-im-box img { opacity: .45; filter: grayscale(.6); }
+.lk-im.tolak figcaption b { color: var(--bad-ink); text-decoration: line-through; }
+.lk-tolak { position: absolute; z-index: 2; top: 8px; left: 8px; background: var(--bad); color: #fff; font-size: 11px; font-weight: 900; letter-spacing: .06em; border-radius: 6px; padding: 2px 8px; box-shadow: 0 1px 3px rgba(0,0,0,.25); }
+.cr-tolak { display: inline-block; margin-left: 6px; background: var(--bad); color: #fff; font-size: 10px; font-weight: 900; letter-spacing: .05em; border-radius: 5px; padding: 1px 6px; vertical-align: 2px; }
+@media (max-width: 760px) { .lk-imgs.geser .lk-im { flex-basis: 46%; } }
 .lk-im { margin: 0; border: 1px solid var(--line); border-radius: 10px; overflow: hidden; background: var(--surface-2); }
 .lk-im-box { position: relative; height: 190px; overflow: hidden; display: grid; place-items: center; background: var(--surface-3); }
 .lk-im-box img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; cursor: zoom-in; display: block; }
@@ -7329,11 +7338,11 @@ const Adm = {
     }
     const c = this.katCek(g), dj = this.s.data.jenis;
     const ST = { tertutup: ['ok', 'Lunas'], belum: ['bad', 'Belum lunas'], ditolak: ['n', 'Ditolak'] };
-    const gambar = g.rows.slice(0, 4).map((r) => `<figure class="lk-im" data-bukti="${esc(r.id)}"><div class="lk-im-box"><span class="lk-load">memuat…</span></div><figcaption><b>${esc(r.nama_sekha)}</b><small>No. ${esc(r.nomor_layangan || '—')} · ${esc(fmtWaktu(r.created_at).replace(/ \d{4},/, ','))}</small></figcaption></figure>`).join('');
+    const gambar = g.rows.map((r) => `<figure class="lk-im${r.status === 'ditolak' ? ' tolak' : ''}" data-bukti="${esc(r.id)}"><div class="lk-im-box"><span class="lk-load">memuat…</span>${r.status === 'ditolak' ? '<span class="lk-tolak">DITOLAK</span>' : ''}</div><figcaption><b>${esc(r.nama_sekha)}</b><small>No. ${esc(r.nomor_layangan || '—')} · ${esc(fmtWaktu(r.created_at).replace(/ \d{4},/, ','))}</small></figcaption></figure>`).join('');
     const buka = lk.buka || (lk.buka = new Set());
     const baris = g.rows.map((r, i) => { const st = ST[g.status.get(r.id)], hs = g.hasilRow.get(r.id), id = esc(r.id), on = buka.has(r.id);
       const baruTag = g.baru.includes(r.id) ? '<span class="cr-baru">BARU</span>' : '';
-      const tanda = baruTag;   // tanda Benar/Bermasalah terlihat dari tombol yang menyala
+      const tanda = baruTag + (r.status === 'ditolak' ? '<span class="cr-tolak">DITOLAK</span>' : '');   // tanda Benar/Bermasalah terlihat dari tombol yang menyala
       return `<div class="lk-row open${hs ? ' done' : ''}" data-row="${id}"><span class="gm-n">${i + 1}</span><span class="gm-t"><b>${esc(r.nama_sekha)}</b>${tanda}<small>${jdot(r.jenis, dj)}${esc(this.namaJenis(r.jenis))} · ${esc((STATUS[r.status] || {}).label || r.status)}</small></span><span class="gm-r"><b>No. ${esc(r.nomor_layangan || '—')}</b><small>${rupiah(r.harga)}${st && g.n > 1 ? ` · <em class="lk-st ${st[0]}">${st[1]}</em>` : ''}</small></span>
         <div class="lk-more"><button type="button" class="btn btn-sm lk-bad${hs === 'bermasalah' ? ' on' : ''}" data-act="adm.lkSatu" data-v="bermasalah" data-id="${id}" aria-pressed="${hs === 'bermasalah'}" title="${hs === 'bermasalah' ? 'Klik lagi untuk menghapus tanda' : ''}">${ico('alert')} Bermasalah</button><button type="button" class="btn btn-sm lk-okb${hs === 'sah' ? ' on' : ''}" data-act="adm.lkSatu" data-v="sah" data-id="${id}" aria-pressed="${hs === 'sah'}" title="${hs === 'sah' ? 'Klik lagi untuk menghapus tanda' : ''}">${ico('check')} Benar</button><button type="button" class="btn btn-sm btn-ghost" data-act="adm.lkDetail" data-id="${id}">Detail ${ico('arrow-r')}</button></div></div>`; }).join('');
     let uang = '';
@@ -7346,17 +7355,17 @@ const Adm = {
       <div class="lk-bar"><i style="width:${Math.round((lk.i / tot) * 100)}%"></i></div>
       <section class="lk-card ${c.w}">
         <div class="lk-h"><div class="lk-k">${ico(c.ikon)} ${esc(c.label)} · ${c.tag}</div><details class="lk-tip"><summary><h4>${esc(c.judul)}</h4><span class="lk-i" aria-label="Penjelasan">i</span></summary><div class="lk-tip-isi"><b>${esc(c.tanya)}</b> ${c.saran}</div></details></div>
-        <div class="lk-imgs n${Math.min(g.rows.length, 4)}">${gambar}</div>
+        <div class="lk-imgs n${Math.min(g.rows.length, 4)}${g.rows.length > 4 ? ' geser' : ''}">${gambar}</div>${g.rows.length > 4 ? `<div class="lk-geser">${ico('arrow-r')} Geser untuk melihat semua <b>${g.rows.length} foto</b> bukti</div>` : ''}
         ${c.k === 'waktu' ? this.vGarisWaktu(g.wk) : ''}
         ${wkLain ? `<div class="ck-fl ${wkLain.k === 'lama' ? 'w' : 'bad'}">${ico('clock')}<span><b>${WK_LABEL[wkLain.k][1]}:</b> transfer ${durasiTeks(wkLain.sel)} ${wkLain.k === 'wajar' ? 'setelah' : 'sebelum'} daftar.</span></div>` : ''}${ulang}
         <div class="lk-rows">${baris}</div>${uang}
       </section>
       <div class="lk-bawah"><span class="hint">${g.dicek ? `<b>${g.dicek} dari ${g.n}</b> ditandai` : 'Pindah otomatis setelah semua ditandai'}</span><button type="button" class="ck2-link" data-act="adm.lkLewati">Lewati dulu ${ico('arrow-r')}</button></div>`;
-    g.rows.slice(0, 4).forEach(async (r) => {
+    g.rows.forEach(async (r) => {
       const fig = box.querySelector(`[data-bukti="${CSS.escape(r.id)}"] .lk-im-box`); if (!fig) return;
       if (!r.bukti_path) { fig.innerHTML = '<span class="lk-load">tanpa bukti</span>'; return; }
       try { const url = await this.urlBukti(r.bukti_path);
-        fig.innerHTML = /\.pdf$/i.test(r.bukti_path) ? `<a class="lk-load" href="${esc(url)}" target="_blank" rel="noopener">Buka PDF</a>` : `<img src="${esc(url)}" alt="Bukti ${esc(r.kode)}" data-act="adm.zoom" data-url="${esc(url)}">`;
+        fig.innerHTML = (r.status === 'ditolak' ? '<span class="lk-tolak">DITOLAK</span>' : '') + (/\.pdf$/i.test(r.bukti_path) ? `<a class="lk-load" href="${esc(url)}" target="_blank" rel="noopener">Buka PDF</a>` : `<img src="${esc(url)}" alt="Bukti ${esc(r.kode)}" data-act="adm.zoom" data-url="${esc(url)}">`);
       } catch (e) { fig.innerHTML = `<span class="lk-load">${esc(pesanError(e))}</span>`; }
     });
     const m = lk.item.el.querySelector('.modal'); if (m) m.scrollTop = 0;
