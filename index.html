@@ -10516,38 +10516,42 @@ function pasangJanggan(root) {
   (root || document).querySelectorAll('[data-janggan]:not([data-siap])').forEach((el, idx) => { el.dataset.siap = '1'; buatJanggan(el, { panjang: Number(el.dataset.panjang) || 2200, id: idx + Math.random().toString(36).slice(2, 6), fase: Number(el.dataset.fase) || 0, angin: Number(el.dataset.angin) || 1 }); });
 }
 function buatJanggan(el, opt) {
-  const S = 'http://www.w3.org/2000/svg', panjang = opt.panjang, lebar = 96, id = opt.id;
-  const garis = [['#16181d',10],['#f2b705',5],['#fff',9],['#16181d',10],['#d62828',13],['#16181d',10],['#fff',9],['#f2b705',5],['#16181d',10],['#d62828',15]];
+  const S = 'http://www.w3.org/2000/svg', panjang = opt.panjang, lebar = 176, id = opt.id;
+  const K = '#16181d', M = '#d62828', P = '#f4f4f2', Y = '#f2b705';
+  const garis = [[K,8],[Y,4],[K,5],[P,8],[K,6],[M,7],[K,4],[P,5],[K,4],[M,22],[K,4],[P,5],[K,4],[M,7],[K,6],[P,8],[K,5],[Y,4],[K,8]];
   const tot = garis.reduce((a, g) => a + g[1], 0);
-  const svg = document.createElementNS(S, 'svg'); svg.setAttribute('viewBox', `-80 -20 360 ${270 + panjang}`); svg.setAttribute('aria-hidden', 'true'); svg.style.overflow = 'visible';
-  svg.innerHTML = `<defs><linearGradient id="jgs${id}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff"/><stop offset="1" stop-color="#dfe3ea"/></linearGradient></defs><g class="jg-ekor"></g>
+  const svg = document.createElementNS(S, 'svg'); svg.setAttribute('viewBox', `-70 -14 340 ${260 + panjang}`); svg.setAttribute('aria-hidden', 'true'); svg.style.overflow = 'visible';
+  const bar = (y) => `<path d="M0 ${y} Q100 ${y + 7} 200 ${y}" stroke="#4a3b2a" stroke-width="2.2" fill="none" stroke-linecap="round"/><path d="M0 ${y} Q100 ${y - 5} 200 ${y}" stroke="#4a3b2a" stroke-width=".9" fill="none"/><path d="M0 ${y - 3}V${y + 3}M200 ${y - 3}V${y + 3}" stroke="#4a3b2a" stroke-width="2"/>`;
+  svg.innerHTML = `<defs><linearGradient id="jgs${id}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fbfbfa"/><stop offset="1" stop-color="#d9dde2"/></linearGradient></defs><g class="jg-ekor"></g>
     <g class="jg-badan">
-      <path d="M100 2 C103 22 108 38 130 60 C112 64 88 64 70 60 C92 38 97 22 100 2Z" fill="#b5172b"/><path d="M100 2 C102 14 104 24 112 38 C104 40 96 40 88 38 C96 24 98 14 100 2Z" fill="#7a0f1f"/><circle cx="100" cy="4" r="4" fill="#3f6212"/>
-      <line x1="2" y1="58" x2="198" y2="58" stroke="#5a4632" stroke-width="2.6" stroke-linecap="round"/><path d="M2 58V50M198 58V50" stroke="#5a4632" stroke-width="2.6"/>
-      <path d="M4 84 C40 66 70 64 100 70 C130 64 160 66 196 84 C178 118 150 140 132 166 L68 166 C50 140 22 118 4 84Z" fill="url(#jgs${id})" stroke="#8a929c" stroke-width="1.6"/>
-      <path d="M100 70 L100 166 M100 140 L76 118 M100 140 L124 118 M40 80 C60 100 66 130 70 160 M160 80 C140 100 134 130 130 160" stroke="#c6ccd4" stroke-width="1.2" fill="none"/>
-      <path d="M68 166 L132 166 C126 178 128 194 142 208 L58 208 C72 194 74 178 68 166Z" fill="#16181d"/>
-      <line x1="16" y1="194" x2="184" y2="194" stroke="#5a4632" stroke-width="2.4" stroke-linecap="round"/><path d="M16 194V186M184 194V186" stroke="#5a4632" stroke-width="2.4"/>
-      <path d="M52 208 L148 208 L160 246 C124 258 76 258 40 246Z" fill="url(#jgs${id})" stroke="#8a929c" stroke-width="1.6"/><path d="M58 208 C82 224 118 224 142 208" fill="#16181d"/>
+      <path d="M100 0 C103 28 106 50 148 71 L52 71 C94 50 97 28 100 0Z" fill="#a3172a"/><path d="M100 0 C102 24 103 40 112 60 L88 60 C97 40 98 24 100 0Z" fill="#7a0f1f"/>
+      <path d="M96 3 Q100 -10 104 3 Z" fill="#3f5a1e"/>
+      ${bar(53)}
+      <path d="M-8 93 C22 76 52 70 100 70 C148 70 178 76 208 93 C204 116 178 146 158 159 L42 159 C22 146 -4 116 -8 93Z" fill="url(#jgs${id})" stroke="#8d8a80" stroke-width="1.6" stroke-linejoin="round"/>
+      <path d="M100 70V159M100 132L84 159M100 132L116 159M40 72C36 104 36 134 42 159M160 72C164 104 164 134 158 159" stroke="#b9bcc2" stroke-width="1" fill="none"/>
+      <path d="M42 159 L158 159 Q128 181 168 203 C140 232 60 232 32 203 Q72 181 42 159Z" fill="#16181d"/>
+      ${bar(181)}
+      <path d="M32 203 C60 232 140 232 168 203 L186 245 C150 282 50 282 14 245Z" fill="url(#jgs${id})" stroke="#8d8a80" stroke-width="1.6" stroke-linejoin="round"/>
+      <path d="M64 222L52 262M136 222L148 262M100 225V273" stroke="#b9bcc2" stroke-width="1" fill="none"/>
     </g>`;
   el.appendChild(svg);
   const gEkor = svg.querySelector('.jg-ekor'), badan = svg.querySelector('.jg-badan');
   const paths = garis.map(([c]) => { const q = document.createElementNS(S, 'path'); q.setAttribute('fill', c); gEkor.appendChild(q); return q; });
-  const N = 150, y0 = 244, diam = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const N = 150, y0 = 241, diam = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
   let gx = 0;
   const gambar = (t) => {
     gx += (JG.mx - gx) * 0.04;
     const angin = opt.angin * (0.85 + 0.15 * Math.sin(t * 0.7)), pts = [];
-    for (let i = 0; i <= N; i++) { const u = i / N, d = u * panjang, y = y0 + d, k = Math.min(1, d / 420), amp = 2 + k * 30 * angin;
+    for (let i = 0; i <= N; i++) { const u = i / N, d = u * panjang, y = y0 + d, k = Math.min(1, d / 420), amp = 2 + k * 26 * angin;
       pts.push([100 - Math.pow(d / 900, 1.4) * 34 * angin * (1 + gx * .6) + amp * Math.sin(d / 95 - t * 3.4 + opt.fase) + 7 * k * Math.sin(d / 41 - t * 5.2), y]); }
     let off = -tot / 2;
     garis.forEach(([, gw], gi) => { const a = off / tot, b = (off + gw) / tot; off += gw; let kiri = '', kanan = '';
       for (let i = 0; i <= N; i++) { const [x, y] = pts[i], p0 = pts[Math.max(0, i - 1)], p1 = pts[Math.min(N, i + 1)], dx = p1[0] - p0[0], dy = p1[1] - p0[1], L = Math.hypot(dx, dy) || 1, nx = dy / L, ny = -dx / L;
-        const ww = lebar * (1.15 - i / N * .2) * (0.92 + 0.08 * Math.cos(i / N * 9 - t * 3.4));
+        const ww = lebar * (1 + Math.min(1, i / N * 8) * .1) * (0.95 + 0.05 * Math.cos(i / N * 30 - t * 3.4));
         kiri += `${i ? 'L' : 'M'}${(x + nx * a * ww).toFixed(1)} ${(y + ny * a * ww).toFixed(1)}`; kanan = `L${(x + nx * b * ww).toFixed(1)} ${(y + ny * b * ww).toFixed(1)}` + kanan; }
       paths[gi].setAttribute('d', kiri + kanan + 'Z'); });
     const sway = Math.sin(t * 1.3) * 3 + gx * 4;
-    badan.setAttribute('transform', `rotate(${sway.toFixed(2)} 100 120)`); gEkor.setAttribute('transform', `rotate(${(sway * .5).toFixed(2)} 100 244)`);
+    badan.setAttribute('transform', `rotate(${sway.toFixed(2)} 100 120)`); gEkor.setAttribute('transform', `rotate(${(sway * .5).toFixed(2)} 100 241)`);
     el.style.transform = `translate(${(Math.sin(t * .9) * 8 + gx * 14).toFixed(1)}px, ${(Math.sin(t * 1.4) * 10).toFixed(1)}px)`;
   };
   if (diam) { gambar(0); return; }
