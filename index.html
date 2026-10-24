@@ -7047,14 +7047,19 @@ const Adm = {
     const gabung = (i, k, l, why) => { const x = akar(i), y = akar(k); if (x !== y) { induk[y] = x; lv[x] = Math.max(lv[x], lv[y]); bukti[y].forEach((w) => bukti[x].add(w)); } lv[x] = Math.max(lv[x], l); bukti[x].add(why); };
     const per = (kunci) => { const m = new Map(); rows.forEach((r, i) => { const k = kunci(r); if (k) { if (!m.has(k)) m.set(k, []); m.get(k).push(i); } }); return m; };
     per((r) => r.bukti_hash).forEach((ii) => ii.slice(1).forEach((k) => gabung(ii[0], k, 3, 'hash')));
-    per((r) => { const b = sah(r); return b && b.ref ? String(b.ref).toUpperCase() : null; }).forEach((ii) => ii.slice(1).forEach((k) => gabung(ii[0], k, 3, 'ref')));
-    // No. Ref hampir sama (salah baca 1–2 angka / terpotong di ujung) → tetap dianggap sama
-    const refs = rows.map((r, i) => [i, sah(r)]).filter(([, b]) => b && b.ref && String(b.ref).length >= 12).map(([i, b]) => [i, String(b.ref).toUpperCase()]);
-    for (let x = 0; x < refs.length; x++) for (let y = x + 1; y < refs.length; y++) {
-      const [i, a] = refs[x], [k, c] = refs[y];
-      if (a !== c && (a.startsWith(c) || c.startsWith(a) || bedaSedikit(a, c, 2))) gabung(i, k, 3, 'ref');
-    }
     const ms = (w) => (w ? Date.parse(String(w).slice(0, 19) + 'Z') : NaN);
+    // dua bacaan bukti jelas BERBEDA bila nominal terbaca & tidak sama, atau waktu transfer terbaca & selisih > 10 menit
+    // → transfer lain, jangan digabung walau No. Ref mirip (mis. Ref terpotong di baris kedua)
+    const beda = (a, b) => (a.nominal && b.nominal && Number(a.nominal) !== Number(b.nominal)) || (a.waktu && b.waktu && Math.abs(ms(a.waktu) - ms(b.waktu)) > 600000);
+    const refs = rows.map((r, i) => [i, sah(r)]).filter(([, b]) => b && b.ref).map(([i, b]) => [i, b, String(b.ref).toUpperCase().replace(/\s+/g, '')]);
+    for (let x = 0; x < refs.length; x++) for (let y = x + 1; y < refs.length; y++) {
+      const [i, a, ra] = refs[x], [k, c, rc] = refs[y];
+      if (beda(a, c)) continue;
+      if (ra === rc) { gabung(i, k, 3, 'ref'); continue; }
+      // No. Ref hampir sama (salah baca 1–2 angka / terpotong di ujung) → dianggap sama hanya bila nominal sama
+      const nomSama = a.nominal && c.nominal && Number(a.nominal) === Number(c.nominal);
+      if (nomSama && ra.length >= 12 && rc.length >= 12 && (ra.startsWith(rc) || rc.startsWith(ra) || bedaSedikit(ra, rc, 2))) gabung(i, k, 3, 'ref');
+    }
     const calon = rows.map((r, i) => [r, i, sah(r)]).filter(([, , b]) => b && b.nominal);
     for (let x = 0; x < calon.length; x++) {
       const [r, i, a] = calon[x];
