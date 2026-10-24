@@ -3565,7 +3565,7 @@ const PESAN_ERROR = {
   PENDAFTARAN_DITUTUP: 'Pendaftaran sedang ditutup.',
   KUOTA_PENUH: 'Grup ini sudah penuh. Silakan pilih seri atau grup lain.',
   NOMOR_TIDAK_VALID: 'Nomor layangan harus berupa angka (maksimal 6 digit).',
-  KOTAK_TERISI: 'Kotak yang sudah terisi peserta tidak bisa ditutup atau dihapus. Pindahkan/tolak pesertanya dulu.',
+  KOTAK_TERISI: 'Slot yang sudah terisi peserta tidak bisa ditutup atau dihapus. Pindahkan/tolak pesertanya dulu.',
   SERI_TIDAK_SESUAI_JENIS: 'Seri tidak sesuai dengan jenis layangan.',
   SERI_TIDAK_VALID: 'Seri yang dipilih tidak tersedia lagi. Silakan pilih seri lain.',
   JENIS_TIDAK_VALID: 'Jenis layangan tidak tersedia.',
@@ -5493,20 +5493,20 @@ function tabelJadwal(o) {
           const k = b * KOLOM_JADWAL + c;
           if (k > g.kotak) { tr += '<td class="k na"></td>'; return; }
           if (tutup.has(k)) {
-            tr += admin ? `<td class="k tutup"><button type="button" data-act="adm.kotak" data-id="${g.id}" data-k="${k}" aria-label="Kotak ${k} ditutup — klik untuk membuka"></button></td>`
+            tr += admin ? `<td class="k tutup"><button type="button" data-act="adm.kotak" data-id="${g.id}" data-k="${k}" aria-label="Slot ${k} ditutup — klik untuk membuka"></button></td>`
               : o.cetak ? '<td class="k tutup"><svg class="hitam" viewBox="0 0 10 10" preserveAspectRatio="none" aria-hidden="true"><rect width="10" height="10" fill="#000"/></svg></td>'
               : '<td class="k tutup"></td>';
             return;
           }
           const p = isi.get(k);
           if (!p) {
-            tr += admin ? `<td class="k"><button type="button" data-act="adm.kotak" data-id="${g.id}" data-k="${k}" aria-label="Kotak ${k} kosong — klik untuk menutup"></button></td>` : '<td class="k"></td>';
+            tr += admin ? `<td class="k"><button type="button" data-act="adm.kotak" data-id="${g.id}" data-k="${k}" aria-label="Slot ${k} kosong — klik untuk menutup"></button></td>` : '<td class="k"></td>';
             return;
           }
           const tunggu = p.status === 'menunggu';
           const teks = p.nomor != null ? esc(p.nomor) : '';
           const pj = String(p.nomor || '').length, kp = pj >= 6 ? ' k6' : pj === 5 ? ' k5' : '';   // nomor panjang: huruf mengecil, lebar kolom tetap
-          if (admin) tr += `<td class="k isi${kp} ${tunggu ? 'tunggu' : ''}"><button type="button" data-act="adm.buka" data-id="${esc(p.id)}" aria-label="Kotak ${k}: nomor ${teks || '-'}${tunggu ? ' (menunggu verifikasi)' : ''}">${teks || '•'}</button></td>`;
+          if (admin) tr += `<td class="k isi${kp} ${tunggu ? 'tunggu' : ''}"><button type="button" data-act="adm.buka" data-id="${esc(p.id)}" aria-label="Slot ${k}: nomor ${teks || '-'}${tunggu ? ' (menunggu verifikasi)' : ''}">${teks || '•'}</button></td>`;
           else if (tunggu) tr += '<td class="k isi tunggu"></td>';
           else if (p.sekha) tr += `<td class="k isi${kp}"><button type="button" data-act="pub.peserta" data-id="${g.id}" data-k="${k}" aria-label="Nomor ${teks}: lihat nama sekha">${teks || '•'}</button></td>`;
           else tr += `<td class="k isi${kp} ${p.status === 'terisi' ? 'anon' : tunggu ? 'tunggu' : ''}">${teks}</td>`;
@@ -5542,8 +5542,8 @@ function legendaJadwal(o) {
   if (!admin) return `<div class="jt-legend">${status}</div>`;
   return `<div class="jt-legend">
     ${status}
-    <span><i></i>${n(kosong)} kotak kosong (klik untuk menutup)</span>
-    <span><i style="background:var(--ink)"></i>${n(c.tutup)} kotak ditutup panitia</span>
+    <span><i></i>${n(kosong)} slot kosong (klik untuk menutup)</span>
+    <span><i style="background:var(--ink)"></i>${n(c.tutup)} slot ditutup panitia</span>
   </div>`;
 }
 const errMsg = (m) => (m ? `<span class="err-msg" role="alert">${ico('alert')}${esc(m)}</span>` : '');
@@ -6106,7 +6106,7 @@ const Pub = {
     };
     return `<section class="card">
       <h2 class="h2">Jadwal terbang</h2>
-      <p class="lead">Angka di kotak adalah nomor layangan yang sudah terkonfirmasi. Kotak kuning sudah terisi tetapi masih menunggu konfirmasi panitia.${ev.tampilkan_peserta ? ' Ketuk nomor untuk melihat nama sekha dan alamat.' : ''} </p>
+      <p class="lead">Angka di slot adalah nomor layangan yang sudah terkonfirmasi. Slot kuning sudah terisi tetapi masih menunggu konfirmasi panitia.${ev.tampilkan_peserta ? ' Ketuk nomor untuk melihat nama sekha dan alamat.' : ''} </p>
       ${hari.length ? hari.map((h) => `<div class="jt-hari"><div class="jt-hari-h"><h3>${esc(h.nama)}</h3>${h.tanggal ? `<span class="muted">${esc(fmtTanggal(h.tanggal))}</span>` : ''}</div>
         ${tabelJadwal({ hari: h, sesi: info.sesi || [], istirahat: info.istirahat || [], grup, jenis: info.jenis, kotakIsi: isi, admin: false })}
         ${legendaJadwal({ hari: h, sesi: info.sesi || [], grup, kotakIsi: isi, admin: false, tampilNomor: !grup.some((g) => (g.isi || []).some((x) => typeof x !== 'object')) })}</div>`).join('')
@@ -6143,7 +6143,7 @@ const Pub = {
       <dl class="kv">
         <dt>Nama sekha</dt><dd>${esc(t.nama_sekha)}</dd>
         <dt>Alamat</dt><dd>${nl2br(t.alamat || '-')}</dd>
-        <dt>Seri & grup</dt><dd>${esc(d.seri)}${t.kotak ? ` · kotak ${t.kotak}` : ''}</dd>
+        <dt>Seri & grup</dt><dd>${esc(d.seri)}${t.kotak ? ` · slot ${t.kotak}` : ''}</dd>
         <dt>Jadwal terbang</dt><dd>${esc(d.tanggal)}<div class="sub">${esc(d.jam)}</div></dd>
       </dl>
       <button type="button" class="btn btn-primary btn-lg btn-block" data-act="pub.unduhPdf">${ico('download')} Unduh PDF konfirmasi</button>
@@ -6874,7 +6874,7 @@ const Adm = {
       <div class="rk-kpis">
         ${kpi('g', 'check', 'Terkonfirmasi', angka(st.terkonfirmasi), `dari ${angka(st.menunggu + st.terkonfirmasi)} layangan`, pct(st.terkonfirmasi, st.menunggu + st.terkonfirmasi))}
         ${kpi('b', 'wallet', 'Pemasukan', rupiah(st.uangOk), st.uangTunggu ? `+ ${rupiah(st.uangTunggu)} masih menunggu` : 'semua sudah terverifikasi', pct(st.uangOk, st.uangOk + st.uangTunggu), true)}
-        ${kpi('a', 'kite', 'Sisa kuota', angka(sisa), `dari ${angka(kuotaTotal)} kotak`, pct(sisa, kuotaTotal))}
+        ${kpi('a', 'kite', 'Sisa kuota', angka(sisa), `dari ${angka(kuotaTotal)} slot`, pct(sisa, kuotaTotal))}
       </div>
       ${this.vPerJenis()}
       ${kinerja ? `<div class="rk-kinerja">${kinerja}</div>` : ''}
@@ -6918,7 +6918,7 @@ const Adm = {
     });
     const semua = this.s.rkJenisSemua || data.length <= BATAS + 1, tampil = semua ? data : data.slice(0, BATAS);
     const warna = (kode) => { const i = d.jenis.findIndex((x) => x.kode === kode); return `var(--cat-${(i % 10) + 1})`; };
-    const rows = tampil.map((x) => `<tr><td><span class="jtag">${jdot(x.j.kode, d.jenis)}${esc(x.j.nama)}</span>${x.kuota ? `<span class="rk-mb" title="${x.k} dari ${x.kuota} kotak"><i style="width:${Math.min(100, (x.k / x.kuota) * 100).toFixed(1)}%;background:${warna(x.j.kode)}"></i></span>` : ''}</td>
+    const rows = tampil.map((x) => `<tr><td><span class="jtag">${jdot(x.j.kode, d.jenis)}${esc(x.j.nama)}</span>${x.kuota ? `<span class="rk-mb" title="${x.k} dari ${x.kuota} slot"><i style="width:${Math.min(100, (x.k / x.kuota) * 100).toFixed(1)}%;background:${warna(x.j.kode)}"></i></span>` : ''}</td>
       <td class="r">${x.k}</td><td class="r rk-tunggu">${x.m || '<span class="muted">0</span>'}</td><td class="r">${rupiah(x.u)}</td></tr>`).join('');
     return `<div class="panel rk-jenis"><div class="panel-h"><h3>Per jenis layangan</h3></div><div class="tbl-wrap"><table class="tbl">
       <thead><tr><th>Jenis</th><th class="r"><span class="rk-pj">Konfirmasi</span><span class="rk-ps">Konf.</span></th><th class="r"><span class="rk-pj">Menunggu</span><span class="rk-ps">Tunggu</span></th><th class="r">Pemasukan</th></tr></thead>
@@ -7825,7 +7825,7 @@ const Adm = {
     const st = b.dq ? 'Diskualifikasi' : b.rank ? `Peringkat ${b.rank}` : b.kosong ? 'Belum dinilai' : `Baru dinilai ${b.nJuri} juri`;
     const kv = (k, v) => v ? `<span>${k}</span><b>${v}</b>` : '';
     return `<h3>No. ${esc(r.nomor_layangan || '-')} · ${esc(r.nama_sekha || '-')}</h3><p class="kp-sub">${esc((j && j.nama) || r.jenis || '')} · ${st}</p>
-      <div class="ni-kv">${kv('Alamat', esc(r.alamat || ''))}${kv('Seri terbang', x ? `${esc(this.labelGrupAdm(x))}${r.kotak ? ` · kotak ${r.kotak}` : ''}<small>${esc(jadwalText(x))}</small>` : '')}</div>
+      <div class="ni-kv">${kv('Alamat', esc(r.alamat || ''))}${kv('Seri terbang', x ? `${esc(this.labelGrupAdm(x))}${r.kotak ? ` · slot ${r.kotak}` : ''}<small>${esc(jadwalText(x))}</small>` : '')}</div>
       ${b.dq || p.catatan ? `<div class="ni-kv">${b.dq ? kv('Alasan DQ', esc(p.alasan || '-')) : ''}${kv('Catatan panitia', esc(p.catatan || ''))}</div>` : ''}
       <div class="kp-kaki"><button type="button" class="btn btn-sm" data-act="ovl.tutup">Tutup</button></div>`;
   },
@@ -8036,7 +8036,7 @@ const Adm = {
             <dt>Alamat</dt><dd>${nl2br(r.alamat)}</dd>
             <dt>Nomor WA</dt><dd><a href="${esc(waLink(r.no_wa))}" target="_blank" rel="noopener">${esc(fmtWA(r.no_wa))}</a>${nWA > 0 ? ` <a href="#" class="hint" data-act="adm.cariWA" data-wa="${esc(r.no_wa)}">· ${nWA} pendaftaran lain</a>` : ''}</dd>
             <dt>Nomor layangan</dt><dd>${r.nomor_layangan ? `<b>${esc(r.nomor_layangan)}</b>` : '<span class="muted">Belum ada</span>'}</dd>
-            <dt>Seri & grup</dt><dd>${esc(this.labelGrupAdm(x))}${r.kotak ? ` · kotak ${r.kotak}` : ''}<div class="sub">${esc(jadwalText(x))}</div></dd>
+            <dt>Seri & grup</dt><dd>${esc(this.labelGrupAdm(x))}${r.kotak ? ` · slot ${r.kotak}` : ''}<div class="sub">${esc(jadwalText(x))}</div></dd>
             <dt>Kode</dt><dd class="mono">${esc(r.kode)}</dd>
           </dl>
         </div>
@@ -8063,7 +8063,7 @@ const Adm = {
   vRiwayat(r, list) {
     const oleh = (e) => (e ? ` oleh <b>${esc(labelOleh(e))}</b>` : '');
     const waktu = (t) => `<small>${esc(fmtWaktu(t))}</small>`;
-    const NAMA_KOL = { nama_sekha: 'nama sekha', alamat: 'alamat', no_wa: 'nomor WA', nama_rekening: 'nama rekening', jenis: 'jenis', seri_id: 'grup', kotak: 'kotak', nomor_layangan: 'nomor layangan', harga: 'biaya', catatan_admin: 'catatan' };
+    const NAMA_KOL = { nama_sekha: 'nama sekha', alamat: 'alamat', no_wa: 'nomor WA', nama_rekening: 'nama rekening', jenis: 'jenis', seri_id: 'grup', kotak: 'slot', nomor_layangan: 'nomor layangan', harga: 'biaya', catatan_admin: 'catatan' };
     const nilai = (k, v) => (v == null || v === '' ? '–' : k === 'seri_id' ? ((this.idx.seri.get(Number(v)) || {}).nama || v) : k === 'jenis' ? this.namaJenis(v) : k === 'harga' ? rupiah(v) : k === 'no_wa' ? fmtWA(v) : String(v));
     if (!list) {
       return `<ul class="timeline">
@@ -8191,7 +8191,7 @@ const Adm = {
   formTolak(r) {
     Overlay.modal(`<form data-submit="adm.tolak" data-id="${esc(r.id)}" novalidate>
       <h3>Tolak pendaftaran?</h3>
-      <p class="lead">${esc(r.nama_sekha)} · ${esc(r.kode)}. Kotak di ${esc((this.idx.seri.get(r.seri_id) || {}).nama || 'grup')} dan nomor layangannya dilepas untuk peserta lain.</p>
+      <p class="lead">${esc(r.nama_sekha)} · ${esc(r.kode)}. Slot di ${esc((this.idx.seri.get(r.seri_id) || {}).nama || 'grup')} dan nomor layangannya dilepas untuk peserta lain.</p>
       <div class="chips">${ALASAN_TOLAK.map((a) => `<button type="button" data-act="adm.pilihAlasan" data-v="${esc(a)}">${esc(a)}</button>`).join('')}</div>
       <div class="field"><label class="label" for="alasan">Alasan (ikut dikirim ke peserta)</label><textarea class="input" id="alasan" name="alasan" rows="3" maxlength="300">${esc(r.alasan_tolak || '')}</textarea></div>
       <div class="actions end"><button type="button" class="btn" data-act="ovl.tutup">Batal</button><button type="submit" class="btn btn-danger-solid">${ico('x')} Tolak pendaftaran</button></div>
@@ -8285,7 +8285,7 @@ const Adm = {
           <div class="sc-when"><span>${rupiah(j.harga)}</span>${adaRentang(j) ? `<span>Nomor ${esc(teksRentang(j))}</span>` : ''}</div></div>
         <label class="switch" title="${j.aktif ? 'Jenis dibuka' : 'Jenis ditutup'}"><input type="checkbox" ${j.aktif ? 'checked' : ''} data-ch="adm.jenisAktif" data-kode="${esc(j.kode)}"><span class="sw"></span><span class="sr-only">Jenis ${esc(j.nama)} dibuka</span></label></div>
       <div class="sa-stat"><div><b>${c.terkonfirmasi}</b><span>Konfirmasi</span></div><div><b>${c.menunggu}</b><span>Menunggu</span></div><div><b>${c.seriAktif}/${c.seri}</b><span>Grup dibuka</span></div></div>
-      <div class="hint">Kuota ${c.kuota} kotak${siapTampil ? '' : ` · <span class="jk-warn">${j.aktif ? 'belum ada grup dibuka di jadwal — belum tampil di formulir' : 'ditutup, tidak tampil di formulir'}</span>`}</div>
+      <div class="hint">Kuota ${c.kuota} slot${siapTampil ? '' : ` · <span class="jk-warn">${j.aktif ? 'belum ada grup dibuka di jadwal — belum tampil di formulir' : 'ditutup, tidak tampil di formulir'}</span>`}</div>
       <div class="sa-act">
         <button class="btn btn-xs" data-act="adm.jenisEdit" data-kode="${esc(j.kode)}">${ico('edit')} Ubah</button>
         <a class="btn btn-xs" href="#admin/seri">${ico('cal')} Jadwal</a>
@@ -8327,7 +8327,7 @@ const Adm = {
       ${bantuan('jadwal', 'Cara menyusun jadwal', [
         'Buat <b>Hari</b> → <b>Seri</b> (jam terbang) → <b>Grup</b> A, B, C. Satu grup = satu jenis layangan.',
         'Jenis & grup di sini otomatis menjadi pilihan di formulir pendaftaran.',
-        'Klik <b>nama jenis</b> untuk mengubah grup, <b>kotak kosong</b> untuk menutup/membuka kotak, <b>nomor</b> untuk melihat data peserta.',
+        'Klik <b>nama jenis</b> untuk mengubah grup, <b>slot kosong</b> untuk menutup/membuka slot, <b>nomor</b> untuk melihat data peserta.',
         '<b>+ Istirahat</b>: pilih letaknya (setelah seri mana), jam & warna — tampil sebagai baris berwarna di jadwal, halaman peserta & hasil cetak.',
         'Tombol <b>Cetak</b> di tiap hari mencetak jadwal hari itu.'])}
       ${d.hari.length ? d.hari.map((h) => `<section class="jt-hari"><div class="jt-hari-h"><h3>${esc(h.nama)}</h3>
@@ -8414,7 +8414,7 @@ const Adm = {
       : { jenis: '', huruf: hurufBerikut(d.seri.filter((y) => y.sesi_id === x.id).map((y) => y.huruf)), kotak: 50, aktif: true, catatan: '' };
     Overlay.modal(`<form data-submit="adm.simpanGrup" data-id="${baru ? '' : g.id}" data-sesi="${x.id}" novalidate>
       <h3>${baru ? `Tambah grup · Seri ${esc(x.nama)}` : `Grup ${esc(g.huruf)} · Seri ${esc(x.nama)}`}</h3>
-      <p class="lead">${esc(h.nama)} · ${esc(jamSesi(x))}${g ? ` · ${c.menunggu + c.terkonfirmasi} dari ${g.kuota} kotak terisi` : ''}</p>
+      <p class="lead">${esc(h.nama)} · ${esc(jamSesi(x))}${g ? ` · ${c.menunggu + c.terkonfirmasi} dari ${g.kuota} slot terisi` : ''}</p>
       <div class="field"><label class="label" for="g-jenis">Jenis layangan</label>
         <input class="input" id="g-jenis" name="jenis" list="g-jenis-list" value="${esc(v.jenis)}" maxlength="40" autocomplete="off" data-in="adm.grupJenis" ${adaPeserta ? 'disabled' : ''}>
         <datalist id="g-jenis-list">${d.jenis.map((y) => `<option value="${esc(y.nama)}">`).join('')}</datalist>
@@ -8423,14 +8423,14 @@ const Adm = {
       ${vIsianRentang('g', j, j ? j.nama : '')}
       <div class="g2">
         <div class="field"><label class="label" for="g-huruf">Grup</label><input class="input" id="g-huruf" name="huruf" value="${esc(v.huruf)}" maxlength="3" style="text-transform:uppercase"></div>
-        <div class="field"><label class="label" for="g-kotak">Jumlah kotak</label><input class="input" type="number" inputmode="numeric" min="1" max="200" id="g-kotak" name="kotak" value="${esc(v.kotak)}"><span class="hint">${KOLOM_JADWAL} kotak per baris. Kotak ditutup: ${g && g.tutup.length ? g.tutup.join(', ') : 'tidak ada'}</span></div>
+        <div class="field"><label class="label" for="g-kotak">Jumlah slot</label><input class="input" type="number" inputmode="numeric" min="1" max="200" id="g-kotak" name="kotak" value="${esc(v.kotak)}"><span class="hint">${KOLOM_JADWAL} slot per baris. Slot ditutup: ${g && g.tutup.length ? g.tutup.join(', ') : 'tidak ada'}</span></div>
       </div>
       ${fieldInput({ id: 'g-cat', name: 'catatan', label: 'Catatan untuk peserta', value: v.catatan, maxlength: 140, opsional: true })}
       <label class="switch"><input type="checkbox" name="aktif" ${v.aktif ? 'checked' : ''}><span class="sw"></span>Grup ini dibuka untuk pendaftaran</label>
       ${g ? `<div class="sa-act" style="margin-top:14px">
         <button type="button" class="btn btn-xs" data-act="adm.lihatSeri" data-id="${g.id}">${ico('list')} Peserta</button>
         <button type="button" class="btn btn-xs" data-act="adm.cetakSeri" data-id="${g.id}">${ico('print')} Cetak daftar</button>
-        ${g.tutup.length ? `<button type="button" class="btn btn-xs" data-act="adm.bukaSemua" data-id="${g.id}">${ico('undo')} Buka semua kotak</button>` : ''}
+        ${g.tutup.length ? `<button type="button" class="btn btn-xs" data-act="adm.bukaSemua" data-id="${g.id}">${ico('undo')} Buka semua slot</button>` : ''}
         ${adaPeserta ? '' : `<button type="button" class="btn btn-xs btn-danger" data-act="adm.seriHapus" data-id="${g.id}">${ico('trash')} Hapus grup</button>`}
       </div>` : ''}
       <div class="actions end"><button type="button" class="btn" data-act="ovl.tutup">Batal</button><button type="submit" class="btn btn-primary">${baru ? 'Tambah grup' : 'Simpan'}</button></div>
@@ -8635,7 +8635,7 @@ ${rows.map((r, i) => `<tr><td class="n">${i + 1}</td><td class="no">${esc(r.nomo
       const x = this.idx.seri.get(r.seri_id), j = this.idx.jenis.get(r.jenis);
       return {
         'Kode': r.kode, 'Tanggal daftar': fmtWaktu(r.created_at), 'Status': STATUS[r.status].label, 'Nomor layangan': r.nomor_layangan || '',
-        'Jenis layangan': (j && j.nama) || r.jenis, 'Seri & grup': (x && x.nama) || '', 'Kotak': r.kotak || '', 'Tanggal terbang': fmtTanggal(x && x.tanggal), 'Jam terbang': jamText(x),
+        'Jenis layangan': (j && j.nama) || r.jenis, 'Seri & grup': (x && x.nama) || '', 'Slot': r.kotak || '', 'Tanggal terbang': fmtTanggal(x && x.tanggal), 'Jam terbang': jamText(x),
         'Nama sekha': r.nama_sekha, 'Alamat': r.alamat, 'Nomor WA': fmtWA(r.no_wa), 'Nama pemilik rekening': r.nama_rekening, 'Biaya (Rp)': r.harga,
         'Cara bayar': caraBayar(r) === 'tunai' ? 'Tunai (manual)' : 'Transfer',
         'WA terkirim': r.wa_terkirim_at ? fmtWaktu(r.wa_terkirim_at) : '', 'WA dikirim oleh': labelOleh(r.wa_oleh),
@@ -8645,7 +8645,7 @@ ${rows.map((r, i) => `<tr><td class="n">${i + 1}</td><td class="no">${esc(r.nomo
     });
     const rekap = d.seri.map((x) => {
       const c = this.idx.perSeri.get(x.id);
-      return { 'Jenis': this.namaJenis(x.jenis), 'Seri & grup': x.nama, 'Tanggal': fmtTanggal(x.tanggal), 'Jam': jamText(x), 'Kotak': x.kotak || '', 'Kuota': x.kuota, 'Terkonfirmasi': c.terkonfirmasi, 'Menunggu': c.menunggu, 'Ditolak': c.ditolak, 'Sisa': Math.max(0, x.kuota - c.terkonfirmasi - c.menunggu), 'Dibuka': x.aktif ? 'Ya' : 'Tidak' };
+      return { 'Jenis': this.namaJenis(x.jenis), 'Seri & grup': x.nama, 'Tanggal': fmtTanggal(x.tanggal), 'Jam': jamText(x), 'Slot': x.kotak || '', 'Kuota': x.kuota, 'Terkonfirmasi': c.terkonfirmasi, 'Menunggu': c.menunggu, 'Ditolak': c.ditolak, 'Sisa': Math.max(0, x.kuota - c.terkonfirmasi - c.menunggu), 'Dibuka': x.aktif ? 'Ya' : 'Tidak' };
     });
     const nama = `pendaftaran-layangan-${isoTanggal(new Date())}`;
     if (!data.length) { toast('Tidak ada data untuk diekspor (cek filter).', 'bad'); return; }
@@ -8789,7 +8789,7 @@ async function buatPdfKonfirmasi(d) {
     return yy;
   };
   y = bagian('DATA LAYANGAN', [['Nama sekha', d.sekha], ['Alamat', d.alamat], ['Nomor WhatsApp', d.wa], ['Kode pendaftaran', d.kode]], 705);
-  bagian('JADWAL TERBANG', [['Tanggal', d.tanggal], ['Seri & grup', d.seri], ['Jam terbang', d.jam], ['Posisi di jadwal', d.kotak ? 'Kotak ' + d.kotak : '-']], y + 26);
+  bagian('JADWAL TERBANG', [['Tanggal', d.tanggal], ['Seri & grup', d.seri], ['Jam terbang', d.jam], ['Posisi di jadwal', d.kotak ? 'Slot ' + d.kotak : '-']], y + 26);
   // kaki
   x.fillStyle = '#efede7'; x.fillRect(0, H - 130, W, 130);
   font(22, 600); x.fillStyle = '#16181d';
@@ -9823,7 +9823,7 @@ SUB['adm.tolak'] = async (form) => {
 };
 ACT['adm.batalKonfirmasi'] = async (el) => {
   const r = Adm.baris(el.dataset.id);
-  if (!r || !(await konfirmasiDialog({ judul: 'Batalkan konfirmasi?', isi: `Status ${esc(r.nama_sekha)} kembali ke <b>Menunggu</b>. Nomor layangan dan kotaknya di jadwal tetap disimpan.`, tombol: 'Batalkan konfirmasi' }))) return;
+  if (!r || !(await konfirmasiDialog({ judul: 'Batalkan konfirmasi?', isi: `Status ${esc(r.nama_sekha)} kembali ke <b>Menunggu</b>. Nomor layangan dan slotnya di jadwal tetap disimpan.`, tombol: 'Batalkan konfirmasi' }))) return;
   try { await Adm.ubah(r.id, { status: 'menunggu' }, 'Konfirmasi dibatalkan'); } catch (e) { toast(pesanError(e), 'bad', 6000); }
 };
 ACT['adm.pulihkan'] = (el) => sibuk(el, async () => {
@@ -9953,7 +9953,7 @@ SUB['adm.simpanPendaftaran'] = async (form) => {
         const baru = await api.tambahPendaftaran(data);
         Overlay.tutupYangBerisi(form);
         Adm.gantiBaris(baru);
-        toast(baru.status === 'terkonfirmasi' ? `Ditambahkan · nomor ${baru.nomor_layangan}${baru.kotak ? ` · kotak ${baru.kotak}` : ''}` : 'Ditambahkan ke antrean verifikasi', 'good');
+        toast(baru.status === 'terkonfirmasi' ? `Ditambahkan · nomor ${baru.nomor_layangan}${baru.kotak ? ` · slot ${baru.kotak}` : ''}` : 'Ditambahkan ke antrean verifikasi', 'good');
         Adm.s.nav = [baru.id];
         Adm.buka(baru.id);
       }
@@ -10133,7 +10133,7 @@ SUB['adm.simpanGrup'] = async (form) => {
   const isi = { huruf: v('huruf').toUpperCase(), kotak: parseInt(v('kotak'), 10), catatan: v('catatan'), aktif: form.aktif.checked };
   if (!form.jenis.disabled && !namaJenis) return toast('Isi jenis layangan.', 'bad');
   if (!/^[A-Z0-9]{1,3}$/.test(isi.huruf)) return toast('Grup diisi huruf, misalnya A atau B.', 'bad');
-  if (!Number.isInteger(isi.kotak) || isi.kotak < 1 || isi.kotak > 200) return toast('Jumlah kotak harus 1–200.', 'bad');
+  if (!Number.isInteger(isi.kotak) || isi.kotak < 1 || isi.kotak > 200) return toast('Jumlah slot harus 1–200.', 'bad');
   if (d.seri.some((g) => g.sesi_id === sesi_id && g.id !== id && g.huruf === isi.huruf)) return toast(`Grup ${isi.huruf} sudah ada di seri ini.`, 'bad');
   let rentang;
   try { rentang = bacaRentang(v('nomor_dari'), v('nomor_sampai')); } catch (e) { $('#g-dari') && $('#g-dari').focus(); return toast(e.message, 'bad', 5000); }
@@ -10146,7 +10146,7 @@ SUB['adm.simpanGrup'] = async (form) => {
   if (lama) {
     const c = Adm.idx.kotak.get(lama.id) || new Map();
     const lewat = [...c.keys()].filter((k) => k > isi.kotak);
-    if (lewat.length) return toast(`Kotak ${lewat.join(', ')} sudah terisi. Jumlah kotak minimal ${Math.max(...c.keys())}.`, 'bad', 6000);
+    if (lewat.length) return toast(`Slot ${lewat.join(', ')} sudah terisi. Jumlah slot minimal ${Math.max(...c.keys())}.`, 'bad', 6000);
   }
   await sibuk(form.querySelector('[type=submit]'), async () => {
     try {
@@ -10189,7 +10189,7 @@ ACT['adm.kotak'] = (el) => {
       const hasil = await api.aturKotak(id, k, tutupBaru);
       const x = Adm.idx.seri.get(id); if (x) Object.assign(x, hasil);
       Adm.tandaiUbah(); Adm.indeks();
-      toast(`${g.nama} · kotak ${k} ${tutupBaru ? 'ditutup' : 'dibuka'}`, 'good', 1800);
+      toast(`${g.nama} · slot ${k} ${tutupBaru ? 'ditutup' : 'dibuka'}`, 'good', 1800);
     } catch (e) { toast(pesanError(e), 'bad', 6000); }
   });
   antreKotak.set(id, jalan);
@@ -10200,7 +10200,7 @@ ACT['adm.bukaSemua'] = (el) => sibuk(el, async () => {
   try {
     const hasil = await api.simpanSeri({ id: g.id, tutup: [] });
     Adm.tandaiUbah(); Object.assign(g, hasil); Adm.indeks(); Overlay.tutupSemua(); Adm.segarkanTampilan();
-    toast(`Semua kotak ${g.nama} dibuka`, 'good');
+    toast(`Semua slot ${g.nama} dibuka`, 'good');
   } catch (e) { toast(pesanError(e), 'bad', 6000); }
 });
 ACT['adm.cetakHari'] = (el) => Adm.cetakHari(Number(el.dataset.id));
@@ -10537,7 +10537,7 @@ const Beranda = {
     const cta = e.juara_diumumkan ? ['gold', '🏆 Lihat juara', '/juara'] : e.pendaftaran_buka ? ['primary', 'Daftar sekarang', ''] : st.k === 'live' ? ['', 'Lihat jadwal', '/jadwal'] : ['', 'Lihat info', ''];
     const href = `#e/${encodeURIComponent(e.slug)}${cta[2]}`;
     const chips = e.pendaftaran_buka
-      ? `<span class="ev-chip buka">Pendaftaran dibuka</span>${e.ada_jadwal ? `<span class="ev-chip">Sisa ${angka(e.sisa_slot)} kotak</span>` : ''}${e.harga_min != null ? `<span class="ev-chip">Mulai ${rupiah(e.harga_min)}</span>` : ''}`
+      ? `<span class="ev-chip buka">Pendaftaran dibuka</span>${e.ada_jadwal ? `<span class="ev-chip">Sisa ${angka(e.sisa_slot)} slot</span>` : ''}${e.harga_min != null ? `<span class="ev-chip">Mulai ${rupiah(e.harga_min)}</span>` : ''}`
       : `<span class="ev-chip">${st.k === 'live' ? 'Pendaftaran ditutup' : 'Pendaftaran belum dibuka'}</span>${e.peserta ? `<span class="ev-chip">${angka(e.peserta)} layangan</span>` : ''}`;
     const chipJuara = e.juara_diumumkan ? '<span class="ev-chip juara">🏆 Juara diumumkan</span>' : '';
     return `<article class="ev-card" style="--ev-a:${c0};--ev-b:${c1}">
