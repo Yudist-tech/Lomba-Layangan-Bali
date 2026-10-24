@@ -10537,7 +10537,7 @@ const Beranda = {
     const cta = e.juara_diumumkan ? ['gold', '🏆 Lihat juara', '/juara'] : e.pendaftaran_buka ? ['primary', 'Daftar sekarang', ''] : st.k === 'live' ? ['', 'Lihat jadwal', '/jadwal'] : ['', 'Lihat info', ''];
     const href = `#e/${encodeURIComponent(e.slug)}${cta[2]}`;
     const chips = e.pendaftaran_buka
-      ? `<span class="ev-chip buka">Pendaftaran dibuka</span>${e.ada_jadwal ? `<span class="ev-chip">Sisa ${angka(e.sisa_slot)} kotak</span>` : ''}${e.harga_min != null ? `<span class="ev-chip">Mulai ${rupiah(e.harga_min)}</span>` : ''}`
+      ? `<span class="ev-chip buka">Pendaftaran dibuka</span>${e.ada_jadwal ? `<span class="ev-chip">Sisa ${angka(e.sisa_slot)} slot</span>` : ''}${e.harga_min != null ? `<span class="ev-chip">Mulai ${rupiah(e.harga_min)}</span>` : ''}`
       : `<span class="ev-chip">${st.k === 'live' ? 'Pendaftaran ditutup' : 'Pendaftaran belum dibuka'}</span>${e.peserta ? `<span class="ev-chip">${angka(e.peserta)} layangan</span>` : ''}`;
     const chipJuara = e.juara_diumumkan ? '<span class="ev-chip juara">🏆 Juara diumumkan</span>' : '';
     return `<article class="ev-card" style="--ev-a:${c0};--ev-b:${c1}">
