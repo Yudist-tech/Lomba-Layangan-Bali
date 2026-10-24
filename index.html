@@ -10551,8 +10551,7 @@ const Beranda = {
         <h3 class="ev-judul"><a class="ev-link" href="${href}">${esc(e.nama_event)}</a></h3>
         <ul class="ev-meta"><li>${ico('cal')}<span>${esc(rentangEvent(e))}</span></li><li>${ico('pin')}<span>${esc(e.lokasi || 'Lokasi menyusul')}</span></li></ul>
         <div class="ev-chips">${chipJuara}${chips}</div>
-        <div class="ev-aksi"><span class="ev-cta ${cta[0]}">${cta[1]} ${ico('arrow-r')}</span>
-          ${fl ? `<button type="button" class="ev-lihat" data-act="lp.flyer" data-url="${esc(fl)}" data-judul="Flyer ${esc(e.nama_event)}">${ico('image')} Flyer</button>` : ''}</div>
+        <div class="ev-aksi"><span class="ev-cta ${cta[0]}">${cta[1]} ${ico('arrow-r')}</span></div>
       </div>
     </article>`;
   },
