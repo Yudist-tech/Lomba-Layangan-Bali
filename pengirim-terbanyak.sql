@@ -13,7 +13,7 @@ create table if not exists public.lomba_pengirim (
   jumlah_juara  int not null default 3 check (jumlah_juara between 1 and 20),
   prioritas     jsonb not null default '{}'::jsonb,   -- { "62812...": 1, ... } urutan bila jumlahnya sama
   nama          jsonb not null default '{}'::jsonb,   -- { "62812...": "Nama tampil" } nama diubah panitia (nomor WA tetap)
-  juara         jsonb,                                 -- [{ "urutan":1, "wa":"62812...", "nama":"...", "jumlah":14 }]
+  juara         jsonb,                                 -- [{ "urutan":1, "wa":"62812...", "wa_samar":"0812-xxxx-4471", "nama":"...", "jumlah":14 }]
   diumumkan_at  timestamptz,
   oleh          text,
   updated_at    timestamptz not null default now()
@@ -46,7 +46,7 @@ revoke all on table public.lomba_pengirim from anon;
 grant select, insert, update, delete on table public.lomba_pengirim to authenticated;
 grant select, insert, update, delete on table public.lomba_pengirim to service_role;
 
--- halaman peserta: juara pengirim terbanyak (tanpa nomor WA), hanya setelah diumumkan
+-- halaman peserta: juara pengirim terbanyak (nomor WA disamarkan, mis. 0812-xxxx-4471), hanya setelah diumumkan
 create or replace function public.lomba_pengirim_publik(p_event bigint default null)
 returns json
 language sql
@@ -56,7 +56,7 @@ set search_path = public
 as $$
   select coalesce((
     select json_build_object('diumumkan_at', p.diumumkan_at,
-             'list', coalesce((select json_agg(json_build_object('urutan', (x->>'urutan')::int, 'nama', x->>'nama', 'jumlah', (x->>'jumlah')::int))
+             'list', coalesce((select json_agg(json_build_object('urutan', (x->>'urutan')::int, 'nama', x->>'nama', 'jumlah', (x->>'jumlah')::int, 'wa', x->>'wa_samar'))
                                  from jsonb_array_elements(coalesce(p.juara, '[]'::jsonb)) x), '[]'::json))
       from public.lomba_pengirim p
      where p.event_id = public.lomba_ev(p_event) and p.diumumkan_at is not null), json_build_object('diumumkan_at', null, 'list', '[]'::json));

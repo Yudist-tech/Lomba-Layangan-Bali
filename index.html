@@ -5050,7 +5050,7 @@ class DemoAPI {
       .map(({ j, p }) => ({ jenis: j.jenis, kelas: j.kelas, urutan: j.urutan, nomor: p.nomor_layangan, sekha: p.nama_sekha, alamat: p.alamat, foto: ((this.db.penilaian || []).find((x) => x.pendaftaran_id === p.id) || {}).foto_url || null }));
     return this._salin({ diumumkan: true, jenis: umum.map((u) => ({ jenis: u.jenis, diumumkan_at: u.diumumkan_at })), list, ...this._kirimPublik() });
   }
-  _kirimPublik() { const k = this.db.pengirim || {}; return k.diumumkan_at && (k.juara || []).length ? { pengirim: { diumumkan_at: k.diumumkan_at, list: k.juara.map(({ urutan, nama, jumlah }) => ({ urutan, nama, jumlah })) } } : {}; }
+  _kirimPublik() { const k = this.db.pengirim || {}; return k.diumumkan_at && (k.juara || []).length ? { pengirim: { diumumkan_at: k.diumumkan_at, list: k.juara.map(({ urutan, nama, jumlah, wa, wa_samar }) => ({ urutan, nama, jumlah, wa: wa_samar || (wa ? Adm.samarWA(wa) : '') })) } } : {}; }
   async simpanPengirim(patch) { await this._jeda(120); this.db.pengirim = { ...(this.db.pengirim || {}), ...patch, oleh: this._email(), updated_at: new Date().toISOString() }; this._simpan(); return this._salin(this.db.pengirim); }
   async umumkanJuara(jenis, on) {
     await this._jeda(150);
@@ -5775,7 +5775,7 @@ const Pub = {
       const w = (u) => (u === 1 ? 'g' : u === 2 ? 's' : 'b');
       return `<section class="card">${kepala}${chips}
         <div class="jw-list">${[...j.pengirim.list].sort((a, b) => a.urutan - b.urutan).map((x) => `<div class="jw ${w(x.urutan)}"><span class="jw-bar"></span><span class="jw-ic">${pialaSvg(w(x.urutan))}</span>
-          <div class="jw-t"><div class="jw-lb">Juara ${x.urutan} · Pengirim terbanyak</div><div class="jw-sk">${esc(x.nama)}</div></div>
+          <div class="jw-t"><div class="jw-lb">Juara ${x.urutan} · Pengirim terbanyak</div><div class="jw-sk">${esc(x.nama)}</div>${x.wa ? `<div class="jw-al">WA ${esc(x.wa)}</div>` : ''}</div>
           <div class="jw-no">Layangan<b>${esc(String(x.jumlah))}</b></div></div>`).join('')}</div>
         <p class="jw-selamat">Terima kasih &amp; selamat kepada para pengirim terbanyak! 🎉</p></section>`;
     }
@@ -7890,14 +7890,11 @@ const Adm = {
     const ubahNm = (x) => (boleh && !kunci ? `<button type="button" class="kp-ed" data-act="adm.kirimNama" data-wa="${esc(x.wa)}" title="Ubah nama yang ditampilkan" aria-label="Ubah nama ${esc(x.namaUtama)}">${ico('edit')}</button>` : '') + (x.namaDiubah ? '<small class="kp-dub">diubah panitia</small>' : '');
     const kartu = L.slice(0, 3).map((x) => `<div class="kp-top ${x.rank === 1 ? 'g' : x.rank === 2 ? 's' : 'b'}${x.seri ? ' seri' : ''}"><span class="kp-md">${x.rank}</span><b class="kp-jml">${x.n}<small>layangan</small></b>
       <b class="kp-nm">${esc(x.namaUtama)}${ubahNm(x)}</b><small class="kp-wa">${esc(fmtWA(x.wa) || x.wa)}</small><div class="kp-ch">${x.rincian.map((t) => `<span>${esc(t)}</span>`).join('')}</div>${tag(x)}${naik(x)}</div>`).join('');
-    const sisa = L.slice(3, Math.max(10, N));
-    const tabel = sisa.length ? `<div class="tbl-wrap"><table class="tbl kp-tbl"><thead><tr><th>#</th><th>Nama</th><th>Nomor WA</th><th>Jenis</th><th class="r">Layangan</th></tr></thead><tbody>
-      ${sisa.map((x) => `<tr class="${x.rank <= N ? 'kp-masuk' : ''}${x.seri ? ' seri' : ''}"><td><span class="rk h">${x.rank}</span></td><td><b>${esc(x.namaUtama)}</b>${ubahNm(x)} ${tag(x)} ${naik(x)}</td><td>${esc(fmtWA(x.wa) || x.wa)}</td><td class="kp-jn">${esc(x.rincian.join(', '))}</td><td class="r"><b>${x.n}</b></td></tr>`).join('')}</tbody></table></div>` : '';
     const daftarJuara = juara.length ? `<div class="jlist kp-jlist">${juara.map((x) => `<div class="jrow juara"><b class="jl">Juara ${x.urutan}</b><span class="jn">${esc(String(x.jumlah))} layangan</span><span class="js">${esc(x.nama)}<small>${esc(fmtWA(x.wa) || x.wa)}</small></span><span class="jfoto">${x.wa ? `<a class="btn btn-xs" target="_blank" rel="noopener" href="${esc(waLink(x.wa, `Selamat! ${x.nama} meraih Juara ${x.urutan} Pengirim Terbanyak (${x.jumlah} layangan) di ${d.pengaturan.nama_event || 'lomba layangan'}. Terima kasih sudah ikut serta.`))}">${ico('chat')} WA</a>` : ''}</span></div>`).join('')}</div>` : '';
     return `${aktif ? '' : `<div class="note warn">${ico('info')}<span>Peringkat sudah bisa dilihat. Untuk <b>Naikkan</b>, menetapkan &amp; mengumumkan juara, jalankan <b>pengirim-terbanyak.sql</b> di Supabase → SQL Editor, lalu muat ulang.</span></div>`}
       <div class="panel nilai-panel kp-panel"><div class="nl-ph"><h3>🏅 Pengirim terbanyak</h3><span class="nl-pills"><span class="nl-pill g">${L.length} nomor WA</span><span class="nl-pill m">${L.reduce((t, x) => t + x.n, 0)} layangan terkonfirmasi</span></span></div>
-        <p class="hint" style="margin:-4px 0 12px">Dihitung dari nomor WA yang paling banyak dipakai mendaftar — hanya layangan <b>terkonfirmasi</b>, semua jenis.</p>
-        ${L.length ? `<div class="kp-tops">${kartu}</div>${tabel}` : '<div class="empty">Belum ada pendaftaran terkonfirmasi.</div>'}
+        <p class="hint" style="margin:-4px 0 12px">3 teratas dari nomor WA yang paling banyak dipakai mendaftar — hanya layangan <b>terkonfirmasi</b>, semua jenis. Urutan terus berubah sampai pendaftaran ditutup.</p>
+        ${L.length ? `<div class="kp-tops">${kartu}</div>` : '<div class="empty">Belum ada pendaftaran terkonfirmasi.</div>'}
         <div class="nilai-kaki${L.length ? ' siap' : ''}"><span class="nk-t">${ico('trophy')} Jumlah juara yang diumumkan:
             <input class="input kp-n" type="number" min="1" max="20" value="${N}" data-ch="adm.kirimN" ${boleh && !kunci ? '' : 'disabled'} aria-label="Jumlah juara pengirim terbanyak"></span>
           ${boleh && !kunci ? `<button type="button" class="btn btn-good" data-act="adm.kirimJuara" ${L.length ? '' : 'disabled'}>${ico('trophy')} Jadikan juara</button>` : ''}</div>
@@ -8883,7 +8880,7 @@ ACT['adm.kirimJuara'] = async () => {
   const P = Adm.s.data.pengirim || {}, N = Math.max(1, Math.min(20, Number(P.jumlah_juara) || 3)), L = Adm.pengirimRanking();
   const top = L.slice(0, N), seri = top.some((x) => x.seri);
   if (seri && !(await konfirmasiDialog({ judul: 'Masih ada jumlah yang sama', isi: 'Beberapa pengirim punya jumlah layangan yang sama di posisi juara. Sebaiknya tekan <b>Naikkan</b> dulu pada yang lebih unggul. Tetap lanjut dengan urutan sekarang?', tombol: 'Tetap lanjut' }))) return;
-  const juara = top.map((x, i) => ({ urutan: i + 1, wa: x.wa, nama: x.namaUtama, jumlah: x.n }));
+  const juara = top.map((x, i) => ({ urutan: i + 1, wa: x.wa, wa_samar: Adm.samarWA(x.wa), nama: x.namaUtama, jumlah: x.n }));
   if (!(await konfirmasiDialog({ judul: `Tetapkan ${juara.length} juara pengirim terbanyak?`, isi: juara.map((x) => `Juara ${x.urutan}: <b>${esc(x.nama)}</b> — ${x.jumlah} layangan`).join('<br>'), tombol: 'Jadikan juara' }))) return;
   simpanKirim({ juara }, 'Juara pengirim terbanyak disimpan sebagai draf');
 };
