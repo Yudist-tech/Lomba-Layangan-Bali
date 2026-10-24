@@ -2269,6 +2269,25 @@ form .kp-foto { margin-bottom: 12px; height: 80px; }
   #adm-main .nilai-tbl .nr:not(.nh) .nkj .nkp-l { color: var(--warn-ink); }
   #adm-main .nilai-tbl .naksi { grid-column: -2 / -1; grid-row: 1; }
 }
+/* ===== Pengirim terbanyak ===== */
+.njk.njk-kirim { background: linear-gradient(135deg, color-mix(in srgb, #e0a800 7%, var(--surface)), color-mix(in srgb, #e0a800 18%, var(--surface))); border-color: color-mix(in srgb, #e0a800 35%, var(--line)); }
+.njk.njk-kirim.on { border: 2px solid var(--brand); }
+.kp-tops { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; margin-bottom: 12px; }
+.kp-top { position: relative; border: 1px solid var(--line); border-radius: 14px; padding: 12px 14px; display: grid; gap: 2px; align-content: start; }
+.kp-top.g { background: linear-gradient(160deg, color-mix(in srgb, #d9a400 16%, var(--surface)), var(--surface) 75%); border-color: color-mix(in srgb, #d9a400 45%, var(--line)); }
+.kp-top.s { background: linear-gradient(160deg, color-mix(in srgb, #9aa3ad 18%, var(--surface)), var(--surface) 75%); }
+.kp-top.b { background: linear-gradient(160deg, color-mix(in srgb, #c07a3a 16%, var(--surface)), var(--surface) 75%); }
+.kp-md { width: 28px; height: 28px; border-radius: 50%; display: grid; place-items: center; color: #fff; font-weight: 900; font-size: 13px; margin-bottom: 4px; }
+.kp-top.g .kp-md { background: #d9a400; } .kp-top.s .kp-md { background: #9aa3ad; } .kp-top.b .kp-md { background: #c07a3a; }
+.kp-jml { position: absolute; right: 14px; top: 10px; font-size: 26px; font-weight: 900; line-height: 1; text-align: right; } .kp-jml small { display: block; font-size: 11px; font-weight: 600; color: var(--muted); margin-top: 2px; }
+.kp-nm { font-size: 15px; padding-right: 60px; overflow-wrap: anywhere; } .kp-wa { color: var(--muted); font-size: 12.5px; }
+.kp-ch { display: flex; flex-wrap: wrap; gap: 4px; margin: 6px 0 2px; } .kp-ch span { font-size: 11px; font-weight: 700; border-radius: 999px; padding: 1px 7px; background: var(--surface-3); color: var(--ink-2); }
+.kp-top .ntag, .kp-top .nnaik { justify-self: start; margin-top: 4px; }
+.kp-tbl .kp-jn { color: var(--ink-2); font-size: 13px; } .kp-tbl tr.kp-masuk td:first-child .rk { background: #d9a400; color: #fff; } .kp-tbl tr.seri { background: color-mix(in srgb, var(--warn) 9%, var(--surface)); }
+.kp-ed { all: unset; cursor: pointer; display: inline-grid; place-items: center; width: 22px; height: 22px; border-radius: 6px; color: var(--brand); margin-left: 4px; vertical-align: -4px; } .kp-ed:hover, .kp-ed:focus-visible { background: var(--brand-soft); } .kp-ed .ico { width: 14px; height: 14px; }
+.kp-dub { display: block; font-size: 11px; font-weight: 600; color: var(--warn-ink); }
+.kp-n { width: 70px; display: inline-block; margin-left: 6px; text-align: center; font-weight: 800; }
+@media (max-width: 760px) { .kp-tops { grid-template-columns: minmax(0, 1fr); } .kp-tbl .kp-jn { display: none; } }
 /* ===== Ukuran huruf seragam di semua halaman panitia ===== */
 #adm-main { --ft-judul: 21px; --ft-sub: 13.5px; --ft-kartu: 16px; --ft-isi: 14px; --ft-label: 12.5px; --ft-kecil: 12.5px; --ft-thead: 11.5px; --ft-tombol: 13.5px; --ft-kpi: 26px; --ft-total: 17px; }
 #adm-main .topbar h2, #adm-main .rk-hero h2 { font-size: var(--ft-judul); letter-spacing: -.01em; }
@@ -3756,9 +3775,11 @@ class SupabaseAPI {
       this.sb.from('lomba_sesi').select('*').eq('event_id', ev).order('jam_mulai', { ascending: true, nullsFirst: false }).order('urutan').order('id').then((r) => this._ok(r)),
     ]);
     const [baca, selesai, juara, juara_umum, nilai] = await Promise.all([this.muatBacaan(), this.muatSelesai(), this.muatJuara(), this.muatJuaraUmum(), this.muatNilai()]);
+    let pengirim = null;    // null = pengirim-terbanyak.sql belum dijalankan
+    try { const { data, error } = await this.sb.from('lomba_pengirim').select('*').eq('event_id', ev).maybeSingle(); if (error) throw error; pengirim = data || {}; } catch (e) { pengirim = null; }
     let istirahat = null;   // null = istirahat.sql belum dijalankan
     try { istirahat = this._ok(await this.sb.from('lomba_istirahat').select('*').eq('event_id', ev).order('jam_mulai', { ascending: true, nullsFirst: false }).order('id')); } catch (e) { istirahat = null; }
-    return { pengaturan: pengaturan || {}, jenis, seri, daftar, hari, sesi, istirahat, baca, selesai, juara, juara_umum, ...nilai };
+    return { pengaturan: pengaturan || {}, jenis, seri, daftar, hari, sesi, istirahat, pengirim, baca, selesai, juara, juara_umum, ...nilai };
   }
   /* hasil baca bukti (bukti-mirip.sql); null = tabel belum dipasang */
   async muatBacaan() {
@@ -3879,7 +3900,13 @@ class SupabaseAPI {
     if (!list.length) return [];
     return this._ok(await this.sb.from('lomba_juara').insert(list.map((x) => ({ event_id: ev, jenis, ...x }))).select());
   }
-  juaraPublik() { return this._rpc('lomba_juara_publik', { p_event: this._ev() }); }
+  async juaraPublik() {
+    const j = await this._rpc('lomba_juara_publik', { p_event: this._ev() });
+    try { const k = await this._rpc('lomba_pengirim_publik', { p_event: this._ev() }); if (j && k && k.diumumkan_at && (k.list || []).length) j.pengirim = k; } catch (e) { /* pengirim-terbanyak.sql belum dijalankan */ }
+    if (j && j.pengirim && !j.diumumkan) { j.diumumkan = true; j.jenis = []; j.list = j.list || []; }
+    return j;
+  }
+  async simpanPengirim(patch) { return this._ok(await this.sb.from('lomba_pengirim').upsert({ event_id: this._ev(), ...patch }, { onConflict: 'event_id' }).select().single()); }
   /* umumkan / tarik juara satu jenis; mengembalikan baris pengumuman atau null */
   async umumkanJuara(jenis, on) {
     const ev = this._ev();
@@ -4864,7 +4891,7 @@ class DemoAPI {
   /* ---- data admin ---- */
   async muatSemua() {
     await this._jeda(250);
-    return this._salin({ pengaturan: this.db.pengaturan, jenis: this.db.jenis, seri: this.db.seri, daftar: this.db.daftar, hari: [...this.db.hari].sort(urutHari), sesi: [...this.db.sesi].sort(urutSesi), istirahat: this.db.istirahat || [], baca: Object.values(this.db.baca || {}), selesai: this.db.selesai || [], juara: this.db.juara || [], juara_umum: this.db.juara_umum || [], penilai: this.db.penilai || [], riwayat_nilai: this.db.riwayat_nilai || [], panitia_event: this._super() ? (this.ix.akses[this.eventId] || []) : null, juri: this.db.juri || [], penilaian: this.db.penilaian || [], nilai: this.db.nilai || [], ...this._pantauDb(), form_upload: (this.db.form_upload || []).map(({ foto, ...x }) => x), ket_juri: this._ketJuriDb().map(({ foto_url, ...x }) => x), seri_upload: true });
+    return this._salin({ pengaturan: this.db.pengaturan, jenis: this.db.jenis, seri: this.db.seri, daftar: this.db.daftar, hari: [...this.db.hari].sort(urutHari), sesi: [...this.db.sesi].sort(urutSesi), istirahat: this.db.istirahat || [], pengirim: this.db.pengirim || {}, baca: Object.values(this.db.baca || {}), selesai: this.db.selesai || [], juara: this.db.juara || [], juara_umum: this.db.juara_umum || [], penilai: this.db.penilai || [], riwayat_nilai: this.db.riwayat_nilai || [], panitia_event: this._super() ? (this.ix.akses[this.eventId] || []) : null, juri: this.db.juri || [], penilaian: this.db.penilaian || [], nilai: this.db.nilai || [], ...this._pantauDb(), form_upload: (this.db.form_upload || []).map(({ foto, ...x }) => x), ket_juri: this._ketJuriDb().map(({ foto_url, ...x }) => x), seri_upload: true });
   }
   /* tiruan juara.sql: penilaian */
   _nilaiDb() { const d = this.db; d.juri = d.juri || []; d.penilaian = d.penilaian || []; d.nilai = d.nilai || []; d.penilai = d.penilai || []; d.riwayat_nilai = d.riwayat_nilai || []; return d; }
@@ -5016,13 +5043,15 @@ class DemoAPI {
   async juaraPublik() {
     await this._jeda(150);
     const umum = this.db.juara_umum || [];
-    if (!umum.length) return { diumumkan: false, jenis: [], list: [] };
+    if (!umum.length) { const k = this._kirimPublik(); return k.pengirim ? { diumumkan: true, jenis: [], list: [], ...k } : { diumumkan: false, jenis: [], list: [] }; }
     const ok = new Set(umum.map((u) => u.jenis));
     const list = (this.db.juara || []).filter((j) => ok.has(j.jenis)).map((j) => ({ j, p: this.db.daftar.find((d) => d.id === j.pendaftaran_id) }))
       .filter((x) => x.p && x.p.status === 'terkonfirmasi')
       .map(({ j, p }) => ({ jenis: j.jenis, kelas: j.kelas, urutan: j.urutan, nomor: p.nomor_layangan, sekha: p.nama_sekha, alamat: p.alamat, foto: ((this.db.penilaian || []).find((x) => x.pendaftaran_id === p.id) || {}).foto_url || null }));
-    return this._salin({ diumumkan: true, jenis: umum.map((u) => ({ jenis: u.jenis, diumumkan_at: u.diumumkan_at })), list });
+    return this._salin({ diumumkan: true, jenis: umum.map((u) => ({ jenis: u.jenis, diumumkan_at: u.diumumkan_at })), list, ...this._kirimPublik() });
   }
+  _kirimPublik() { const k = this.db.pengirim || {}; return k.diumumkan_at && (k.juara || []).length ? { pengirim: { diumumkan_at: k.diumumkan_at, list: k.juara.map(({ urutan, nama, jumlah }) => ({ urutan, nama, jumlah })) } } : {}; }
+  async simpanPengirim(patch) { await this._jeda(120); this.db.pengirim = { ...(this.db.pengirim || {}), ...patch, oleh: this._email(), updated_at: new Date().toISOString() }; this._simpan(); return this._salin(this.db.pengirim); }
   async umumkanJuara(jenis, on) {
     await this._jeda(150);
     this.db.juara_umum = this.db.juara_umum || [];
@@ -5725,10 +5754,11 @@ const Pub = {
         <p class="lead">Juri &amp; panitia sedang berdiskusi menentukan para juara ${esc(ev.nama_event || '')}. Pengumuman akan tampil di halaman ini, biasanya sore hari di hari terakhir lomba.</p>
         <button type="button" class="btn" data-act="pub.juaraMuat">${ico('refresh')} Muat ulang</button></section>`;
     }
-    const nama = (k) => ((info.jenis || []).find((x) => x.kode === k) || {}).nama || k;
+    const nama = (k) => (k === '__pengirim' ? '🏅 Pengirim terbanyak' : ((info.jenis || []).find((x) => x.kode === k) || {}).nama || k);
     // jenis yang sudah diumumkan (per jenis); jenis lain tampil "segera diumumkan"
     const sudah = new Set((j.jenis && j.jenis.length ? j.jenis.map((x) => x.jenis) : j.list.map((x) => x.jenis)));
     const urutJenis = (info.jenis || []).map((x) => x.kode).concat([...sudah].filter((k) => !(info.jenis || []).some((x) => x.kode === k)));
+    if (j.pengirim) { urutJenis.push('__pengirim'); sudah.add('__pengirim'); }
     if (!urutJenis.includes(this.s.juaraJenis)) this.s.juaraJenis = urutJenis.find((k) => sudah.has(k)) || urutJenis[0];
     const jk = this.s.juaraJenis, rows = j.list.filter((x) => x.jenis === jk);
     const chips = `<div class="nchips juara-jenis" role="tablist">${urutJenis.map((k) => `<button type="button" class="nchip ${k === jk ? 'on' : ''} ${sudah.has(k) ? '' : 'blm'}" data-act="pub.juaraJenis" data-v="${esc(k)}">${jdot(k, info.jenis)}${esc(nama(k))}${sudah.has(k) ? '' : ' <small>segera</small>'}</button>`).join('')}</div>`;
@@ -5740,6 +5770,14 @@ const Pub = {
           <p class="lead">Juri &amp; panitia masih berdiskusi untuk jenis ini. Juara jenis lain yang sudah diumumkan bisa dilihat di pilihan di atas.</p>
           <button type="button" class="btn" data-act="pub.juaraMuat">${ico('refresh')} Muat ulang</button></div>
       </section>`;
+    }
+    if (jk === '__pengirim') {
+      const w = (u) => (u === 1 ? 'g' : u === 2 ? 's' : 'b');
+      return `<section class="card">${kepala}${chips}
+        <div class="jw-list">${[...j.pengirim.list].sort((a, b) => a.urutan - b.urutan).map((x) => `<div class="jw ${w(x.urutan)}"><span class="jw-bar"></span><span class="jw-ic">${pialaSvg(w(x.urutan))}</span>
+          <div class="jw-t"><div class="jw-lb">Juara ${x.urutan} · Pengirim terbanyak</div><div class="jw-sk">${esc(x.nama)}</div></div>
+          <div class="jw-no">Layangan<b>${esc(String(x.jumlah))}</b></div></div>`).join('')}</div>
+        <p class="jw-selamat">Terima kasih &amp; selamat kepada para pengirim terbanyak! 🎉</p></section>`;
     }
     const foto = (x, kecil) => { const u = urlGambarAman(x.foto); return u ? `<button type="button" class="jw-foto${kecil ? ' kecil' : ''}" data-act="lp.flyer" data-url="${esc(u)}" data-judul="No. ${esc(x.nomor || '-')} · ${esc(x.sekha)}" aria-label="Lihat foto layangan No. ${esc(x.nomor || '-')}"><img src="${esc(u)}" alt="" loading="lazy"></button>` : ''; };
     const juara = rows.filter((x) => x.kelas === 'juara').sort((a, b) => a.urutan - b.urutan);
@@ -7623,7 +7661,7 @@ const Adm = {
   },
   vPenilaian() {
     const d = this.s.data, ev = d.pengaturan;
-    const bukaAtur = this.s.nilaiBuka && this.bolehMenilai() && d.penilaian != null && d.juara != null && this.jenisNilai().length;
+    const bukaAtur = this.s.nilaiBuka && this.bolehMenilai() && d.penilaian != null && d.juara != null && this.jenisNilai().length && this.s.nilaiJenis !== '__pengirim';
     const top = `<div class="rk-hero nl-hero"><div class="rk-hh"><h2>Penilaian &amp; juara</h2><div class="rk-sub">Pilih jenis → isi / upload nilai juri → <b>Jadikan juara</b></div></div>
       <div class="rk-ha">${bukaAtur ? `<button type="button" class="btn btn-sm" data-act="adm.nilaiAtur">${ico('sliders')}<span>Pengaturan nilai</span></button>` : ''}
       <button class="btn btn-sm btn-icon" data-act="adm.muat" title="Muat ulang data">${this.s.loading ? '<span class="spinner"></span>' : ico('refresh')}<span class="sr-only">Muat ulang</span></button></div></div>`;
@@ -7631,18 +7669,21 @@ const Adm = {
     if (!this.s.nilaiBuka) return top + this.vGerbangNilai();
     const jenisList = this.jenisNilai();
     if (!jenisList.length) return top + `<div class="panel"><div class="empty">Belum ada layangan terkonfirmasi untuk dinilai.</div></div>`;
-    if (!jenisList.some((j) => j.kode === this.s.nilaiJenis)) this.s.nilaiJenis = jenisList[0].kode;
-    const jk = this.s.nilaiJenis, j = this.idx.jenis.get(jk);
+    const kirimOn = this.s.nilaiJenis === '__pengirim';
+    if (!kirimOn && !jenisList.some((j) => j.kode === this.s.nilaiJenis)) this.s.nilaiJenis = jenisList[0].kode;
+    const jk = kirimOn ? jenisList[0].kode : this.s.nilaiJenis, j = this.idx.jenis.get(jk);
     const pk = this.peringkat(jk);
     const nKonf = (kode) => d.daftar.filter((r) => r.jenis === kode && r.status === 'terkonfirmasi').length;
     const adaNilai = new Set((d.nilai || []).map((n) => n.pendaftaran_id));
     (d.penilaian || []).forEach((p) => { if (p.diskualifikasi) adaNilai.add(p.pendaftaran_id); });
     const nDinilai = (kode) => d.daftar.filter((r) => r.jenis === kode && r.status === 'terkonfirmasi' && adaNilai.has(r.id)).length;
     const chips = jenisList.map((x) => { const a = nDinilai(x.kode), t = nKonf(x.kode), pr = t ? Math.round(a / t * 100) : 0;
-      return `<button type="button" class="njk ${x.kode === jk ? 'on' : ''}" style="--c:${warnaJenis(x.kode, d.jenis)}" data-act="adm.nilaiJenis" data-v="${esc(x.kode)}" role="tab" aria-selected="${x.kode === jk}">
+      return `<button type="button" class="njk ${x.kode === jk && !kirimOn ? 'on' : ''}" style="--c:${warnaJenis(x.kode, d.jenis)}" data-act="adm.nilaiJenis" data-v="${esc(x.kode)}" role="tab" aria-selected="${x.kode === jk}">
         <b>${jdot(x.kode, d.jenis)}<span class="njk-n">${esc(x.nama)}</span>${this.juaraUmum(x.kode) ? '<span title="Juara sudah diumumkan">🏆</span>' : ''}</b>
-        <small>${a} dari ${t} dinilai</small><span class="njk-pb"><i style="width:${pr}%"></i></span></button>`; }).join('');
+        <small>${a} dari ${t} dinilai</small><span class="njk-pb"><i style="width:${pr}%"></i></span></button>`; }).join('')
+      + `<button type="button" class="njk njk-kirim ${kirimOn ? 'on' : ''}" data-act="adm.nilaiJenis" data-v="__pengirim" role="tab" aria-selected="${kirimOn}"><b>🏅<span class="njk-n">Pengirim terbanyak</span>${(d.pengirim || {}).diumumkan_at ? '<span title="Sudah diumumkan">🏆</span>' : ''}</b><small>dari nomor WA</small></button>`;
     const maks = Number(ev.nilai_maks) || 100;
+    if (kirimOn) return top + this.vJuriAlat() + `<div class="njks" role="tablist" aria-label="Jenis layangan">${chips}</div>${this.vPengirim()}`;
     return top + this.vJuriAlat() + `
       <div class="njks" role="tablist" aria-label="Jenis layangan">${chips}</div>
       ${bantuan('nilai', 'Cara mengisi nilai', [
@@ -7823,6 +7864,49 @@ const Adm = {
         <span class="hint">Foto layangan & tombol WA bersifat opsional.</span></div></div>`;
   },
   juaraUmum(jk) { return (this.s.data.juara_umum || []).find((u) => u.jenis === jk) || null; },
+  /* ---- Pengirim terbanyak: jumlah layangan TERKONFIRMASI per nomor WA ---- */
+  pengirimRanking() {
+    const d = this.s.data, pr = ((d.pengirim || {}).prioritas) || {}, ubah = ((d.pengirim || {}).nama) || {}, m = new Map();
+    d.daftar.filter((r) => r.status === 'terkonfirmasi' && r.no_wa).forEach((r) => {
+      const wa = normWA(r.no_wa) || String(r.no_wa).replace(/\D/g, ''); if (!wa) return;
+      const x = m.get(wa) || { wa, n: 0, nama: new Map(), jenis: new Map(), awal: r.created_at };
+      x.n++; x.nama.set(r.nama_sekha, (x.nama.get(r.nama_sekha) || 0) + 1); x.jenis.set(r.jenis, (x.jenis.get(r.jenis) || 0) + 1);
+      if (r.created_at < x.awal) x.awal = r.created_at; m.set(wa, x);
+    });
+    const L = [...m.values()].map((x) => ({ ...x, prio: Number(pr[x.wa]) || 0, namaAsli: [...x.nama.entries()].sort((a, b) => b[1] - a[1])[0][0], namaUtama: String(ubah[x.wa] || '').trim() || [...x.nama.entries()].sort((a, b) => b[1] - a[1])[0][0], namaDiubah: !!String(ubah[x.wa] || '').trim(),
+      rincian: [...x.jenis.entries()].sort((a, b) => b[1] - a[1]).map(([k, n]) => `${this.namaJenis(k)} ×${n}`) }));
+    L.sort((a, b) => b.n - a.n || (a.prio || 999) - (b.prio || 999) || String(a.awal).localeCompare(String(b.awal)));
+    const sama = (a, b) => a && b && a.n === b.n && a.prio === b.prio;
+    L.forEach((x, i) => { x.seri = !!(sama(L[i - 1], x) || sama(x, L[i + 1])); x.rank = sama(L[i - 1], x) ? L[i - 1].rank : i + 1; });
+    return L;
+  },
+  samarWA(wa) { const f = fmtWA(wa) || String(wa); const p = f.split('-'); return p.length >= 3 ? `${p[0]}-${'x'.repeat(p[1].length)}-${p.slice(2).join('-')}` : f.replace(/(\d{4})\d+(\d{3})/, '$1xxxx$2'); },
+  vPengirim() {
+    const d = this.s.data, P = d.pengirim, aktif = P != null, L = this.pengirimRanking(), boleh = this.bolehMenilai() && aktif;
+    const N = Math.max(1, Math.min(20, Number((P || {}).jumlah_juara) || 3)), umum = aktif && P.diumumkan_at, juara = (aktif && Array.isArray(P.juara)) ? P.juara : [];
+    const kunci = umum && !this.s.super;
+    const naik = (x) => x.seri && boleh && !kunci ? `<button type="button" class="btn btn-xs nnaik" data-act="adm.kirimNaik" data-wa="${esc(x.wa)}">${ico('arrow-up')} Naikkan</button>` : '';
+    const tag = (x) => x.seri ? '<span class="ntag seri">Jumlah sama</span>' : '';
+    const ubahNm = (x) => (boleh && !kunci ? `<button type="button" class="kp-ed" data-act="adm.kirimNama" data-wa="${esc(x.wa)}" title="Ubah nama yang ditampilkan" aria-label="Ubah nama ${esc(x.namaUtama)}">${ico('edit')}</button>` : '') + (x.namaDiubah ? '<small class="kp-dub">diubah panitia</small>' : '');
+    const kartu = L.slice(0, 3).map((x) => `<div class="kp-top ${x.rank === 1 ? 'g' : x.rank === 2 ? 's' : 'b'}${x.seri ? ' seri' : ''}"><span class="kp-md">${x.rank}</span><b class="kp-jml">${x.n}<small>layangan</small></b>
+      <b class="kp-nm">${esc(x.namaUtama)}${ubahNm(x)}</b><small class="kp-wa">${esc(fmtWA(x.wa) || x.wa)}</small><div class="kp-ch">${x.rincian.map((t) => `<span>${esc(t)}</span>`).join('')}</div>${tag(x)}${naik(x)}</div>`).join('');
+    const sisa = L.slice(3, Math.max(10, N));
+    const tabel = sisa.length ? `<div class="tbl-wrap"><table class="tbl kp-tbl"><thead><tr><th>#</th><th>Nama</th><th>Nomor WA</th><th>Jenis</th><th class="r">Layangan</th></tr></thead><tbody>
+      ${sisa.map((x) => `<tr class="${x.rank <= N ? 'kp-masuk' : ''}${x.seri ? ' seri' : ''}"><td><span class="rk h">${x.rank}</span></td><td><b>${esc(x.namaUtama)}</b>${ubahNm(x)} ${tag(x)} ${naik(x)}</td><td>${esc(fmtWA(x.wa) || x.wa)}</td><td class="kp-jn">${esc(x.rincian.join(', '))}</td><td class="r"><b>${x.n}</b></td></tr>`).join('')}</tbody></table></div>` : '';
+    const daftarJuara = juara.length ? `<div class="jlist kp-jlist">${juara.map((x) => `<div class="jrow juara"><b class="jl">Juara ${x.urutan}</b><span class="jn">${esc(String(x.jumlah))} layangan</span><span class="js">${esc(x.nama)}<small>${esc(fmtWA(x.wa) || x.wa)}</small></span><span class="jfoto">${x.wa ? `<a class="btn btn-xs" target="_blank" rel="noopener" href="${esc(waLink(x.wa, `Selamat! ${x.nama} meraih Juara ${x.urutan} Pengirim Terbanyak (${x.jumlah} layangan) di ${d.pengaturan.nama_event || 'lomba layangan'}. Terima kasih sudah ikut serta.`))}">${ico('chat')} WA</a>` : ''}</span></div>`).join('')}</div>` : '';
+    return `${aktif ? '' : `<div class="note warn">${ico('info')}<span>Peringkat sudah bisa dilihat. Untuk <b>Naikkan</b>, menetapkan &amp; mengumumkan juara, jalankan <b>pengirim-terbanyak.sql</b> di Supabase → SQL Editor, lalu muat ulang.</span></div>`}
+      <div class="panel nilai-panel kp-panel"><div class="nl-ph"><h3>🏅 Pengirim terbanyak</h3><span class="nl-pills"><span class="nl-pill g">${L.length} nomor WA</span><span class="nl-pill m">${L.reduce((t, x) => t + x.n, 0)} layangan terkonfirmasi</span></span></div>
+        <p class="hint" style="margin:-4px 0 12px">Dihitung dari nomor WA yang paling banyak dipakai mendaftar — hanya layangan <b>terkonfirmasi</b>, semua jenis.</p>
+        ${L.length ? `<div class="kp-tops">${kartu}</div>${tabel}` : '<div class="empty">Belum ada pendaftaran terkonfirmasi.</div>'}
+        <div class="nilai-kaki${L.length ? ' siap' : ''}"><span class="nk-t">${ico('trophy')} Jumlah juara yang diumumkan:
+            <input class="input kp-n" type="number" min="1" max="20" value="${N}" data-ch="adm.kirimN" ${boleh && !kunci ? '' : 'disabled'} aria-label="Jumlah juara pengirim terbanyak"></span>
+          ${boleh && !kunci ? `<button type="button" class="btn btn-good" data-act="adm.kirimJuara" ${L.length ? '' : 'disabled'}>${ico('trophy')} Jadikan juara</button>` : ''}</div>
+      </div>
+      ${aktif ? `<div class="panel" style="margin-top:16px"><div class="panel-h"><h3>${ico('trophy')} Juara pengirim terbanyak</h3>${umum ? `<span class="pill-st good">${ico('check')} Diumumkan ${esc(fmtWaktu(P.diumumkan_at))}</span>` : juara.length ? '<span class="pill-st warn">Draf — belum terlihat publik</span>' : ''}</div>
+        ${daftarJuara || '<div class="empty">Belum ada juara. Atur jumlah juara lalu klik <b>Jadikan juara</b>.</div>'}
+        <div class="jaksi">${umum ? (this.s.super ? `<button type="button" class="btn" data-act="adm.kirimUmum" data-v="0">${ico('undo')} Tarik pengumuman</button>` : '')
+          : boleh ? `<button type="button" class="btn btn-primary" data-act="adm.kirimUmum" data-v="1" ${juara.length ? '' : 'disabled'}>${ico('send')} Umumkan juara pengirim terbanyak</button>${juara.length ? `<button type="button" class="btn btn-danger" data-act="adm.kirimBatal">${ico('trash')} Batalkan draf</button>` : ''}` : ''}</div></div>` : ''}`;
+  },
   /* ---- keamanan penilaian ---- */
   emailSaya() { return String((this.s.sesi && this.s.sesi.email) || '').toLowerCase(); },
   penilaiList() { return (this.s.data.penilai || []).map((p) => String(p.email).toLowerCase()); },
@@ -8770,6 +8854,48 @@ ACT['adm.cekLagi'] = () => Adm.masuk();
 const nilaiData = () => Adm.s.data;
 function gantiBarisNilai(list, kunci, row) { const i = list.findIndex(kunci); if (row) { if (i >= 0) list[i] = row; else list.push(row); } else if (i >= 0) list.splice(i, 1); }
 ACT['adm.nilaiJenis'] = (el) => { Adm.s.nilaiJenis = el.dataset.v; Adm.s.nilaiCari = ''; Adm.s.nilaiSemua = false; Adm.segarkanTampilan({ paksa: true }); };
+/* ---- pengirim terbanyak (pengirim-terbanyak.sql) ---- */
+async function simpanKirim(patch, pesan) {
+  try { const row = await api.simpanPengirim(patch); Adm.s.data.pengirim = { ...(Adm.s.data.pengirim || {}), ...(row || patch) }; Adm.tandaiUbah(); Adm.segarkanTampilan({ paksa: true }); if (pesan) toast(pesan, 'good'); return true; }
+  catch (e) { toast(pesanError(e), 'bad', 6000); return false; }
+}
+CH['adm.kirimN'] = (el) => { const n = Math.max(1, Math.min(20, Math.round(Number(el.value) || 3))); el.value = n; simpanKirim({ jumlah_juara: n }, `Juara pengirim terbanyak: ${n}`); };
+ACT['adm.kirimNaik'] = (el) => sibuk(el, async () => {
+  const L = Adm.pengirimRanking(), x = L.find((y) => y.wa === el.dataset.wa); if (!x) return;
+  const grup = L.filter((y) => y.n === x.n), urut = [x, ...grup.filter((y) => y !== x)];
+  const pr = { ...(((Adm.s.data.pengirim || {}).prioritas) || {}) }; urut.forEach((y, i) => { pr[y.wa] = i + 1; });
+  await simpanKirim({ prioritas: pr }, `${x.namaUtama} di atas`);
+});
+ACT['adm.kirimNama'] = (el) => {
+  const L = Adm.pengirimRanking(), x = L.find((y) => y.wa === el.dataset.wa); if (!x) return;
+  Overlay.modal(`<form data-submit="adm.kirimNama" data-wa="${esc(x.wa)}" novalidate>
+    <h3>Ubah nama pengirim</h3><p class="lead">Nomor WA <b>${esc(fmtWA(x.wa) || x.wa)}</b> · ${x.n} layangan terkonfirmasi. Nomor WA tidak berubah.</p>
+    <div class="field"><label class="label" for="kp-nama">Nama yang ditampilkan</label><input class="input" id="kp-nama" name="nama" maxlength="120" value="${esc(x.namaUtama)}" autocomplete="off" autofocus>
+      <p class="hint">Nama dari pendaftaran: ${esc(x.namaAsli)}. Kosongkan untuk kembali ke nama itu.</p></div>
+    <div class="actions end"><button type="button" class="btn" data-act="ovl.tutup">Batal</button><button type="submit" class="btn btn-primary">Simpan</button></div></form>`);
+};
+SUB['adm.kirimNama'] = async (form) => {
+  const wa = form.dataset.wa, nm = form.nama.value.trim(), map = { ...(((Adm.s.data.pengirim || {}).nama) || {}) };
+  if (nm) map[wa] = nm; else delete map[wa];
+  if (await simpanKirim({ nama: map }, 'Nama disimpan')) Overlay.tutupYangBerisi(form);
+};
+ACT['adm.kirimJuara'] = async () => {
+  const P = Adm.s.data.pengirim || {}, N = Math.max(1, Math.min(20, Number(P.jumlah_juara) || 3)), L = Adm.pengirimRanking();
+  const top = L.slice(0, N), seri = top.some((x) => x.seri);
+  if (seri && !(await konfirmasiDialog({ judul: 'Masih ada jumlah yang sama', isi: 'Beberapa pengirim punya jumlah layangan yang sama di posisi juara. Sebaiknya tekan <b>Naikkan</b> dulu pada yang lebih unggul. Tetap lanjut dengan urutan sekarang?', tombol: 'Tetap lanjut' }))) return;
+  const juara = top.map((x, i) => ({ urutan: i + 1, wa: x.wa, nama: x.namaUtama, jumlah: x.n }));
+  if (!(await konfirmasiDialog({ judul: `Tetapkan ${juara.length} juara pengirim terbanyak?`, isi: juara.map((x) => `Juara ${x.urutan}: <b>${esc(x.nama)}</b> — ${x.jumlah} layangan`).join('<br>'), tombol: 'Jadikan juara' }))) return;
+  simpanKirim({ juara }, 'Juara pengirim terbanyak disimpan sebagai draf');
+};
+ACT['adm.kirimUmum'] = async (el) => {
+  const on = el.dataset.v === '1';
+  if (!(await konfirmasiDialog({ judul: on ? 'Umumkan juara pengirim terbanyak?' : 'Tarik pengumuman?', isi: on ? 'Juara langsung terlihat di halaman Juara peserta (tanpa nomor WA).' : 'Juara pengirim terbanyak disembunyikan lagi dari halaman peserta.', tombol: on ? 'Umumkan' : 'Tarik', bahaya: !on }))) return;
+  simpanKirim({ diumumkan_at: on ? new Date().toISOString() : null }, on ? 'Juara pengirim terbanyak diumumkan' : 'Pengumuman ditarik');
+};
+ACT['adm.kirimBatal'] = async () => {
+  if (!(await konfirmasiDialog({ judul: 'Batalkan draf juara?', isi: 'Daftar juara pengirim terbanyak dihapus. Peringkat tetap bisa dilihat.', tombol: 'Batalkan draf', bahaya: true }))) return;
+  simpanKirim({ juara: null }, 'Draf dibatalkan');
+};
 ACT['adm.nilaiUrut'] = (el) => { Adm.s.nilaiUrut = el.dataset.v; Adm.segarkanTampilan({ paksa: true }); };
 /* juri bawaan: Juri 1–3 dibuat otomatis saat penilaian pertama kali dibuka */
 async function siapkanJuri() {
