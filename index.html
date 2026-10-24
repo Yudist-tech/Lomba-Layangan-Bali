@@ -2353,7 +2353,8 @@ form .kp-foto { margin-bottom: 12px; height: 80px; }
 .lp-cari:focus-within { box-shadow: 0 0 0 3px rgba(242,183,5,.6), 0 10px 26px rgba(0,40,90,.25); }
 .lp-top.lp-langit .hero-chips .chip { background: rgba(255,255,255,.2); border-color: rgba(255,255,255,.4); }
 @media (max-width: 760px) {
-  .lp-jg.j2 { display: none; } .lp-jg.j1 { right: -4px; top: 74px; width: 78px; opacity: .85; }
+  .lp-jg.j2 { display: none; } .lp-jg.j1 { right: 12px; top: 74px; width: 78px; opacity: .85; }
+  .lp-cari { margin-top: 12px; max-width: calc(100% - 64px); border-radius: 11px; padding: 0 11px; gap: 7px; } .lp-cari input { padding: 8px 0; font-size: 16px; } .lp-cari .ico { width: 16px; height: 16px; }
   .lp-top.lp-langit .lp-bar { margin-bottom: 22px; } .lp-top.lp-langit p { max-width: 30ch; }
 }
 @media (prefers-reduced-motion: reduce) { .lp-awan, .lp-angin { animation: none; } .lp-angin { opacity: .6; } }
@@ -10614,7 +10615,7 @@ const Beranda = {
           <a class="btn btn-sm lp-masuk" href="#panitia">${ico('lock')} Masuk panitia</a></div>
         <h1 class="lp-h1">Siap <span class="lp-rot">terbang?</span></h1>
         ${teks ? `<p>${esc(teks)}</p>` : ''}
-        <label class="lp-cari">${ico('search')}<input type="search" placeholder="Cari event, lokasi, atau penyelenggara…" value="${esc(this.s.cari || '')}" data-in="lp.cari" aria-label="Cari event" autocomplete="off"></label>
+        <label class="lp-cari">${ico('search')}<input type="search" placeholder="Cari event atau lokasi…" value="${esc(this.s.cari || '')}" data-in="lp.cari" aria-label="Cari event" autocomplete="off"></label>
       </div>
       <div class="lp-tabs"><div class="lp-tab"><div class="lp-stat"><b>${this.s.list ? nBuka : '–'}</b><span><i class="dot"></i>event buka pendaftaran</span></div></div><div class="lp-tab"><div class="lp-stat"><b>${this.s.list ? nAktif : '–'}</b><span>${ico('cal')}event mendatang</span></div></div></div></header>
       <main class="lp-main" id="main"><div id="lp-isi">${isi}</div>
