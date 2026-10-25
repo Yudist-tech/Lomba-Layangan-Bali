@@ -2332,11 +2332,6 @@ form .kp-foto { margin-bottom: 12px; height: 80px; }
 .lp-top.lp-langit { background: linear-gradient(180deg, #2f7fd1 0%, #5aa6e6 55%, #9fd0f5 100%); padding-bottom: 64px; }
 .lp-top.lp-langit.has-bg { background-color: #2f7fd1; }
 .lp-udara { position: absolute; inset: 0; z-index: 0; pointer-events: none; overflow: hidden; }
-.lp-awan { position: absolute; left: 0; border-radius: 50%; background: radial-gradient(closest-side, rgba(255,255,255,.75), rgba(255,255,255,0)); animation: lp-geser linear infinite; }
-.lp-awan.a1 { width: 300px; height: 64px; top: 14%; animation-duration: 80s; animation-delay: -25s; }
-.lp-awan.a2 { width: 200px; height: 46px; top: 46%; animation-duration: 60s; animation-delay: -45s; opacity: .8; }
-.lp-awan.a3 { width: 360px; height: 74px; top: 70%; animation-duration: 100s; animation-delay: -5s; opacity: .7; }
-@keyframes lp-geser { from { transform: translateX(-40vw); } to { transform: translateX(130vw); } }
 .lp-angin { position: absolute; height: 2px; border-radius: 2px; background: linear-gradient(90deg, transparent, rgba(255,255,255,.85), transparent); animation: lp-hembus 3.4s linear infinite; }
 .lp-angin.g1 { left: 6%; top: 30%; width: 130px; } .lp-angin.g2 { left: 30%; top: 60%; width: 90px; animation-delay: 1.1s; }
 .lp-angin.g3 { left: 52%; top: 22%; width: 150px; animation-delay: 2s; } .lp-angin.g4 { left: 74%; top: 74%; width: 110px; animation-delay: 2.7s; }
@@ -2357,7 +2352,7 @@ form .kp-foto { margin-bottom: 12px; height: 80px; }
   .lp-cari { margin-top: 14px; max-width: min(280px, calc(100% - 90px)); border-radius: 10px; padding: 0 10px; gap: 6px; } .lp-cari input { padding: 4px 0; font-size: 16px; } .lp-cari .ico { width: 16px; height: 16px; }
   .lp-top.lp-langit .lp-bar { margin-bottom: 22px; } .lp-top.lp-langit p { max-width: min(30ch, calc(100% - 96px)); }
 }
-@media (prefers-reduced-motion: reduce) { .lp-awan, .lp-angin { animation: none; } .lp-angin { opacity: .6; } }
+@media (prefers-reduced-motion: reduce) { .lp-angin { animation: none; } .lp-angin { opacity: .6; } }
 
 /* Tepi bawah header: garis rata dengan 2 tonjolan berisi statistik */
 .lp-top.lp-langit { padding-bottom: 88px; }
@@ -10517,7 +10512,7 @@ function pasangJanggan(root) {
   (root || document).querySelectorAll('[data-janggan]:not([data-siap])').forEach((el, idx) => { el.dataset.siap = '1'; buatJanggan(el, { panjang: Number(el.dataset.panjang) || 2200, id: idx + Math.random().toString(36).slice(2, 6), fase: Number(el.dataset.fase) || 0, angin: Number(el.dataset.angin) || 1 }); });
 }
 function buatJanggan(el, opt) {
-  const S = 'http://www.w3.org/2000/svg', panjang = opt.panjang, lebar = 176, id = opt.id;
+  const S = 'http://www.w3.org/2000/svg', panjang = opt.panjang, lebar = 170, id = opt.id;
   const K = '#16181d', M = '#d62828', P = '#f4f4f2', Y = '#f2b705';
   const garis = [[K,8],[Y,4],[K,5],[P,8],[K,6],[M,7],[K,4],[P,5],[K,4],[M,22],[K,4],[P,5],[K,4],[M,7],[K,6],[P,8],[K,5],[Y,4],[K,8]];
   const tot = garis.reduce((a, g) => a + g[1], 0);
@@ -10530,29 +10525,32 @@ function buatJanggan(el, opt) {
       ${bar(53)}
       <path d="M-8 93 C22 76 52 70 100 70 C148 70 178 76 208 93 C204 116 178 146 158 159 L42 159 C22 146 -4 116 -8 93Z" fill="url(#jgs${id})" stroke="#8d8a80" stroke-width="1.6" stroke-linejoin="round"/>
       <path d="M100 70V159M100 132L84 159M100 132L116 159M40 72C36 104 36 134 42 159M160 72C164 104 164 134 158 159" stroke="#b9bcc2" stroke-width="1" fill="none"/>
-      <path d="M42 159 L158 159 Q128 181 168 203 C140 232 60 232 32 203 Q72 181 42 159Z" fill="#16181d"/>
+      <path d="M42 159 L158 159 Q140 170 146 181 L160 203 C140 232 60 232 40 203 L54 181 Q60 170 42 159Z" fill="#16181d"/>
       ${bar(181)}
-      <path d="M32 203 C60 232 140 232 168 203 L186 245 C150 282 50 282 14 245Z" fill="url(#jgs${id})" stroke="#8d8a80" stroke-width="1.6" stroke-linejoin="round"/>
+      <path d="M40 203 C60 232 140 232 160 203 L186 245 C150 282 50 282 14 245Z" fill="url(#jgs${id})" stroke="#8d8a80" stroke-width="1.6" stroke-linejoin="round"/>
       <path d="M64 222L52 262M136 222L148 262M100 225V273" stroke="#b9bcc2" stroke-width="1" fill="none"/>
     </g>`;
   el.appendChild(svg);
   const gEkor = svg.querySelector('.jg-ekor'), badan = svg.querySelector('.jg-badan');
-  const paths = garis.map(([c]) => { const q = document.createElementNS(S, 'path'); q.setAttribute('fill', c); gEkor.appendChild(q); return q; });
-  const N = 150, y0 = 241, diam = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const paths = garis.map(([c]) => { const q = document.createElementNS(S, 'path'); q.setAttribute('fill', c); q.setAttribute('stroke', c); q.setAttribute('stroke-width', '.9'); q.setAttribute('stroke-linejoin', 'round'); gEkor.appendChild(q); return q; });
+  const N = 220, y0 = 244, diam = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
   let gx = 0;
   const gambar = (t) => {
     gx += (JG.mx - gx) * 0.04;
-    const angin = opt.angin * (0.85 + 0.15 * Math.sin(t * 0.7)), pts = [];
-    for (let i = 0; i <= N; i++) { const u = i / N, d = u * panjang, y = y0 + d, k = Math.min(1, d / 420), amp = 2 + k * 26 * angin;
-      pts.push([100 - Math.pow(d / 900, 1.4) * 34 * angin * (1 + gx * .6) + amp * Math.sin(d / 95 - t * 3.4 + opt.fase) + 7 * k * Math.sin(d / 41 - t * 5.2), y]); }
+    const angin = opt.angin * (0.85 + 0.15 * Math.sin(t * 0.7)), pts = [], hal = [];
+    const sway = Math.sin(t * 1.3) * 3 + gx * 4, r = sway * Math.PI / 180, cs = Math.cos(r), sn = Math.sin(r);
+    // Pangkal ekor menempel & ikut miring bersama badan; makin ke bawah makin bebas berkibar (tanpa sambungan/patahan)
+    for (let i = 0; i <= N; i++) { const u = i / N, d = u * panjang, y = y0 + d, q = Math.min(1, d / 360), k = q * q * (3 - 2 * q);
+      const x = 100 - Math.pow(d / 900, 1.4) * 34 * angin * (1 + gx * .6) + k * 26 * angin * Math.sin(d / 95 - t * 3.4 + opt.fase) + 4 * k * Math.sin(d / 70 - t * 4.2);
+      const rx = 100 + (x - 100) * cs - (y - 120) * sn, ry = 120 + (x - 100) * sn + (y - 120) * cs;
+      pts.push([rx + (x - rx) * k, ry + (y - ry) * k]); hal.push(k); }
     let off = -tot / 2;
     garis.forEach(([, gw], gi) => { const a = off / tot, b = (off + gw) / tot; off += gw; let kiri = '', kanan = '';
       for (let i = 0; i <= N; i++) { const [x, y] = pts[i], p0 = pts[Math.max(0, i - 1)], p1 = pts[Math.min(N, i + 1)], dx = p1[0] - p0[0], dy = p1[1] - p0[1], L = Math.hypot(dx, dy) || 1, nx = dy / L, ny = -dx / L;
-        const ww = lebar * (1 + Math.min(1, i / N * 8) * .1) * (0.95 + 0.05 * Math.cos(i / N * 30 - t * 3.4));
+        const ww = lebar * (1 + hal[i] * .1) * (1 + hal[i] * .05 * (Math.cos(i / N * 30 - t * 3.4) - 1));
         kiri += `${i ? 'L' : 'M'}${(x + nx * a * ww).toFixed(1)} ${(y + ny * a * ww).toFixed(1)}`; kanan = `L${(x + nx * b * ww).toFixed(1)} ${(y + ny * b * ww).toFixed(1)}` + kanan; }
       paths[gi].setAttribute('d', kiri + kanan + 'Z'); });
-    const sway = Math.sin(t * 1.3) * 3 + gx * 4;
-    badan.setAttribute('transform', `rotate(${sway.toFixed(2)} 100 120)`); gEkor.setAttribute('transform', `rotate(${(sway * .5).toFixed(2)} 100 241)`);
+    badan.setAttribute('transform', `rotate(${sway.toFixed(2)} 100 120)`);
     el.style.transform = `translate(${(Math.sin(t * .9) * 8 + gx * 14).toFixed(1)}px, ${(Math.sin(t * 1.4) * 10).toFixed(1)}px)`;
   };
   if (diam) { gambar(0); return; }
@@ -10608,7 +10606,7 @@ const Beranda = {
     const teks = st.teks === 'Pilih event, isi data layangan, transfer, dan unggah bukti. Nomor & jadwal terbang langsung terlihat.' ? SITUS_AWAL.teks : st.teks;
     const gayaBg = bg ? ` style="background-image:linear-gradient(170deg,rgba(6,28,56,.62) 0%,rgba(6,28,56,.28) 55%,rgba(6,28,56,.55) 100%),url('${esc(bg)}')"` : '';
     return `${demoBar()}<header class="lp-top lp-langit${bg ? ' has-bg' : ''}"${gayaBg}>
-      <div class="lp-udara" aria-hidden="true"><i class="lp-awan a1"></i><i class="lp-awan a2"></i><i class="lp-awan a3"></i><i class="lp-angin g1"></i><i class="lp-angin g2"></i><i class="lp-angin g3"></i><i class="lp-angin g4"></i></div>
+      <div class="lp-udara" aria-hidden="true"><i class="lp-angin g1"></i><i class="lp-angin g2"></i><i class="lp-angin g3"></i><i class="lp-angin g4"></i></div>
       <div class="lp-jg j1" data-janggan data-panjang="2400"></div><div class="lp-jg j2" data-janggan data-panjang="2200" data-fase="1.7" data-angin=".8"></div>
       <div class="lp-in">
         <div class="lp-bar"><a class="lp-brand" href="#">${logoSitus(st)}<b>${esc(st.nama)}</b></a>
