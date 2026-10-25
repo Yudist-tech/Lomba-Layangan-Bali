@@ -10512,7 +10512,7 @@ function pasangJanggan(root) {
   (root || document).querySelectorAll('[data-janggan]:not([data-siap])').forEach((el, idx) => { el.dataset.siap = '1'; buatJanggan(el, { panjang: Number(el.dataset.panjang) || 2200, id: idx + Math.random().toString(36).slice(2, 6), fase: Number(el.dataset.fase) || 0, angin: Number(el.dataset.angin) || 1 }); });
 }
 function buatJanggan(el, opt) {
-  const S = 'http://www.w3.org/2000/svg', panjang = opt.panjang, lebar = 166, id = opt.id;
+  const S = 'http://www.w3.org/2000/svg', panjang = opt.panjang, lebar = 160, id = opt.id;
   const K = '#16181d', M = '#d62828', P = '#f4f4f2', Y = '#f2b705';
   const garis = [[K,8],[Y,4],[K,5],[P,8],[K,6],[M,7],[K,4],[P,5],[K,4],[M,22],[K,4],[P,5],[K,4],[M,7],[K,6],[P,8],[K,5],[Y,4],[K,8]];
   const tot = garis.reduce((a, g) => a + g[1], 0);
@@ -10525,15 +10525,15 @@ function buatJanggan(el, opt) {
       ${bar(53)}
       <path d="M-8 93 C22 76 52 70 100 70 C148 70 178 76 208 93 C204 116 178 146 158 159 L42 159 C22 146 -4 116 -8 93Z" fill="url(#jgs${id})" stroke="#8d8a80" stroke-width="1.6" stroke-linejoin="round"/>
       <path d="M100 70V159M100 132L84 159M100 132L116 159M40 72C36 104 36 134 42 159M160 72C164 104 164 134 158 159" stroke="#b9bcc2" stroke-width="1" fill="none"/>
-      <path d="M42 159 L158 159 Q128 181 168 203 C140 232 60 232 32 203 Q72 181 42 159Z" fill="#16181d"/>
+      <path d="M42 159 L158 159 L150 181 L162 203 C140 232 60 232 38 203 L50 181 Z" fill="#16181d"/>
       ${bar(181)}
-      <path d="M32 203 C60 232 140 232 168 203 L186 245 C150 282 50 282 14 245Z" fill="url(#jgs${id})" stroke="#8d8a80" stroke-width="1.6" stroke-linejoin="round"/>
+      <path d="M38 203 C60 232 140 232 162 203 L186 245 C150 282 50 282 14 245Z" fill="url(#jgs${id})" stroke="#8d8a80" stroke-width="1.6" stroke-linejoin="round"/>
       <path d="M64 222L52 262M136 222L148 262M100 225V273" stroke="#b9bcc2" stroke-width="1" fill="none"/>
     </g>`;
   el.appendChild(svg);
   const gEkor = svg.querySelector('.jg-ekor'), badan = svg.querySelector('.jg-badan');
   const paths = garis.map(([c]) => { const q = document.createElementNS(S, 'path'); q.setAttribute('fill', c); q.setAttribute('stroke', c); q.setAttribute('stroke-width', '.9'); q.setAttribute('stroke-linejoin', 'round'); gEkor.appendChild(q); return q; });
-  const N = 220, y0 = 236, diam = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const N = 220, y0 = 240, diam = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
   let gx = 0;
   const gambar = (t) => {
     gx += (JG.mx - gx) * 0.04;
