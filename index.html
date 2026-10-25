@@ -2372,6 +2372,12 @@ form .kp-foto { margin-bottom: 12px; height: 80px; }
   .lp-tab { padding: 6px 6px 3px; }
   .lp-stat { gap: 6px; padding: 5px 9px; } .lp-stat b { font-size: 16px; } .lp-stat span { font-size: 11.5px; }
 }
+
+/* Beranda: foto latar utuh + isian buram */
+.lp-foto { position: absolute; inset: 0; z-index: 0; overflow: hidden; pointer-events: none; }
+.lp-foto i { position: absolute; inset: -40px; background: center / cover no-repeat; filter: blur(22px) brightness(.8) saturate(1.1); }
+.lp-foto b { position: absolute; inset: 0; background: center / contain no-repeat; }
+.lp-foto::after { content: ''; position: absolute; inset: 0; background: linear-gradient(170deg, rgba(6,28,56,.5) 0%, rgba(6,28,56,.12) 50%, rgba(6,28,56,.38) 100%); }
 </style>
 </head>
 <body>
@@ -10604,8 +10610,9 @@ const Beranda = {
     const isi = this.vIsi();
     const st = this.s.situs || SITUS_AWAL, bg = urlGambarAman(st.bg_url);
     const teks = st.teks === 'Pilih event, isi data layangan, transfer, dan unggah bukti. Nomor & jadwal terbang langsung terlihat.' ? SITUS_AWAL.teks : st.teks;
-    const gayaBg = bg ? ` style="background-image:linear-gradient(170deg,rgba(6,28,56,.62) 0%,rgba(6,28,56,.28) 55%,rgba(6,28,56,.55) 100%),url('${esc(bg)}')"` : '';
-    return `${demoBar()}<header class="lp-top lp-langit${bg ? ' has-bg' : ''}"${gayaBg}>
+    // Foto latar tampil utuh (contain); sisa ruang diisi versi buram dari foto yang sama
+    const fotoBg = bg ? `<div class="lp-foto" aria-hidden="true"><i style="background-image:url('${esc(bg)}')"></i><b style="background-image:url('${esc(bg)}')"></b></div>` : '';
+    return `${demoBar()}<header class="lp-top lp-langit${bg ? ' has-bg' : ''}">${fotoBg}
       <div class="lp-udara" aria-hidden="true"><i class="lp-angin g1"></i><i class="lp-angin g2"></i><i class="lp-angin g3"></i><i class="lp-angin g4"></i></div>
       <div class="lp-jg j1" data-janggan data-panjang="2400"></div><div class="lp-jg j2" data-janggan data-panjang="2200" data-fase="1.7" data-angin=".8"></div>
       <div class="lp-in">
