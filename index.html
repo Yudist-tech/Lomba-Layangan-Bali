@@ -6,6 +6,12 @@
 <title>Pendaftaran Lomba Layangan</title>
 <meta name="description" content="Pendaftaran online lomba layangan: pilih jenis & seri, konfirmasi data, bayar via transfer, dan pantau status pendaftaran.">
 <meta name="theme-color" content="#0e5aa7">
+<link rel="manifest" href="/manifest.webmanifest">
+<link rel="apple-touch-icon" href="/ikon/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Lomba Layangan">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta property="og:title" content="Pendaftaran Lomba Layangan">
 <meta property="og:description" content="Daftar online: pilih jenis layangan & seri, transfer, unggah bukti. Konfirmasi dikirim via WhatsApp.">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%230e5aa7'/%3E%3Cpath d='M16 4 25 14 16 27 7 14z' fill='%23fff'/%3E%3Cpath d='M16 4 25 14H16z' fill='%23f2a900'/%3E%3Cpath d='M7 14h9v13z' fill='%23d03b3b'/%3E%3Cpath d='M16 14h9l-9 13z' fill='%231d1f24'/%3E%3C/svg%3E">
@@ -2372,6 +2378,15 @@ form .kp-foto { margin-bottom: 12px; height: 80px; }
   .lp-tab { padding: 6px 6px 3px; }
   .lp-stat { gap: 6px; padding: 5px 9px; } .lp-stat b { font-size: 16px; } .lp-stat span { font-size: 11.5px; }
 }
+
+/* Ajakan pasang aplikasi (PWA) */
+.pwa-ajak { position: fixed; left: 12px; right: 12px; bottom: calc(12px + env(safe-area-inset-bottom)); z-index: 60; max-width: 440px; margin: 0 auto; display: flex; align-items: center; gap: 10px; background: var(--surface); color: var(--ink); border: 1px solid var(--line); border-radius: 16px; padding: 10px 10px 10px 12px; box-shadow: 0 12px 32px rgba(0,0,0,.2); animation: pwa-naik .35s ease-out; }
+.pwa-ajak img { width: 40px; height: 40px; border-radius: 10px; flex: none; }
+.pwa-t { flex: 1; min-width: 0; line-height: 1.3; } .pwa-t b { display: block; font-size: 14px; } .pwa-t span { font-size: 12px; color: var(--muted); }
+.pwa-k { font-style: normal; display: inline-flex; align-items: center; gap: 3px; border: 1px solid var(--line); border-radius: 6px; padding: 0 5px; color: var(--ink); white-space: nowrap; } .pwa-k .ico { width: 12px; height: 12px; }
+.pwa-x { flex: none; border: 0; background: transparent; color: var(--muted); font-size: 16px; padding: 6px 8px; cursor: pointer; border-radius: 8px; }
+@keyframes pwa-naik { from { transform: translateY(20px); opacity: 0; } to { transform: none; opacity: 1; } }
+@media (prefers-reduced-motion: reduce) { .pwa-ajak { animation: none; } }
 </style>
 </head>
 <body>
@@ -3477,6 +3492,7 @@ const ICONS = {
   bank: '<path d="M3 10 12 4l9 6"/><path d="M5 10v8M9.5 10v8M14.5 10v8M19 10v8M3 21h18"/>',
   users: '<circle cx="9" cy="8" r="3.5"/><path d="M2.5 20a6.5 6.5 0 0 1 13 0"/><path d="M16 4.5a3.5 3.5 0 0 1 0 7M18 14.5a6.5 6.5 0 0 1 3.5 5.5"/>',
   wallet: '<rect x="3" y="6" width="18" height="13" rx="2.5"/><path d="M3 10h18"/><circle cx="16.5" cy="14.5" r="1.2"/>',
+  iosshare: '<path d="M12 3v12M8 7l4-4 4 4"/><path d="M7 10H5v11h14V10h-2"/>',
   share: '<circle cx="18" cy="5" r="2.5"/><circle cx="6" cy="12" r="2.5"/><circle cx="18" cy="19" r="2.5"/><path d="m8.2 10.8 7.6-4.5M8.2 13.2l7.6 4.5"/>',
   'chev-d': '<path d="m6 9 6 6 6-6"/>',
   more: '<circle cx="5" cy="12" r="1.6" fill="currentColor" stroke="none"/><circle cx="12" cy="12" r="1.6" fill="currentColor" stroke="none"/><circle cx="19" cy="12" r="1.6" fill="currentColor" stroke="none"/>',
@@ -10557,6 +10573,38 @@ function buatJanggan(el, opt) {
   const loop = (t) => { if (!el.isConnected) return; if (!document.hidden) gambar(t / 1000); requestAnimationFrame(loop); };
   requestAnimationFrame(loop);
 }
+
+/* ===== Aplikasi (PWA): daftarkan service worker + ajakan "Pasang aplikasi" di halaman depan ===== */
+const PWA = {
+  ev: null, KUNCI: 'lomba_pwa_tutup',
+  mandiri() { return (window.matchMedia && matchMedia('(display-mode: standalone)').matches) || navigator.standalone === true; },
+  ios() { const ua = navigator.userAgent || ''; return /iphone|ipad|ipod/i.test(ua) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1); },
+  ditutup() { const t = bacaLokal(this.KUNCI, 0); return t && Date.now() - t < 30 * 864e5; },
+  cek() {
+    const lama = document.getElementById('pwa-ajak');
+    const boleh = Router.aktif === 'beranda' && !this.mandiri() && !this.ditutup() && (this.ev || this.ios());
+    if (!boleh) { if (lama) lama.remove(); return; }
+    if (lama) return;
+    const d = document.createElement('div'); d.id = 'pwa-ajak'; d.className = 'pwa-ajak'; d.setAttribute('role', 'dialog'); d.setAttribute('aria-label', 'Pasang aplikasi');
+    d.innerHTML = this.ev
+      ? `<img src="/ikon/ikon-192.png" alt=""><div class="pwa-t"><b>Pasang aplikasi</b><span>Buka lebih cepat dari layar HP</span></div><button class="btn btn-sm btn-primary" data-pwa="pasang">Pasang</button><button class="pwa-x" data-pwa="tutup" aria-label="Tutup">✕</button>`
+      : `<img src="/ikon/ikon-192.png" alt=""><div class="pwa-t"><b>Pasang di iPhone</b><span>1. Ketuk <i class="pwa-k">Bagikan ${ico('iosshare')}</i> di bawah<br>2. Pilih <i class="pwa-k">Tambah ke Layar Utama</i></span></div><button class="pwa-x" data-pwa="tutup" aria-label="Tutup">✕</button>`;
+    document.body.appendChild(d);
+  },
+  async klik(jenis) {
+    if (jenis === 'pasang' && this.ev) { this.ev.prompt(); try { await this.ev.userChoice; } catch (e) { /* abaikan */ } this.ev = null; }
+    else simpanLokal(this.KUNCI, Date.now());
+    const d = document.getElementById('pwa-ajak'); if (d) d.remove();
+  },
+};
+addEventListener('beforeinstallprompt', (e) => { e.preventDefault(); PWA.ev = e; PWA.cek(); });
+addEventListener('appinstalled', () => { PWA.ev = null; const d = document.getElementById('pwa-ajak'); if (d) d.remove(); });
+addEventListener('hashchange', () => setTimeout(() => PWA.cek(), 60));
+document.addEventListener('click', (e) => { const b = e.target.closest && e.target.closest('[data-pwa]'); if (b) PWA.klik(b.dataset.pwa); });
+if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost') && CONFIG.SUPABASE_URL) {
+  addEventListener('load', () => { navigator.serviceWorker.register('/sw.js').catch(() => { /* bukan masalah: situs tetap jalan tanpa aplikasi */ }); });
+}
+
 const KATA_BERANDA = ['terbang?', 'juara?', 'daftar?'];
 setInterval(() => { const r = document.querySelector('.lp-rot'); if (!r || document.hidden || (window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches)) return;
   const i = (KATA_BERANDA.indexOf(r.textContent) + 1) % KATA_BERANDA.length;
@@ -10590,7 +10638,7 @@ const Beranda = {
     if (this.s.situs) document.title = `${this.s.situs.nama} — Semua event`;
     this.render();
   },
-  render() { if (Router.aktif === 'beranda') { $('#app').innerHTML = this.halaman(); pasangJanggan($('#app')); } },
+  render() { if (Router.aktif === 'beranda') { $('#app').innerHTML = this.halaman(); pasangJanggan($('#app')); setTimeout(() => PWA.cek(), 1500); } },
   vTidakAda(slug) {
     document.body.classList.remove('is-admin');
     $('#app').innerHTML = `${demoBar()}<div class="login-wrap"><div class="card login">
