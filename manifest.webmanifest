@@ -1,0 +1,18 @@
+{
+  "name": "Lomba Layangan Bali",
+  "short_name": "Lomba Layangan",
+  "description": "Kalender & pendaftaran lomba layangan se-Bali.",
+  "lang": "id",
+  "id": "/",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#2f7fd1",
+  "theme_color": "#0e5aa7",
+  "icons": [
+    { "src": "/ikon/ikon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "/ikon/ikon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "/ikon/ikon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}
