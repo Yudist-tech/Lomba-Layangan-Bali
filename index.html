@@ -2379,6 +2379,30 @@ form .kp-foto { margin-bottom: 12px; height: 80px; }
   .lp-stat { gap: 6px; padding: 5px 9px; } .lp-stat b { font-size: 16px; } .lp-stat span { font-size: 11.5px; }
 }
 
+
+/* Beranda: motion (header masuk sekali, kartu muncul saat di-scroll, tombol daftar berkilau) */
+@keyframes lpm-naik { from { opacity: 0; transform: translateY(18px); } to { opacity: 1; transform: none; } }
+@keyframes lpm-turun { from { opacity: 0; transform: translateY(-12px); } to { opacity: 1; transform: none; } }
+@keyframes lpm-tab { from { opacity: 0; transform: translateY(70%); } to { opacity: 1; transform: none; } }
+@keyframes lpm-layang { from { opacity: 0; translate: 40px 90px; } to { opacity: 1; translate: 0 0; } }
+@keyframes lpm-pudar { from { opacity: 0; } to { opacity: 1; } }
+.lp-masuk .lp-bar { animation: lpm-turun .6s cubic-bezier(.2,.8,.2,1) both; }
+.lp-masuk .lp-h1 { animation: lpm-naik .7s .08s cubic-bezier(.2,.8,.2,1) both; }
+.lp-masuk .lp-in > p { animation: lpm-naik .7s .18s cubic-bezier(.2,.8,.2,1) both; }
+.lp-masuk .lp-cari { animation: lpm-naik .7s .28s cubic-bezier(.2,.8,.2,1) both; }
+.lp-masuk .lp-tab { animation: lpm-tab .65s cubic-bezier(.2,.8,.2,1) both; } .lp-masuk .lp-tab:nth-child(1) { animation-delay: .42s; } .lp-masuk .lp-tab:nth-child(2) { animation-delay: .52s; }
+.lp-masuk .lp-jg { animation: lpm-layang 1.4s .15s cubic-bezier(.2,.8,.2,1) both; } .lp-masuk .lp-jg.j2 { animation-delay: .35s; }
+.lp-masuk .lp-udara { animation: lpm-pudar 1.2s both; }
+.lp-muncul { opacity: 0; transform: translateY(18px); transition: opacity .6s cubic-bezier(.2,.8,.2,1), transform .6s cubic-bezier(.2,.8,.2,1); }
+.lp-muncul.lp-on { opacity: 1; transform: none; }
+.ev-cta.primary { position: relative; overflow: hidden; isolation: isolate; }
+.ev-cta.primary::after { content: ''; position: absolute; inset: 0; z-index: -1; background: linear-gradient(105deg, transparent 35%, rgba(255,255,255,.35) 50%, transparent 65%); transform: translateX(-120%); animation: lpm-kilau 4s 1.5s ease-in-out infinite; }
+@keyframes lpm-kilau { 0%, 70% { transform: translateX(-120%); } 100% { transform: translateX(120%); } }
+.kal-row .kal-chev { transition: transform .2s ease; } .kal-row:hover .kal-chev { transform: translateX(3px); }
+.lp-stat { transition: transform .2s ease, box-shadow .2s ease; }
+@media (hover: hover) { .lp-stat:hover { transform: translateY(-2px); box-shadow: 0 8px 18px rgba(20,30,50,.1); } }
+@media (prefers-reduced-motion: reduce) { .lp-masuk *, .lp-masuk { animation: none !important; } .lp-muncul { opacity: 1; transform: none; transition: none; } .ev-cta.primary::after { animation: none; display: none; } }
+
 /* Ajakan pasang aplikasi (PWA) */
 .pwa-ajak { position: fixed; left: 12px; right: 12px; bottom: calc(12px + env(safe-area-inset-bottom)); z-index: 60; max-width: 440px; margin: 0 auto; display: flex; align-items: center; gap: 10px; background: var(--surface); color: var(--ink); border: 1px solid var(--line); border-radius: 16px; padding: 10px 10px 10px 12px; box-shadow: 0 12px 32px rgba(0,0,0,.2); animation: pwa-naik .35s ease-out; }
 .pwa-ajak img { width: 40px; height: 40px; border-radius: 10px; flex: none; }
@@ -2387,6 +2411,29 @@ form .kp-foto { margin-bottom: 12px; height: 80px; }
 .pwa-x { flex: none; border: 0; background: transparent; color: var(--muted); font-size: 16px; padding: 6px 8px; cursor: pointer; border-radius: 8px; }
 @keyframes pwa-naik { from { transform: translateY(20px); opacity: 0; } to { transform: none; opacity: 1; } }
 @media (prefers-reduced-motion: reduce) { .pwa-ajak { animation: none; } }
+
+/* Ringkasan: animasi masuk (sekali saat tab dibuka) + hover lembut */
+.rk-anim { display: contents; }
+@keyframes rk-naik { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
+@keyframes rk-geser { from { opacity: 0; transform: translateX(-12px); } to { opacity: 1; transform: none; } }
+@keyframes rk-isi { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+@keyframes rk-pop { 0% { transform: scale(.6); opacity: 0; } 70% { transform: scale(1.08); opacity: 1; } 100% { transform: scale(1); } }
+.rk-masuk .rk-hero, .rk-masuk .rk-todo, .rk-masuk > .note, .rk-masuk .rk-k, .rk-masuk .rk-jenis, .rk-masuk .rk-kinerja, .rk-masuk .rk-lp { animation: rk-naik .55s cubic-bezier(.2,.8,.2,1) both; }
+.rk-masuk .rk-todo, .rk-masuk > .note { animation-delay: .06s; }
+.rk-masuk .rk-td { animation: rk-geser .45s cubic-bezier(.2,.8,.2,1) both; }
+.rk-masuk .rk-td:nth-child(1) { animation-delay: .14s; } .rk-masuk .rk-td:nth-child(2) { animation-delay: .2s; } .rk-masuk .rk-td:nth-child(3) { animation-delay: .26s; } .rk-masuk .rk-td:nth-child(n+4) { animation-delay: .32s; }
+.rk-masuk .rk-n { animation: rk-pop .5s cubic-bezier(.2,.8,.2,1) both; animation-delay: inherit; }
+.rk-masuk .rk-k:nth-child(1) { animation-delay: .18s; } .rk-masuk .rk-k:nth-child(2) { animation-delay: .25s; } .rk-masuk .rk-k:nth-child(3) { animation-delay: .32s; }
+.rk-masuk .rk-jenis { animation-delay: .4s; } .rk-masuk .rk-kinerja { animation-delay: .46s; }
+.rk-masuk .rk-lp:nth-child(1) { animation-delay: .5s; } .rk-masuk .rk-lp:nth-child(2) { animation-delay: .55s; } .rk-masuk .rk-lp:nth-child(3) { animation-delay: .6s; } .rk-masuk .rk-lp:nth-child(n+4) { animation-delay: .65s; }
+.rk-masuk .rk-bar i, .rk-masuk .rk-mb i { transform-origin: left center; animation: rk-isi 1.1s .45s cubic-bezier(.2,.8,.2,1) both; }
+.rk-lp[open] > :not(summary) { animation: rk-naik .35s cubic-bezier(.2,.8,.2,1) both; }
+.rk-k, .rk-td { transition: transform .2s ease, box-shadow .2s ease, background-color .2s ease; }
+@media (hover: hover) {
+  .rk-k:hover { transform: translateY(-3px); box-shadow: 0 10px 24px rgba(20,30,50,.09); }
+  .rk-td:hover { background: color-mix(in srgb, var(--ink) 3%, transparent); }
+}
+@media (prefers-reduced-motion: reduce) { .rk-masuk *, .rk-lp[open] > * { animation: none !important; } .rk-k:hover { transform: none; } }
 </style>
 </head>
 <body>
@@ -6543,6 +6590,7 @@ const Adm = {
     const tab = ['ringkasan', 'pendaftaran', 'jenis', 'seri', 'nilai', 'pengaturan'].includes(sub) ? sub : 'ringkasan';
     const pindah = tab !== this.s.tab;
     this.s.tab = tab;
+    if (tab === 'ringkasan') this.s.rkMasuk = true;            // animasi masuk hanya saat tab dibuka, bukan saat data diperbarui
     if (tab !== 'nilai') { this.s.nilaiBuka = false; this.s.nilaiCari = ''; }     // keluar dari Penilaian = masuk lagi wajib password
     document.body.classList.add('is-admin');
     if (this.s.logo == null && !this.s.data) {
@@ -6928,7 +6976,10 @@ const Adm = {
     const penuh = aktif.filter((x) => { const c = this.idx.perSeri.get(x.id); return c.menunggu + c.terkonfirmasi >= x.kuota; }).length;
     const lipat = (id, ikon, warna, judul, meta, isi) => isi ? `<details class="rk-lp" data-rk="${id}" ${buka.has(id) ? 'open' : ''}><summary><span class="rk-li ${warna}">${ico(ikon)}</span><b>${judul}</b><span class="rk-meta">${meta}</span><span class="rk-chev">${ico('chev-d')}</span></summary><div class="rk-isi">${isi}</div></details>` : '';
     const kinerja = this.vKinerja();
-    return `<div class="rk-hero"><div class="rk-hh"><h2>${esc(ev.nama_event || 'Ringkasan')}</h2><div class="rk-sub">${[tglEv, ev.lokasi].filter(Boolean).map(esc).join(' · ')}</div>${status}</div>
+    const masuk = this.s.rkMasuk && !(window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches);
+    this.s.rkMasuk = false;
+    if (masuk) setTimeout(() => this.rkHitung(), 60);
+    return `<div class="rk-anim${masuk ? ' rk-masuk' : ''}"><div class="rk-hero"><div class="rk-hh"><h2>${esc(ev.nama_event || 'Ringkasan')}</h2><div class="rk-sub">${[tglEv, ev.lokasi].filter(Boolean).map(esc).join(' · ')}</div>${status}</div>
         <div class="rk-ha"><button class="btn btn-sm" data-act="adm.tambah">${ico('plus')}<span>Tambah manual</span></button>
         <button class="btn btn-sm btn-icon" data-act="adm.muat" title="Muat ulang data">${this.s.loading ? '<span class="spinner"></span>' : ico('refresh')}<span class="sr-only">Muat ulang</span></button></div></div>
       ${todo.length ? `<div class="rk-todo">${todo.join('')}</div>` : `<div class="note good">${ico('check')}<span>Semua beres — tidak ada yang perlu ditindaklanjuti.</span></div>`}
@@ -6945,7 +6996,27 @@ const Adm = {
         ${lipat('bayar', 'wallet', 'g', 'Pemasukan per cara bayar', 'Transfer · Tunai', this.vPemasukan())}
         ${lipat('baru', 'clock', 'a', 'Pendaftaran terbaru', '', `<div class="panel"><div class="panel-h"><h3>Pendaftaran terbaru</h3><a class="btn btn-sm" href="#admin/pendaftaran">Lihat semua ${ico('arrow-r')}</a></div>
           ${d.daftar.length ? `<div class="rows">${d.daftar.slice(0, 6).map((r) => this.vRow(r, 'baru')).join('')}</div>` : '<div class="empty">Belum ada pendaftaran. Bagikan link pendaftaran dari menu Pengaturan.</div>'}</div>`)}
-      </div>`;
+      </div></div>`;
+  },
+  /* Angka di Ringkasan "berhitung" naik dari 0 saat tab dibuka */
+  rkHitung() {
+    const el = document.querySelectorAll('.rk-masuk .rk-k .v, .rk-masuk .rk-n');
+    el.forEach((x, i) => {
+      const t = x.textContent.trim();
+      if (!/^(Rp\s?)?[\d.]+$/.test(t)) return;
+      const n = Number(t.replace(/\D/g, '')), rp = /^Rp/.test(t);
+      if (!n) return;
+      const lama = 900 + Math.min(500, i * 60), mulai = performance.now() + 150 + i * 60;
+      const f = (v) => (rp ? rupiah(v) : angka(v));
+      x.textContent = f(0);
+      const langkah = (now) => {
+        if (!x.isConnected) return;
+        const p = Math.max(0, Math.min(1, (now - mulai) / lama)), e = 1 - Math.pow(1 - p, 3);
+        x.textContent = f(Math.round(n * e));
+        if (p < 1) requestAnimationFrame(langkah);
+      };
+      requestAnimationFrame(langkah);
+    });
   },
   vMeter(c, kuota, lg) {
     const k = kuota || 0;
@@ -10638,7 +10709,57 @@ const Beranda = {
     if (this.s.situs) document.title = `${this.s.situs.nama} — Semua event`;
     this.render();
   },
-  render() { if (Router.aktif === 'beranda') { $('#app').innerHTML = this.halaman(); pasangJanggan($('#app')); setTimeout(() => PWA.cek(), 1500); } },
+  kurangGerak() { return !!(window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches); },
+  render() {
+    if (Router.aktif !== 'beranda') return;
+    const app = $('#app'), hdr = app.querySelector('header.lp-langit'), isi = document.getElementById('lp-isi');
+    if (hdr && isi) {                      // header sudah tampil: hanya perbarui bagian yang berubah (animasi header tidak terulang)
+      this.tambal(hdr);
+      isi.innerHTML = this.vIsi();
+    } else {
+      app.innerHTML = this.halaman();
+      if (!this.s.animSudah && !this.kurangGerak()) app.querySelector('header.lp-langit').classList.add('lp-masuk');
+      this.s.animSudah = true;
+      pasangJanggan(app);
+    }
+    this.amatiMuncul();
+    setTimeout(() => PWA.cek(), 1500);
+  },
+  tambal(hdr) {
+    const t = document.createElement('template'); t.innerHTML = this.halaman();
+    const nh = t.content.querySelector('header.lp-langit'); if (!nh) return;
+    const brand = hdr.querySelector('.lp-brand'), nb = nh.querySelector('.lp-brand');
+    if (brand && nb && brand.innerHTML !== nb.innerHTML) brand.innerHTML = nb.innerHTML;
+    const p = hdr.querySelector('.lp-in > p'), np = nh.querySelector('.lp-in > p');
+    if (p && np) { if (p.textContent !== np.textContent) p.textContent = np.textContent; } else if (p) p.remove(); else if (np) hdr.querySelector('.lp-h1').after(np);
+    hdr.classList.toggle('has-bg', nh.classList.contains('has-bg'));
+    const gaya = nh.getAttribute('style') || ''; if ((hdr.getAttribute('style') || '') !== gaya) { if (gaya) hdr.setAttribute('style', gaya); else hdr.removeAttribute('style'); }
+    const lama = hdr.querySelectorAll('.lp-stat b'), baru = nh.querySelectorAll('.lp-stat b');
+    lama.forEach((b, i) => { const v = baru[i] && baru[i].textContent; if (v == null || b.textContent === v) return;
+      const n = Number(v); if (b.textContent === '–' && n > 0 && !this.kurangGerak()) this.hitung(b, n); else b.textContent = v; });
+    const f = document.querySelector('.lp-main > .pub-foot'), nf = t.content.querySelector('.lp-main > .pub-foot');
+    if (f && nf && f.innerHTML !== nf.innerHTML) f.innerHTML = nf.innerHTML;
+  },
+  hitung(el, n) {
+    const mulai = performance.now(), lama = 700;
+    const jalan = (now) => { if (!el.isConnected) return; const q = Math.min(1, (now - mulai) / lama); el.textContent = String(Math.round(n * (1 - Math.pow(1 - q, 3)))); if (q < 1) requestAnimationFrame(jalan); };
+    requestAnimationFrame(jalan);
+  },
+  /* kartu & baris event muncul halus saat terlihat di layar */
+  amatiMuncul() {
+    if (!('IntersectionObserver' in window) || this.kurangGerak()) return;
+    const box = document.getElementById('lp-isi'); if (!box) return;
+    if (this._io) this._io.disconnect();
+    let antre = 0, jeda = null;
+    this._io = new IntersectionObserver((ents) => {
+      ents.forEach((en) => { if (!en.isIntersecting) return;
+        const el = en.target; this._io.unobserve(el);
+        el.style.transitionDelay = `${Math.min(antre++, 6) * 70}ms`; el.classList.add('lp-on');
+        el.addEventListener('transitionend', () => { el.classList.remove('lp-muncul', 'lp-on'); el.style.transitionDelay = ''; }, { once: true }); });
+      clearTimeout(jeda); jeda = setTimeout(() => { antre = 0; }, 120);
+    }, { rootMargin: '0px 0px -6% 0px', threshold: 0.05 });
+    box.querySelectorAll('.lp-h, .ev-card, .kal-bulan, .kal-row, .lp-kosong').forEach((el) => { el.classList.add('lp-muncul'); this._io.observe(el); });
+  },
   vTidakAda(slug) {
     document.body.classList.remove('is-admin');
     $('#app').innerHTML = `${demoBar()}<div class="login-wrap"><div class="card login">
