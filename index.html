@@ -6061,8 +6061,8 @@ const Pub = {
         </fieldset>
         ${fieldInput({ name: 'nomor_layangan', label: 'Nomor layangan', value: f.nomor_layangan, type: 'text', inputmode: 'numeric', maxlength: 6, autocomplete: 'off', err: e.nomor_layangan, data: 'data-in="pub.nomor"', hint: this.hintNomor() })}
         ${fieldInput({ name: 'nama_sekha', label: 'Nama sekha', value: f.nama_sekha, maxlength: 120, autocomplete: 'organization', err: e.nama_sekha, data: 'data-in="pub.f"' })}
-        ${fieldInput({ name: 'alamat', label: 'Alamat', value: f.alamat, placeholder: 'Banjar, desa/kelurahan, kecamatan', maxlength: 300, textarea: true, rows: 2, autocomplete: 'street-address', err: e.alamat, data: 'data-in="pub.f"' })}
-        ${fieldInput({ name: 'no_wa', label: 'Nomor WhatsApp', value: f.no_wa, type: 'tel', inputmode: 'tel', placeholder: '08xx-xxxx-xxxx', maxlength: 20, autocomplete: 'tel', err: e.no_wa, data: 'data-in="pub.f"', hint: this.hintWA() })}
+        ${fieldInput({ name: 'alamat', label: 'Alamat', value: f.alamat, maxlength: 300, textarea: true, rows: 2, autocomplete: 'street-address', err: e.alamat, data: 'data-in="pub.f"' })}
+        ${fieldInput({ name: 'no_wa', label: 'Nomor WhatsApp', value: f.no_wa, type: 'tel', inputmode: 'tel', maxlength: 20, autocomplete: 'tel', err: e.no_wa, data: 'data-in="pub.f"', hint: this.hintWA() })}
         <input type="text" name="website" class="hp" tabindex="-1" autocomplete="off" aria-hidden="true">
         <button class="btn btn-primary btn-lg btn-block" type="submit">Lanjut ke konfirmasi ${ico('arrow-r')}</button>
       </form>
