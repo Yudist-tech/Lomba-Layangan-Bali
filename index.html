@@ -3638,11 +3638,11 @@ function hurufNama(nama) {
   return h.slice(0, 5);
 }
 /* 3 angka acak tanpa pola mudah (000, 111, 123, 321, …) */
+/* 3 angka akhir ID panitia: pola mudah dihafal di papan angka HP
+   (garis/huruf V lewat angka 5 seperti 751, 852, 159; lompat dua seperti 246, 135; kolom 147, 369, 580) */
+const ANGKA_POLA = ['024', '085', '135', '147', '152', '153', '154', '156', '157', '158', '159', '246', '251', '253', '254', '256', '257', '258', '259', '351', '352', '354', '356', '357', '358', '359', '369', '420', '451', '452', '453', '457', '458', '459', '468', '531', '579', '580', '642', '651', '652', '653', '657', '658', '659', '741', '751', '752', '753', '754', '756', '758', '759', '851', '852', '853', '854', '856', '857', '859', '864', '951', '952', '953', '954', '956', '957', '958', '963', '975'];
 function angkaAcak() {
-  const pola = ['012', '123', '234', '345', '456', '567', '678', '789', '890', '098', '987', '876', '765', '654', '543', '432', '321', '210'];
-  let a;
-  do { a = String(Math.floor(Math.random() * 1000)).padStart(3, '0'); } while ((a[0] === a[1] && a[1] === a[2]) || pola.includes(a));
-  return a;
+  return ANGKA_POLA[Math.floor(Math.random() * ANGKA_POLA.length)];
 }
 /* label pelaku untuk riwayat & rekap: ID (mis. Mdwia587) atau email */
 function labelOleh(email) {
@@ -11309,7 +11309,7 @@ function tampilKredensial(judul, akun, password, nama) {
 ACT['pusat.salinKred'] = (el) => salin(el.dataset.teks, 'ID & password disalin');
 IN['pusat.pratinjauId'] = (el) => {
   const p = $('#ae-pratinjau'), v = el.value.trim();
-  if (p) p.innerHTML = v.length >= 3 && /[a-z]/i.test(v) ? `ID akan menjadi seperti <b class="mono">${esc(kapital(hurufNama(v)) + angkaAcak())}</b> (angka acak) · password dibuat otomatis` : 'ID & password dibuat otomatis, lalu bisa dikirim lewat WA.';
+  if (p) p.innerHTML = v.length >= 3 && /[a-z]/i.test(v) ? `ID akan menjadi seperti <b class="mono">${esc(kapital(hurufNama(v)) + angkaAcak())}</b> (angka berpola, mudah dihafal) · password dibuat otomatis` : 'ID & password dibuat otomatis, lalu bisa dikirim lewat WA.';
 };
 ACT['pusat.buatNama'] = (el) => sibuk(el, async () => {
   const inp = $('#ae-nama'), nama = inp ? inp.value.trim() : '';
