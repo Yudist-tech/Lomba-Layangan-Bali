@@ -2403,6 +2403,7 @@ form .kp-foto { margin-bottom: 12px; height: 80px; }
 @media (hover: hover) { .lp-stat:hover { transform: translateY(-2px); box-shadow: 0 8px 18px rgba(20,30,50,.1); } }
 @media (prefers-reduced-motion: reduce) { .lp-masuk *, .lp-masuk { animation: none !important; } .lp-muncul { opacity: 1; transform: none; transition: none; } .ev-cta.primary::after { animation: none; display: none; } }
 
+.kal-ev { margin-bottom: 12px; }
 /* Ajakan pasang aplikasi (PWA) */
 .pwa-ajak { position: fixed; left: 12px; right: 12px; bottom: calc(12px + env(safe-area-inset-bottom)); z-index: 60; max-width: 440px; margin: 0 auto; display: flex; align-items: center; gap: 10px; background: var(--surface); color: var(--ink); border: 1px solid var(--line); border-radius: 16px; padding: 10px 10px 10px 12px; box-shadow: 0 12px 32px rgba(0,0,0,.2); animation: pwa-naik .35s ease-out; }
 .pwa-ajak img { width: 40px; height: 40px; border-radius: 10px; flex: none; }
@@ -10852,7 +10853,11 @@ const Beranda = {
       if (!grup.has(k)) grup.set(k, []);
       grup.get(k).push(e);
     });
-    return [...grup].map(([bulan, rows]) => `<div class="kal-bulan">${esc(bulan)}</div><div class="kal-card">${rows.map((e) => this.vBaris(e, false)).join('')}</div>`).join('');
+    // event yang sudah punya flyer tampil sebagai kartu (sama seperti "Berlangsung & segera"); sisanya baris kalender
+    return [...grup].map(([bulan, rows]) => {
+      const kartu = rows.filter((e) => urlGambarAman(e.flyer_url)), baris = rows.filter((e) => !urlGambarAman(e.flyer_url));
+      return `<div class="kal-bulan">${esc(bulan)}</div>${kartu.length ? `<div class="ev-grid kal-ev">${kartu.map((e) => this.vTiket(e)).join('')}</div>` : ''}${baris.length ? `<div class="kal-card">${baris.map((e) => this.vBaris(e, false)).join('')}</div>` : ''}`;
+    }).join('');
   },
   vBaris(e, selesai) {
     const a = parseTanggal(e.tanggal_mulai), b = parseTanggal(e.tanggal_selesai);
