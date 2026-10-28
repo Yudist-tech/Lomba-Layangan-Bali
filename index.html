@@ -2444,11 +2444,11 @@ button.lp-tab { border: 0; font: inherit; color: inherit; cursor: pointer; text-
   .lp-tabs { gap: 12px; padding: 0 12px; align-items: stretch; }
   .lp-tab { display: flex; } .lp-tab .lp-stat { height: 100%; align-content: start; }
   .lp-tab { padding: 6px 5px 3px; }
-  .lp-tab .lp-stat { display: grid; grid-template-columns: 1fr; row-gap: 2px; padding: 6px 9px; border-radius: 10px; width: 100%; }
+  .lp-tab .lp-stat { display: flex; align-items: center; justify-content: flex-start; padding: 7px 9px; border-radius: 10px; width: 100%; }
   .lp-bi { width: 22px; height: 22px; border-radius: 7px; } .lp-bi .ico { width: 12px; height: 12px; }
-  .lp-tab .lp-stat .lp-bt { display: contents; }
-  .lp-bt b { font-size: 16px; grid-column: 1; grid-row: 1; }
-  .lp-bt small { grid-column: 1 / -1; grid-row: 2; font-size: 11px; white-space: normal; line-height: 1.2; }
+  .lp-tab .lp-stat .lp-bt { display: flex; align-items: center; gap: 6px; margin: 0; width: 100%; }
+  .lp-bt b { font-size: 17px; flex: none; }
+  .lp-bt small { font-size: 11px; white-space: normal; line-height: 1.2; }
   .lp-bc { display: none; }
 }
 /* Ajakan pasang aplikasi (PWA) */
