@@ -10652,24 +10652,36 @@ const PWA = {
   mandiri() { return (window.matchMedia && matchMedia('(display-mode: standalone)').matches) || navigator.standalone === true; },
   ios() { const ua = navigator.userAgent || ''; return /iphone|ipad|ipod/i.test(ua) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1); },
   ditutup() { const t = bacaLokal(this.KUNCI, 0); return t && Date.now() - t < 30 * 864e5; },
+  android() { return /android/i.test(navigator.userAgent || ''); },
+  /* Hanya Google Chrome yang memasang aplikasi resmi (WebAPK). Browser bawaan HP lain membuat aplikasi versi lama
+     yang diblokir Google Play Protect ("dibangun untuk versi lama Android"), jadi pemasangan diarahkan ke Chrome. */
+  chromeAsli() {
+    const ua = navigator.userAgent || '';
+    return /Chrome\/\d/.test(ua) && !/SamsungBrowser|EdgA|OPR|OPT\/|Opera|MiuiBrowser|XiaoMi|HeyTapBrowser|VivoBrowser|HuaweiBrowser|UCBrowser|YaBrowser|Brave|DuckDuckGo|Firefox|PHX|FB_IAB|FBAN|FBAV|Instagram|Line\/|; wv\)|Version\/[\d.]+ Chrome/i.test(ua);
+  },
+  keChrome() { return this.android() && !this.chromeAsli(); },
+  linkChrome() { return `intent://${location.host}${location.pathname}${location.search}#Intent;scheme=https;package=com.android.chrome;S.browser_fallback_url=${encodeURIComponent(location.href)};end`; },
   cek() {
     const lama = document.getElementById('pwa-ajak');
-    const boleh = Router.aktif === 'beranda' && !this.mandiri() && !this.ditutup() && (this.ev || this.ios());
+    const boleh = Router.aktif === 'beranda' && !this.mandiri() && !this.ditutup() && (this.ev || this.ios() || this.keChrome());
     if (!boleh) { if (lama) lama.remove(); return; }
     if (lama) return;
     const d = document.createElement('div'); d.id = 'pwa-ajak'; d.className = 'pwa-ajak'; d.setAttribute('role', 'dialog'); d.setAttribute('aria-label', 'Pasang aplikasi');
-    d.innerHTML = this.ev
+    d.innerHTML = this.keChrome()
+      ? `<img src="/ikon/ikon-192.png" alt=""><div class="pwa-t"><b>Pasang lewat Chrome</b><span>Supaya aplikasi tidak diblokir HP</span></div><a class="btn btn-sm btn-primary" href="${esc(this.linkChrome())}" data-pwa="chrome">Buka Chrome</a><button class="pwa-x" data-pwa="tutup" aria-label="Tutup">✕</button>`
+      : this.ev
       ? `<img src="/ikon/ikon-192.png" alt=""><div class="pwa-t"><b>Pasang aplikasi</b><span>Buka lebih cepat dari layar HP</span></div><button class="btn btn-sm btn-primary" data-pwa="pasang">Pasang</button><button class="pwa-x" data-pwa="tutup" aria-label="Tutup">✕</button>`
       : `<img src="/ikon/ikon-192.png" alt=""><div class="pwa-t"><b>Pasang di iPhone</b><span>1. Ketuk <i class="pwa-k">Bagikan ${ico('iosshare')}</i> di bawah<br>2. Pilih <i class="pwa-k">Tambah ke Layar Utama</i></span></div><button class="pwa-x" data-pwa="tutup" aria-label="Tutup">✕</button>`;
     document.body.appendChild(d);
   },
   async klik(jenis) {
+    if (jenis === 'chrome') return;                 // link intent membuka Chrome; kotak tetap ada bila Chrome tidak terpasang
     if (jenis === 'pasang' && this.ev) { this.ev.prompt(); try { await this.ev.userChoice; } catch (e) { /* abaikan */ } this.ev = null; }
     else simpanLokal(this.KUNCI, Date.now());
     const d = document.getElementById('pwa-ajak'); if (d) d.remove();
   },
 };
-addEventListener('beforeinstallprompt', (e) => { e.preventDefault(); PWA.ev = e; PWA.cek(); });
+addEventListener('beforeinstallprompt', (e) => { e.preventDefault(); if (PWA.keChrome()) return; PWA.ev = e; PWA.cek(); });
 addEventListener('appinstalled', () => { PWA.ev = null; const d = document.getElementById('pwa-ajak'); if (d) d.remove(); });
 addEventListener('hashchange', () => setTimeout(() => PWA.cek(), 60));
 document.addEventListener('click', (e) => { const b = e.target.closest && e.target.closest('[data-pwa]'); if (b) PWA.klik(b.dataset.pwa); });
