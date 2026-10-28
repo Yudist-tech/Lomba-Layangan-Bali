@@ -2373,7 +2373,7 @@ form .kp-foto { margin-bottom: 12px; height: 80px; }
 .lp-stat span { display: flex; align-items: center; gap: 5px; font-size: 13px; font-weight: 600; line-height: 1.2; color: var(--muted); }
 .lp-stat .ico { width: 14px; height: 14px; } .lp-stat .dot { width: 7px; height: 7px; border-radius: 50%; background: #22a55b; box-shadow: 0 0 0 3px rgba(34,165,91,.18); flex: none; }
 @media (max-width: 760px) {
-  .lp-top.lp-langit { padding-bottom: 92px; }
+  .lp-top.lp-langit { padding-bottom: 84px; }
   .lp-tabs { gap: 26px; }
   .lp-tab { padding: 6px 6px 3px; }
   .lp-stat { gap: 6px; padding: 5px 9px; } .lp-stat b { font-size: 16px; } .lp-stat span { font-size: 11.5px; }
@@ -2428,7 +2428,7 @@ button.lp-tab { border: 0; font: inherit; color: inherit; cursor: pointer; text-
 /* Tombol header: gaya baru (ikon berwarna, angka, panah) */
 .lp-tab { --c: var(--brand); }
 .lp-tab.k-dekat { --c: #16a34a; } .lp-tab.k-jauh { --c: var(--brand); } .lp-tab.k-selesai { --c: #d49b00; }
-.lp-tab .lp-stat { display: flex; align-items: center; gap: 10px; padding: 7px 10px 7px 7px; border-radius: 13px;
+.lp-tab .lp-stat { display: flex; align-items: center; gap: 8px; padding: 7px 10px 7px 12px; border-radius: 12px;
   background: linear-gradient(135deg, color-mix(in srgb, var(--c) 11%, var(--surface)), var(--surface) 70%);
   border: 1px solid color-mix(in srgb, var(--c) 28%, var(--line)); box-shadow: 0 2px 8px color-mix(in srgb, var(--c) 10%, transparent); }
 .lp-bi { flex: none; display: grid; place-items: center; width: 30px; height: 30px; border-radius: 9px; background: var(--c); color: #fff; font-style: normal;
@@ -2444,10 +2444,10 @@ button.lp-tab { border: 0; font: inherit; color: inherit; cursor: pointer; text-
   .lp-tabs { gap: 12px; padding: 0 12px; align-items: stretch; }
   .lp-tab { display: flex; } .lp-tab .lp-stat { height: 100%; align-content: start; }
   .lp-tab { padding: 6px 5px 3px; }
-  .lp-tab .lp-stat { display: grid; grid-template-columns: auto 1fr; grid-template-rows: auto auto; align-items: center; column-gap: 6px; row-gap: 3px; padding: 6px 7px; border-radius: 11px; width: 100%; }
+  .lp-tab .lp-stat { display: grid; grid-template-columns: 1fr; row-gap: 2px; padding: 6px 9px; border-radius: 10px; width: 100%; }
   .lp-bi { width: 22px; height: 22px; border-radius: 7px; } .lp-bi .ico { width: 12px; height: 12px; }
   .lp-tab .lp-stat .lp-bt { display: contents; }
-  .lp-bt b { font-size: 16px; grid-column: 2; grid-row: 1; }
+  .lp-bt b { font-size: 16px; grid-column: 1; grid-row: 1; }
   .lp-bt small { grid-column: 1 / -1; grid-row: 2; font-size: 11px; white-space: normal; line-height: 1.2; }
   .lp-bc { display: none; }
 }
@@ -10845,8 +10845,8 @@ const Beranda = {
         ${teks ? `<p>${esc(teks)}</p>` : ''}
         <label class="lp-cari">${ico('search')}<input type="search" placeholder="Cari event atau lokasi…" value="${esc(this.s.cari || '')}" data-in="lp.cari" aria-label="Cari event" autocomplete="off"></label>
       </div>
-      <div class="lp-tabs">${[['dekat', nDekat, ico('edit'), 'Buka pendaftaran'], ['jauh', nJauh, ico('cal'), 'Event mendatang'], ['selesai', nJuara, ico('trophy'), 'Cek juara']].map(([k, n, ik, lbl]) =>
-        `<button type="button" class="lp-tab k-${k}" data-act="lp.ke" data-ke="${k}"><span class="lp-stat"><i class="lp-bi">${ik}</i><span class="lp-bt"><b>${this.s.list ? n : '–'}</b><small>${lbl}</small></span>${ico('chev-r', 'lp-bc')}</span></button>`).join('')}</div></header>
+      <div class="lp-tabs">${[['dekat', nDekat, 'Buka pendaftaran'], ['jauh', nJauh, 'Event mendatang'], ['selesai', nJuara, 'Cek juara']].map(([k, n, lbl]) =>
+        `<button type="button" class="lp-tab k-${k}" data-act="lp.ke" data-ke="${k}"><span class="lp-stat"><span class="lp-bt"><b>${this.s.list ? n : '–'}</b><small>${lbl}</small></span>${ico('chev-r', 'lp-bc')}</span></button>`).join('')}</div></header>
       <main class="lp-main" id="main"><div id="lp-isi">${isi}</div>
         <footer class="pub-foot"><div class="foot-s">${esc(st.nama)} · <a href="#panitia">Masuk panitia</a></div></footer>
       </main>`;
