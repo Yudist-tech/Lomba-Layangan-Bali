@@ -2409,8 +2409,6 @@ form .kp-foto { margin-bottom: 12px; height: 80px; }
 .pwa-ajak img { width: 40px; height: 40px; border-radius: 10px; flex: none; }
 .pwa-t { flex: 1; min-width: 0; line-height: 1.3; } .pwa-t b { display: block; font-size: 14px; } .pwa-t span { font-size: 12px; color: var(--muted); }
 .pwa-k { font-style: normal; display: inline-flex; align-items: center; gap: 3px; border: 1px solid var(--line); border-radius: 6px; padding: 0 5px; color: var(--ink); white-space: nowrap; } .pwa-k .ico { width: 12px; height: 12px; }
-.pwa-l { border: 0; background: none; padding: 0; font: inherit; color: var(--brand); font-weight: 700; text-decoration: underline; cursor: pointer; }
-.pwa-pintas { margin-top: 6px; font-size: 12px; line-height: 1.7; color: var(--ink); }
 .pwa-x { flex: none; border: 0; background: transparent; color: var(--muted); font-size: 16px; padding: 6px 8px; cursor: pointer; border-radius: 8px; }
 @keyframes pwa-naik { from { transform: translateY(20px); opacity: 0; } to { transform: none; opacity: 1; } }
 @media (prefers-reduced-motion: reduce) { .pwa-ajak { animation: none; } }
@@ -10670,17 +10668,14 @@ const PWA = {
     if (lama) return;
     const d = document.createElement('div'); d.id = 'pwa-ajak'; d.className = 'pwa-ajak'; d.setAttribute('role', 'dialog'); d.setAttribute('aria-label', 'Pasang aplikasi');
     d.innerHTML = this.keChrome()
-      ? `<img src="/ikon/ikon-192.png" alt=""><div class="pwa-t"><b>Pasang aplikasi</b><span>Lewat Chrome agar tidak diblokir HP, atau <button type="button" class="pwa-l" data-pwa="pintas">buat pintasan</button></span>
-          <div class="pwa-pintas" hidden>${/SamsungBrowser/i.test(navigator.userAgent) ? 'Ketuk menu <i class="pwa-k">≡</i> → <i class="pwa-k">Tambahkan halaman ke</i> → <i class="pwa-k">Layar Beranda</i>' : 'Ketuk menu <i class="pwa-k">⋮</i> / <i class="pwa-k">≡</i> → pilih <i class="pwa-k">Tambah ke layar utama</i> atau <i class="pwa-k">Pintasan</i>'}</div></div>
-        <a class="btn btn-sm btn-primary" href="${esc(this.linkChrome())}" data-pwa="chrome">Buka Chrome</a><button class="pwa-x" data-pwa="tutup" aria-label="Tutup">✕</button>`
+      ? `<img src="/ikon/ikon-192.png" alt=""><div class="pwa-t"><b>Pasang lewat Chrome</b><span>Supaya aplikasi tidak diblokir HP</span></div><a class="btn btn-sm btn-primary" href="${esc(this.linkChrome())}" data-pwa="chrome">Buka Chrome</a><button class="pwa-x" data-pwa="tutup" aria-label="Tutup">✕</button>`
       : this.ev
       ? `<img src="/ikon/ikon-192.png" alt=""><div class="pwa-t"><b>Pasang aplikasi</b><span>Buka lebih cepat dari layar HP</span></div><button class="btn btn-sm btn-primary" data-pwa="pasang">Pasang</button><button class="pwa-x" data-pwa="tutup" aria-label="Tutup">✕</button>`
       : `<img src="/ikon/ikon-192.png" alt=""><div class="pwa-t"><b>Pasang di iPhone</b><span>1. Ketuk <i class="pwa-k">Bagikan ${ico('iosshare')}</i> di bawah<br>2. Pilih <i class="pwa-k">Tambah ke Layar Utama</i></span></div><button class="pwa-x" data-pwa="tutup" aria-label="Tutup">✕</button>`;
     document.body.appendChild(d);
   },
   async klik(jenis) {
-    if (jenis === 'chrome') return;
-    if (jenis === 'pintas') { const x = document.querySelector('#pwa-ajak .pwa-pintas'); if (x) x.hidden = !x.hidden; return; }                 // link intent membuka Chrome; kotak tetap ada bila Chrome tidak terpasang
+    if (jenis === 'chrome') return;                 // link intent membuka Chrome; kotak tetap ada bila Chrome tidak terpasang
     if (jenis === 'pasang' && this.ev) { this.ev.prompt(); try { await this.ev.userChoice; } catch (e) { /* abaikan */ } this.ev = null; }
     else simpanLokal(this.KUNCI, Date.now());
     const d = document.getElementById('pwa-ajak'); if (d) d.remove();
