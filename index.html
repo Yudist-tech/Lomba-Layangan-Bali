@@ -2373,7 +2373,7 @@ form .kp-foto { margin-bottom: 12px; height: 80px; }
 .lp-stat span { display: flex; align-items: center; gap: 5px; font-size: 13px; font-weight: 600; line-height: 1.2; color: var(--muted); }
 .lp-stat .ico { width: 14px; height: 14px; } .lp-stat .dot { width: 7px; height: 7px; border-radius: 50%; background: #22a55b; box-shadow: 0 0 0 3px rgba(34,165,91,.18); flex: none; }
 @media (max-width: 760px) {
-  .lp-top.lp-langit { padding-bottom: 74px; }
+  .lp-top.lp-langit { padding-bottom: 84px; }
   .lp-tabs { gap: 26px; }
   .lp-tab { padding: 6px 6px 3px; }
   .lp-stat { gap: 6px; padding: 5px 9px; } .lp-stat b { font-size: 16px; } .lp-stat span { font-size: 11.5px; }
@@ -2404,6 +2404,53 @@ form .kp-foto { margin-bottom: 12px; height: 80px; }
 @media (prefers-reduced-motion: reduce) { .lp-masuk *, .lp-masuk { animation: none !important; } .lp-muncul { opacity: 1; transform: none; transition: none; } .ev-cta.primary::after { animation: none; display: none; } }
 
 .kal-ev { margin-bottom: 12px; }
+
+/* Tombol di tepi bawah header (3 tonjolan): gulir ke bagian */
+@keyframes lp-sorot { 0% { background: color-mix(in srgb, var(--brand) 12%, transparent); } 100% { background: transparent; } }
+.lp-sec.lp-sorot > .lp-h { animation: lp-sorot 1.6s ease-out; border-radius: 10px; }
+button.lp-tab { border: 0; font: inherit; color: inherit; cursor: pointer; text-align: left; -webkit-tap-highlight-color: transparent; }
+.lp-tab .lp-stat { transition: transform .2s ease, box-shadow .2s ease, border-color .2s ease, background-color .2s ease; }
+.lp-tab:active .lp-stat { transform: scale(.97); }
+.lp-tab.on .lp-stat { border-color: var(--brand); background: color-mix(in srgb, var(--brand) 10%, var(--surface)); box-shadow: 0 0 0 2px color-mix(in srgb, var(--brand) 25%, transparent); }
+.lp-tab.on .lp-stat b { color: var(--brand); }
+.lp-tab:focus-visible .lp-stat { outline: 2px solid var(--brand); outline-offset: 2px; }
+.lp-stat .ico { flex: none; }
+.lp-masuk .lp-tab:nth-child(3) { animation-delay: .62s; }
+@media (min-width: 761px) { .lp-tabs { gap: clamp(24px, 6vw, 90px); } }
+@media (max-width: 760px) {
+  .lp-tabs { gap: 20px; padding: 0 16px; justify-content: space-between; }
+  .lp-tab { flex: 1; min-width: 0; }
+  .lp-tab .lp-stat { flex-direction: column; align-items: flex-start; gap: 2px; padding: 6px 8px; width: 100%; }
+  .lp-tabs { gap: 14px; padding: 0 14px; }
+  .lp-tab .lp-stat span { font-size: 11px; line-height: 1.2; align-items: flex-start; } .lp-tab .lp-stat .ico { width: 11px; height: 11px; margin-top: 1px; } .lp-tab .lp-stat .dot { margin-top: 3px; }
+}
+
+/* Tombol header: gaya baru (ikon berwarna, angka, panah) */
+.lp-tab { --c: var(--brand); }
+.lp-tab.k-dekat { --c: #16a34a; } .lp-tab.k-jauh { --c: var(--brand); } .lp-tab.k-selesai { --c: #d49b00; }
+.lp-tab .lp-stat { display: flex; align-items: center; gap: 8px; padding: 7px 10px 7px 12px; border-radius: 12px;
+  background: linear-gradient(135deg, color-mix(in srgb, var(--c) 11%, var(--surface)), var(--surface) 70%);
+  border: 1px solid color-mix(in srgb, var(--c) 28%, var(--line)); box-shadow: 0 2px 8px color-mix(in srgb, var(--c) 10%, transparent); }
+.lp-bi { flex: none; display: grid; place-items: center; width: 30px; height: 30px; border-radius: 9px; background: var(--c); color: #fff; font-style: normal;
+  box-shadow: 0 3px 8px color-mix(in srgb, var(--c) 35%, transparent); }
+.lp-bi .ico { width: 16px; height: 16px; }
+.lp-tab .lp-stat .lp-bt { display: flex; align-items: baseline; gap: 6px; min-width: 0; font-size: inherit; }
+.lp-bt b { font-size: 18px; font-weight: 800; color: var(--c); line-height: 1; }
+.lp-bt small { font-size: 12.5px; font-weight: 700; color: var(--ink); white-space: nowrap; }
+.lp-bc { width: 14px; height: 14px; color: color-mix(in srgb, var(--c) 70%, var(--muted)); flex: none; transition: transform .2s ease; }
+@media (hover: hover) { .lp-tab:hover .lp-stat { transform: translateY(-2px); box-shadow: 0 8px 18px color-mix(in srgb, var(--c) 20%, transparent); } .lp-tab:hover .lp-bc { transform: translateX(3px); } }
+.lp-tab:active .lp-stat { transform: scale(.97); }
+@media (max-width: 760px) {
+  .lp-tabs { gap: 12px; padding: 0 12px; align-items: stretch; }
+  .lp-tab { display: flex; } .lp-tab .lp-stat { height: 100%; align-content: start; }
+  .lp-tab { padding: 6px 5px 3px; }
+  .lp-tab .lp-stat { display: flex; align-items: center; justify-content: flex-start; padding: 7px 9px; border-radius: 10px; width: 100%; }
+  .lp-bi { width: 22px; height: 22px; border-radius: 7px; } .lp-bi .ico { width: 12px; height: 12px; }
+  .lp-tab .lp-stat .lp-bt { display: flex; align-items: center; gap: 6px; margin: 0; width: 100%; }
+  .lp-bt b { font-size: 17px; flex: none; }
+  .lp-bt small { font-size: 11px; white-space: normal; line-height: 1.2; }
+  .lp-bc { display: none; }
+}
 /* Ajakan pasang aplikasi (PWA) */
 .pwa-ajak { position: fixed; left: 12px; right: 12px; bottom: calc(12px + env(safe-area-inset-bottom)); z-index: 60; max-width: 440px; margin: 0 auto; display: flex; align-items: center; gap: 10px; background: var(--surface); color: var(--ink); border: 1px solid var(--line); border-radius: 16px; padding: 10px 10px 10px 12px; box-shadow: 0 12px 32px rgba(0,0,0,.2); animation: pwa-naik .35s ease-out; }
 .pwa-ajak img { width: 40px; height: 40px; border-radius: 10px; flex: none; }
@@ -10526,7 +10573,7 @@ function statusEvent(e, hariIni = hariIniIso()) {
     return { k: 'live', label: total > 1 ? `Berlangsung · hari ke-${ke}` : 'Berlangsung hari ini', urut: 0 };
   }
   const n = selisihHari(hariIni, m);
-  return { k: n <= 14 ? 'segera' : 'jauh', n, label: n === 1 ? 'Besok' : `${n} hari lagi`, urut: n <= 14 ? 1 : 2 };
+  return { k: n <= 21 ? 'segera' : 'jauh', n, label: n === 1 ? 'Besok' : `${n} hari lagi`, urut: n <= 21 ? 1 : 2 };
 }
 function rentangEvent(e, pendek = false) {
   const a = parseTanggal(e.tanggal_mulai), b = parseTanggal(e.tanggal_selesai) || a;
@@ -10782,7 +10829,8 @@ const Beranda = {
   },
   halaman() {
     const semua = (this.s.list || []).map((e) => ({ ...e, _st: statusEvent(e) })).sort(urutEvent), list = semua;
-    const nAktif = list.filter((e) => e._st.k !== 'selesai').length, nBuka = list.filter((e) => e.pendaftaran_buka && e._st.k !== 'selesai').length;
+    const nAktif = list.filter((e) => e._st.k !== 'selesai').length, nBuka = list.filter((e) => e.pendaftaran_buka && e._st.k !== 'selesai').length, nJuara = list.filter((e) => e._st.k === 'selesai').length;
+    const nDekat = list.filter((e) => e._st.k === 'live' || e._st.k === 'segera').length, nJauh = list.filter((e) => e._st.k === 'jauh' || e._st.k === 'tbd').length;
     const isi = this.vIsi();
     const st = this.s.situs || SITUS_AWAL, bg = urlGambarAman(st.bg_url);
     const teks = st.teks === 'Pilih event, isi data layangan, transfer, dan unggah bukti. Nomor & jadwal terbang langsung terlihat.' ? SITUS_AWAL.teks : st.teks;
@@ -10797,7 +10845,8 @@ const Beranda = {
         ${teks ? `<p>${esc(teks)}</p>` : ''}
         <label class="lp-cari">${ico('search')}<input type="search" placeholder="Cari event atau lokasi…" value="${esc(this.s.cari || '')}" data-in="lp.cari" aria-label="Cari event" autocomplete="off"></label>
       </div>
-      <div class="lp-tabs"><div class="lp-tab"><div class="lp-stat"><b>${this.s.list ? nBuka : '–'}</b><span><i class="dot"></i>event buka pendaftaran</span></div></div><div class="lp-tab"><div class="lp-stat"><b>${this.s.list ? nAktif : '–'}</b><span>${ico('cal')}event mendatang</span></div></div></div></header>
+      <div class="lp-tabs">${[['dekat', nDekat, 'Buka pendaftaran'], ['jauh', nJauh, 'Event mendatang'], ['selesai', nJuara, 'Cek juara']].map(([k, n, lbl]) =>
+        `<button type="button" class="lp-tab k-${k}" data-act="lp.ke" data-ke="${k}"><span class="lp-stat"><span class="lp-bt"><b>${this.s.list ? n : '–'}</b><small>${lbl}</small></span>${ico('chev-r', 'lp-bc')}</span></button>`).join('')}</div></header>
       <main class="lp-main" id="main"><div id="lp-isi">${isi}</div>
         <footer class="pub-foot"><div class="foot-s">${esc(st.nama)} · <a href="#panitia">Masuk panitia</a></div></footer>
       </main>`;
@@ -10815,12 +10864,12 @@ const Beranda = {
     else {
       isi = `
       <section class="lp-sec" aria-labelledby="lp-dekat">
-        <div class="lp-h"><h2 id="lp-dekat">Berlangsung & segera</h2><span>Hari ini sampai 2 minggu ke depan</span></div>
+        <div class="lp-h"><h2 id="lp-dekat">Berlangsung & segera</h2><span>Hari ini sampai 3 minggu ke depan</span></div>
         ${dekat.length ? `<div class="ev-grid">${dekat.map((e) => this.vTiket(e)).join('')}</div>`
-          : `<div class="lp-kosong">${ico('cal')}<span>Belum ada lomba dalam 2 minggu ke depan. Lihat kalender di bawah.</span></div>`}
+          : `<div class="lp-kosong">${ico('cal')}<span>Belum ada lomba dalam 3 minggu ke depan. Lihat kalender di bawah.</span></div>`}
       </section>
       <section class="lp-sec" aria-labelledby="lp-jauh">
-        <div class="lp-h"><h2 id="lp-jauh">Kalender lomba</h2><span>Lebih dari 2 minggu lagi</span></div>
+        <div class="lp-h"><h2 id="lp-jauh">Kalender lomba</h2><span>Lebih dari 3 minggu lagi</span></div>
         ${jauh.length ? this.vKalender(jauh) : `<div class="lp-kosong">${ico('cal')}<span>Belum ada event lain yang dijadwalkan.</span></div>`}
       </section>
       ${selesai.length ? `<section class="lp-sec" aria-labelledby="lp-selesai">
@@ -10840,7 +10889,7 @@ const Beranda = {
     const href = `#e/${encodeURIComponent(e.slug)}${cta[2]}`;
     const chips = e.pendaftaran_buka
       ? `<span class="ev-chip buka">Pendaftaran dibuka</span>${e.ada_jadwal ? `<span class="ev-chip">Sisa ${angka(e.sisa_slot)} slot</span>` : ''}${e.harga_min != null ? `<span class="ev-chip">Mulai ${rupiah(e.harga_min)}</span>` : ''}`
-      : `<span class="ev-chip">${st.k === 'live' ? 'Pendaftaran ditutup' : 'Pendaftaran belum dibuka'}</span>${e.peserta ? `<span class="ev-chip">${angka(e.peserta)} layangan</span>` : ''}`;
+      : `<span class="ev-chip">${st.k === 'live' || st.k === 'selesai' ? 'Pendaftaran ditutup' : 'Pendaftaran belum dibuka'}</span>${e.peserta ? `<span class="ev-chip">${angka(e.peserta)} layangan</span>` : ''}`;
     const chipJuara = e.juara_diumumkan ? '<span class="ev-chip juara">🏆 Juara diumumkan</span>' : '';
     return `<article class="ev-card" style="--ev-a:${c0};--ev-b:${c1}">
       <div class="ev-sisi">
@@ -10885,6 +10934,15 @@ const Beranda = {
   },
 };
 ACT['lp.muat'] = () => Beranda.muat();
+ACT['lp.ke'] = (el) => {        // tombol header: gulir ke bagian Berlangsung & segera / Kalender lomba / Sudah selesai
+  const box = document.getElementById('lp-isi');
+  if (Beranda.s.cari && box) { Beranda.s.cari = ''; const inp = document.querySelector('.lp-cari input'); if (inp) inp.value = ''; box.innerHTML = Beranda.vIsi(); Beranda.amatiMuncul(); }
+  const id = { dekat: 'lp-dekat', jauh: 'lp-jauh', selesai: 'lp-selesai' }[el.dataset.ke];
+  const h = document.getElementById(id), sec = h && h.closest('.lp-sec');
+  if (!sec) { toast(el.dataset.ke === 'selesai' ? 'Belum ada event yang selesai.' : 'Belum ada event di bagian ini.'); return; }
+  scrollTo({ top: Math.max(0, sec.getBoundingClientRect().top + scrollY - 12), behavior: Beranda.kurangGerak() ? 'auto' : 'smooth' });
+  sec.classList.remove('lp-sorot'); void sec.offsetWidth; sec.classList.add('lp-sorot');
+};
 IN['lp.cari'] = (el) => { Beranda.s.cari = el.value; const box = document.getElementById('lp-isi'); if (box) box.innerHTML = Beranda.vIsi(); };
 ACT['lp.flyer'] = (el, e) => { if (e) { e.preventDefault(); e.stopPropagation(); } lightbox(el.dataset.url, el.dataset.judul || 'Flyer event'); };
 
