@@ -2404,6 +2404,26 @@ form .kp-foto { margin-bottom: 12px; height: 80px; }
 @media (prefers-reduced-motion: reduce) { .lp-masuk *, .lp-masuk { animation: none !important; } .lp-muncul { opacity: 1; transform: none; transition: none; } .ev-cta.primary::after { animation: none; display: none; } }
 
 .kal-ev { margin-bottom: 12px; }
+
+/* Tombol filter di tepi bawah header (3 tonjolan) */
+button.lp-tab { border: 0; font: inherit; color: inherit; cursor: pointer; text-align: left; -webkit-tap-highlight-color: transparent; }
+.lp-tab .lp-stat { transition: transform .2s ease, box-shadow .2s ease, border-color .2s ease, background-color .2s ease; }
+.lp-tab:active .lp-stat { transform: scale(.97); }
+.lp-tab.on .lp-stat { border-color: var(--brand); background: color-mix(in srgb, var(--brand) 10%, var(--surface)); box-shadow: 0 0 0 2px color-mix(in srgb, var(--brand) 25%, transparent); }
+.lp-tab.on .lp-stat b { color: var(--brand); }
+.lp-tab:focus-visible .lp-stat { outline: 2px solid var(--brand); outline-offset: 2px; }
+.lp-stat .ico { flex: none; }
+.lp-masuk .lp-tab:nth-child(3) { animation-delay: .62s; }
+.lp-semua { margin-left: auto; display: inline-flex; align-items: center; gap: 5px; border: 1px solid var(--line); background: var(--surface); color: var(--ink); border-radius: 999px; padding: 5px 12px; font: inherit; font-size: 13px; font-weight: 600; cursor: pointer; }
+.lp-semua .ico { width: 14px; height: 14px; }
+@media (min-width: 761px) { .lp-tabs { gap: clamp(24px, 6vw, 90px); } }
+@media (max-width: 760px) {
+  .lp-tabs { gap: 20px; padding: 0 16px; justify-content: space-between; }
+  .lp-tab { flex: 1; min-width: 0; }
+  .lp-tab .lp-stat { flex-direction: column; align-items: flex-start; gap: 2px; padding: 6px 8px; width: 100%; }
+  .lp-tabs { gap: 14px; padding: 0 14px; }
+  .lp-tab .lp-stat span { font-size: 11px; line-height: 1.2; align-items: flex-start; } .lp-tab .lp-stat .ico { width: 11px; height: 11px; margin-top: 1px; } .lp-tab .lp-stat .dot { margin-top: 3px; }
+}
 /* Ajakan pasang aplikasi (PWA) */
 .pwa-ajak { position: fixed; left: 12px; right: 12px; bottom: calc(12px + env(safe-area-inset-bottom)); z-index: 60; max-width: 440px; margin: 0 auto; display: flex; align-items: center; gap: 10px; background: var(--surface); color: var(--ink); border: 1px solid var(--line); border-radius: 16px; padding: 10px 10px 10px 12px; box-shadow: 0 12px 32px rgba(0,0,0,.2); animation: pwa-naik .35s ease-out; }
 .pwa-ajak img { width: 40px; height: 40px; border-radius: 10px; flex: none; }
@@ -10782,7 +10802,7 @@ const Beranda = {
   },
   halaman() {
     const semua = (this.s.list || []).map((e) => ({ ...e, _st: statusEvent(e) })).sort(urutEvent), list = semua;
-    const nAktif = list.filter((e) => e._st.k !== 'selesai').length, nBuka = list.filter((e) => e.pendaftaran_buka && e._st.k !== 'selesai').length;
+    const nAktif = list.filter((e) => e._st.k !== 'selesai').length, nBuka = list.filter((e) => e.pendaftaran_buka && e._st.k !== 'selesai').length, nJuara = list.filter((e) => e._st.k === 'selesai').length;
     const isi = this.vIsi();
     const st = this.s.situs || SITUS_AWAL, bg = urlGambarAman(st.bg_url);
     const teks = st.teks === 'Pilih event, isi data layangan, transfer, dan unggah bukti. Nomor & jadwal terbang langsung terlihat.' ? SITUS_AWAL.teks : st.teks;
@@ -10797,7 +10817,8 @@ const Beranda = {
         ${teks ? `<p>${esc(teks)}</p>` : ''}
         <label class="lp-cari">${ico('search')}<input type="search" placeholder="Cari event atau lokasi…" value="${esc(this.s.cari || '')}" data-in="lp.cari" aria-label="Cari event" autocomplete="off"></label>
       </div>
-      <div class="lp-tabs"><div class="lp-tab"><div class="lp-stat"><b>${this.s.list ? nBuka : '–'}</b><span><i class="dot"></i>event buka pendaftaran</span></div></div><div class="lp-tab"><div class="lp-stat"><b>${this.s.list ? nAktif : '–'}</b><span>${ico('cal')}event mendatang</span></div></div></div></header>
+      <div class="lp-tabs">${[['buka', nBuka, '<i class="dot"></i>', 'Buka pendaftaran'], ['mendatang', nAktif, ico('cal'), 'Event mendatang'], ['juara', nJuara, ico('trophy'), 'Cek juara']].map(([k, n, ik, lbl]) =>
+        `<button type="button" class="lp-tab${this.s.filter === k ? ' on' : ''}" data-act="lp.filter" data-f="${k}" aria-pressed="${this.s.filter === k}"><span class="lp-stat"><b>${this.s.list ? n : '–'}</b><span>${ik}${lbl}</span></span></button>`).join('')}</div></header>
       <main class="lp-main" id="main"><div id="lp-isi">${isi}</div>
         <footer class="pub-foot"><div class="foot-s">${esc(st.nama)} · <a href="#panitia">Masuk panitia</a></div></footer>
       </main>`;
@@ -10806,6 +10827,18 @@ const Beranda = {
     const q = (this.s.cari || '').trim().toLowerCase();
     const list = (this.s.list || []).map((e) => ({ ...e, _st: statusEvent(e) })).sort(urutEvent)
       .filter((e) => !q || [e.nama_event, e.lokasi, e.penyelenggara].some((v) => String(v || '').toLowerCase().includes(q)));
+    const F = { buka: ['Event buka pendaftaran', 'Bisa didaftar sekarang', (e) => e.pendaftaran_buka && e._st.k !== 'selesai'],
+      mendatang: ['Event mendatang', 'Semua event yang belum selesai', (e) => e._st.k !== 'selesai'],
+      juara: ['Cek juara', 'Event yang sudah selesai', (e) => e._st.k === 'selesai'] }[this.s.filter];
+    if (F && this.s.list) {
+      let hasil = list.filter(F[2]);
+      if (this.s.filter === 'juara') hasil = hasil.sort((a, b) => String(b.tanggal_mulai || '').localeCompare(String(a.tanggal_mulai || '')));
+      return `<section class="lp-sec" aria-labelledby="lp-filter">
+        <div class="lp-h"><h2 id="lp-filter">${F[0]}</h2><span>${hasil.length} event · ${F[1]}</span><button type="button" class="lp-semua" data-act="lp.filter" data-f="">${ico('x')} Semua event</button></div>
+        ${hasil.length ? `<div class="ev-grid">${hasil.map((e) => this.vTiket(e)).join('')}</div>`
+          : `<div class="lp-kosong">${ico(this.s.filter === 'juara' ? 'trophy' : 'cal')}<span>${q ? `Tidak ada yang cocok dengan “${esc(this.s.cari.trim())}”.` : this.s.filter === 'juara' ? 'Belum ada event yang selesai.' : 'Belum ada event di daftar ini.'}</span></div>`}
+      </section>`;
+    }
     const dekat = list.filter((e) => e._st.k === 'live' || e._st.k === 'segera');
     const jauh = list.filter((e) => e._st.k === 'jauh' || e._st.k === 'tbd');
     const selesai = list.filter((e) => e._st.k === 'selesai');
@@ -10840,7 +10873,7 @@ const Beranda = {
     const href = `#e/${encodeURIComponent(e.slug)}${cta[2]}`;
     const chips = e.pendaftaran_buka
       ? `<span class="ev-chip buka">Pendaftaran dibuka</span>${e.ada_jadwal ? `<span class="ev-chip">Sisa ${angka(e.sisa_slot)} slot</span>` : ''}${e.harga_min != null ? `<span class="ev-chip">Mulai ${rupiah(e.harga_min)}</span>` : ''}`
-      : `<span class="ev-chip">${st.k === 'live' ? 'Pendaftaran ditutup' : 'Pendaftaran belum dibuka'}</span>${e.peserta ? `<span class="ev-chip">${angka(e.peserta)} layangan</span>` : ''}`;
+      : `<span class="ev-chip">${st.k === 'live' || st.k === 'selesai' ? 'Pendaftaran ditutup' : 'Pendaftaran belum dibuka'}</span>${e.peserta ? `<span class="ev-chip">${angka(e.peserta)} layangan</span>` : ''}`;
     const chipJuara = e.juara_diumumkan ? '<span class="ev-chip juara">🏆 Juara diumumkan</span>' : '';
     return `<article class="ev-card" style="--ev-a:${c0};--ev-b:${c1}">
       <div class="ev-sisi">
@@ -10885,6 +10918,15 @@ const Beranda = {
   },
 };
 ACT['lp.muat'] = () => Beranda.muat();
+ACT['lp.filter'] = (el) => {
+  const f = el.dataset.f || null;
+  Beranda.s.filter = Beranda.s.filter === f ? null : f;
+  document.querySelectorAll('.lp-tabs .lp-tab').forEach((b) => { const on = b.dataset.f === Beranda.s.filter; b.classList.toggle('on', on); b.setAttribute('aria-pressed', on); });
+  const box = document.getElementById('lp-isi'); if (!box) return;
+  box.innerHTML = Beranda.vIsi(); Beranda.amatiMuncul();
+  const y = box.getBoundingClientRect().top + scrollY - 12;
+  if (Beranda.s.filter || scrollY > y) scrollTo({ top: Math.max(0, y), behavior: Beranda.kurangGerak() ? 'auto' : 'smooth' });
+};
 IN['lp.cari'] = (el) => { Beranda.s.cari = el.value; const box = document.getElementById('lp-isi'); if (box) box.innerHTML = Beranda.vIsi(); };
 ACT['lp.flyer'] = (el, e) => { if (e) { e.preventDefault(); e.stopPropagation(); } lightbox(el.dataset.url, el.dataset.judul || 'Flyer event'); };
 
