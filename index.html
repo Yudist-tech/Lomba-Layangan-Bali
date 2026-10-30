@@ -2451,6 +2451,111 @@ button.lp-tab { border: 0; font: inherit; color: inherit; cursor: pointer; text-
   .lp-bt small { font-size: 11px; white-space: normal; line-height: 1.2; }
   .lp-bc { display: none; }
 }
+/* Daftar beberapa layangan (rombongan) — peserta */
+.rb-mode { display: grid; gap: 10px; }
+.rb-mode .opt { width: 100%; font: inherit; color: inherit; text-align: left; cursor: pointer; align-items: center; }
+.rb-mode .opt:hover { border-color: var(--brand); }
+.rb-mode-i { width: 42px; height: 42px; border-radius: 12px; display: grid; place-items: center; background: var(--brand-soft); color: var(--brand); flex: none; }
+.rb-mode-i .ico { width: 22px; height: 22px; }
+.rb-mode .rb-mode-c { width: 18px; height: 18px; color: var(--muted); flex: none; }
+.rb-ganti { display: inline-flex; align-items: center; gap: 7px; border: 0; background: var(--brand-soft); color: var(--brand-soft-ink); font: inherit; font-size: 13.5px; font-weight: 700; padding: 7px 12px; border-radius: 99px; cursor: pointer; margin: -4px 0 16px; }
+.rb-ganti .ico { width: 16px; height: 16px; }
+.rb-lbl { display: flex; align-items: baseline; gap: 6px; font-size: 12px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); margin: 6px 0 10px; }
+.rb-lbl b { color: var(--ink); font-size: 14px; } .rb-lbl span { font-weight: 600; letter-spacing: 0; }
+.rb-ly { border: 1px solid var(--line); border-radius: 14px; margin: 0 0 10px; background: var(--surface); overflow: hidden; }
+.rb-ly.err { border-color: var(--bad); }
+.rb-ly-h { display: flex; align-items: center; gap: 10px; padding: 11px 13px; width: 100%; border: 0; background: transparent; font: inherit; color: inherit; text-align: left; }
+button.rb-ly-h { cursor: pointer; } button.rb-ly-h:hover { background: var(--surface-2); }
+.rb-ly-n { width: 26px; height: 26px; border-radius: 50%; background: var(--brand); color: #fff; font-weight: 800; font-size: 13px; display: grid; place-items: center; flex: none; }
+.rb-ly-t { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.rb-ly-t .jtag { white-space: normal; }
+.rb-ly-t small { color: var(--ink-2); font-size: 12.5px; line-height: 1.4; }
+.rb-ly-r { text-align: right; font-weight: 800; white-space: nowrap; flex: none; }
+.rb-ly-r small { display: block; font-weight: 600; color: var(--muted); font-size: 12px; }
+.rb-ly-r em { font-style: normal; color: var(--bad-ink); display: inline-flex; gap: 3px; align-items: center; } .rb-ly-r em .ico { width: 13px; height: 13px; }
+.rb-ly.open { border-color: var(--brand); box-shadow: 0 0 0 3px var(--brand-soft); }
+.rb-ly.open.err { border-color: var(--bad); box-shadow: 0 0 0 3px var(--bad-soft); }
+.rb-ly.open .rb-ly-h { background: var(--brand-soft); border-bottom: 1px solid var(--line); }
+.rb-ly-b { padding: 14px 13px 4px; }
+.rb-ly-b .field { margin-bottom: 14px; }
+.rb-hapus { color: var(--bad-ink); }
+.rb-sama { margin: -2px 0 14px; }
+.rb-sama small { display: block; color: var(--muted); font-size: 12.5px; margin-top: 2px; }
+.rb-add { width: 100%; border: 2px dashed var(--line-strong); background: transparent; border-radius: 14px; padding: 12px; font: inherit; font-weight: 700; color: var(--brand); display: flex; gap: 8px; justify-content: center; align-items: center; cursor: pointer; }
+.rb-add:hover { background: var(--brand-soft); border-color: var(--brand); }
+.rb-add .ico { width: 18px; height: 18px; }
+.rb-list { border: 1px solid var(--line); border-radius: 14px; overflow: hidden; margin: 14px 0 0; text-align: left; }
+.rb-list > div { display: flex; gap: 10px; align-items: flex-start; padding: 11px 14px; border-top: 1px solid var(--line); }
+.rb-list > div:first-child { border-top: 0; }
+.rb-no { font-weight: 800; font-size: 18px; min-width: 42px; font-variant-numeric: tabular-nums; }
+.rb-i { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.rb-i .jtag { white-space: normal; }
+.rb-i small { color: var(--ink-2); font-size: 12.5px; line-height: 1.45; }
+.rb-p { font-weight: 800; white-space: nowrap; }
+.rb-kv { margin-top: 12px; }
+.success .total { text-align: left; }
+.cek-rbh { display: flex; align-items: center; gap: 8px; min-width: 0; }
+.cek-rbh > .ico { width: 20px; height: 20px; color: var(--brand); flex: none; }
+.cek-rbh small { display: block; font-size: 12.5px; color: var(--muted); font-weight: 500; }
+.cek-rbk .cek-top { align-items: flex-start; flex-wrap: wrap; gap: 8px; }
+.cek-rbk .rb-list { margin: 12px 0 0; }
+.cek-rb-tag { font-style: normal; font-size: 11.5px; font-weight: 700; padding: 1px 8px; border-radius: 99px; margin-left: 4px; }
+.cek-rb-tag.terkonfirmasi { background: var(--good-soft); color: var(--good-ink); }
+.cek-rb-tag.ditolak { background: var(--bad-soft); color: var(--bad-ink); }
+.cek-rb-tag.menunggu { background: var(--warn-soft); color: var(--warn-ink); }
+.cek-rb-batal { opacity: .6; }
+.cek-rb-sum { display: flex; justify-content: space-between; align-items: center; padding: 10px 4px 0; font-size: 14px; }
+.cek-rbk .note, .cek-rbk .btn-block { margin-top: 10px; }
+/* Daftar rombongan — panitia */
+.flag.rb-flag { background: var(--brand-soft); color: var(--brand-soft-ink); }
+.rb-banner { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; padding: 10px 12px; border-radius: 12px; background: var(--brand-soft); color: var(--brand-soft-ink); margin: 0 0 14px; font-size: 13.5px; }
+.rb-banner > .ico { width: 18px; height: 18px; flex: none; } .rb-banner span { flex: 1; min-width: 180px; }
+.rb-top { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 14px; }
+.rb-top .hint { flex-basis: 100%; }
+.rb-bukti { display: flex; gap: 12px; align-items: center; border: 1px solid var(--line); border-radius: 14px; padding: 10px; margin: 0 0 10px; }
+.rb-bukti .bukti-box { width: 84px; height: 112px; min-height: 0; flex: none; border-radius: 9px; }
+.rb-bukti .bukti-box img { width: 100%; height: 100%; max-height: none; object-fit: cover; object-position: top; }
+.rb-bukti .bukti-box .empty { padding: 0; }
+.rb-bukti-t { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; font-size: 13px; color: var(--ink-2); }
+.rb-bukti-t b { font-size: 15px; color: var(--ink); }
+.rb-bukti .bukti-tools { margin: 6px 0 0; }
+.rb-warn { padding: 10px 14px; border-radius: 12px; background: var(--bad-soft); color: var(--bad-ink); border: 1px solid color-mix(in srgb, var(--bad) 40%, transparent); font-size: 13.5px; line-height: 1.45; margin: 0 0 10px; }
+.rb-warn.lb { background: var(--warn-soft); color: var(--warn-ink); border-color: color-mix(in srgb, var(--warn) 45%, transparent); }
+.rb-warn b { display: block; font-size: 14.5px; }
+.rb-hub { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; padding: 10px 12px; border-radius: 12px; background: var(--surface-2); margin: 0 0 16px; }
+.rb-hub.on { background: var(--brand-soft); color: var(--brand-soft-ink); }
+.rb-hub > .ico { width: 18px; height: 18px; flex: none; }
+.rb-hub > span { flex: 1; min-width: 150px; font-size: 13.5px; } .rb-hub small { display: block; font-size: 12px; opacity: .85; }
+.rb-tb { border: 1px solid var(--line); border-radius: 14px; overflow: hidden; background: var(--surface); }
+.rb-tr { padding: 10px 12px; border-top: 1px solid var(--line); border-left: 4px solid var(--good); }
+.rb-tr:first-child { border-top: 0; }
+.rb-tr.no { border-left-color: var(--bad); background: color-mix(in srgb, var(--bad) 6%, var(--surface)); }
+.rb-tr.no .rb-r > b { text-decoration: line-through; color: var(--muted); }
+.rb-tr.sls { border-left-color: var(--line); }
+.rb-tr-h { display: flex; gap: 10px; align-items: flex-start; }
+.rb-tr .rb-no { font-size: 17px; min-width: 38px; padding-top: 2px; }
+.rb-r { display: flex; flex-direction: column; align-items: flex-end; gap: 6px; flex: none; }
+.rb-r > b { font-size: 14.5px; white-space: nowrap; }
+.rb-tg { display: flex; gap: 6px; }
+.rb-tg button { width: 40px; height: 36px; border-radius: 9px; border: 1.5px solid var(--line); display: grid; place-items: center; color: var(--muted); background: var(--surface); cursor: pointer; padding: 0; }
+.rb-tg button .ico { width: 18px; height: 18px; stroke-width: 2.6; }
+.rb-tg .t-ok.on { background: var(--good-btn, #16a34a); border-color: var(--good-btn, #16a34a); color: #fff; }
+.rb-tg .t-no.on { background: var(--bad); border-color: var(--bad); color: #fff; }
+.rb-tg button:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
+.rb-det { align-self: flex-start; border: 0; background: none; padding: 2px 0 0; font: inherit; font-size: 12px; font-weight: 700; color: var(--brand); cursor: pointer; }
+.rb-cat { margin: 8px 0 0 48px; }
+.rb-cat textarea { width: 100%; font-size: 14px; }
+.rb-cat .hint { display: block; margin-top: 4px; font-size: 12px; }
+.rb-cat .hint .ico { width: 13px; height: 13px; vertical-align: -2px; }
+.rb-sum { display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap; padding: 10px 14px; border-radius: 12px; font-weight: 700; margin: 10px 0 0; font-size: 14px; }
+.rb-sum.ok { background: var(--good-soft); color: var(--good-ink); }
+.rb-sum.bad { background: var(--bad-soft); color: var(--bad-ink); }
+.rb-sum.n { background: var(--surface-2); color: var(--ink-2); }
+.rb-sum span:last-child { display: inline-flex; align-items: center; gap: 4px; } .rb-sum .ico { width: 15px; height: 15px; }
+.drawer-f.rb-f { flex-wrap: wrap; }
+.drawer-f.rb-f > .btn { flex: 1 1 100%; justify-content: center; }
+.drawer-f.rb-f > small { flex-basis: 100%; text-align: center; }
+
 /* Ajakan pasang aplikasi (PWA) */
 .pwa-ajak { position: fixed; left: 12px; right: 12px; bottom: calc(12px + env(safe-area-inset-bottom)); z-index: 60; max-width: 440px; margin: 0 auto; display: flex; align-items: center; gap: 10px; background: var(--surface); color: var(--ink); border: 1px solid var(--line); border-radius: 16px; padding: 10px 10px 10px 12px; box-shadow: 0 12px 32px rgba(0,0,0,.2); animation: pwa-naik .35s ease-out; }
 .pwa-ajak img { width: 40px; height: 40px; border-radius: 10px; flex: none; }
@@ -3703,6 +3808,7 @@ function passwordAcak() {
   const abc = 'abcdefghjkmnpqrstuvwxyz23456789';
   return Array.from(crypto.getRandomValues(new Uint8Array(10)), (b) => abc[b % abc.length]).join('');
 }
+const MAKS_ROMBONGAN = 10;   // batas layangan dalam 1 pendaftaran rombongan
 const PESAN_ERROR = {
   JUARA_BELUM_TERKONFIRMASI: 'Hanya layangan yang sudah terkonfirmasi yang bisa menjadi juara.',
   JUARA_TIDAK_VALID: 'Layangan ini bukan dari jenis yang sedang diisi.',
@@ -3750,6 +3856,7 @@ const PESAN_ERROR = {
   HARGA_BERUBAH: 'Biaya pendaftaran baru saja diperbarui panitia. Periksa kembali jumlah yang harus dibayar.',
   DATA_BERUBAH: 'Data ini baru saja diubah (oleh admin lain atau tab lain). Data dimuat ulang — periksa lagi.',
   NOMOR_DIPAKAI: 'Nomor layangan itu sudah dipakai peserta lain di jenis layangan yang sama.',
+  JUMLAH_ROMBONGAN: 'Daftar beberapa layangan berisi 2 sampai 10 layangan.',
 };
 function pesanError(e) {
   const msg = (e && (e.message || e.error_description || e.msg || e.error)) || String(e || '');
@@ -4564,6 +4671,18 @@ class DemoAPI {
     const nom = rows.filter((r) => r.status === 'menunggu' && !r.bukti_hash && r.bukti_rek === undefined && r.bukti_ref === undefined && r.bukti_waktu === undefined && r.bukti_nominal === undefined).slice(15, 17);
     if (nom[0]) nom[0].bukti_nominal = Math.max(10000, nom[0].harga - 25000);
     if (nom[1]) nom[1].bukti_nominal = nom[1].harga + 25000;
+    // contoh daftar rombongan (beberapa layangan, 1 transfer): 3 layangan uangnya kurang 1 layangan, 2 layangan uangnya pas
+    const bebas = rows.filter((r) => r.status === 'menunggu' && !r.bukti_hash && r.bukti_rek === undefined && r.bukti_ref === undefined && r.bukti_waktu === undefined && r.bukti_nominal === undefined);
+    const rombongan = (list, kode, kurang) => {
+      if (list.length < 2) return;
+      const a = list[0], total = list.reduce((t, r) => t + r.harga, 0);
+      list.forEach((r, i) => {
+        Object.assign(r, { rombongan: kode, rb_tolak: false, no_wa: a.no_wa, nama_rekening: a.nama_rekening, bukti_path: a.bukti_path, bukti_hash: 'contoh-hash-' + kode,
+          bukti_nominal: total - kurang, bukti_waktu: a.created_at, created_at: a.created_at });
+        if (i === 2) { r.nama_sekha = a.nama_sekha; r.alamat = a.alamat; }
+      });
+    };
+    if (bebas.length >= 5) { const k = bebas.slice(-5); rombongan(k.slice(0, 3), 'RB-7K2QAB', k[1].harga); rombongan(k.slice(3), 'RB-M4XP9C', 0); }
     db.daftar = rows.reverse();
   }
   _kode(rows) {
@@ -4715,6 +4834,77 @@ class DemoAPI {
     this._simpan();
     return { kode: row.kode, status: row.status, harga: row.harga, created_at: row.created_at, no_wa: row.no_wa, jenis: row.jenis, seri_id: row.seri_id, nama_sekha: row.nama_sekha, nomor_layangan: row.nomor_layangan, kotak: row.kotak };
   }
+  /* Daftar beberapa layangan sekaligus (rombongan): 1 nomor WA, 1 bukti transfer untuk semua.
+     Tiap layangan tetap jadi 1 baris pendaftaran (kolom rombongan = kode bersama). Gagal satu → gagal semua. */
+  _kodeRb() {
+    const abc = '23456789ABCDEFGHJKLMNPQRSTUVWXYZ';
+    let k;
+    do { k = 'RB-' + Array.from({ length: 6 }, () => abc[Math.floor(Math.random() * 32)]).join(''); }
+    while (this.db.daftar.some((r) => r.rombongan === k));
+    return k;
+  }
+  _ringkasRb(rows) {
+    rows = [...rows].sort((a, b) => String(a.client_ref || '').localeCompare(String(b.client_ref || ''), undefined, { numeric: true }));
+    return this._salin({ rombongan: rows[0].rombongan, no_wa: rows[0].no_wa, created_at: rows[0].created_at, total: rows.reduce((t, r) => t + (r.harga || 0), 0),
+      items: rows.map((r) => ({ kode: r.kode, jenis: r.jenis, seri_id: r.seri_id, nomor_layangan: r.nomor_layangan, nama_sekha: r.nama_sekha, alamat: r.alamat, harga: r.harga, kotak: r.kotak })) });
+  }
+  async daftarRombongan(p) {
+    await this._jeda(450);
+    const db = this.db, st = db.pengaturan;
+    if (p.client_ref) {
+      const ada = db.daftar.filter((d) => String(d.client_ref || '').startsWith(p.client_ref + '#'));
+      if (ada.length) return this._ringkasRb(ada);
+    }
+    if (!st.pendaftaran_buka || (st.batas_daftar && new Date() > new Date(st.batas_daftar))) throw new Error('PENDAFTARAN_DITUTUP');
+    const items = Array.isArray(p.items) ? p.items : [];
+    if (items.length < 2 || items.length > MAKS_ROMBONGAN) throw new Error('JUMLAH_ROMBONGAN');
+    const wa = normWA(p.no_wa);
+    if (!wa) throw new Error('WA_TIDAK_VALID');
+    const len = (x) => String(x || '').trim().length;
+    if (len(p.nama_rekening) < 2 || len(p.nama_rekening) > 120) throw new Error('DATA_TIDAK_LENGKAP');
+    if (!p.bukti_path || !db.files[p.bukti_path]) throw new Error('BUKTI_TIDAK_VALID');
+    const gagal = (kode, i) => { const e = new Error(`${kode}:${i}`); e.idx = i; throw e; };
+    const awal = db.daftar.slice(), jenisAwal = this._salin(db.jenis), rwAwal = (db.riwayat || []).length;
+    const kode = this._kodeRb(), now = new Date().toISOString(), baru = [];
+    try {
+      items.forEach((it, i) => {
+        const j = this._jenis(it.jenis);
+        if (!j || !j.aktif) gagal('JENIS_TIDAK_VALID', i);
+        if (it.harga != null && Number(it.harga) !== j.harga) gagal('HARGA_BERUBAH', i);
+        const s = this._seri(it.seri_id);
+        if (!s || s.jenis !== it.jenis || !s.aktif || !s.sesi_id) gagal('SERI_TIDAK_VALID', i);
+        const nomor = String(it.nomor_layangan || '').trim();
+        if (!/^\d{1,6}$/.test(nomor)) gagal('NOMOR_TIDAK_VALID', i);
+        if (len(it.nama_sekha) < 2 || len(it.nama_sekha) > 120 || len(it.alamat) < 3 || len(it.alamat) > 300) gagal('DATA_TIDAK_LENGKAP', i);
+        let row;
+        try {
+          row = this._terapkan({
+            id: uuid(), kode: this._kode(), client_ref: p.client_ref ? `${p.client_ref}#${i}` : null, jenis: it.jenis, seri_id: Number(it.seri_id),
+            nama_sekha: it.nama_sekha, alamat: it.alamat, no_wa: wa, nama_rekening: p.nama_rekening, bukti_path: p.bukti_path,
+            bukti_hash: p.bukti_hash || null, harga: j.harga, status: 'menunggu', nomor_urut: null, nomor_layangan: nomor, kotak: null,
+            alasan_tolak: null, catatan_admin: '', wa_terkirim_at: null, dikonfirmasi_at: null, created_at: now, updated_at: now,
+            rombongan: kode, rb_tolak: false, rb_hubungi_oleh: null, rb_hubungi_at: null,
+          }, null);
+        } catch (e) { gagal(String(e.message || e), i); }
+        this._catat(null, row, null);
+        db.daftar.unshift(row); baru.push(row);
+      });
+    } catch (e) {
+      db.daftar = awal; db.jenis = jenisAwal; if (db.riwayat) db.riwayat.length = rwAwal;
+      throw e;
+    }
+    this._simpan();
+    return this._ringkasRb(baru);
+  }
+  /* panitia: tandai rombongan sedang dihubungi (on=false → hapus tanda) */
+  async hubungiRombongan(kode, on) {
+    await this._jeda(150);
+    const rows = this.db.daftar.filter((r) => r.rombongan === kode);
+    const oleh = on ? this._email() : null, at = on ? new Date().toISOString() : null;
+    rows.forEach((r) => { r.rb_hubungi_oleh = oleh; r.rb_hubungi_at = at; r.updated_at = new Date().toISOString(); });
+    this._simpan();
+    return this._salin(rows);
+  }
   async cekNomor(jenis, nomor) {
     await this._jeda(120);
     const jn = this._jenis(jenis), v = rapikanNomor(nomor, jn);
@@ -4723,16 +4913,22 @@ class DemoAPI {
   }
   async tiket(kode) {
     await this._jeda(200);
-    const k = String(kode || '').trim().toUpperCase();
+    const k = String(kode || '').trim().toUpperCase(), st = this.db.pengaturan;
+    const event = { nama_event: st.nama_event, penyelenggara: st.penyelenggara, lokasi: st.lokasi, logo_url: st.logo_url || '', bg_url: st.bg_url || '' };
+    const isi = (r) => {
+      const g = this._seri(r.seri_id) || {}, j = this._jenis(r.jenis) || {}, x = g.sesi_id && this.db.sesi.find((y) => y.id === g.sesi_id), h = x && this.db.hari.find((y) => y.id === x.hari_id);
+      return { kode: r.kode, nomor_layangan: r.nomor_layangan, jenis: j.nama, jenis_kode: r.jenis, nama_sekha: r.nama_sekha, alamat: r.alamat,
+        no_wa: r.no_wa, kotak: r.kotak, seri_nama: g.nama, huruf: g.huruf, harga: r.harga,
+        sesi_nama: x ? x.nama : null, hari: h ? h.nama : null, tanggal: g.tanggal, jam_mulai: g.jam_mulai, jam_selesai: g.jam_selesai };
+    };
+    if (k.startsWith('RB-')) {   // rombongan: hanya layangan yang sudah terkonfirmasi
+      const rows = this.db.daftar.filter((d) => d.rombongan === k && d.status === 'terkonfirmasi').sort((a, b) => String(a.client_ref || '').localeCompare(String(b.client_ref || ''), undefined, { numeric: true }));
+      if (!rows.length) return null;
+      return this._salin({ event, rombongan: k, no_wa: rows[0].no_wa, nama_rekening: rows[0].nama_rekening, total: rows.reduce((t, r) => t + (r.harga || 0), 0), items: rows.map(isi) });
+    }
     const r = this.db.daftar.find((d) => d.kode === k && d.status === 'terkonfirmasi');
     if (!r) return null;
-    const g = this._seri(r.seri_id) || {}, j = this._jenis(r.jenis) || {}, x = g.sesi_id && this.db.sesi.find((y) => y.id === g.sesi_id), h = x && this.db.hari.find((y) => y.id === x.hari_id), st = this.db.pengaturan;
-    return this._salin({
-      event: { nama_event: st.nama_event, penyelenggara: st.penyelenggara, lokasi: st.lokasi, logo_url: st.logo_url || '', bg_url: st.bg_url || '' },
-      kode: r.kode, nomor_layangan: r.nomor_layangan, jenis: j.nama, nama_sekha: r.nama_sekha, alamat: r.alamat,
-      no_wa: r.no_wa, kotak: r.kotak, seri_nama: g.nama, huruf: g.huruf,
-      sesi_nama: x ? x.nama : null, hari: h ? h.nama : null, tanggal: g.tanggal, jam_mulai: g.jam_mulai, jam_selesai: g.jam_selesai,
-    });
+    return this._salin({ event, ...isi(r) });
   }
   async cekStatus(wa) {
     await this._jeda(250);
@@ -4741,7 +4937,7 @@ class DemoAPI {
     return this._salin(this.db.daftar.filter((d) => d.no_wa === n).slice(0, 50).map((d) => {
       const s = this._seri(d.seri_id) || {}, j = this._jenis(d.jenis) || {};
       return { kode: d.kode, jenis: d.jenis, jenis_nama: j.nama, nama_sekha: d.nama_sekha, status: d.status, nomor_layangan: d.nomor_layangan, kotak: d.kotak,
-        alasan_tolak: d.alasan_tolak, harga: d.harga, created_at: d.created_at, seri_nama: s.nama, tanggal: s.tanggal, jam_mulai: s.jam_mulai, jam_selesai: s.jam_selesai };
+        rombongan: d.rombongan || null, rb_urut: d.rombongan ? Number(String(d.client_ref || '').split('#')[1]) || 0 : null, alasan_tolak: d.alasan_tolak, harga: d.harga, created_at: d.created_at, seri_nama: s.nama, tanggal: s.tanggal, jam_mulai: s.jam_mulai, jam_selesai: s.jam_selesai };
     }));
   }
 
@@ -5868,10 +6064,13 @@ const Pub = {
     const d = bacaLokal(DRAFT_KEY + Ev.slug);
     if (d && d.form) Object.assign(this.s.form, d.form, { setuju: false });
     if (d && d.cekWa) this.s.cekWa = d.cekWa;
+    if (d && d.mode) this.s.mode = d.mode;
+    if (d && Array.isArray(d.rb) && d.rb.length) this.s.rb = { items: d.rb.slice(0, MAKS_ROMBONGAN).map((x, i) => ({ ...rbItemBaru(i), ...x })), buka: 0, err: {}, cek: {} };
   },
   simpanDraft: debounce(() => {
     const f = Pub.s.form;
-    simpanLokal(DRAFT_KEY + Ev.slug, { form: { jenis: f.jenis, seri_id: f.seri_id, nomor_layangan: f.nomor_layangan, nama_sekha: f.nama_sekha, alamat: f.alamat, no_wa: f.no_wa, nama_rekening: f.nama_rekening }, cekWa: Pub.s.cekWa });
+    simpanLokal(DRAFT_KEY + Ev.slug, { form: { jenis: f.jenis, seri_id: f.seri_id, nomor_layangan: f.nomor_layangan, nama_sekha: f.nama_sekha, alamat: f.alamat, no_wa: f.no_wa, nama_rekening: f.nama_rekening }, cekWa: Pub.s.cekWa,
+      mode: Pub.s.mode, rb: Pub.s.rb.items.map(({ jenis, seri_id, nomor, sama, nama_sekha, alamat }) => ({ jenis, seri_id, nomor, sama, nama_sekha, alamat })) });
   }, 400),
   async segarkan() {
     try { this.s.info = await api.infoPublik(); this.s.err = null; this.rapikanPilihan(); } catch (e) { /* biarkan data lama */ }
@@ -6063,11 +6262,16 @@ const Pub = {
   },
   vDaftar() {
     const s = this.s, ev = s.info.event;
-    if (s.step === 4 && s.hasil) return this.vSukses();
+    if (s.mode === 'rb' && s.step === 4 && s.rbHasil) return this.vRbSukses();
+    if (s.mode !== 'rb' && s.step === 4 && s.hasil) return this.vSukses();
     if (!ev.pendaftaran_buka) {
       return `<section class="card"><h2 class="h2">Pendaftaran ditutup</h2>
         <p class="lead">Pendaftaran online saat ini tidak menerima peserta baru. Pantau jadwal atau hubungi panitia untuk informasi.</p>
         <div class="actions"><a class="btn" href="#jadwal">${ico('cal')} Lihat jadwal</a><a class="btn" href="#cek">${ico('search')} Cek status</a></div></section>`;
+    }
+    if (this.bisaRb()) {
+      if (s.mode === 'rb') return this.vRb();
+      if (!s.mode) return this.vMode();
     }
     if (s.step === 2) return this.vKonfirmasi();
     if (s.step === 3) return this.vBayar();
@@ -6095,6 +6299,7 @@ const Pub = {
       ${this.vStepper(1)}
       <h2 class="h2" id="judul-step" tabindex="-1">Data layangan & sekha</h2>
       <p class="lead">Satu formulir untuk satu layangan.</p>
+      ${this.vGantiMode('rb')}
       ${ev.info ? `<details class="info-box" data-info ${s.infoOpen ? 'open' : ''}><summary>${ico('info')} Info & ketentuan lomba</summary><div>${nl2br(ev.info)}</div></details>` : ''}
       <form data-submit="pub.data" novalidate>
         <fieldset class="field ${e.jenis ? 'err' : ''}" id="wrap-jenis">
@@ -6283,9 +6488,26 @@ const Pub = {
       seri: t.sesi_nama ? `Seri ${t.sesi_nama} · Grup ${t.huruf}` : (t.seri_nama || '-'), jam: jamText(x) || 'Menyusul', kotak: t.kotak,
     };
   },
+  dataPdfTiketRb(t) {
+    return { ev: t.event || {}, kode: t.rombongan, wa: fmtWA(t.no_wa) || t.no_wa, pengirim: t.nama_rekening, total: t.total,
+      items: t.items.map((x) => ({ ...this.dataPdfTiket({ ...x, event: t.event }), jadwalPendek: jadwalPdf(x) })) };
+  },
+  vTiketRb(t) {
+    const dj = (this.s.info && this.s.info.jenis) || [];
+    return `<section class="card" aria-labelledby="judul-tiket">
+      <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:6px">${badgeStatus('terkonfirmasi', `${t.items.length} layangan terdaftar`)}<span class="hint mono">${esc(t.rombongan)}</span></div>
+      <h2 class="h2" id="judul-tiket">Konfirmasi pendaftaran rombongan</h2>
+      <div class="rb-list">${t.items.map((x) => { const d = this.dataPdfTiket({ ...x, event: t.event });
+        return `<div><span class="rb-no">${esc(x.nomor_layangan || '-')}</span><span class="rb-i"><span class="jtag">${jdot(x.jenis_kode, dj)}${esc(x.jenis)}</span><small>${esc(d.seri)}${x.kotak ? ` · slot ${x.kotak}` : ''} · ${esc(d.tanggal)} · ${esc(d.jam)}<br>${esc(x.nama_sekha)} · ${esc(x.alamat)}</small></span><span class="rb-p">${rupiah(x.harga)}</span></div>`; }).join('')}</div>
+      <div class="total total-ringkas"><div><div class="t-l">Total dibayar</div><div class="t-s">${t.items.length} layangan</div></div><div class="amt">${rupiah(t.total)}</div></div>
+      <button type="button" class="btn btn-primary btn-lg btn-block" data-act="pub.unduhPdf">${ico('download')} Unduh PDF konfirmasi</button>
+      <p class="hint" style="margin:10px 0 0;text-align:center">PDF berisi ringkasan rombongan + 1 halaman per layangan. Simpan dan tunjukkan bila diminta panitia.</p>
+    </section>`;
+  },
   vTiket() {
     const t = this.s.tiket;
     if (t === undefined) return this.vKerangka();
+    if (t && t.rombongan && t.items) return this.vTiketRb(t);
     if (!t || t.gagal) {
       return `<section class="card"><h2 class="h2">Konfirmasi tidak ditemukan</h2>
         <p class="lead">${t && t.gagal ? esc(t.gagal) : 'Link ini tidak berlaku. Pendaftaran belum dikonfirmasi, dibatalkan, atau kodenya salah.'}</p>
@@ -6310,8 +6532,15 @@ const Pub = {
     const s = this.s;
     let hasil = '';
     if (s.cekHasil) {
+      // layangan dari 1 daftar rombongan tampil dalam 1 kartu; pendaftaran biasa tetap 1 kartu per layangan
+      const kartu = [], rb = new Map();
+      s.cekHasil.forEach((r) => {
+        if (!r.rombongan) { kartu.push(r); return; }
+        if (!rb.has(r.rombongan)) { const g = { rb: r.rombongan, rows: [] }; rb.set(r.rombongan, g); kartu.push(g); }
+        rb.get(r.rombongan).rows.push(r);
+      });
       hasil = s.cekHasil.length
-        ? `<p class="hint" style="margin:14px 0 0">${s.cekHasil.length} pendaftaran untuk ${esc(fmtWA(s.cekWa))}</p>${s.cekHasil.map((r) => this.vItemCek(r)).join('')}`
+        ? `<p class="hint" style="margin:14px 0 0">${s.cekHasil.length} layangan untuk ${esc(fmtWA(s.cekWa))}</p>${kartu.map((k) => (k.rb ? this.vItemCekRb(k.rb, k.rows) : this.vItemCek(k))).join('')}`
         : `<div class="empty">Belum ada pendaftaran dengan nomor ${esc(fmtWA(s.cekWa))}.</div>`;
     }
     return `<section class="card">
@@ -6326,10 +6555,29 @@ const Pub = {
       <div aria-live="polite">${hasil}</div>
     </section>`;
   },
+  vItemCekRb(kode, rows) {
+    const dj = this.s.info.jenis, n = rows.length;
+    rows = [...rows].sort((a, b) => (a.rb_urut ?? 0) - (b.rb_urut ?? 0));
+    const ok = rows.filter((r) => r.status === 'terkonfirmasi'), tunggu = rows.filter((r) => r.status === 'menunggu'), batal = rows.filter((r) => r.status === 'ditolak');
+    const campur = new Set(rows.map((r) => r.status)).size > 1;   // status per layangan hanya ditampilkan bila berbeda-beda
+    const status = tunggu.length ? badgeStatus('menunggu', 'Menunggu verifikasi') : `${ok.length ? badgeStatus('terkonfirmasi', `${ok.length} terdaftar`) : ''}${batal.length ? badgeStatus('ditolak', `${batal.length} batal`) : ''}`;
+    const total = rows.filter((r) => r.status !== 'ditolak').reduce((t, r) => t + (r.harga || 0), 0);
+    return `<article class="cek-item cek-rbk">
+      <div class="cek-top"><span class="cek-rbh">${ico('layers')}<span><b>Rombongan ${esc(kode)}</b><small>${n} layangan · ${esc(fmtWaktu(rows[0].created_at))}</small></span></span>${status}</div>
+      <div class="rb-list">${rows.map((r) => {
+        const seri = { tanggal: r.tanggal, jam_mulai: r.jam_mulai, jam_selesai: r.jam_selesai }, st = r.status;
+        return `<div class="${st === 'ditolak' ? 'cek-rb-batal' : ''}"><span class="rb-no">${st !== 'ditolak' && r.nomor_layangan ? esc(r.nomor_layangan) : '—'}</span>
+          <span class="rb-i"><span class="jtag">${jdot(r.jenis, dj)}${esc(r.jenis_nama)}${campur ? `<em class="cek-rb-tag ${st}">${st === 'ditolak' ? 'Batal' : st === 'terkonfirmasi' ? 'Terdaftar' : 'Menunggu'}</em>` : ''}</span><small>${esc(r.seri_nama || '')} · ${esc(jadwalPdf(seri))}<br>${esc(r.nama_sekha)}</small></span></div>`;
+      }).join('')}</div>
+      <div class="cek-rb-sum"><span>Total ${ok.length && !tunggu.length ? 'dibayar' : 'tagihan'}</span><b>${rupiah(total)}</b></div>
+      ${tunggu.length ? `<div class="note">${ico('clock')}<span>Pembayaran sedang diverifikasi panitia. Konfirmasi semua layangan dikirim dalam 1 pesan WhatsApp.</span></div>` : ''}
+      ${ok.length ? `<a class="btn btn-primary btn-block" href="${esc(hrefEv('tiket/' + encodeURIComponent(kode)))}">${ico('download')} Lihat &amp; unduh PDF konfirmasi</a>` : ''}
+    </article>`;
+  },
   vItemCek(r) {
     const ev = this.s.info.event, seri = { tanggal: r.tanggal, jam_mulai: r.jam_mulai, jam_selesai: r.jam_selesai };
     return `<article class="cek-item">
-      <div class="cek-top"><span class="jtag">${jdot(r.jenis, this.s.info.jenis)}${esc(r.jenis_nama)} · ${esc(r.seri_nama)}</span>${badgeStatus(r.status)}</div>
+      <div class="cek-top"><span class="jtag">${jdot(r.jenis, this.s.info.jenis)}${esc(r.jenis_nama)} · ${esc(r.seri_nama)}</span>${badgeStatus(r.status, r.rombongan && r.status === 'ditolak' ? 'Batal' : null)}</div>
       ${r.status !== 'ditolak' && r.nomor_layangan ? `<div class="cek-nomor"><span class="hint">Nomor layangan</span><b>${esc(r.nomor_layangan)}</b></div>` : ''}
       <div class="sc-when" style="margin-top:8px">${ico('cal')}<span>${esc(jadwalText(seri))}</span></div>
       <dl class="kv"><dt>Nama sekha</dt><dd>${esc(r.nama_sekha)}</dd><dt>Kode</dt><dd class="mono">${esc(r.kode)}</dd><dt>Didaftarkan</dt><dd>${esc(fmtWaktu(r.created_at))}</dd></dl>
@@ -6389,19 +6637,7 @@ const Pub = {
     const tahap = (m) => { s.sendMsg = m; this.render(); };
     try {
       tahap('Menyiapkan bukti…');
-      let blob = s.file, ext = 'pdf', tipe = 'application/pdf';
-      if (s.file.type !== 'application/pdf') {
-        const demo = api.mode === 'demo';
-        try {
-          blob = await kompresGambar(s.file, demo ? 1100 : { lebar: 1400, tinggi: 4200 }, demo ? 0.7 : 0.82);   // lebar dijaga supaya tulisan kecil di struk tetap terbaca
-          ext = 'jpg'; tipe = 'image/jpeg';
-        } catch (err) {
-          const asli = { 'image/jpeg': 'jpg', 'image/png': 'png', 'image/webp': 'webp' }[s.file.type];
-          if (!asli || s.file.size > 3 * 1048576) throw new Error('GAMBAR_GAGAL');
-          blob = s.file; tipe = s.file.type; ext = asli;
-        }
-      }
-      if (blob.size > 3 * 1048576) throw new Error('FILE_BESAR');
+      const { blob, ext, tipe } = await siapkanBlobBukti(s.file);
       const hash = await sha256File(s.file);
       const path = `bukti/${s.ref}.${ext}`;
       tahap('Mengunggah bukti transfer…');
@@ -6465,12 +6701,386 @@ const Pub = {
   },
 };
 
+/* ---------------- daftar beberapa layangan (rombongan) ----------------
+   1 nomor WA + 1 bukti transfer untuk 2–10 layangan. Tiap layangan: jenis → seri → nomor → sekha & alamat.
+   Layangan ke-2 dst. bawaannya "sekha & alamat sama dengan layangan sebelumnya". */
+const rbItemBaru = (i) => ({ jenis: '', seri_id: null, nomor: '', sama: i > 0, nama_sekha: '', alamat: '' });
+Object.assign(Pub.s, { mode: null, rb: { items: [rbItemBaru(0)], buka: 0, err: {}, cek: {} }, rbHasil: null });
+Object.assign(Pub, {
+  bisaRb() { return typeof api.daftarRombongan === 'function'; },
+  rbJenis(it) { return this.s.info && this.s.info.jenis.find((j) => j.kode === it.jenis); },
+  rbSeri(it) { return this.s.info && this.s.info.seri.find((x) => x.id === it.seri_id); },
+  rbNomor(it) { return rapikanNomor(it.nomor, this.rbJenis(it)); },
+  /* sekha & alamat yang berlaku untuk layangan ke-i (ikut layangan sebelumnya bila "sama") */
+  rbSekha(i) {
+    const L = this.s.rb.items;
+    let k = i; while (k > 0 && L[k].sama) k--;
+    return { nama_sekha: String(L[k].nama_sekha || '').trim(), alamat: String(L[k].alamat || '').trim(), dari: k };
+  },
+  rbTotal() { return this.s.rb.items.reduce((t, it) => t + ((this.rbJenis(it) || {}).harga || 0), 0); },
+  /* sisa slot grup untuk layangan ke-i: kuota dikurangi pendaftar lain & layangan lain di daftar ini */
+  rbSisa(x, i) { return Math.max(0, x.kuota - x.terisi - this.s.rb.items.filter((it, k) => k !== i && it.seri_id === x.id).length); },
+  rbSisaJenis(kode, i) { return this.grupJadwal().filter((x) => x.jenis === kode && x.aktif).reduce((a, x) => a + this.rbSisa(x, i), 0); },
+  rbValidasi(i) {
+    const it = this.s.rb.items[i], e = {}, j = this.rbJenis(it);
+    if (!it.jenis) e.jenis = 'Pilih jenis layangan.';
+    if (!it.seri_id) e.seri_id = it.jenis ? 'Pilih seri dan grup.' : 'Pilih jenis layangan dulu.';
+    if (!String(it.nomor || '').trim()) e.nomor = 'Isi nomor layangan.';
+    else if (!normNomor(it.nomor)) e.nomor = 'Nomor layangan harus angka, maksimal 6 digit.';
+    else if (j && !dalamRentang(this.rbNomor(it), j)) e.nomor = `Nomor ${j.nama} harus di antara ${teksRentang(j)}.`;
+    else if (j) {
+      const sama = this.s.rb.items.findIndex((o, k) => k !== i && o.jenis === it.jenis && this.rbNomor(o) === this.rbNomor(it));
+      if (sama >= 0) e.nomor = `Nomor ${this.rbNomor(it)} sudah dipakai layangan ke-${sama + 1} di daftar ini.`;
+      else if (this.s.rb.cek[i] && this.s.rb.cek[i].nomor === this.rbNomor(it) && this.s.rb.cek[i].jenis === it.jenis && this.s.rb.cek[i].ok === false) e.nomor = `Nomor ${this.rbNomor(it)} sudah dipakai peserta lain di jenis ini.`;
+    }
+    if (!it.sama || i === 0) {
+      if (String(it.nama_sekha || '').trim().length < 2) e.nama_sekha = 'Isi nama sekha.';
+      if (String(it.alamat || '').trim().length < 3) e.alamat = 'Isi alamat sekha.';
+    }
+    return e;
+  },
+  vMode() {
+    return `<section class="card" aria-labelledby="judul-step">${this.vStepper(1)}
+      <h2 class="h2" id="judul-step" tabindex="-1">Mau daftar berapa layangan?</h2>
+      <p class="lead">Pilih cara daftar yang sesuai.</p>
+      <div class="rb-mode">
+        <button type="button" class="opt" data-act="pub.mode" data-v="satu"><span class="rb-mode-i">${ico('kite')}</span><span class="opt-body"><span class="opt-t">1 layangan</span><span class="opt-s">Isi 1 formulir, bayar 1 layangan.</span></span>${ico('chev-r', 'rb-mode-c')}</button>
+        <button type="button" class="opt" data-act="pub.mode" data-v="rb"><span class="rb-mode-i">${ico('layers')}</span><span class="opt-body"><span class="opt-t">Beberapa layangan</span><span class="opt-s">2–${MAKS_ROMBONGAN} layangan, boleh beda jenis &amp; beda sekha. Transfer sekali, unggah 1 bukti.</span></span>${ico('chev-r', 'rb-mode-c')}</button>
+      </div></section>`;
+  },
+  vGantiMode(ke) {
+    return this.bisaRb() ? `<button type="button" class="rb-ganti" data-act="pub.mode" data-v="${ke}">${ico('layers')}${ke === 'rb' ? 'Mau daftar beberapa layangan sekaligus?' : 'Hanya 1 layangan? Pakai formulir biasa'}</button>` : '';
+  },
+  vRb() {
+    const s = this.s;
+    if (s.step === 4 && s.rbHasil) return this.vRbSukses();
+    if (s.step === 2) return this.vRbKonfirmasi();
+    if (s.step === 3) return this.vRbBayar();
+    return this.vRbData();
+  },
+  vRbData() {
+    const s = this.s, f = s.form, rb = s.rb, ev = s.info.event, n = rb.items.length;
+    return `<section class="card" aria-labelledby="judul-step">
+      ${this.vStepper(1)}
+      <h2 class="h2" id="judul-step" tabindex="-1">Daftar beberapa layangan</h2>
+      <p class="lead">Satu nomor WhatsApp &amp; satu bukti transfer untuk semua layangan (maksimal ${MAKS_ROMBONGAN}).</p>
+      ${this.vGantiMode('satu')}
+      ${ev.info ? `<details class="info-box" data-info ${s.infoOpen ? 'open' : ''}><summary>${ico('info')} Info & ketentuan lomba</summary><div>${nl2br(ev.info)}</div></details>` : ''}
+      ${fieldInput({ name: 'no_wa', label: 'Nomor WhatsApp', value: f.no_wa, type: 'tel', inputmode: 'tel', maxlength: 20, autocomplete: 'tel', err: s.errors.no_wa, data: 'data-in="pub.f"', hint: this.hintWA() })}
+      <div class="rb-lbl" id="wrap-rb-list">Layangan <b>${n}</b><span>/ ${MAKS_ROMBONGAN}</span></div>
+      ${s.errors.rb ? `<div class="note bad" role="alert">${ico('alert')}<span>${esc(s.errors.rb)}</span></div>` : ''}
+      ${rb.items.map((it, i) => (i === rb.buka ? this.vRbBuka(i) : this.vRbTutup(i))).join('')}
+      ${n < MAKS_ROMBONGAN ? `<button type="button" class="rb-add" data-act="pub.rbTambah">${ico('plus')} Tambah layangan</button>` : `<p class="hint" style="text-align:center">Sudah ${MAKS_ROMBONGAN} layangan (batas maksimal).</p>`}
+      <div class="total total-ringkas rb-total"><div><div class="t-l">Total bayar</div><div class="t-s">${n} layangan</div></div><div class="amt">${rupiah(this.rbTotal())}</div></div>
+      <button type="button" class="btn btn-primary btn-lg btn-block" data-act="pub.rbLanjut">Lanjut ke konfirmasi ${ico('arrow-r')}</button>
+    </section>`;
+  },
+  vRbTutup(i) {
+    const it = this.s.rb.items[i], j = this.rbJenis(it), x = this.rbSeri(it), sk = this.rbSekha(i), salah = this.s.rb.err[i] && Object.keys(this.s.rb.err[i]).length;
+    const ket = [it.nomor ? `No. <b>${esc(this.rbNomor(it) || it.nomor)}</b>` : '', x ? esc(this.labelGrup(x).replace(/ · [^·]+$/, '')) : '', sk.nama_sekha ? esc(sk.nama_sekha) : ''].filter(Boolean).join(' · ');
+    return `<div class="rb-ly${salah ? ' err' : ''}"><button type="button" class="rb-ly-h" data-act="pub.rbBuka" data-i="${i}" aria-label="Ubah layangan ke-${i + 1}">
+      <span class="rb-ly-n">${i + 1}</span>
+      <span class="rb-ly-t">${j ? `<span class="jtag">${jdot(j.kode, this.s.info.jenis)}${esc(j.nama)}</span>` : '<b>Belum lengkap</b>'}<small>${ket || 'Ketuk untuk mengisi'}</small></span>
+      <span class="rb-ly-r">${j ? rupiah(j.harga) : ''}<small>${salah ? `<em>${ico('alert')} Perbaiki</em>` : 'Ubah ›'}</small></span></button></div>`;
+  },
+  vRbBuka(i) {
+    const s = this.s, rb = s.rb, it = rb.items[i], e = rb.err[i] || {}, j = this.rbJenis(it), info = s.info, id = (k) => `rb-${i}-${k}`;
+    const jenis = this.jenisTerjadwal();
+    const optJenis = `<option value="">Pilih jenis layangan</option>${jenis.map((x) => { const sisa = this.rbSisaJenis(x.kode, i), off = sisa <= 0 && x.kode !== it.jenis;
+      return `<option value="${esc(x.kode)}" ${x.kode === it.jenis ? 'selected' : ''} ${off ? 'disabled' : ''}>${esc(x.nama)} · ${rupiah(x.harga)}${off ? ' (kuota habis)' : ''}</option>`; }).join('')}`;
+    const sesiMap = new Map((info.sesi || []).map((x) => [x.id, x])), hariMap = new Map((info.hari || []).map((h) => [h.id, h]));
+    const grup = it.jenis ? this.grupJadwal().filter((x) => x.jenis === it.jenis && x.aktif)
+      .sort((a, b) => urutHari(hariMap.get((sesiMap.get(a.sesi_id) || {}).hari_id) || {}, hariMap.get((sesiMap.get(b.sesi_id) || {}).hari_id) || {}) || urutSesi(sesiMap.get(a.sesi_id), sesiMap.get(b.sesi_id)) || urutGrup(a, b)) : [];
+    const optSeri = it.jenis ? (grup.length ? `<option value="">Pilih seri &amp; grup</option>${grup.map((x) => { const sesi = sesiMap.get(x.sesi_id) || {}, h = hariMap.get(sesi.hari_id), sisa = this.rbSisa(x, i), off = sisa <= 0 && x.id !== it.seri_id;
+      return `<option value="${x.id}" ${x.id === it.seri_id ? 'selected' : ''} ${off ? 'disabled' : ''}>Seri ${esc(sesi.nama || '')} · Grup ${esc(x.huruf || '')} · ${h ? esc(h.nama) + ' ' : ''}${esc(jamSesi(sesi))} (${off ? 'penuh' : `sisa ${sisa}`})</option>`; }).join('')}` : '<option value="">Belum ada grup dibuka untuk jenis ini</option>') : '<option value="">Pilih jenis layangan dulu</option>';
+    const sel = (k, label, opts, ch, dis) => `<div class="field ${e[k] ? 'err' : ''}" id="wrap-${id(k)}"><label class="label" for="${id(k)}">${label}</label><select class="input" id="${id(k)}" data-ch="${ch}" data-i="${i}" ${dis ? 'disabled' : ''}>${opts}</select>${errMsg(e[k])}</div>`;
+    const sk = this.rbSekha(i);
+    return `<div class="rb-ly open${Object.keys(e).length ? ' err' : ''}" id="rb-ly-${i}">
+      <div class="rb-ly-h"><span class="rb-ly-n">${i + 1}</span><span class="rb-ly-t"><b>Layangan ke-${i + 1}</b><small>${j ? `${esc(j.nama)} · ${rupiah(j.harga)}` : 'Sedang diisi'}</small></span>
+        ${rb.items.length > 1 ? `<button type="button" class="btn btn-xs btn-ghost rb-hapus" data-act="pub.rbHapus" data-i="${i}">${ico('x')} Hapus</button>` : ''}</div>
+      <div class="rb-ly-b">
+        ${sel('jenis', 'Jenis layangan', optJenis, 'pub.rbJenis')}
+        ${sel('seri_id', 'Seri &amp; grup', optSeri, 'pub.rbSeri', !it.jenis)}
+        ${fieldInput({ id: id('nomor'), name: 'nomor', label: 'Nomor layangan', value: it.nomor, type: 'text', inputmode: 'numeric', maxlength: 6, autocomplete: 'off', err: e.nomor, data: `data-in="pub.rbNomor" data-i="${i}"`, hint: this.rbHintNomor(i) })}
+        ${i > 0 ? `<label class="check rb-sama"><input type="checkbox" data-ch="pub.rbSama" data-i="${i}" ${it.sama ? 'checked' : ''}><span>Sekha &amp; alamat sama dengan layangan ${i}${it.sama && sk.nama_sekha ? `<small>${esc(sk.nama_sekha)} · ${esc(sk.alamat)}</small>` : ''}</span></label>` : ''}
+        ${i === 0 || !it.sama ? `${fieldInput({ id: id('nama_sekha'), name: 'nama_sekha', label: 'Nama sekha', value: it.nama_sekha, maxlength: 120, autocomplete: 'organization', err: e.nama_sekha, data: `data-in="pub.rbTeks" data-i="${i}"` })}
+        ${fieldInput({ id: id('alamat'), name: 'alamat', label: 'Alamat', value: it.alamat, maxlength: 300, textarea: true, rows: 2, autocomplete: 'street-address', err: e.alamat, data: `data-in="pub.rbTeks" data-i="${i}"` })}` : ''}
+      </div></div>`;
+  },
+  rbHintNomor(i) {
+    const it = this.s.rb.items[i], j = this.rbJenis(it), c = this.s.rb.cek[i], e = this.s.rb.err[i] || {};
+    if (!it.jenis) return 'Pilih jenis layangan dulu.';
+    const r = teksRentang(j);
+    if (e.nomor) return r ? `Nomor ${esc(j.nama)}: ${esc(r)}.` : 'Angka saja, maksimal 6 digit.';
+    const dasar = r ? `Nomor ${esc(j.nama)}: <b>${esc(r)}</b>.` : 'Angka saja, maksimal 6 digit.';
+    const n = this.rbNomor(it);
+    if (n && !dalamRentang(n, j)) return `<span class="nomor-cek bad">${ico('x')} Nomor ${esc(j.nama)} harus ${esc(r)}</span>`;
+    const dup = n ? this.s.rb.items.findIndex((o, k) => k !== i && o.jenis === it.jenis && this.rbNomor(o) === n) : -1;
+    if (dup >= 0) return `<span class="nomor-cek bad">${ico('x')} Sudah dipakai layangan ke-${dup + 1} di daftar ini</span>`;
+    if (!c || c.nomor !== n || c.jenis !== it.jenis) return dasar;
+    if (c.memeriksa) return '<span class="nomor-cek"><span class="spinner"></span> Memeriksa nomor…</span>';
+    return c.ok ? `<span class="nomor-cek ok">${ico('check')} Nomor ${esc(n)} masih tersedia</span>` : `<span class="nomor-cek bad">${ico('x')} Nomor ${esc(n)} sudah dipakai peserta lain</span>`;
+  },
+  vRbDaftar(items, opt = {}) {
+    const dj = this.s.info.jenis;
+    return `<div class="rb-list">${items.map((it, i) => {
+      const j = opt.hasil ? dj.find((y) => y.kode === it.jenis) : this.rbJenis(it), x = opt.hasil ? this.s.info.seri.find((y) => y.id === it.seri_id) : this.rbSeri(it);
+      const sk = opt.hasil ? it : this.rbSekha(i), no = opt.hasil ? it.nomor_layangan : this.rbNomor(it);
+      return `<div><span class="rb-no">${esc(no || '-')}</span><span class="rb-i">${j ? `<span class="jtag">${jdot(j.kode, dj)}${esc(j.nama)}</span>` : ''}<small>${esc(this.labelGrup(x).split(' · ').slice(0, 2).join(' · '))} · ${esc(jadwalText(x, true))}<br>${esc(sk.nama_sekha)} · ${esc(sk.alamat)}</small></span><span class="rb-p">${rupiah(opt.hasil ? it.harga : (j || {}).harga)}</span></div>`;
+    }).join('')}</div>`;
+  },
+  vRbKonfirmasi() {
+    const s = this.s, e = s.errors, n = s.rb.items.length, total = this.rbTotal();
+    return `<section class="card" aria-labelledby="judul-step">
+      ${this.vStepper(2)}
+      <h2 class="h2" id="judul-step" tabindex="-1">Konfirmasi ${n} layangan</h2>
+      <p class="lead">Periksa kembali sebelum membayar.</p>
+      ${s.catatanHarga ? `<div class="note warn" role="alert">${ico('alert')}<span>${esc(s.catatanHarga)}</span></div>` : ''}
+      ${this.vRbDaftar(s.rb.items)}
+      <dl class="kv rb-kv"><dt>WhatsApp</dt><dd class="nw">${esc(fmtWA(s.form.no_wa))}</dd></dl>
+      <div class="total total-ringkas"><div><div class="t-l">Total bayar</div><div class="t-s">${n} layangan · 1 kali transfer</div></div><div class="amt">${rupiah(total)}</div></div>
+      <label class="check ${e.setuju ? 'err' : ''}"><input type="checkbox" data-ch="pub.setuju" ${s.form.setuju ? 'checked' : ''}><span>Data di atas sudah benar dan saya akan mentransfer <b>${rupiah(total)}</b> sekaligus.</span></label>
+      ${errMsg(e.setuju)}
+      <div class="actions aksi-konf"><button type="button" class="btn" data-act="pub.kembali">${ico('arrow-l')} Ubah</button>
+      <button type="button" class="btn btn-primary" data-act="pub.lanjutBayar">Lanjut ke pembayaran ${ico('arrow-r')}</button></div>
+    </section>`;
+  },
+  vRbBayar() {
+    const s = this.s, f = s.form, e = s.errors, n = s.rb.items.length, total = this.rbTotal();
+    return `<section class="card" aria-labelledby="judul-step">
+      ${this.vStepper(3)}
+      <h2 class="h2" id="judul-step" tabindex="-1">Pembayaran</h2>
+      <p class="lead">Transfer <b>${rupiah(total)}</b> untuk ${n} layangan sekaligus, lalu unggah <b>1 bukti transfer</b>.</p>
+      ${this.vKotakBank(total)}
+      <form data-submit="pub.rbKirim" novalidate style="margin-top:20px">
+        ${fieldInput({ name: 'nama_rekening', label: 'Nama pemilik rekening (pengirim)', value: f.nama_rekening, placeholder: 'Nama sesuai rekening yang dipakai transfer', maxlength: 120, autocomplete: 'name', err: e.nama_rekening, data: 'data-in="pub.f"' })}
+        <div class="field ${e.file ? 'err' : ''}" id="wrap-file">
+          <span class="label" id="lbl-file">Bukti transfer (1 untuk semua layangan)</span>
+          <input type="file" id="f-file" class="sr-only" accept="image/*" data-ch="pub.file" aria-labelledby="lbl-file">
+          <input type="file" id="f-file-pdf" class="sr-only" accept="application/pdf,.pdf" data-ch="pub.file" aria-label="Pilih file PDF bukti transfer">
+          ${this.vKotakFile()}
+          <span class="hint">Nominal di bukti harus <b>${rupiah(total)}</b>. Foto/screenshot (JPG/PNG) atau PDF.</span>
+          ${errMsg(e.file)}
+        </div>
+        ${s.sendErr ? `<div class="note bad" role="alert">${ico('alert')}<span>${esc(s.sendErr)}</span></div>` : ''}
+        <div class="actions"><button type="button" class="btn" data-act="pub.kembali" ${s.sending ? 'disabled' : ''}>${ico('arrow-l')} Kembali</button>
+        <button type="submit" class="btn btn-primary" ${s.sending ? 'disabled' : ''}>${s.sending ? `<span class="spinner"></span>${esc(s.sendMsg)}` : `${ico('send')} Kirim ${n} pendaftaran`}</button></div>
+      </form>
+    </section>`;
+  },
+  vRbSukses() {
+    const s = this.s, h = s.rbHasil, ev = s.info.event;
+    return `<section class="card success" aria-labelledby="judul-step">
+      <div class="ok-ico">${ico('check')}</div>
+      <h2 class="h2" id="judul-step" tabindex="-1">${h.items.length} layangan terkirim!</h2>
+      <p class="lead" style="margin-bottom:8px">Simpan atau screenshot kode rombongan ini.</p>
+      <div class="kode-box"><b>${esc(h.rombongan)}</b><button type="button" class="btn btn-xs" data-act="salin" data-teks="${esc(h.rombongan)}" data-label="Kode rombongan disalin">${ico('copy')}Salin</button></div>
+      <div>${badgeStatus('menunggu', 'Menunggu verifikasi panitia')}</div>
+      ${this.vRbDaftar(h.items, { hasil: true })}
+      <div class="total total-ringkas"><div><div class="t-l">Total</div><div class="t-s">${h.items.length} layangan</div></div><div class="amt">${rupiah(h.total)}</div></div>
+      <div class="note">${ico('info')}<span>Setelah pembayaran dicek, panitia mengirim konfirmasi semua layangan dalam <b>1 pesan WhatsApp</b> ke <b>${esc(fmtWA(h.no_wa))}</b>. Status bisa dicek di menu <a href="#cek">Cek Status</a> dengan nomor WA ini.</span></div>
+      <div class="actions col">
+        <button type="button" class="btn" data-act="pub.rbBaru">${ico('plus')} Daftar rombongan lain</button>
+        ${ev.wa_admin ? `<a class="btn" target="_blank" rel="noopener" href="${esc(waLink(ev.wa_admin, `Halo panitia ${ev.nama_event}, saya sudah mendaftar ${h.items.length} layangan dengan kode rombongan ${h.rombongan}.`))}">${ico('chat')} Chat panitia via WhatsApp</a>` : ''}
+      </div>
+    </section>`;
+  },
+  rbTampilErr(i) {
+    const s = this.s;
+    s.rb.buka = i; this.render();
+    const el = document.getElementById('rb-ly-' + i);
+    if (el) { el.scrollIntoView({ block: 'start', behavior: 'smooth' }); const w = el.querySelector('.field.err select, .field.err input, .field.err textarea'); if (w) setTimeout(() => w.focus({ preventScroll: true }), 300); }
+  },
+  async rbLanjut(btn) {
+    const s = this.s, rb = s.rb, f = s.form;
+    s.errors = {}; rb.err = {};
+    if (!f.no_wa.trim()) s.errors.no_wa = 'Isi nomor WhatsApp.';
+    else if (!normWA(f.no_wa)) s.errors.no_wa = 'Nomor WhatsApp tidak valid. Contoh: 0812-3456-7890';
+    rb.items.forEach((_, i) => { const e = this.rbValidasi(i); if (Object.keys(e).length) rb.err[i] = e; });
+    if (rb.items.length < 2 && !Object.keys(rb.err).length) s.errors.rb = 'Tambahkan minimal 2 layangan. Untuk 1 layangan, pakai formulir biasa.';
+    if (s.errors.no_wa || s.errors.rb) { this.render(); this.fokusError(); if (s.errors.rb) { const el = $('#wrap-rb-list'); if (el) el.scrollIntoView({ block: 'center', behavior: 'smooth' }); } return; }
+    const salah = Object.keys(rb.err).map(Number);
+    if (salah.length) { this.rbTampilErr(salah[0]); return; }
+    if (btn) { btn.disabled = true; btn.innerHTML = '<span class="spinner"></span> Memeriksa kuota & nomor…'; }
+    await this.segarkan();
+    // kuota grup (dihitung bersama layangan lain di daftar ini) & nomor yang sudah dipakai orang lain
+    for (let i = 0; i < rb.items.length; i++) {
+      const it = rb.items[i], x = this.rbSeri(it);
+      if (!x || !x.aktif || this.rbSisa(x, i) <= 0) { it.seri_id = null; rb.err[i] = { seri_id: 'Grup ini baru saja penuh atau ditutup. Pilih grup lain.' }; this.rbTampilErr(i); return; }
+      const nomor = this.rbNomor(it);
+      let ok = true;
+      try { ok = await api.cekNomor(it.jenis, nomor); } catch (e) { /* dicek ulang saat menyimpan */ }
+      rb.cek[i] = { jenis: it.jenis, nomor, ok };
+      if (!ok) { rb.err[i] = { nomor: `Nomor ${nomor} sudah dipakai peserta lain di jenis ini. Gunakan nomor lain.` }; this.rbTampilErr(i); return; }
+    }
+    s.step = 2; s.errors = {};
+    this.render(); this.fokusJudul();
+  },
+  async rbKirim(form) {
+    const s = this.s, f = s.form, rb = s.rb, e = {};
+    if (s.sending) return;
+    if (f.nama_rekening.trim().length < 2) e.nama_rekening = 'Isi nama pemilik rekening pengirim.';
+    if (!s.file) e.file = 'Unggah bukti transfer.';
+    s.errors = e; s.sendErr = null;
+    if (Object.keys(e).length) { this.render(); this.fokusError(); return; }
+    s.sending = true;
+    s.ref = s.ref || uuid();
+    const tahap = (m) => { s.sendMsg = m; this.render(); };
+    try {
+      tahap('Menyiapkan bukti…');
+      const { blob, ext, tipe } = await siapkanBlobBukti(s.file);
+      const hash = await sha256File(s.file);
+      const path = `bukti/${s.ref}.${ext}`;
+      tahap('Mengunggah bukti transfer…');
+      await api.uploadBukti(path, blob, tipe);
+      tahap(`Menyimpan ${rb.items.length} pendaftaran…`);
+      const hasil = await api.daftarRombongan({
+        no_wa: f.no_wa, nama_rekening: f.nama_rekening.trim(), bukti_path: path, bukti_hash: hash, client_ref: s.ref,
+        items: rb.items.map((it, i) => { const sk = this.rbSekha(i); return { jenis: it.jenis, seri_id: it.seri_id, nomor_layangan: this.rbNomor(it), nama_sekha: sk.nama_sekha, alamat: sk.alamat, harga: (this.rbJenis(it) || {}).harga }; }),
+      });
+      s.catatanHarga = null;
+      s.rbHasil = hasil;
+      s.cekWa = f.no_wa;
+      s.step = 4; s.sending = false; s.ref = null; s.errors = {}; f.setuju = false;
+      s.rb = { items: [rbItemBaru(0)], buka: 0, err: {}, cek: {} };
+      this.simpanDraft(); this.hapusFile(); this.render();
+      window.scrollTo(0, 0); this.fokusJudul(); this.segarkan();
+    } catch (err) {
+      s.sending = false;
+      const kode = String((err && err.message) || ''), pesan = pesanError(err);
+      const m = kode.match(/:(\d+)\s*$/), i = err && err.idx != null ? err.idx : m ? Number(m[1]) : null;
+      if (i != null && rb.items[i] && /KUOTA_PENUH|SERI_TIDAK_VALID|JENIS_TIDAK_VALID|NOMOR_DIPAKAI|NOMOR_TIDAK_VALID|NOMOR_DILUAR_RENTANG|DATA_TIDAK_LENGKAP/.test(kode)) {
+        await this.segarkan();
+        const k = /NOMOR/.test(kode) ? 'nomor' : /DATA_TIDAK_LENGKAP/.test(kode) ? 'nama_sekha' : 'seri_id';
+        if (k === 'seri_id') rb.items[i].seri_id = null;
+        s.step = 1; s.ref = null; rb.err = { [i]: { [k]: pesan + ' Bukti transfer yang sudah dipilih tetap tersimpan.' } };
+        this.rbTampilErr(i); return;
+      }
+      if (/HARGA_BERUBAH/.test(kode)) {
+        await this.segarkan();
+        s.step = 2; s.ref = null; f.setuju = false; s.errors = {};
+        s.catatanHarga = `Biaya pendaftaran berubah. Total sekarang ${rupiah(this.rbTotal())}. Bila sudah terlanjur transfer dengan jumlah lama, hubungi panitia lewat tombol WhatsApp di bawah halaman.`;
+        this.render(); this.fokusJudul(); return;
+      }
+      if (/PENDAFTARAN_DITUTUP/.test(kode)) await this.segarkan();
+      s.sendErr = pesan + (/PENDAFTARAN_DITUTUP/.test(kode) ? ' Bila sudah terlanjur transfer, hubungi panitia lewat tombol WhatsApp di bawah halaman.' : '');
+      this.render();
+    }
+  },
+});
+/* foto bukti diperkecil (hemat kuota & upload cepat); PDF dikirim apa adanya */
+async function siapkanBlobBukti(file) {
+  let blob = file, ext = 'pdf', tipe = 'application/pdf';
+  if (file.type !== 'application/pdf') {
+    const demo = api.mode === 'demo';
+    try {
+      blob = await kompresGambar(file, demo ? 1100 : { lebar: 1400, tinggi: 4200 }, demo ? 0.7 : 0.82);   // lebar dijaga supaya tulisan kecil di struk tetap terbaca
+      ext = 'jpg'; tipe = 'image/jpeg';
+    } catch (err) {
+      const asli = { 'image/jpeg': 'jpg', 'image/png': 'png', 'image/webp': 'webp' }[file.type];
+      if (!asli || file.size > 3 * 1048576) throw new Error('GAMBAR_GAGAL');
+      blob = file; tipe = file.type; ext = asli;
+    }
+  }
+  if (blob.size > 3 * 1048576) throw new Error('FILE_BESAR');
+  return { blob, ext, tipe };
+}
+ACT['pub.mode'] = (el) => {
+  const s = Pub.s, v = el.dataset.v || null;
+  s.mode = v; s.step = 1; s.errors = {}; s.sendErr = null; s.ref = null; s.form.setuju = false;
+  if (v === 'rb' && !s.rb.items.length) s.rb = { items: [rbItemBaru(0)], buka: 0, err: {}, cek: {} };
+  Pub.simpanDraft(); Pub.render(); Pub.fokusJudul();
+};
+ACT['pub.rbBuka'] = (el) => { Pub.s.rb.buka = Number(el.dataset.i); Pub.render(); const c = document.getElementById('rb-ly-' + el.dataset.i); if (c) c.scrollIntoView({ block: 'nearest', behavior: 'smooth' }); };
+ACT['pub.rbTambah'] = () => {
+  const rb = Pub.s.rb;
+  if (rb.items.length >= MAKS_ROMBONGAN) return;
+  const e = Pub.rbValidasi(rb.buka);
+  if (Object.keys(e).length) { rb.err[rb.buka] = e; Pub.rbTampilErr(rb.buka); return; }
+  delete rb.err[rb.buka];
+  rb.items.push(rbItemBaru(rb.items.length)); rb.buka = rb.items.length - 1; Pub.s.errors.rb = null; Pub.s.ref = null;
+  Pub.simpanDraft(); Pub.render();
+  const c = document.getElementById('rb-ly-' + rb.buka); if (c) { c.scrollIntoView({ block: 'start', behavior: 'smooth' }); const sl = c.querySelector('select'); if (sl) setTimeout(() => sl.focus({ preventScroll: true }), 300); }
+};
+ACT['pub.rbHapus'] = async (el) => {
+  const rb = Pub.s.rb, i = Number(el.dataset.i), it = rb.items[i];
+  if (rb.items.length <= 1) return;
+  if ((it.jenis || it.nomor) && !(await konfirmasiDialog({ judul: `Hapus layangan ke-${i + 1}?`, isi: 'Isian layangan ini akan dihapus dari daftar.', tombol: 'Hapus', bahaya: true }))) return;
+  // layangan sesudahnya yang "sama" dengan yang dihapus: salin sekha supaya tidak berubah
+  if (rb.items[i + 1] && rb.items[i + 1].sama) { const sk = Pub.rbSekha(i); Object.assign(rb.items[i + 1], { nama_sekha: sk.nama_sekha, alamat: sk.alamat, sama: i > 0 && rb.items[i + 1].sama && it.sama }); }
+  rb.items.splice(i, 1); if (rb.items[0]) rb.items[0].sama = false;
+  const err = {}, cek = {};
+  Object.keys(rb.err).forEach((k) => { k = Number(k); if (k !== i) err[k > i ? k - 1 : k] = rb.err[k]; });
+  Object.keys(rb.cek).forEach((k) => { k = Number(k); if (k !== i) cek[k > i ? k - 1 : k] = rb.cek[k]; });
+  rb.err = err; rb.cek = cek; rb.buka = Math.min(rb.buka > i ? rb.buka - 1 : rb.buka, rb.items.length - 1); Pub.s.ref = null;
+  Pub.simpanDraft(); Pub.render();
+};
+ACT['pub.rbLanjut'] = (el) => Pub.rbLanjut(el);
+ACT['pub.rbBaru'] = () => { const s = Pub.s; s.rbHasil = null; s.step = 1; s.errors = {}; Pub.render(); Pub.fokusJudul(); };
+SUB['pub.rbKirim'] = (form) => Pub.rbKirim(form);
+const rbBersihErr = (i, k) => { const e = Pub.s.rb.err[i]; if (e && e[k]) { delete e[k]; if (!Object.keys(e).length) delete Pub.s.rb.err[i]; } };
+CH['pub.rbJenis'] = (el) => {
+  const i = Number(el.dataset.i), it = Pub.s.rb.items[i];
+  if (it.jenis !== el.value) { it.jenis = el.value; it.seri_id = null; delete Pub.s.rb.cek[i]; if (normNomor(it.nomor)) Pub.periksaNomorRb(i); }
+  rbBersihErr(i, 'jenis'); Pub.s.ref = null;
+  Pub.simpanDraft(); Pub.render();
+  const sl = document.getElementById(`rb-${i}-seri_id`); if (sl && !sl.disabled) sl.focus({ preventScroll: true });
+};
+CH['pub.rbSeri'] = (el) => {
+  const i = Number(el.dataset.i);
+  Pub.s.rb.items[i].seri_id = el.value ? Number(el.value) : null;
+  rbBersihErr(i, 'seri_id'); Pub.s.ref = null;
+  Pub.simpanDraft(); Pub.render();
+  const n = document.getElementById(`rb-${i}-nomor`); if (n && !n.value) n.focus({ preventScroll: true });
+};
+CH['pub.rbSama'] = (el) => {
+  const i = Number(el.dataset.i), it = Pub.s.rb.items[i];
+  it.sama = el.checked;
+  if (!el.checked && !it.nama_sekha && !it.alamat) { /* kolom kosong siap diisi */ }
+  rbBersihErr(i, 'nama_sekha'); rbBersihErr(i, 'alamat'); Pub.s.ref = null;
+  Pub.simpanDraft(); Pub.render();
+  if (!el.checked) { const t = document.getElementById(`rb-${i}-nama_sekha`); if (t) t.focus({ preventScroll: true }); }
+};
+IN['pub.rbTeks'] = (el) => {
+  const i = Number(el.dataset.i);
+  Pub.s.rb.items[i][el.name] = el.value; Pub.s.ref = null;
+  if (el.value.trim().length >= 2) { rbBersihErr(i, el.name); const w = el.closest('.field'); if (w) { w.classList.remove('err'); const m = w.querySelector('.err-msg'); if (m) m.remove(); } el.setAttribute('aria-invalid', 'false'); }
+  Pub.simpanDraft();
+};
+IN['pub.rbNomor'] = (el) => {
+  const i = Number(el.dataset.i);
+  Pub.s.rb.items[i].nomor = el.value; Pub.s.ref = null;
+  if (normNomor(el.value)) { rbBersihErr(i, 'nomor'); const w = el.closest('.field'); if (w) { w.classList.remove('err'); const m = w.querySelector('.err-msg'); if (m) m.remove(); } el.setAttribute('aria-invalid', 'false'); }
+  const h = document.getElementById(`rb-${i}-nomor-hint`); if (h) h.innerHTML = Pub.rbHintNomor(i);
+  Pub.simpanDraft();
+  Pub.periksaNomorRb(i);
+};
+Pub.periksaNomorRb = (() => {
+  const tunda = {};
+  return (i) => {
+    clearTimeout(tunda[i]);
+    tunda[i] = setTimeout(async () => {
+      const rb = Pub.s.rb, it = rb.items[i]; if (!it) return;
+      const j = Pub.rbJenis(it), nomor = Pub.rbNomor(it), tulis = () => { const h = document.getElementById(`rb-${i}-nomor-hint`); if (h) h.innerHTML = Pub.rbHintNomor(i); };
+      if (!nomor || !it.jenis || !dalamRentang(nomor, j)) { delete rb.cek[i]; tulis(); return; }
+      rb.cek[i] = { jenis: it.jenis, nomor, memeriksa: true }; tulis();
+      try { const ok = await api.cekNomor(it.jenis, nomor); if (rb.items[i] === it && Pub.rbNomor(it) === nomor && it.jenis === rb.cek[i].jenis) rb.cek[i] = { jenis: it.jenis, nomor, ok }; }
+      catch (e) { delete rb.cek[i]; }
+      tulis();
+    }, 450);
+  };
+})();
 ACT['pub.muat'] = () => Pub.muat();
 ACT['pub.juaraMuat'] = (el) => sibuk(el, () => Pub.muatJuara());
 ACT['pub.juaraJenis'] = (el) => { Pub.s.juaraJenis = el.dataset.v; Pub.render(); };
 ACT['pub.unduhPdf'] = (el) => sibuk(el, async () => {
   const t = Pub.s.tiket;
   if (!t || t.gagal) return;
+  if (t.rombongan && t.items) {
+    try { unduhBlob(await buatPdfRombongan(Pub.dataPdfTiketRb(t)), `Konfirmasi-${t.rombongan}-${t.items.length}-layangan.pdf`); toast('PDF konfirmasi diunduh', 'good'); }
+    catch (e) { toast(pesanError(e), 'bad', 6000); }
+    return;
+  }
   try {
     const blob = await buatPdfKonfirmasi(Pub.dataPdfTiket(t));
     const nama = `Konfirmasi-${String(t.nomor_layangan || t.kode).replace(/[^\w-]+/g, '')}-${String(t.nama_sekha).replace(/[^\w]+/g, '-').replace(/^-|-$/g, '').slice(0, 40)}.pdf`;
@@ -6725,7 +7335,7 @@ const Adm = {
     const jenis = new Map(d.jenis.map((j) => [j.kode, j]));
     const seri = new Map(d.seri.map((x) => [x.id, x]));
     const perSeri = new Map(d.seri.map((x) => [x.id, { menunggu: 0, terkonfirmasi: 0, ditolak: 0 }]));
-    const hash = new Map(), perWA = new Map();
+    const hash = new Map(), perWA = new Map(), rb = new Map();
     const st = { total: d.daftar.length, menunggu: 0, terkonfirmasi: 0, ditolak: 0, waBelum: 0, uangOk: 0, uangTunggu: 0 };
     for (const r of d.daftar) {
       st[r.status] = (st[r.status] || 0) + 1;
@@ -6735,7 +7345,9 @@ const Adm = {
       if (r.status === 'menunggu') st.uangTunggu += r.harga;
       if (r.bukti_hash) { if (!hash.has(r.bukti_hash)) hash.set(r.bukti_hash, []); hash.get(r.bukti_hash).push(r); }
       perWA.set(r.no_wa, (perWA.get(r.no_wa) || 0) + 1);
+      if (r.rombongan) { if (!rb.has(r.rombongan)) rb.set(r.rombongan, []); rb.get(r.rombongan).push(r); }
     }
+    rb.forEach((rows) => rows.sort((a, b) => String(a.client_ref || '').localeCompare(String(b.client_ref || ''), undefined, { numeric: true }) || a.created_at.localeCompare(b.created_at)));
     const { baca, belumDibaca, tidakTerbaca, sah } = this.indeksMirip(d);
     const cekGrup = this.indeksCek(d, sah);
     st.belumDibaca = belumDibaca.length; st.tidakTerbaca = tidakTerbaca;
@@ -6779,7 +7391,8 @@ const Adm = {
       masalah: d.daftar.filter((r) => r.status !== 'ditolak' && (tanda.get(r.id) || {}).hasil === 'bermasalah').length,
       aman: d.daftar.filter((r) => { if (!r.bukti_path || r.status === 'ditolak' || perluIds.has(r.id)) return false; const b = sah(r); return b && !b.gagal; }).length,
     };
-    this.idx = { jenis, seri, perSeri, hash, perWA, st, baca, cekGrup, belumDibaca, baruIds, hari, sesi, kotak, tanda };
+    st.rbTunggu = [...rb.values()].filter((rows) => rows.some((r) => r.status === 'menunggu')).length;
+    this.idx = { jenis, seri, perSeri, hash, perWA, st, baca, cekGrup, belumDibaca, baruIds, hari, sesi, kotak, tanda, rb };
   },
   baris(id) { return this.s.data && this.s.data.daftar.find((r) => r.id === id); },
   namaJenis(kode) { const j = this.idx && this.idx.jenis.get(kode); return j ? j.nama : kode; },
@@ -7223,7 +7836,7 @@ const Adm = {
       if (f.wa && !(r.status === 'terkonfirmasi' && !r.wa_terkirim_at)) return false;
       if (f.cek && !this.idx.cekGrup.has(r.id)) return false;
       if (q) {
-        const teks = `${r.kode} ${r.nama_sekha} ${r.alamat} ${r.nama_rekening} ${r.nomor_layangan || ''} ${r.catatan_admin || ''}`.toLowerCase();
+        const teks = `${r.kode} ${r.rombongan || ''} ${r.nama_sekha} ${r.alamat} ${r.nama_rekening} ${r.nomor_layangan || ''} ${r.catatan_admin || ''}`.toLowerCase();
         const cocokWA = (qWA && r.no_wa === qWA) || (qAngka.length >= 4 && qAngka.length === q.replace(/[\s+().-]/g, '').length && r.no_wa.includes(qAngka.replace(/^0/, '')));
         if (!teks.includes(q) && !cocokWA) return false;
       }
@@ -7302,7 +7915,8 @@ const Adm = {
     const kel = new Map();
     rows.forEach((r, i) => { const z = akar(i); if (!kel.has(z)) kel.set(z, []); kel.get(z).push(r); });
     const peta = new Map();
-    const daftarG = [...kel.entries()].filter(([, rr]) => rr.length > 1).map(([z, rr]) => {
+    const satuRb = (rr) => !!rr[0].rombongan && rr.every((r) => r.rombongan === rr[0].rombongan);
+    const daftarG = [...kel.entries()].filter(([, rr]) => rr.length > 1 && !satuRb(rr)).map(([z, rr]) => {
       rr.sort((p, q) => p.created_at.localeCompare(q.created_at));
       const aktif = rr.filter((r) => r.status !== 'ditolak');
       const total = aktif.reduce((t, r) => t + (r.harga || 0), 0);
@@ -7328,7 +7942,7 @@ const Adm = {
       .forEach((g, i) => { g.label = String(i + 1); g.rows.forEach((r) => peta.set(r.id, g)); });
     // selisih waktu transfer ↔ waktu daftar: pendaftaran tunggal jadi kartu "Perlu dicek" sendiri
     rows.forEach((r) => {
-      if (peta.has(r.id) || r.status === 'ditolak') return;
+      if (peta.has(r.id) || r.status === 'ditolak' || r.rombongan) return;
       const b = sah(r); if (!b || b.gagal) return;
       const wk = cekWaktuBukti(r, b), nominal = b.nominal || null, salahNom = nominal != null && nominal !== (r.harga || 0);
       if (!wk && !salahNom) return;
@@ -7692,7 +8306,10 @@ const Adm = {
       try {
         const contoh = api.bacaContoh ? api.bacaContoh(r.bukti_path) : null;
         let hasil = { nominal: null, waktu: null, nama: null, ref: null, rek4: null };
-        if (contoh) hasil = { nominal: contoh.nominal, waktu: contoh.waktu, nama: contoh.nama, ref: contoh.ref || null, rek4: contoh.rek4 || null };
+        // file yang sama sudah dibaca untuk layangan lain (daftar rombongan) → pakai hasilnya, tidak perlu OCR ulang
+        const kembar = r.rombongan ? ((this.s.data && this.s.data.baca) || []).find((b) => b.bukti_path === r.bukti_path && b.pendaftaran_id !== r.id) : null;
+        if (kembar) hasil = { nominal: kembar.nominal, waktu: kembar.waktu, nama: kembar.nama, ref: kembar.ref || null, rek4: kembar.rek4 || null };
+        else if (contoh) hasil = { nominal: contoh.nominal, waktu: contoh.waktu, nama: contoh.nama, ref: contoh.ref || null, rek4: contoh.rek4 || null };
         else {
           const res = await fetch(await this.urlBukti(r.bukti_path));      // gangguan jaringan → dicoba lagi lain kali
           if (!ocr) { try { ocr = await siapkanOCR(); } catch (e) { pb.ocrError = e; throw e; } }
@@ -7785,10 +8402,11 @@ const Adm = {
     if (wk) { const sls = g && g.why === 'waktu' && g.selesai; flags.push(`<span class="flag ck-flag ${sls ? 'sls' : WK_LABEL[wk.k][0]}" title="Transfer ${esc(fmtWaktu(wk.waktu))} · daftar ${esc(fmtWaktu(wk.daftar))}${sls ? ' (selesai dicek)' : ''}">${ico('clock')}${WK_LABEL[wk.k][1]}${wk.k === 'wajar' ? '' : ` · ${durasiTeks(wk.sel, true)}`}</span>`); }
     if (g && g.why !== 'waktu' && !tutup) { const L = this.lvCek(g); flags.push(`<span class="flag ck-flag ${L[0]}${g.selesai ? ' sls' : ''}" title="Cek Bukti: ${L[1]}${g.selesai ? ' (selesai dicek)' : ''}">${g.lv ? ico('alert') : ico('check')}${L[1]}</span>`); }
     if (this.idx.baruIds && this.idx.baruIds.has(r.id)) flags.push('<span class="flag baru-tag" title="Pendaftaran baru di kelompok yang sebelumnya sudah selesai dicek">BARU</span>');
+    if (r.rombongan) { const n = (this.idx.rb.get(r.rombongan) || []).length; flags.push(`<span class="flag rb-flag" title="Daftar rombongan: ${n} layangan, 1 bukti transfer">${ico('layers')}${esc(r.rombongan)} · ${n}</span>`); }
     if (!r.bukti_path) flags.push('<span class="flag info">Manual</span>');
     const baru = this.idx.baruIds && this.idx.baruIds.has(r.id);
     const seri = x ? (x.sesi_id ? this.labelSeriPendek(x) : x.nama) : '-';
-    const aksi = r.status === 'menunggu' ? `<span class="pd-cek">Cek bukti</span>`
+    const aksi = r.status === 'menunggu' ? `<span class="pd-cek">${r.rombongan ? 'Cek rombongan' : 'Cek bukti'}</span>`
       : wa[0] === 'need' ? `<span class="pd-wa need" title="${wa[1]}">${ico('chat')} WA belum</span>` : wa[0] === 'sent' ? `<span class="pd-wa sent" title="${wa[1]}">${ico('check')} WA</span>` : '';
     return `<div class="row pd-${esc(r.status)}${baru ? ' baru-cek' : ''}" role="button" tabindex="0" data-act="adm.buka" data-id="${esc(r.id)}" data-asal="${asal}">
       <span class="c-no"><span class="pd-no" style="--c:${warnaJenis(r.jenis, dj)}">${esc(r.nomor_layangan || '—')}</span></span>
@@ -8165,26 +8783,29 @@ const Adm = {
     const r = this.baris(this.s.detail);
     const lapisan = this.s.lapisDetail;
     if (!r) { if (lapisan) Overlay.tutup(lapisan); return; }
+    // layangan dari daftar rombongan dibuka sebagai satu halaman rombongan (kecuali panitia memilih "Detail" satu layangan)
+    const rbRows = r.rombongan && this.s.rbSatu !== r.id ? this.idx.rb.get(r.rombongan) : null;
+    const versi = rbRows ? 'rb:' + rbRows.map((x) => x.updated_at).join('|') : r.updated_at, kunci = rbRows ? 'rb:' + r.rombongan : r.id;
     if (dariSegar && lapisan) {
       const a = document.activeElement;
       if (a && lapisan.el.contains(a) && /^(TEXTAREA|INPUT)$/.test(a.tagName)) return;
-      if (lapisan.versi === r.updated_at) return;
+      if (lapisan.versi === versi) return;
     }
-    const html = this.vDetail(r);
+    const html = rbRows ? this.vRombongan(r, rbRows) : this.vDetail(r);
     if (lapisan && lapisan.el.isConnected) {
       const aside = lapisan.el.querySelector('.drawer');
       const scroll = aside.querySelector('.drawer-b').scrollTop;
-      const sama = lapisan.id === r.id;
+      const sama = lapisan.id === kunci;
       aside.innerHTML = html;
       if (sama) aside.querySelector('.drawer-b').scrollTop = scroll;
     } else {
       this.s.lapisDetail = Overlay.buka(`<div class="ovl" data-ovl-bg><aside class="drawer" role="dialog" aria-modal="true" aria-labelledby="dr-judul">${html}</aside></div>`,
-        { onClose: () => { this.s.detail = null; this.s.lapisDetail = null; } });
+        { onClose: () => { this.s.detail = null; this.s.lapisDetail = null; this.s.rbSatu = null; } });
     }
-    this.s.lapisDetail.versi = r.updated_at;
-    this.s.lapisDetail.id = r.id;
+    this.s.lapisDetail.versi = versi;
+    this.s.lapisDetail.id = kunci;
     this.muatBukti(r);
-    this.muatRiwayat(r);
+    if (!rbRows) this.muatRiwayat(r);
   },
   vDetail(r) {
     const x = this.idx.seri.get(r.seri_id), j = this.idx.jenis.get(r.jenis), dj = this.s.data.jenis;
@@ -8201,6 +8822,7 @@ const Adm = {
       </div>
       <div class="drawer-b">
         <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:14px">${badgeStatus(r.status)}<span class="badge b-off"><span class="jtag">${jdot(r.jenis, dj)}${esc((j && j.nama) || r.jenis)}</span></span><span class="badge b-off">${esc((x && x.nama) || '-')}</span>${!r.bukti_path ? '<span class="badge b-info">Manual</span>' : ''}</div>
+        ${r.rombongan ? `<div class="rb-banner">${ico('layers')}<span>Bagian dari <b>rombongan ${esc(r.rombongan)}</b> · ${(this.idx.rb.get(r.rombongan) || []).length} layangan, 1 bukti transfer.${r.status === 'menunggu' ? ' Konfirmasi lewat halaman rombongan.' : ''}</span><button type="button" class="btn btn-sm" data-act="adm.rbBuka" data-id="${esc(r.id)}">Buka rombongan</button></div>` : ''}
         ${r.status !== 'ditolak' && r.nomor_layangan ? `<div class="big-no">${ico('kite')}<div><span>Nomor layangan${r.status === 'menunggu' ? ' (belum dikonfirmasi)' : ''}</span><br><b>${esc(r.nomor_layangan)}</b></div></div>` : ''}
         ${r.status === 'ditolak' ? `<div class="note bad">${ico('x')}<span><b>Ditolak:</b> ${esc(r.alasan_tolak || '-')}</span></div>` : ''}
         <div class="sect"><h4>Pembayaran</h4>
@@ -8238,6 +8860,111 @@ const Adm = {
         </div></div>
       </div>
       ${this.vAksiDetail(r, next)}`;
+  },
+  /* ---------- daftar rombongan: beberapa layangan, 1 bukti transfer ----------
+     Panitia memilih ✓ (terima) / ✕ (batal) per layangan. Selama masih ditinjau, semua nomor tetap ditahan.
+     "Simpan & kirim WA": yang ✓ jadi terkonfirmasi, yang ✕ ditolak (nomornya dilepas), lalu 1 pesan WA berisi yang lunas saja. */
+  rbInfo(rows) {
+    const baca = rows.map((r) => this.bacaSah(r)), b = baca.find((x) => x && x.nominal) || baca.find(Boolean) || null;
+    const nominal = b && b.nominal ? Number(b.nominal) : null;
+    const tunggu = rows.filter((r) => r.status === 'menunggu');
+    const terima = rows.filter((r) => r.status === 'terkonfirmasi' || (r.status === 'menunggu' && !r.rb_tolak));
+    const tagihan = rows.reduce((t, r) => t + (r.harga || 0), 0), diterima = terima.reduce((t, r) => t + (r.harga || 0), 0);
+    return { b, nominal, tunggu, terima, tagihan, diterima, selAwal: nominal == null ? null : tagihan - nominal, sel: nominal == null ? null : diterima - nominal,
+      ok: rows.filter((r) => r.status === 'terkonfirmasi'), batal: rows.filter((r) => r.status === 'ditolak'), wk: cekWaktuBukti(rows[0], b) };
+  },
+  vRombongan(r, rows) {
+    const kode = r.rombongan, dj = this.s.data.jenis, I = this.rbInfo(rows), a = rows[0], tunggu = I.tunggu.length > 0;
+    const nav = this.s.nav, pos = nav.indexOf(r.id);
+    const prev = pos > 0 ? nav[pos - 1] : null, next = pos >= 0 && pos < nav.length - 1 ? nav[pos + 1] : null;
+    const tombolNav = (id, ikon, label) => `<button class="btn btn-icon btn-sm" data-act="adm.nav" data-id="${esc(id || '')}" ${id ? '' : 'disabled'} aria-label="${label}">${ico(ikon)}</button>`;
+    const rp = (x) => rupiah(Math.abs(x));
+    let nom;
+    if (!tunggu && I.nominal != null) nom = I.sel === 0 ? `<div class="cn ok">${ico('check')}<b>Nominal sesuai</b><span class="cn-v">${rupiah(I.nominal)}</span><small>Sama dengan total ${I.ok.length} layangan yang terdaftar</small></div>`
+      : `<div class="cn ${I.sel > 0 ? 'kr' : 'lb'}">${ico('alert')}<b>Nominal ${I.sel > 0 ? 'kurang' : 'lebih'}</b><span class="cn-v">${rp(I.sel)}</span><small>Di bukti ${rupiah(I.nominal)} · total ${I.ok.length} layangan terdaftar ${rupiah(I.diterima)}</small></div>`;
+    else if (I.nominal == null) nom = `<div class="cn na">${ico('info')}<b>Nominal belum terbaca</b><span class="cn-v"></span><small>Cocokkan manual dengan gambar bukti · total tagihan ${rupiah(I.tagihan)} untuk ${rows.length} layangan</small></div>`;
+    else if (I.selAwal === 0) nom = `<div class="cn ok">${ico('check')}<b>Nominal sesuai</b><span class="cn-v">${rupiah(I.nominal)}</span><small>Di bukti sama dengan total tagihan ${rows.length} layangan</small></div>`;
+    else nom = `<div class="rb-warn${I.selAwal > 0 ? '' : ' lb'}"><b>Tagihan ${rupiah(I.tagihan)}, bukti ${I.selAwal > 0 ? 'hanya ' : ''}${rupiah(I.nominal)}</b>${I.selAwal > 0 ? `Kurang ${rp(I.selAwal)}` : `Lebih ${rp(I.selAwal)}`}.${tunggu ? ' Hubungi peserta dulu sebelum konfirmasi.' : ''}</div>`;
+    const wk = I.wk ? `<div class="ck-fl ${I.wk.k === 'lama' ? 'w' : 'bad'}">${ico('clock')}<span><b>${WK_LABEL[I.wk.k][1]}:</b> transfer ${durasiTeks(I.wk.sel)} ${I.wk.k === 'wajar' ? 'setelah' : 'sebelum'} daftar.</span></div>` : '';
+    const hub = !tunggu ? '' : a.rb_hubungi_at
+      ? `<div class="rb-hub on">${ico('chat')}<span><b>Sedang dihubungi</b><small>oleh ${esc(labelOleh(a.rb_hubungi_oleh) || 'panitia')} · ${esc(fmtWaktu(a.rb_hubungi_at))}</small></span><a class="btn btn-xs" href="${esc(waLink(a.no_wa))}" target="_blank" rel="noopener">Chat peserta</a>${api.hubungiRombongan ? `<button type="button" class="btn btn-xs btn-ghost" data-act="adm.rbHubungi" data-kode="${esc(kode)}" data-v="0">Selesai</button>` : ''}</div>`
+      : `<div class="rb-hub">${ico('chat')}<span><b>Perlu menghubungi peserta?</b><small>Misalnya nominal kurang atau ada layangan yang batal.</small></span>${api.hubungiRombongan ? `<button type="button" class="btn btn-xs" data-act="adm.rbHubungi" data-kode="${esc(kode)}" data-v="1">Tandai sedang dihubungi</button>` : `<a class="btn btn-xs" href="${esc(waLink(a.no_wa))}" target="_blank" rel="noopener">Chat peserta</a>`}</div>`;
+    const baris = rows.map((o) => {
+      const x = this.idx.seri.get(o.seri_id), j = this.idx.jenis.get(o.jenis), id = esc(o.id), tg = o.status === 'menunggu';
+      const kls = tg ? (o.rb_tolak ? 'no' : 'ok') : o.status === 'terkonfirmasi' ? 'ok sls' : 'no sls';
+      const kanan = tg
+        ? `<span class="rb-tg"><button type="button" class="t-no${o.rb_tolak ? ' on' : ''}" data-act="adm.rbTg" data-id="${id}" data-v="1" aria-pressed="${!!o.rb_tolak}" aria-label="Batal / tolak No. ${esc(o.nomor_layangan || '')}">${ico('x')}</button><button type="button" class="t-ok${o.rb_tolak ? '' : ' on'}" data-act="adm.rbTg" data-id="${id}" data-v="0" aria-pressed="${!o.rb_tolak}" aria-label="Terima No. ${esc(o.nomor_layangan || '')}">${ico('check')}</button></span>`
+        : badgeStatus(o.status, o.status === 'ditolak' ? 'Batal' : 'Terdaftar');
+      return `<div class="rb-tr ${kls}"><div class="rb-tr-h"><span class="rb-no">${esc(o.nomor_layangan || '—')}</span>
+          <span class="rb-i"><span class="jtag">${jdot(o.jenis, dj)}${esc((j && j.nama) || o.jenis)}</span><small>${esc(this.labelGrupAdm(x))}${o.kotak && o.status !== 'ditolak' ? ` · slot ${o.kotak}` : ''}<br>${esc(o.nama_sekha)} · ${esc(o.alamat)}</small><button type="button" class="rb-det" data-act="adm.rbSatu" data-id="${id}">Detail ›</button></span>
+          <span class="rb-r"><b>${rupiah(o.harga)}</b>${kanan}</span></div>
+        ${tg && o.rb_tolak ? `<div class="rb-cat"><textarea class="input input-sm" rows="2" maxlength="300" placeholder="Catatan, mis. batal — dikonfirmasi lewat telepon" data-in="adm.rbCatatan" data-id="${id}" aria-label="Catatan No. ${esc(o.nomor_layangan || '')}">${esc(o.catatan_admin || '')}</textarea><small class="hint">Catatan hanya untuk panitia, tidak masuk WA.</small></div>` : ''}
+        ${!tg && o.catatan_admin ? `<div class="rb-cat"><small class="hint">${ico('edit')} ${esc(o.catatan_admin)}</small></div>` : ''}</div>`;
+    }).join('');
+    const nTerima = I.terima.length, selTerima = I.sel;
+    const sum = `<div class="rb-sum ${selTerima == null ? 'n' : selTerima === 0 ? 'ok' : 'bad'}"><span>Diterima ${nTerima} · ${rupiah(I.diterima)}</span><span>${selTerima == null ? 'cocokkan manual' : selTerima === 0 ? `${ico('check')} sesuai bukti` : selTerima > 0 ? `kurang ${rp(selTerima)} dari bukti` : `lebih ${rp(selTerima)} dari bukti`}</span></div>`;
+    const okBaru = I.tunggu.filter((o) => !o.rb_tolak);
+    let kaki;
+    if (tunggu) {
+      const lepas = I.tunggu.filter((o) => o.rb_tolak).map((o) => o.nomor_layangan).filter(Boolean);
+      kaki = okBaru.length
+        ? (selTerima != null && selTerima !== 0
+          ? `<button type="button" class="btn btn-good" data-act="adm.rbTanya" data-kode="${esc(kode)}">${ico('chat')} Simpan &amp; kirim WA (${okBaru.length + I.ok.length} layangan)</button>`
+          : `<a class="btn btn-good" href="#" target="_blank" rel="noopener" data-act="adm.rbSimpan" data-kode="${esc(kode)}">${ico('chat')} Simpan &amp; kirim WA (${okBaru.length + I.ok.length} layangan)</a>`)
+        : `<button type="button" class="btn btn-danger" data-act="adm.rbSimpan" data-kode="${esc(kode)}">${ico('x')} Simpan: semua batal</button>`;
+      kaki = `<div class="drawer-f rb-f">${kaki}${lepas.length ? `<small class="hint">Nomor ${esc(lepas.join(', '))} dilepas setelah disimpan.</small>` : ''}</div>`;
+    } else if (I.ok.length) {
+      const sudah = I.ok.every((o) => o.wa_terkirim_at);
+      kaki = `<div class="drawer-f"><a class="btn ${sudah ? '' : 'btn-good'}" href="${esc(waLink(a.no_wa, this.pesanWARombongan(kode, I.ok)))}" target="_blank" rel="noopener" data-act="adm.rbWA" data-kode="${esc(kode)}">${ico('chat')} ${sudah ? 'Kirim ulang WA konfirmasi' : 'Kirim WA konfirmasi'}</a>
+        <button type="button" class="btn" data-act="adm.rbPdf" data-kode="${esc(kode)}">${ico('download')} PDF</button></div>`;
+    } else kaki = '';
+    const status = tunggu ? badgeStatus('menunggu', 'Ditinjau panitia') : `${I.ok.length ? badgeStatus('terkonfirmasi', `${I.ok.length} terdaftar`) : ''}${I.batal.length ? badgeStatus('ditolak', `${I.batal.length} batal`) : ''}`;
+    return `<div class="drawer-h">
+        <button class="btn btn-icon btn-ghost" data-act="ovl.tutup" aria-label="Tutup">${ico('x')}</button>
+        <div class="dt"><b id="dr-judul">${esc(kode)}</b><span>Rombongan · ${rows.length} layangan · 1 transfer · ${esc(fmtWaktu(a.created_at))}</span></div>
+        ${nav.length > 1 && pos >= 0 ? `<span class="hint num">${pos + 1}/${nav.length}</span>` : ''}
+        ${tombolNav(prev, 'chev-l', 'Sebelumnya')}${tombolNav(next, 'chev-r', 'Berikutnya')}
+      </div>
+      <div class="drawer-b rb-drawer">
+        <div class="rb-top">${status}<span class="hint">WA <a href="${esc(waLink(a.no_wa))}" target="_blank" rel="noopener">${esc(fmtWA(a.no_wa))}</a></span></div>
+        <div class="sect"><h4>Bukti transfer</h4>
+          ${a.bukti_path ? `<div class="rb-bukti"><div class="bukti-box" id="bukti-box"><div class="empty"><span class="spinner" style="margin:0 auto"></span></div></div>
+            <div class="rb-bukti-t"><b>${esc(a.nama_rekening)}</b><span>Pengirim${I.b && I.b.rek4 ? ` · rek. ••${esc(I.b.rek4)}` : ''}</span><span>Di bukti: <b>${I.nominal != null ? rupiah(I.nominal) : 'belum terbaca'}</b></span><div class="bukti-tools" id="bukti-tools"></div></div></div>` : ''}
+          ${nom}${wk}
+        </div>
+        ${hub}
+        <div class="sect"><h4>Layangan (${rows.length})</h4>
+          ${tunggu ? '<p class="hint" style="margin:-4px 0 10px">Tekan <b>✓</b> untuk layangan yang dibayar, <b>✕</b> untuk yang batal.</p>' : ''}
+          <div class="rb-tb">${baris}</div>${tunggu ? sum : ''}
+        </div>
+        ${I.ok.length ? `<div class="sect"><h4>Tindakan lain</h4><div class="sa-act">
+          <button class="btn btn-sm" data-act="salin" data-teks="${esc(linkTiket(kode))}" data-label="Link PDF rombongan disalin">${ico('copy')} Salin link PDF</button>
+          <button class="btn btn-sm" data-act="adm.rbPdf" data-kode="${esc(kode)}">${ico('download')} Unduh PDF rombongan</button>
+          <a class="btn btn-sm" href="${esc(waLink(a.no_wa))}" target="_blank" rel="noopener">${ico('chat')} Chat peserta</a></div></div>` : ''}
+      </div>
+      ${kaki}`;
+  },
+  pesanWARombongan(kode, rows) {
+    const ev = this.s.data.pengaturan, total = rows.reduce((t, r) => t + (r.harga || 0), 0);
+    const baris = rows.map((r) => {
+      const x = this.idx.seri.get(r.seri_id), sesi = x && x.sesi_id && this.idx.sesi.get(x.sesi_id);
+      return `• *No. ${r.nomor_layangan || '-'}* · ${this.namaJenis(r.jenis)}\n   ${r.nama_sekha} (${r.alamat})\n   ${sesi ? `Seri ${sesi.nama} · Grup ${x.huruf}` : ((x && x.nama) || '-')} · ${jadwalText(x, true)}`;
+    }).join('\n\n');
+    return `Om Swastyastu 🙏\n\n*KONFIRMASI PENDAFTARAN*\n*${ev.nama_event || 'Lomba Layangan'}*\n\nPembayaran ${rupiah(total)} sudah kami terima. *${rows.length} layangan* Anda resmi *TERDAFTAR*:\n\n${baris}\n\nKode rombongan: ${kode}\nUnduh PDF konfirmasi: ${linkTiket(kode)}\n\nMohon nomor dipasang pada layangan dan hadir tepat waktu sesuai jadwal seri.\n\nSuksma 🙏\n${ev.penyelenggara || ''}`.trim();
+  },
+  async simpanRombongan(kode) {
+    const rows = (this.idx.rb.get(kode) || []).filter((r) => r.status === 'menunggu'), now = new Date().toISOString();
+    const ok = rows.filter((r) => !r.rb_tolak), wa = ok.length > 0;
+    let gagal = 0;
+    for (const r of rows) {
+      const patch = r.rb_tolak ? { status: 'ditolak', alasan_tolak: 'Batal — tidak termasuk pembayaran rombongan' } : { status: 'terkonfirmasi', ...(wa ? { wa_terkirim_at: now } : {}) };
+      try { await this.ubah(r.id, patch, null, false); }
+      catch (e) { gagal++; toast(`No. ${r.nomor_layangan || r.kode}: ${pesanError(e)}`, 'bad', 8000); }
+    }
+    if (api.hubungiRombongan && (this.idx.rb.get(kode) || []).some((r) => r.rb_hubungi_at)) {
+      try { (await api.hubungiRombongan(kode, false)).forEach((x) => this.gantiBaris(x)); } catch (e) { /* tanda dihubungi tetap ada */ }
+    }
+    if (!gagal) toast(`Rombongan ${kode}: ${ok.length} terdaftar${rows.length - ok.length ? `, ${rows.length - ok.length} batal` : ''}${wa ? ' · WA dibuka' : ''}`, 'good', 6000);
   },
   /* riwayat lengkap dari database (riwayat.sql); list = null → ringkasan dari kolom waktu */
   vRiwayat(r, list) {
@@ -8301,6 +9028,7 @@ const Adm = {
       </tbody></table></div></div>`;
   },
   vAksiDetail(r, next) {
+    if (r.rombongan && r.status === 'menunggu') return `<div class="drawer-f"><button class="btn btn-primary" data-act="adm.rbBuka" data-id="${esc(r.id)}">${ico('layers')} Buka rombongan ${esc(r.rombongan)}</button></div>`;
     if (r.status === 'menunggu') {
       return `<div class="drawer-f"><button class="btn btn-danger" data-act="adm.tolak" data-id="${esc(r.id)}">${ico('x')} Tolak</button>
         <button class="btn btn-good" data-act="adm.konfirmasi" data-id="${esc(r.id)}">${ico('check')} Konfirmasi pembayaran</button></div>`;
@@ -8320,6 +9048,10 @@ const Adm = {
       hari: hari ? hari.nama : '-', tanggal: fmtTanggal(x && x.tanggal) || (hari ? `${hari.nama} (tanggal menyusul)` : 'Menyusul'), seri: sesi ? `Seri ${sesi.nama} · Grup ${x.huruf}` : ((x && x.nama) || '-'),
       jam: jamText(x) || 'Menyusul', kotak: r.kotak,
     };
+  },
+  dataPdfRombongan(kode, rows) {
+    return { ev: this.s.data.pengaturan, kode, wa: fmtWA(rows[0].no_wa), pengirim: rows[0].nama_rekening, total: rows.reduce((t, r) => t + (r.harga || 0), 0),
+      items: rows.map((r) => ({ ...this.dataPdf(r), jadwalPendek: jadwalPdf(this.idx.seri.get(r.seri_id)) })) };
   },
   namaPdf(r) { return `Konfirmasi-${String(r.nomor_layangan || r.kode).replace(/[^\w-]+/g, '')}-${String(r.nama_sekha).replace(/[^\w]+/g, '-').replace(/^-|-$/g, '').slice(0, 40)}.pdf`; },
   pesanWA(r, tpl) {
@@ -8865,7 +9597,8 @@ const SRI_XLSX = 'sha384-vtjasyidUo0kW94K5MXDXntzOJpQgBKXmE7e2Ga4LG0skTTLeBi97eF
    PDF KONFIRMASI — kartu digambar di canvas lalu dibungkus jadi PDF A5
    (tanpa pustaka luar; tidak disimpan di server)
    ===================================================================== */
-function bungkusPdfJpeg(jpeg, wPx, hPx) {
+/* halaman = [{ jpeg, w, h }] → 1 file PDF A5, satu gambar per halaman */
+function bungkusPdfHalaman(halaman) {
   const enc = new TextEncoder(), parts = [], offs = [];
   let len = 0;
   const tulis = (x) => { const b = typeof x === 'string' ? enc.encode(x) : x; parts.push(b); len += b.length; };
@@ -8873,16 +9606,21 @@ function bungkusPdfJpeg(jpeg, wPx, hPx) {
   const isi = `q ${W} 0 0 ${H} 0 0 cm /Im0 Do Q`;
   tulis('%PDF-1.4\n%\xE2\xE3\xCF\xD3\n');
   const obj = (n, body) => { offs[n] = len; tulis(`${n} 0 obj\n`); body(); tulis('\nendobj\n'); };
+  const nHal = halaman.length, kids = halaman.map((_, i) => `${3 + i * 3} 0 R`).join(' ');
   obj(1, () => tulis('<< /Type /Catalog /Pages 2 0 R >>'));
-  obj(2, () => tulis('<< /Type /Pages /Kids [3 0 R] /Count 1 >>'));
-  obj(3, () => tulis(`<< /Type /Page /Parent 2 0 R /MediaBox [0 0 ${W} ${H}] /Resources << /XObject << /Im0 4 0 R >> >> /Contents 5 0 R >>`));
-  obj(4, () => { tulis(`<< /Type /XObject /Subtype /Image /Width ${wPx} /Height ${hPx} /ColorSpace /DeviceRGB /BitsPerComponent 8 /Filter /DCTDecode /Length ${jpeg.length} >>\nstream\n`); tulis(jpeg); tulis('\nendstream'); });
-  obj(5, () => tulis(`<< /Length ${isi.length} >>\nstream\n${isi}\nendstream`));
-  const xref = len;
-  tulis(`xref\n0 6\n0000000000 65535 f \n${[1, 2, 3, 4, 5].map((n) => String(offs[n]).padStart(10, '0') + ' 00000 n \n').join('')}`);
-  tulis(`trailer\n<< /Size 6 /Root 1 0 R >>\nstartxref\n${xref}\n%%EOF\n`);
+  obj(2, () => tulis(`<< /Type /Pages /Kids [${kids}] /Count ${nHal} >>`));
+  halaman.forEach((h, i) => {
+    const p = 3 + i * 3;
+    obj(p, () => tulis(`<< /Type /Page /Parent 2 0 R /MediaBox [0 0 ${W} ${H}] /Resources << /XObject << /Im0 ${p + 1} 0 R >> >> /Contents ${p + 2} 0 R >>`));
+    obj(p + 1, () => { tulis(`<< /Type /XObject /Subtype /Image /Width ${h.w} /Height ${h.h} /ColorSpace /DeviceRGB /BitsPerComponent 8 /Filter /DCTDecode /Length ${h.jpeg.length} >>\nstream\n`); tulis(h.jpeg); tulis('\nendstream'); });
+    obj(p + 2, () => tulis(`<< /Length ${isi.length} >>\nstream\n${isi}\nendstream`));
+  });
+  const n = 3 + nHal * 3, xref = len;
+  tulis(`xref\n0 ${n}\n0000000000 65535 f \n${Array.from({ length: n - 1 }, (_, k) => String(offs[k + 1]).padStart(10, '0') + ' 00000 n \n').join('')}`);
+  tulis(`trailer\n<< /Size ${n} /Root 1 0 R >>\nstartxref\n${xref}\n%%EOF\n`);
   return new Blob(parts, { type: 'application/pdf' });
 }
+const bungkusPdfJpeg = (jpeg, wPx, hPx) => bungkusPdfHalaman([{ jpeg, w: wPx, h: hPx }]);
 async function muatGambarAman(url) {
   const u = urlGambarAman(url);
   if (!u) return null;
@@ -8903,8 +9641,9 @@ function bungkusTeks(ctx, teks, lebar) {
   if (b) baris.push(b);
   return baris.length ? baris : [''];
 }
-async function buatPdfKonfirmasi(d) {
-  // d = { ev, nomor, jenis, sekha, alamat, wa, kode, hari, tanggal, seri, jam, kotak }
+/* Kanvas 1 halaman PDF (A5): kepala event (latar/logo/nama), judul KONFIRMASI PENDAFTARAN & kaki.
+   Isi halaman digambar pemanggil, lalu jadi() → { jpeg, w, h } untuk bungkusPdfHalaman. */
+async function halamanPdf(ev, subjudul) {
   try { await document.fonts.ready; } catch (e) { /* abaikan */ }
   const W = 1050, H = 1490, M = 64, F = "'Plus Jakarta Sans', Arial, Helvetica, sans-serif";
   const c = document.createElement('canvas'); c.width = W; c.height = H;
@@ -8913,7 +9652,7 @@ async function buatPdfKonfirmasi(d) {
   const kotakBulat = (X, Y, w, h, r) => { x.beginPath(); x.moveTo(X + r, Y); x.arcTo(X + w, Y, X + w, Y + h, r); x.arcTo(X + w, Y + h, X, Y + h, r); x.arcTo(X, Y + h, X, Y, r); x.arcTo(X, Y, X + w, Y, r); x.closePath(); };
   x.fillStyle = '#ffffff'; x.fillRect(0, 0, W, H);
   // kepala
-  const [latar, logo] = await Promise.all([muatGambarAman(d.ev.bg_url), muatGambarAman(d.ev.logo_url)]);
+  const [latar, logo] = await Promise.all([muatGambarAman(ev.bg_url), muatGambarAman(ev.logo_url)]);
   if (latar) {
     // gambar latar halaman peserta (diatur panitia), dipotong memenuhi kepala + lapisan gelap yang sama dengan halaman
     const sk = Math.max(W / latar.naturalWidth, 240 / latar.naturalHeight), lw = latar.naturalWidth * sk, lh = latar.naturalHeight * sk;
@@ -8937,17 +9676,33 @@ async function buatPdfKonfirmasi(d) {
   }
   x.fillStyle = '#ffffff'; x.textBaseline = 'alphabetic';
   font(44, 800);
-  const judul = bungkusTeks(x, d.ev.nama_event || 'Lomba Layangan', W - tx - M).slice(0, 2);
+  const judul = bungkusTeks(x, ev.nama_event || 'Lomba Layangan', W - tx - M).slice(0, 2);
   let y = judul.length > 1 ? 95 : 115;
   judul.forEach((t) => { x.fillText(t, tx, y); y += 50; });
   font(25, 500); x.fillStyle = 'rgba(255,255,255,.88)';
-  x.fillText([d.ev.penyelenggara, d.ev.lokasi].filter(Boolean).join(' · ').slice(0, 70), tx, y + 4);
+  x.fillText([ev.penyelenggara, ev.lokasi].filter(Boolean).join(' · ').slice(0, 70), tx, y + 4);
   // judul dokumen
   y = 305; x.fillStyle = '#16181d'; font(40, 800); x.fillText('KONFIRMASI PENDAFTARAN', M, y);
-  font(25, 500); x.fillStyle = '#474a53'; x.fillText('Pembayaran sudah diterima. Layangan Anda resmi terdaftar.', M, y + 42);
+  font(25, 500); x.fillStyle = '#474a53'; x.fillText(subjudul, M, y + 42);
   font(22, 800); const pill = 'TERDAFTAR', pw = x.measureText(pill).width + 40;
   x.fillStyle = '#e6f5e8'; kotakBulat(W - M - pw, y - 34, pw, 46, 23); x.fill();
   x.fillStyle = '#0a6b24'; x.fillText(pill, W - M - pw + 20, y - 3);
+  // kaki
+  x.fillStyle = '#efede7'; x.fillRect(0, H - 130, W, 130);
+  font(22, 600); x.fillStyle = '#16181d';
+  bungkusTeks(x, 'Pasang nomor layangan pada layangan dan hadir paling lambat 30 menit sebelum jadwal seri.', W - 2 * M).slice(0, 2).forEach((t, i) => x.fillText(t, M, H - 88 + i * 30));
+  font(19, 500); x.fillStyle = '#6b6e76';
+  x.fillText(`Diterbitkan ${fmtWaktu(new Date().toISOString())} ${CONFIG.ZONA_WAKTU}${ev.penyelenggara ? ' · ' + ev.penyelenggara : ''}`.slice(0, 90), M, H - 24);
+  const jadi = async () => {
+    const blob = await new Promise((ok, gagal) => c.toBlob((b) => (b ? ok(b) : gagal(new Error('GAMBAR_GAGAL'))), 'image/jpeg', 0.9));
+    return { jpeg: new Uint8Array(await blob.arrayBuffer()), w: W, h: H };
+  };
+  return { c, x, font, kotakBulat, W, H, M, jadi };
+}
+async function gambarKonfirmasi(d) {
+  // d = { ev, nomor, jenis, sekha, alamat, wa, kode, hari, tanggal, seri, jam, kotak }
+  const { x, font, kotakBulat, W, M, jadi } = await halamanPdf(d.ev, 'Pembayaran sudah diterima. Layangan Anda resmi terdaftar.');
+  let y;
   // nomor layangan
   y = 385; x.fillStyle = '#e8f1fb'; kotakBulat(M, y, W - 2 * M, 260, 26); x.fill();
   x.textAlign = 'center'; x.fillStyle = '#0b4a8b'; font(24, 800); x.fillText('NOMOR LAYANGAN', W / 2, y + 50);
@@ -8970,14 +9725,61 @@ async function buatPdfKonfirmasi(d) {
   };
   y = bagian('DATA LAYANGAN', [['Nama sekha', d.sekha], ['Alamat', d.alamat], ['Nomor WhatsApp', d.wa], ['Kode pendaftaran', d.kode]], 705);
   bagian('JADWAL TERBANG', [['Tanggal', d.tanggal], ['Seri & grup', d.seri], ['Jam terbang', d.jam], ['Posisi di jadwal', d.kotak ? 'Slot ' + d.kotak : '-']], y + 26);
-  // kaki
-  x.fillStyle = '#efede7'; x.fillRect(0, H - 130, W, 130);
-  font(22, 600); x.fillStyle = '#16181d';
-  bungkusTeks(x, 'Pasang nomor layangan pada layangan dan hadir paling lambat 30 menit sebelum jadwal seri.', W - 2 * M).slice(0, 2).forEach((t, i) => x.fillText(t, M, H - 88 + i * 30));
-  font(19, 500); x.fillStyle = '#6b6e76';
-  x.fillText(`Diterbitkan ${fmtWaktu(new Date().toISOString())} ${CONFIG.ZONA_WAKTU}${d.ev.penyelenggara ? ' · ' + d.ev.penyelenggara : ''}`.slice(0, 90), M, H - 24);
-  const blob = await new Promise((ok, gagal) => c.toBlob((b) => (b ? ok(b) : gagal(new Error('GAMBAR_GAGAL'))), 'image/jpeg', 0.9));
-  return bungkusPdfJpeg(new Uint8Array(await blob.arrayBuffer()), W, H);
+  return jadi();
+}
+async function buatPdfKonfirmasi(d) { return bungkusPdfHalaman([await gambarKonfirmasi(d)]); }
+/* PDF rombongan: halaman 1 ringkasan (kode rombongan, total, semua nomor & jadwal), lalu 1 halaman per layangan.
+   rb = { ev, kode, wa, pengirim, total, items: [data gambarKonfirmasi + harga] } */
+async function gambarRingkasanRb(rb) {
+  const n = rb.items.length;
+  const { x, font, kotakBulat, W, H, M, jadi } = await halamanPdf(rb.ev, `Pembayaran sudah diterima. ${n} layangan Anda resmi terdaftar.`);
+  // kode rombongan & total
+  let y = 380;
+  x.fillStyle = '#e8f1fb'; kotakBulat(M, y, W - 2 * M, 150, 26); x.fill();
+  x.fillStyle = '#0b4a8b'; font(22, 800); x.fillText('KODE ROMBONGAN', M + 36, y + 50);
+  font(64, 800); x.fillText(String(rb.kode), M + 34, y + 120);
+  x.textAlign = 'right'; x.fillStyle = '#474a53'; font(24, 500); x.fillText('Total dibayar', W - M - 36, y + 48);
+  x.fillStyle = '#16181d'; font(38, 800); x.fillText(rupiah(rb.total), W - M - 36, y + 94);
+  x.fillStyle = '#474a53'; font(24, 500); x.fillText(`${n} layangan`, W - M - 36, y + 128);
+  x.textAlign = 'left';
+  const judulBagian = (t, y0) => { font(22, 800); x.fillStyle = '#0e5aa7'; x.fillText(t, M, y0); x.fillStyle = '#d2cec3'; x.fillRect(M, y0 + 14, W - 2 * M, 2); };
+  // daftar layangan: 2 baris per layangan bila muat, 1 baris (ringkas) untuk rombongan besar
+  y = 590; judulBagian('DAFTAR LAYANGAN', y);
+  const atas = y + 30, bawahMaks = H - 130 - 40 - 150, rowH = Math.min(118, Math.floor((bawahMaks - atas) / n)), dua = rowH >= 96;
+  const potong = (t, lebar) => { t = String(t || ''); if (x.measureText(t).width <= lebar) return t; while (t.length > 1 && x.measureText(t + '…').width > lebar) t = t.slice(0, -1); return t + '…'; };
+  rb.items.forEach((d, i) => {
+    const y0 = atas + i * rowH, kotakH = dua ? 92 : rowH - 12, cy = y0 + 6 + kotakH / 2;
+    x.fillStyle = '#e8f1fb'; kotakBulat(M, y0 + 6, dua ? 130 : 108, kotakH, dua ? 18 : 12); x.fill();
+    x.fillStyle = '#0b4a8b'; x.textAlign = 'center'; font(dua ? 52 : Math.min(36, kotakH - 10), 800); x.fillText(String(d.nomor || '-'), M + (dua ? 65 : 54), cy + (dua ? 18 : 12));
+    x.textAlign = 'left';
+    const tx = M + (dua ? 156 : 130), kanan = W - M;
+    if (dua) {
+      font(28, 800); x.fillStyle = '#16181d'; x.fillText(potong(d.jenis, 420), tx, y0 + 44);
+      font(22, 500); x.fillStyle = '#474a53'; x.fillText(potong(`${d.sekha} · ${d.alamat}`, 450), tx, y0 + 78);
+      x.textAlign = 'right'; font(25, 800); x.fillStyle = '#16181d'; x.fillText(potong(d.seri, 300), kanan, y0 + 44);
+      font(21, 500); x.fillStyle = '#474a53'; x.fillText(potong(d.jadwalPendek || d.jam, 300), kanan, y0 + 78);
+    } else {
+      font(22, 800); x.fillStyle = '#16181d'; x.fillText(potong(d.jenis, 210), tx, cy + 8);
+      font(19, 500); x.fillStyle = '#474a53'; x.fillText(potong(d.sekha, 200), tx + 220, cy + 8);
+      x.textAlign = 'right'; font(19, 700); x.fillStyle = '#16181d'; x.fillText(potong(`${d.seri} · ${d.jadwalPendek || d.jam}`, kanan - tx - 430), kanan, cy + 8);
+    }
+    x.textAlign = 'left';
+    if (i < n - 1) { x.fillStyle = '#efede7'; x.fillRect(M, y0 + rowH - 1, W - 2 * M, 2); }
+  });
+  // data pendaftar
+  y = atas + n * rowH + 40; judulBagian('DATA PENDAFTAR', y);
+  [['Nomor WhatsApp', rb.wa], ['Pengirim transfer', rb.pengirim]].forEach(([k, v], i) => {
+    font(24, 500); x.fillStyle = '#6b6e76'; x.fillText(k, M, y + 58 + i * 44);
+    font(27, 700); x.fillStyle = '#16181d'; x.fillText(potong(v || '-', W - M - 330), 330, y + 58 + i * 44);
+  });
+  return jadi();
+}
+/* jadwal ringkas untuk baris ringkasan PDF: "Kam, 5 Nov 2026 · 09.30" */
+const jadwalPdf = (x) => (x ? [String(fmtTanggal(x.tanggal, true) || '').replace(/ \d{4}$/, ''), x.jam_mulai ? fmtJam(x.jam_mulai) : ''].filter(Boolean).join(' · ') || 'Jadwal menyusul' : '-');
+async function buatPdfRombongan(rb) {
+  const hal = [await gambarRingkasanRb(rb)];
+  for (const d of rb.items) hal.push(await gambarKonfirmasi(d));
+  return bungkusPdfHalaman(hal);
 }
 async function muatSheetJS() {
   if (window.XLSX) return window.XLSX;
@@ -10015,6 +10817,62 @@ ACT['adm.waTerkirim'] = (el) => {
   el.href = waLink(r.no_wa, Adm.pesanWA(r));
   Adm.ubah(r.id, { wa_terkirim_at: new Date().toISOString() }, null, false).catch((e) => toast(pesanError(e), 'bad'));
 };
+/* ---- daftar rombongan (halaman panitia) ---- */
+ACT['adm.rbBuka'] = (el) => { Adm.s.rbSatu = null; Adm.s.detail = el.dataset.id; Adm.renderDetail(); };
+ACT['adm.rbSatu'] = (el) => { Adm.s.rbSatu = el.dataset.id; Adm.s.detail = el.dataset.id; if (!Adm.s.nav.includes(el.dataset.id)) Adm.s.nav = [el.dataset.id]; Adm.renderDetail(); };
+ACT['adm.rbTg'] = (el) => {
+  const r = Adm.baris(el.dataset.id), v = el.dataset.v === '1';
+  if (!r || r.status !== 'menunggu' || !!r.rb_tolak === v) return;
+  Adm.ubah(r.id, { rb_tolak: v }, null, false).then(() => {
+    if (v) setTimeout(() => { const t = document.querySelector(`[data-in="adm.rbCatatan"][data-id="${CSS.escape(r.id)}"]`); if (t && !t.value) t.focus({ preventScroll: true }); }, 50);
+  }).catch((e) => toast(pesanError(e), 'bad'));
+};
+const rbCatatanTunda = {};
+IN['adm.rbCatatan'] = (el) => {
+  const id = el.dataset.id;
+  clearTimeout(rbCatatanTunda[id]);
+  rbCatatanTunda[id] = setTimeout(() => { const r = Adm.baris(id); if (r && (r.catatan_admin || '') !== el.value) Adm.ubah(id, { catatan_admin: el.value.slice(0, 300) }, null, false).catch((e) => toast(pesanError(e), 'bad')); }, 700);
+};
+ACT['adm.rbHubungi'] = (el) => sibuk(el, async () => {
+  try { (await api.hubungiRombongan(el.dataset.kode, el.dataset.v === '1')).forEach((x) => Adm.gantiBaris(x)); }
+  catch (e) { toast(pesanError(e), 'bad'); }
+});
+/* nominal tidak cocok → tanya dulu; tombol di dialog membuka WA lalu menyimpan */
+ACT['adm.rbTanya'] = (el) => {
+  const kode = el.dataset.kode, rows = Adm.idx.rb.get(kode) || [], I = Adm.rbInfo(rows), kurang = I.sel > 0;
+  Overlay.modal(`<div><h3>Nominal ${kurang ? 'kurang' : 'lebih'} ${rupiah(Math.abs(I.sel))}</h3>
+    <p class="lead">Layangan yang diterima (${I.terima.length}) totalnya <b>${rupiah(I.diterima)}</b>, sedangkan di bukti <b>${rupiah(I.nominal)}</b>.</p>
+    <p class="hint">${kurang ? 'Simpan hanya bila kekurangannya sudah dilunasi atau angka di bukti salah terbaca. Kalau ada yang batal, tekan ✕ pada layangan itu dulu.' : 'Pastikan kelebihan bayar sudah dicatat (dikembalikan / dianggap donasi) atau angka di bukti salah terbaca.'}</p>
+    <div class="actions end"><button type="button" class="btn" data-act="ovl.tutup">Kembali</button>
+    <a class="btn btn-good" href="#" target="_blank" rel="noopener" data-act="adm.rbSimpan" data-kode="${esc(kode)}">${ico('chat')} Tetap simpan &amp; kirim WA</a></div></div>`);
+};
+ACT['adm.rbSimpan'] = (el, e) => {
+  const kode = el.dataset.kode, rows = Adm.idx.rb.get(kode) || [];
+  const tunggu = rows.filter((r) => r.status === 'menunggu'), ok = tunggu.filter((r) => !r.rb_tolak);
+  if (!tunggu.length) { if (e) e.preventDefault(); return; }
+  if (ok.some((r) => !r.nomor_layangan)) { if (e) e.preventDefault(); toast('Ada layangan tanpa nomor. Buka Detail lalu isi nomornya dulu.', 'bad', 6000); return; }
+  // pesan WA disusun sekarang (sebelum disimpan) supaya WhatsApp terbuka langsung dari klik ini
+  if (ok.length && el.tagName === 'A') el.href = waLink(rows[0].no_wa, Adm.pesanWARombongan(kode, rows.filter((r) => r.status === 'terkonfirmasi').concat(ok)));
+  else if (e) e.preventDefault();
+  if (el.closest('.modal')) Overlay.tutupYangBerisi(el);
+  Adm.simpanRombongan(kode);
+};
+ACT['adm.rbWA'] = (el) => {
+  const kode = el.dataset.kode, ok = (Adm.idx.rb.get(kode) || []).filter((r) => r.status === 'terkonfirmasi');
+  if (!ok.length) return;
+  el.href = waLink(ok[0].no_wa, Adm.pesanWARombongan(kode, ok));
+  const now = new Date().toISOString();
+  ok.forEach((r) => Adm.ubah(r.id, { wa_terkirim_at: now }, null, false).catch((x) => toast(pesanError(x), 'bad')));
+};
+ACT['adm.rbPdf'] = (el) => sibuk(el, async () => {
+  const kode = el.dataset.kode, ok = (Adm.idx.rb.get(kode) || []).filter((r) => r.status === 'terkonfirmasi');
+  if (!ok.length) return;
+  try {
+    const blob = await buatPdfRombongan(Adm.dataPdfRombongan(kode, ok));
+    unduhBlob(blob, `Konfirmasi-${kode}-${ok.length}-layangan.pdf`);
+    toast('PDF rombongan diunduh', 'good');
+  } catch (x) { toast(pesanError(x), 'bad', 6000); }
+});
 /* PDF konfirmasi via WhatsApp */
 function unduhBlob(blob, nama) {
   const url = URL.createObjectURL(blob), a = document.createElement('a');
