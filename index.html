@@ -2458,8 +2458,18 @@ button.lp-tab { border: 0; font: inherit; color: inherit; cursor: pointer; text-
 .rb-mode-i { width: 42px; height: 42px; border-radius: 12px; display: grid; place-items: center; background: var(--brand-soft); color: var(--brand); flex: none; }
 .rb-mode-i .ico { width: 22px; height: 22px; }
 .rb-mode .rb-mode-c { width: 18px; height: 18px; color: var(--muted); flex: none; }
-.rb-ganti { display: inline-flex; align-items: center; gap: 7px; border: 0; background: var(--brand-soft); color: var(--brand-soft-ink); font: inherit; font-size: 13.5px; font-weight: 700; padding: 7px 12px; border-radius: 99px; cursor: pointer; margin: -4px 0 16px; }
-.rb-ganti .ico { width: 16px; height: 16px; }
+.rb-seg { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 16px 0 22px; }
+.rb-seg-b { display: flex; align-items: center; gap: 12px; text-align: left; font: inherit; color: inherit; padding: 16px; min-height: 84px; border-radius: 16px; border: 2px solid var(--line); background: var(--surface); cursor: pointer; min-width: 0; transition: border-color .15s, background .15s; }
+.rb-seg-b:hover { border-color: var(--line-strong); }
+.rb-seg-b.on { border-color: var(--brand); background: var(--brand-soft); box-shadow: 0 0 0 3px var(--brand-soft); }
+.rb-seg-b:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
+.rb-seg-i { width: 46px; height: 46px; border-radius: 12px; display: grid; place-items: center; background: var(--surface-2); color: var(--muted); flex: none; }
+.rb-seg-b.on .rb-seg-i { background: var(--brand); color: #fff; }
+.rb-seg-i .ico { width: 24px; height: 24px; }
+.rb-seg-t { display: flex; flex-direction: column; gap: 1px; min-width: 0; }
+.rb-seg-t b { font-size: 17px; font-weight: 800; } .rb-seg-t small { font-size: 13px; color: var(--muted); line-height: 1.3; }
+.rb-seg-b.on .rb-seg-t small { color: var(--brand-soft-ink); }
+@media (max-width: 420px) { .rb-seg { gap: 10px; } .rb-seg-b { flex-direction: column; align-items: flex-start; gap: 8px; padding: 14px; } }
 .rb-lbl { display: flex; align-items: baseline; gap: 6px; font-size: 12px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); margin: 6px 0 10px; }
 .rb-lbl b { color: var(--ink); font-size: 14px; } .rb-lbl span { font-weight: 600; letter-spacing: 0; }
 .rb-ly { border: 1px solid var(--line); border-radius: 14px; margin: 0 0 10px; background: var(--surface); overflow: hidden; }
@@ -6287,7 +6297,6 @@ const Pub = {
     }
     if (this.bisaRb()) {
       if (s.mode === 'rb') return this.vRb();
-      if (!s.mode) return this.vMode();
     }
     if (s.step === 2) return this.vKonfirmasi();
     if (s.step === 3) return this.vBayar();
@@ -6315,8 +6324,8 @@ const Pub = {
       ${this.vStepper(1)}
       <h2 class="h2" id="judul-step" tabindex="-1">Data layangan & sekha</h2>
       <p class="lead">Satu formulir untuk satu layangan.</p>
-      ${this.vGantiMode('rb')}
       ${ev.info ? `<details class="info-box" data-info ${s.infoOpen ? 'open' : ''}><summary>${ico('info')} Info & ketentuan lomba</summary><div>${nl2br(ev.info)}</div></details>` : ''}
+      ${this.vPilihMode('satu')}
       <form data-submit="pub.data" novalidate>
         <fieldset class="field ${e.jenis ? 'err' : ''}" id="wrap-jenis">
           <legend class="label">Jenis layangan</legend>
@@ -6754,17 +6763,12 @@ Object.assign(Pub, {
     }
     return e;
   },
-  vMode() {
-    return `<section class="card" aria-labelledby="judul-step">${this.vStepper(1)}
-      <h2 class="h2" id="judul-step" tabindex="-1">Mau daftar berapa layangan?</h2>
-      <p class="lead">Pilih cara daftar yang sesuai.</p>
-      <div class="rb-mode">
-        <button type="button" class="opt" data-act="pub.mode" data-v="satu"><span class="rb-mode-i">${ico('kite')}</span><span class="opt-body"><span class="opt-t">1 layangan</span><span class="opt-s">Isi 1 formulir, bayar 1 layangan.</span></span>${ico('chev-r', 'rb-mode-c')}</button>
-        <button type="button" class="opt" data-act="pub.mode" data-v="rb"><span class="rb-mode-i">${ico('layers')}</span><span class="opt-body"><span class="opt-t">Beberapa layangan</span><span class="opt-s">2–${MAKS_ROMBONGAN} layangan, boleh beda jenis &amp; beda sekha. Transfer sekali, unggah 1 bukti.</span></span>${ico('chev-r', 'rb-mode-c')}</button>
-      </div></section>`;
-  },
-  vGantiMode(ke) {
-    return this.bisaRb() ? `<button type="button" class="rb-ganti" data-act="pub.mode" data-v="${ke}">${ico('layers')}${ke === 'rb' ? 'Mau daftar beberapa layangan sekaligus?' : 'Hanya 1 layangan? Pakai formulir biasa'}</button>` : '';
+  /* 2 kolom: kiri daftar 1 layangan, kanan 2–10 layangan sekaligus */
+  vPilihMode(aktif) {
+    if (!this.bisaRb()) return '';
+    const b = (v, judul, ket, ikon) => `<button type="button" class="rb-seg-b${aktif === v ? ' on' : ''}" data-act="pub.mode" data-v="${v}" aria-pressed="${aktif === v}">
+      <span class="rb-seg-i">${ico(ikon)}</span><span class="rb-seg-t"><b>${judul}</b><small>${ket}</small></span></button>`;
+    return `<div class="rb-seg" role="group" aria-label="Jumlah layangan">${b('satu', '1 layangan', 'Bayar 1 layangan', 'kite')}${b('rb', `2–${MAKS_ROMBONGAN} layangan`, '1 transfer untuk semua', 'layers')}</div>`;
   },
   vRb() {
     const s = this.s;
@@ -6779,8 +6783,8 @@ Object.assign(Pub, {
       ${this.vStepper(1)}
       <h2 class="h2" id="judul-step" tabindex="-1">Daftar beberapa layangan</h2>
       <p class="lead">Satu nomor WhatsApp &amp; satu bukti transfer untuk semua layangan (maksimal ${MAKS_ROMBONGAN}).</p>
-      ${this.vGantiMode('satu')}
       ${ev.info ? `<details class="info-box" data-info ${s.infoOpen ? 'open' : ''}><summary>${ico('info')} Info & ketentuan lomba</summary><div>${nl2br(ev.info)}</div></details>` : ''}
+      ${this.vPilihMode('rb')}
       ${fieldInput({ name: 'no_wa', label: 'Nomor WhatsApp', value: f.no_wa, type: 'tel', inputmode: 'tel', maxlength: 20, autocomplete: 'tel', err: s.errors.no_wa, data: 'data-in="pub.f"', hint: this.hintWA() })}
       <div class="rb-lbl" id="wrap-rb-list">Layangan <b>${n}</b><span>/ ${MAKS_ROMBONGAN}</span></div>
       ${s.errors.rb ? `<div class="note bad" role="alert">${ico('alert')}<span>${esc(s.errors.rb)}</span></div>` : ''}
@@ -7036,6 +7040,7 @@ async function siapkanBlobBukti(file) {
 }
 ACT['pub.mode'] = (el) => {
   const s = Pub.s, v = el.dataset.v || null;
+  if ((s.mode || 'satu') === v && s.step === 1) return;
   s.mode = v; s.step = 1; s.errors = {}; s.sendErr = null; s.ref = null; s.form.setuju = false;
   if (v === 'rb' && !s.rb.items.length) s.rb = { items: [rbItemBaru(0)], buka: 0, err: {}, cek: {} };
   Pub.simpanDraft(); Pub.render(); Pub.fokusJudul();
