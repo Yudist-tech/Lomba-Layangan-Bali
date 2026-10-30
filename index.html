@@ -6330,7 +6330,7 @@ const Pub = {
         </fieldset>
         ${fieldInput({ name: 'nomor_layangan', label: 'Nomor layangan', value: f.nomor_layangan, type: 'text', inputmode: 'numeric', maxlength: 6, autocomplete: 'off', err: e.nomor_layangan, data: 'data-in="pub.nomor"', hint: this.hintNomor() })}
         ${fieldInput({ name: 'nama_sekha', label: 'Nama sekha', value: f.nama_sekha, maxlength: 120, autocomplete: 'organization', err: e.nama_sekha, data: 'data-in="pub.f"' })}
-        ${fieldInput({ name: 'alamat', label: 'Alamat', value: f.alamat, maxlength: 300, textarea: true, rows: 2, autocomplete: 'street-address', err: e.alamat, data: 'data-in="pub.f"' })}
+        ${fieldInput({ name: 'alamat', label: 'Alamat', value: f.alamat, maxlength: 300, autocomplete: 'street-address', err: e.alamat, data: 'data-in="pub.f"' })}
         ${fieldInput({ name: 'no_wa', label: 'Nomor WhatsApp', value: f.no_wa, type: 'tel', inputmode: 'tel', maxlength: 20, autocomplete: 'tel', err: e.no_wa, data: 'data-in="pub.f"', hint: this.hintWA() })}
         <input type="text" name="website" class="hp" tabindex="-1" autocomplete="off" aria-hidden="true">
         <button class="btn btn-primary btn-lg btn-block" type="submit">Lanjut ke konfirmasi ${ico('arrow-r')}</button>
@@ -6799,28 +6799,62 @@ Object.assign(Pub, {
       <span class="rb-ly-r">${j ? rupiah(j.harga) : ''}<small>${salah ? `<em>${ico('alert')} Perbaiki</em>` : 'Ubah ›'}</small></span></button></div>`;
   },
   vRbBuka(i) {
-    const s = this.s, rb = s.rb, it = rb.items[i], e = rb.err[i] || {}, j = this.rbJenis(it), info = s.info, id = (k) => `rb-${i}-${k}`;
+    const s = this.s, rb = s.rb, it = rb.items[i], e = rb.err[i] || {}, j = this.rbJenis(it), id = (k) => `rb-${i}-${k}`;
     const jenis = this.jenisTerjadwal();
-    const optJenis = `<option value="">Pilih jenis layangan</option>${jenis.map((x) => { const sisa = this.rbSisaJenis(x.kode, i), off = sisa <= 0 && x.kode !== it.jenis;
-      return `<option value="${esc(x.kode)}" ${x.kode === it.jenis ? 'selected' : ''} ${off ? 'disabled' : ''}>${esc(x.nama)} · ${rupiah(x.harga)}${off ? ' (kuota habis)' : ''}</option>`; }).join('')}`;
-    const sesiMap = new Map((info.sesi || []).map((x) => [x.id, x])), hariMap = new Map((info.hari || []).map((h) => [h.id, h]));
-    const grup = it.jenis ? this.grupJadwal().filter((x) => x.jenis === it.jenis && x.aktif)
-      .sort((a, b) => urutHari(hariMap.get((sesiMap.get(a.sesi_id) || {}).hari_id) || {}, hariMap.get((sesiMap.get(b.sesi_id) || {}).hari_id) || {}) || urutSesi(sesiMap.get(a.sesi_id), sesiMap.get(b.sesi_id)) || urutGrup(a, b)) : [];
-    const optSeri = it.jenis ? (grup.length ? `<option value="">Pilih seri &amp; grup</option>${grup.map((x) => { const sesi = sesiMap.get(x.sesi_id) || {}, h = hariMap.get(sesi.hari_id), sisa = this.rbSisa(x, i), off = sisa <= 0 && x.id !== it.seri_id;
-      return `<option value="${x.id}" ${x.id === it.seri_id ? 'selected' : ''} ${off ? 'disabled' : ''}>Seri ${esc(sesi.nama || '')} · Grup ${esc(x.huruf || '')} · ${h ? esc(h.nama) + ' ' : ''}${esc(jamSesi(sesi))} (${off ? 'penuh' : `sisa ${sisa}`})</option>`; }).join('')}` : '<option value="">Belum ada grup dibuka untuk jenis ini</option>') : '<option value="">Pilih jenis layangan dulu</option>';
-    const sel = (k, label, opts, ch, dis) => `<div class="field ${e[k] ? 'err' : ''}" id="wrap-${id(k)}"><label class="label" for="${id(k)}">${label}</label><select class="input" id="${id(k)}" data-ch="${ch}" data-i="${i}" ${dis ? 'disabled' : ''}>${opts}</select>${errMsg(e[k])}</div>`;
     const sk = this.rbSekha(i);
     return `<div class="rb-ly open${Object.keys(e).length ? ' err' : ''}" id="rb-ly-${i}">
       <div class="rb-ly-h"><span class="rb-ly-n">${i + 1}</span><span class="rb-ly-t"><b>Layangan ke-${i + 1}</b><small>${j ? `${esc(j.nama)} · ${rupiah(j.harga)}` : 'Sedang diisi'}</small></span>
         ${rb.items.length > 1 ? `<button type="button" class="btn btn-xs btn-ghost rb-hapus" data-act="pub.rbHapus" data-i="${i}">${ico('x')} Hapus</button>` : ''}</div>
       <div class="rb-ly-b">
-        ${sel('jenis', 'Jenis layangan', optJenis, 'pub.rbJenis')}
-        ${sel('seri_id', 'Seri &amp; grup', optSeri, 'pub.rbSeri', !it.jenis)}
+        <fieldset class="field ${e.jenis ? 'err' : ''}" id="wrap-${id('jenis')}">
+          <legend class="label">Jenis layangan</legend>
+          <div class="opt-grid jenis">${jenis.map((x) => this.vRbOptJenis(i, x)).join('') || '<div class="empty-sm">Jadwal terbang belum dibuat panitia. Silakan cek lagi nanti.</div>'}</div>
+          ${errMsg(e.jenis)}
+        </fieldset>
+        <fieldset class="field ${e.seri_id ? 'err' : ''}" id="wrap-${id('seri_id')}">
+          <legend class="label">Seri &amp; grup <span class="opt-lbl">· menentukan jadwal terbang</span></legend>
+          ${it.jenis ? this.vRbListSeri(i) : '<div class="empty-sm">Pilih jenis layangan dulu untuk melihat seri, grup, dan jadwalnya.</div>'}
+          ${errMsg(e.seri_id)}
+        </fieldset>
         ${fieldInput({ id: id('nomor'), name: 'nomor', label: 'Nomor layangan', value: it.nomor, type: 'text', inputmode: 'numeric', maxlength: 6, autocomplete: 'off', err: e.nomor, data: `data-in="pub.rbNomor" data-i="${i}"`, hint: this.rbHintNomor(i) })}
         ${i > 0 ? `<label class="check rb-sama"><input type="checkbox" data-ch="pub.rbSama" data-i="${i}" ${it.sama ? 'checked' : ''}><span>Sekha &amp; alamat sama dengan layangan ${i}${it.sama && sk.nama_sekha ? `<small>${esc(sk.nama_sekha)} · ${esc(sk.alamat)}</small>` : ''}</span></label>` : ''}
         ${i === 0 || !it.sama ? `${fieldInput({ id: id('nama_sekha'), name: 'nama_sekha', label: 'Nama sekha', value: it.nama_sekha, maxlength: 120, autocomplete: 'organization', err: e.nama_sekha, data: `data-in="pub.rbTeks" data-i="${i}"` })}
-        ${fieldInput({ id: id('alamat'), name: 'alamat', label: 'Alamat', value: it.alamat, maxlength: 300, textarea: true, rows: 2, autocomplete: 'street-address', err: e.alamat, data: `data-in="pub.rbTeks" data-i="${i}"` })}` : ''}
+        ${fieldInput({ id: id('alamat'), name: 'alamat', label: 'Alamat', value: it.alamat, maxlength: 300, autocomplete: 'street-address', err: e.alamat, data: `data-in="pub.rbTeks" data-i="${i}"` })}` : ''}
       </div></div>`;
+  },
+  /* kartu pilihan jenis & seri — sama dengan formulir 1 layangan, sisa slot ikut dihitung dengan layangan lain di daftar ini */
+  vRbOptJenis(i, j) {
+    const it = this.s.rb.items[i], sisa = this.rbSisaJenis(j.kode, i), on = it.jenis === j.kode, off = sisa <= 0 && !on;
+    return `<label class="opt ${on ? 'on' : ''} ${off ? 'off' : ''}">
+      <input type="radio" name="rbj-${i}" value="${esc(j.kode)}" ${on ? 'checked' : ''} ${off ? 'disabled' : ''} data-ch="pub.rbJenis" data-i="${i}">
+      <span class="radio" aria-hidden="true"></span>
+      <span class="opt-body"><span class="opt-t">${jdot(j.kode, this.s.info.jenis)}${esc(j.nama)}</span>
+        <span class="opt-p">${rupiah(j.harga)}</span>
+        <span class="opt-s"><span>${off ? '<b class="full">Kuota habis</b>' : `Sisa ${angka(sisa)} slot`}</span>${adaRentang(j) ? `<span class="nw"><i class="sep" aria-hidden="true">· </i>Nomor ${esc(teksRentang(j))}</span>` : ''}</span></span>
+    </label>`;
+  },
+  vRbListSeri(i) {
+    const it = this.s.rb.items[i], info = this.s.info;
+    const list = this.grupJadwal().filter((x) => x.jenis === it.jenis && x.aktif);
+    if (!list.length) return '<div class="empty-sm">Belum ada grup yang dibuka untuk jenis ini. Hubungi panitia.</div>';
+    const sesiMap = new Map((info.sesi || []).map((x) => [x.id, x]));
+    return [...(info.hari || [])].sort(urutHari).map((h) => {
+      const grup = list.filter((x) => (sesiMap.get(x.sesi_id) || {}).hari_id === h.id).sort((a, b) => urutSesi(sesiMap.get(a.sesi_id), sesiMap.get(b.sesi_id)) || urutGrup(a, b));
+      if (!grup.length) return '';
+      return `<div class="grup-hari">${esc(h.nama)}${h.tanggal ? ` · ${esc(fmtTanggal(h.tanggal, true))}` : ''}</div><div class="opt-grid">${grup.map((x) => {
+        const sesi = sesiMap.get(x.sesi_id) || {}, sisa = this.rbSisa(x, i), on = it.seri_id === x.id, off = sisa <= 0 && !on;
+        const pakai = x.kuota - sisa, pct = x.kuota ? Math.min(100, (pakai / x.kuota) * 100) : 100;
+        return `<label class="opt ${on ? 'on' : ''} ${off ? 'off' : ''}">
+          <input type="radio" name="rbs-${i}" value="${x.id}" ${on ? 'checked' : ''} ${off ? 'disabled' : ''} data-ch="pub.rbSeri" data-i="${i}">
+          <span class="radio" aria-hidden="true"></span>
+          <span class="opt-body"><span class="opt-t">Seri ${esc(sesi.nama || '')} · Grup ${esc(x.huruf || '')}</span>
+            <span class="opt-s">${ico('clock')}${esc(jamSesi(sesi))} ${CONFIG.ZONA_WAKTU}</span>
+            <span class="meter" aria-hidden="true">${pct > 0 ? `<i class="m1" style="width:${pct.toFixed(1)}%"></i>` : ''}</span>
+            <span class="opt-s"><span>${off ? '<b class="full">Penuh</b>' : `Sisa <b>${sisa}</b> dari ${x.kuota} slot`}</span></span>
+            ${x.catatan ? `<span class="opt-s">${esc(x.catatan)}</span>` : ''}</span>
+        </label>`;
+      }).join('')}</div>`;
+    }).join('');
   },
   rbHintNomor(i) {
     const it = this.s.rb.items[i], j = this.rbJenis(it), c = this.s.rb.cek[i], e = this.s.rb.err[i] || {};
@@ -7015,7 +7049,7 @@ ACT['pub.rbTambah'] = () => {
   delete rb.err[rb.buka];
   rb.items.push(rbItemBaru(rb.items.length)); rb.buka = rb.items.length - 1; Pub.s.errors.rb = null; Pub.s.ref = null;
   Pub.simpanDraft(); Pub.render();
-  const c = document.getElementById('rb-ly-' + rb.buka); if (c) { c.scrollIntoView({ block: 'start', behavior: 'smooth' }); const sl = c.querySelector('select'); if (sl) setTimeout(() => sl.focus({ preventScroll: true }), 300); }
+  const c = document.getElementById('rb-ly-' + rb.buka); if (c) { c.scrollIntoView({ block: 'start', behavior: 'smooth' }); const sl = c.querySelector('input[type=radio]:not(:disabled)'); if (sl) setTimeout(() => sl.focus({ preventScroll: true }), 300); }
 };
 ACT['pub.rbHapus'] = async (el) => {
   const rb = Pub.s.rb, i = Number(el.dataset.i), it = rb.items[i];
@@ -7039,14 +7073,14 @@ CH['pub.rbJenis'] = (el) => {
   if (it.jenis !== el.value) { it.jenis = el.value; it.seri_id = null; delete Pub.s.rb.cek[i]; if (normNomor(it.nomor)) Pub.periksaNomorRb(i); }
   rbBersihErr(i, 'jenis'); Pub.s.ref = null;
   Pub.simpanDraft(); Pub.render();
-  const sl = document.getElementById(`rb-${i}-seri_id`); if (sl && !sl.disabled) sl.focus({ preventScroll: true });
+  const r = document.querySelector(`input[name="rbj-${i}"][value="${CSS.escape(el.value)}"]`); if (r) r.focus({ preventScroll: true });
 };
 CH['pub.rbSeri'] = (el) => {
   const i = Number(el.dataset.i);
   Pub.s.rb.items[i].seri_id = el.value ? Number(el.value) : null;
   rbBersihErr(i, 'seri_id'); Pub.s.ref = null;
   Pub.simpanDraft(); Pub.render();
-  const n = document.getElementById(`rb-${i}-nomor`); if (n && !n.value) n.focus({ preventScroll: true });
+  const r = document.querySelector(`input[name="rbs-${i}"][value="${CSS.escape(el.value)}"]`); if (r) r.focus({ preventScroll: true });
 };
 CH['pub.rbSama'] = (el) => {
   const i = Number(el.dataset.i), it = Pub.s.rb.items[i];
