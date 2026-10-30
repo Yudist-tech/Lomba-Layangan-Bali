@@ -3943,6 +3943,19 @@ class SupabaseAPI {
       p_harga: p.harga == null ? null : Number(p.harga), p_nomor_layangan: p.nomor_layangan, p_event: this._ev(),
     });
   }
+  /* daftar beberapa layangan sekaligus (rombongan.sql) */
+  daftarRombongan(p) {
+    return this._rpc('lomba_daftar_rombongan', {
+      p_no_wa: p.no_wa, p_nama_rekening: p.nama_rekening, p_bukti_path: p.bukti_path, p_bukti_hash: p.bukti_hash || null,
+      p_client_ref: p.client_ref || null, p_event: this._ev(),
+      p_items: p.items.map((it) => ({ ...it, seri_id: Number(it.seri_id), harga: it.harga == null ? null : Number(it.harga) })),
+    });
+  }
+  async hubungiRombongan(kode, on) {
+    const s = on ? await this.sesi() : null;
+    return this._ok(await this.sb.from('lomba_pendaftaran').update({ rb_hubungi_oleh: on ? (s && s.email) || null : null, rb_hubungi_at: on ? new Date().toISOString() : null })
+      .eq('event_id', this._ev()).eq('rombongan', kode).select());
+  }
   cekNomor(jenis, nomor) { return this._rpc('lomba_cek_nomor', { p_jenis: jenis, p_nomor: String(nomor || ''), p_event: this._ev() }); }
   cekStatus(wa) { return this._rpc('lomba_cek_status', { p_no_wa: wa, p_event: this._ev() }); }
   tiket(kode) { return this._rpc('lomba_tiket', { p_kode: kode }); }
@@ -4208,7 +4221,10 @@ class SupabaseAPI {
   async tambahPendaftaran(row) { return this._ok(await this.sb.from('lomba_pendaftaran').insert({ ...row, event_id: this._ev() }).select().single()); }
   async hapusPendaftaran(row) {
     this._ok(await this.sb.from('lomba_pendaftaran').delete().eq('id', row.id));
-    if (row.bukti_path) { try { await this.sb.storage.from(this.bucket).remove([row.bukti_path]); } catch (e) { /* abaikan */ } }
+    if (!row.bukti_path) return;
+    // rombongan: 1 file bukti dipakai beberapa layangan → file baru dihapus bila tidak dipakai lagi
+    if (row.rombongan) { try { const sisa = this._ok(await this.sb.from('lomba_pendaftaran').select('id').eq('bukti_path', row.bukti_path).limit(1)); if (sisa && sisa.length) return; } catch (e) { return; } }
+    try { await this.sb.storage.from(this.bucket).remove([row.bukti_path]); } catch (e) { /* abaikan */ }
   }
   async urlBukti(path) {
     const { data, error } = await this.sb.storage.from(this.bucket).createSignedUrl(path, 3600);
@@ -5506,7 +5522,7 @@ class DemoAPI {
     const lama = this.db.daftar.find((d) => d.id === row.id);
     if (lama) this._catat(lama, null);
     this.db.daftar = this.db.daftar.filter((d) => d.id !== row.id);
-    if (row.bukti_path) delete this.db.files[row.bukti_path];
+    if (row.bukti_path && !this.db.daftar.some((d) => d.bukti_path === row.bukti_path)) delete this.db.files[row.bukti_path];
     this._simpan();
   }
   async urlBukti(path) {
