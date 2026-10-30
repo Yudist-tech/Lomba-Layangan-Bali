@@ -6718,8 +6718,8 @@ const Pub = {
 
 /* ---------------- daftar beberapa layangan (rombongan) ----------------
    1 nomor WA + 1 bukti transfer untuk 2–10 layangan. Tiap layangan: jenis → seri → nomor → sekha & alamat.
-   Layangan ke-2 dst. bawaannya "sekha & alamat sama dengan layangan sebelumnya". */
-const rbItemBaru = (i) => ({ jenis: '', seri_id: null, nomor: '', sama: i > 0, nama_sekha: '', alamat: '' });
+   Layangan ke-2 dst. punya centang "sekha & alamat sama dengan layangan sebelumnya" (tidak dicentang otomatis). */
+const rbItemBaru = () => ({ jenis: '', seri_id: null, nomor: '', sama: false, nama_sekha: '', alamat: '' });   // sekha & alamat diisi sendiri; centang "sama" dipilih peserta
 Object.assign(Pub.s, { mode: null, rb: { items: [rbItemBaru(0)], buka: 0, err: {}, cek: {} }, rbHasil: null });
 Object.assign(Pub, {
   bisaRb() { return typeof api.daftarRombongan === 'function'; },
