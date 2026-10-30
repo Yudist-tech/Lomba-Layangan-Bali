@@ -2484,7 +2484,9 @@ button.rb-ly-h { cursor: pointer; } button.rb-ly-h:hover { background: var(--sur
 .rb-add .ico { width: 18px; height: 18px; }
 .rb-add-t { display: flex; flex-direction: column; align-items: flex-start; text-align: left; line-height: 1.25; }
 .rb-add-t small { font-weight: 500; color: var(--muted); font-size: 12.5px; }
-form .rb-add { margin: 4px 0 16px; }
+form .rb-add { margin: 4px 0 16px; padding: 8px 12px; gap: 6px; font-size: 14px; border-width: 1.5px; border-radius: 12px; }
+form .rb-add .ico { width: 16px; height: 16px; }
+form .rb-add .rb-add-t small { font-size: 12px; }
 .rb-list { border: 1px solid var(--line); border-radius: 14px; overflow: hidden; margin: 14px 0 0; text-align: left; }
 .rb-list > div { display: flex; gap: 10px; align-items: flex-start; padding: 11px 14px; border-top: 1px solid var(--line); }
 .rb-list > div:first-child { border-top: 0; }
@@ -7047,10 +7049,12 @@ ACT['pub.rbHapus'] = async (el) => {
   Pub.simpanDraft(); Pub.render();
 };
 /* formulir biasa → daftar rombongan: layangan yang sudah diisi jadi layangan ke-1, lalu buka layangan ke-2 */
-ACT['pub.keRb'] = () => {
+ACT['pub.keRb'] = async () => {
   const s = Pub.s, f = s.form;
   s.errors = Pub.validasiData();
   if (Object.keys(s.errors).length) { Pub.render(); Pub.fokusError(); toast('Lengkapi dulu layangan ini, lalu tambah layangan lain.', 'info'); return; }
+  // cegah salah tekan: tanya dulu
+  if (!(await konfirmasiDialog({ judul: 'Tambah layangan lain?', isi: 'Layangan ini akan digabung dengan layangan berikutnya dalam <b>1 pendaftaran rombongan</b>: 1 nomor WA, 1 kali transfer untuk semua.', tombol: 'Ya, tambah layangan' }))) return;
   s.rb = { items: [{ jenis: f.jenis, seri_id: f.seri_id, nomor: f.nomor_layangan, sama: false, nama_sekha: f.nama_sekha, alamat: f.alamat }, rbItemBaru()], buka: 1, err: {}, cek: {} };
   if (s.nomorCek && s.nomorCek.jenis === f.jenis) s.rb.cek[0] = { ...s.nomorCek };
   s.mode = 'rb'; s.step = 1; s.ref = null; f.setuju = false;
