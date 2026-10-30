@@ -6571,7 +6571,6 @@ const Pub = {
       }).join('')}</div>
       <div class="cek-rb-sum"><span>Total ${ok.length && !tunggu.length ? 'dibayar' : 'tagihan'}</span><b>${rupiah(total)}</b></div>
       ${tunggu.length ? `<div class="note">${ico('clock')}<span>Pembayaran sedang diverifikasi panitia. Konfirmasi semua layangan dikirim dalam 1 pesan WhatsApp.</span></div>` : ''}
-      ${ok.length ? `<a class="btn btn-primary btn-block" href="${esc(hrefEv('tiket/' + encodeURIComponent(kode)))}">${ico('download')} Lihat &amp; unduh PDF konfirmasi</a>` : ''}
     </article>`;
   },
   vItemCek(r) {
