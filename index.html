@@ -8020,7 +8020,9 @@ const Adm = {
     const akar = (x) => { while (induk[x] !== x) { induk[x] = induk[induk[x]]; x = induk[x]; } return x; };
     const gabung = (i, k, l, why) => { const x = akar(i), y = akar(k); if (x !== y) { induk[y] = x; lv[x] = Math.max(lv[x], lv[y]); bukti[y].forEach((w) => bukti[x].add(w)); } lv[x] = Math.max(lv[x], l); bukti[x].add(why); };
     const per = (kunci) => { const m = new Map(); rows.forEach((r, i) => { const k = kunci(r); if (k) { if (!m.has(k)) m.set(k, []); m.get(k).push(i); } }); return m; };
-    per((r) => r.bukti_hash).forEach((ii) => ii.slice(1).forEach((k) => gabung(ii[0], k, 3, 'hash')));
+    // layangan dalam 1 rombongan memang memakai 1 bukti bersama: digabung tanpa menaikkan tingkat (bukan "dobel")
+    const satuRbIdx = (i, k) => !!rows[i].rombongan && rows[i].rombongan === rows[k].rombongan;
+    per((r) => r.bukti_hash).forEach((ii) => ii.slice(1).forEach((k) => (satuRbIdx(ii[0], k) ? gabung(ii[0], k, 0, 'rb') : gabung(ii[0], k, 3, 'hash'))));
     const ms = (w) => (w ? Date.parse(String(w).slice(0, 19) + 'Z') : NaN);
     // dua bacaan bukti jelas BERBEDA bila nominal terbaca & tidak sama, atau waktu transfer terbaca & selisih > 10 menit
     // → transfer lain, jangan digabung walau No. Ref mirip (mis. Ref terpotong di baris kedua)
@@ -8028,6 +8030,7 @@ const Adm = {
     const refs = rows.map((r, i) => [i, sah(r)]).filter(([, b]) => b && b.ref).map(([i, b]) => [i, b, String(b.ref).toUpperCase().replace(/\s+/g, '')]);
     for (let x = 0; x < refs.length; x++) for (let y = x + 1; y < refs.length; y++) {
       const [i, a, ra] = refs[x], [k, c, rc] = refs[y];
+      if (satuRbIdx(i, k)) continue;
       if (beda(a, c)) continue;
       if (ra === rc) { gabung(i, k, 3, 'ref'); continue; }
       // No. Ref hampir sama (salah baca 1–2 angka / terpotong di ujung) → dianggap sama hanya bila nominal sama
@@ -8039,6 +8042,7 @@ const Adm = {
       const [r, i, a] = calon[x];
       for (let y = x + 1; y < calon.length; y++) {
         const [o, k, b] = calon[y];
+        if (satuRbIdx(i, k)) continue;
         if (a.nominal !== b.nominal) continue;
         if (a.waktu && b.waktu) { if (!(Math.abs(ms(a.waktu) - ms(b.waktu)) <= 60000)) continue; }
         else if (Math.abs(Date.parse(r.created_at) - Date.parse(o.created_at)) > 14 * 864e5) continue;   // waktu tak terbaca: pendaftaran berdekatan saja
@@ -8061,7 +8065,8 @@ const Adm = {
       const b0 = rr.map(sah).find((b) => b && b.nominal) || rr.map(sah).find(Boolean) || {};
       const g = { rows: rr, n: rr.length, total, nominal, kurang, lv: nominal != null && kurang === 0 ? 0 : lv[z], tingkat: lv[z], why,
         ref: (rr.map(sah).find((b) => b && b.ref) || {}).ref || null, rek4: (rr.map(sah).find((b) => b && b.rek4) || {}).rek4 || null,
-        nama: b0.nama || rr[0].nama_rekening, waktu: b0.waktu || null, beda: new Set(aktif.map((r) => r.no_wa)).size > 1, status: new Map() };
+        nama: b0.nama || rr[0].nama_rekening, waktu: b0.waktu || null, beda: new Set(aktif.map((r) => r.no_wa)).size > 1, status: new Map(),
+        rbLain: rr.some((r) => r.rombongan) && new Set(rr.map((r) => r.rombongan || r.id)).size > 1 };   // bukti rombongan dipakai juga oleh pendaftaran lain
       let sisa = nominal;
       rr.forEach((r) => {
         if (r.status === 'ditolak') g.status.set(r.id, 'ditolak');
@@ -8104,7 +8109,7 @@ const Adm = {
           : 'Wajar bila peserta sudah transfer duluan lalu baru mendaftar. Cocokkan nama pengirim.' };
     }
     const uang = g.nominal != null && g.kurang !== 0, kurang = uang && g.kurang > 0;
-    if (g.why === 'nominal' || (uang && !g.beda && g.tingkat >= 2)) {
+    if (g.why === 'nominal' || (uang && !g.beda && !g.rbLain && g.tingkat >= 2)) {
       return { k: 'nominal', w: kurang ? 'r' : 'y', tag: kurang ? 'KURANG' : 'LEBIH', ikon: 'wallet', label: `Nominal ${kurang ? 'kurang' : 'lebih'}`,
         judul: g.n > 1 ? `Bayar ${g.n} layangan, uang ${kurang ? 'kurang' : 'lebih'} ${rp(g.kurang)}` : `Nominal ${kurang ? 'kurang' : 'lebih'} ${rp(g.kurang)}`,
         tanya: kurang ? 'Apakah peserta sudah melunasi kekurangannya?' : 'Apakah ada pendaftaran lain yang ikut dibayar dengan transfer ini?',
@@ -9024,7 +9029,7 @@ const Adm = {
     });
     if (!lain.size) return null;
     const alasan = why === 'hash' ? 'File bukti <b>persis sama</b>' : why === 'ref' ? '<b>No. Referensi sama</b>' : why === 'rek' ? 'Nominal, waktu &amp; rekening pengirim sama' : 'Nominal, waktu &amp; nama pengirim sama (mungkin transfer yang sama)';
-    return { list: [...lain.values()], pasti: tingkat >= 2, alasan };
+    return { list: [...lain.values()], pasti: tingkat >= 3, alasan };
   },
   vRbDobel(D) {
     if (!D) return '';
