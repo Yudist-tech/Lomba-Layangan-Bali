@@ -2624,6 +2624,16 @@ form .rb-add .rb-add-t small { font-size: 12px; }
 .rb-sum.bad { background: var(--bad-soft); color: var(--bad-ink); }
 .rb-sum.n { background: var(--surface-2); color: var(--ink-2); }
 .rb-sum span:last-child { display: inline-flex; align-items: center; gap: 4px; } .rb-sum .ico { width: 15px; height: 15px; }
+.rb-dobel { border: 1px solid color-mix(in srgb, var(--bad) 45%, transparent); background: var(--bad-soft); color: var(--bad-ink); border-radius: 12px; padding: 10px 12px; margin: 10px 0 0; }
+.rb-dobel.y { border-color: color-mix(in srgb, var(--warn) 50%, transparent); background: var(--warn-soft); color: var(--warn-ink); }
+.rb-dobel-h { display: flex; gap: 8px; align-items: flex-start; font-size: 13.5px; line-height: 1.4; }
+.rb-dobel-h > .ico { width: 18px; height: 18px; flex: none; margin-top: 1px; }
+.rb-dobel-h small { display: block; font-size: 12.5px; opacity: .9; }
+.rb-dobel-r { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; width: 100%; margin-top: 8px; padding: 8px 10px; border-radius: 10px; border: 1px solid var(--line); background: var(--surface); color: var(--ink); font: inherit; font-size: 13px; text-align: left; cursor: pointer; }
+.rb-dobel-r:hover { border-color: var(--line-strong); }
+.rb-dobel-k { font-weight: 800; display: inline-flex; align-items: center; gap: 5px; } .rb-dobel-k .ico { width: 14px; height: 14px; }
+.rb-dobel-s { color: var(--ink-2); flex: 1; min-width: 120px; }
+.rb-dobel-r i { font-style: normal; color: var(--muted); font-weight: 800; }
 .drawer-f.rb-f { flex-wrap: wrap; }
 .drawer-f.rb-f > .btn { flex: 1 1 100%; justify-content: center; }
 .drawer-f.rb-f > small { flex-basis: 100%; text-align: center; }
@@ -8997,8 +9007,35 @@ const Adm = {
     return { b, nominal, tunggu, terima, tagihan, diterima, selAwal: nominal == null ? null : tagihan - nominal, sel: nominal == null ? null : diterima - nominal,
       ok: rows.filter((r) => r.status === 'terkonfirmasi'), batal: rows.filter((r) => r.status === 'ditolak'), wk: cekWaktuBukti(rows[0], b) };
   },
+  /* bukti rombongan ini juga dipakai pendaftaran lain (rombongan lain / daftar biasa) → hasil mesin Cek Bukti */
+  rbDobel(kode, rows) {
+    const lain = new Map();
+    let why = null, tingkat = 0;
+    rows.forEach((o) => {
+      const g = this.idx.cekGrup.get(o.id);
+      if (!g || g.why === 'waktu') return;
+      if (g.tingkat > tingkat) { tingkat = g.tingkat; why = g.why; }
+      g.rows.forEach((x) => {
+        if (x.rombongan === kode) return;
+        const k = x.rombongan || x.id;
+        if (!lain.has(k)) lain.set(k, { id: x.id, rombongan: x.rombongan || null, kode: x.kode, sekha: x.nama_sekha, ids: new Set(), status: new Set(), at: x.created_at });
+        const e = lain.get(k); e.ids.add(x.id); e.status.add(x.status);
+      });
+    });
+    if (!lain.size) return null;
+    const alasan = why === 'hash' ? 'File bukti <b>persis sama</b>' : why === 'ref' ? '<b>No. Referensi sama</b>' : why === 'rek' ? 'Nominal, waktu &amp; rekening pengirim sama' : 'Nominal, waktu &amp; nama pengirim sama (mungkin transfer yang sama)';
+    return { list: [...lain.values()], pasti: tingkat >= 2, alasan };
+  },
+  vRbDobel(D) {
+    if (!D) return '';
+    const st = (e) => (e.status.has('terkonfirmasi') ? badgeStatus('terkonfirmasi', 'Terdaftar') : e.status.has('menunggu') ? badgeStatus('menunggu', 'Menunggu') : badgeStatus('ditolak', 'Ditolak'));
+    return `<div class="rb-dobel ${D.pasti ? '' : 'y'}">
+      <div class="rb-dobel-h">${ico('copy')}<span><b>${D.pasti ? 'Bukti dobel' : 'Bukti mirip'}: dipakai juga oleh ${D.list.length} pendaftaran lain</b><small>${D.alasan}. Pastikan ini bukan bukti lama yang dipakai ulang.</small></span></div>
+      ${D.list.map((e) => `<button type="button" class="rb-dobel-r" data-act="adm.rbBuka" data-id="${esc(e.id)}"><span class="rb-dobel-k">${e.rombongan ? `${ico('layers')}${esc(e.rombongan)} · ${e.ids.size} layangan` : esc(e.kode)}</span><span class="rb-dobel-s">${esc(e.sekha)} · ${esc(fmtWaktu(e.at).replace(/ \d{4},/, ','))}</span>${st(e)}<i aria-hidden="true">›</i></button>`).join('')}
+    </div>`;
+  },
   vRombongan(r, rows) {
-    const kode = r.rombongan, dj = this.s.data.jenis, I = this.rbInfo(rows), a = rows[0], tunggu = I.tunggu.length > 0;
+    const kode = r.rombongan, dj = this.s.data.jenis, I = this.rbInfo(rows), a = rows[0], tunggu = I.tunggu.length > 0, D = this.rbDobel(kode, rows);
     const nav = this.s.nav, pos = nav.indexOf(r.id);
     const prev = pos > 0 ? nav[pos - 1] : null, next = pos >= 0 && pos < nav.length - 1 ? nav[pos + 1] : null;
     const tombolNav = (id, ikon, label) => `<button class="btn btn-icon btn-sm" data-act="adm.nav" data-id="${esc(id || '')}" ${id ? '' : 'disabled'} aria-label="${label}">${ico(ikon)}</button>`;
@@ -9032,7 +9069,7 @@ const Adm = {
     if (tunggu) {
       const lepas = I.tunggu.filter((o) => o.rb_tolak).map((o) => o.nomor_layangan).filter(Boolean);
       kaki = okBaru.length
-        ? (selTerima != null && selTerima !== 0
+        ? ((selTerima != null && selTerima !== 0) || D
           ? `<button type="button" class="btn btn-good" data-act="adm.rbTanya" data-kode="${esc(kode)}">${ico('chat')} Simpan &amp; kirim WA (${okBaru.length + I.ok.length} layangan)</button>`
           : `<a class="btn btn-good" href="#" target="_blank" rel="noopener" data-act="adm.rbSimpan" data-kode="${esc(kode)}">${ico('chat')} Simpan &amp; kirim WA (${okBaru.length + I.ok.length} layangan)</a>`)
         : `<button type="button" class="btn btn-danger" data-act="adm.rbSimpan" data-kode="${esc(kode)}">${ico('x')} Simpan: semua batal</button>`;
@@ -9042,7 +9079,7 @@ const Adm = {
       kaki = `<div class="drawer-f"><a class="btn ${sudah ? '' : 'btn-good'}" href="${esc(waLink(a.no_wa, this.pesanWARombongan(kode, I.ok)))}" target="_blank" rel="noopener" data-act="adm.rbWA" data-kode="${esc(kode)}">${ico('chat')} ${sudah ? 'Kirim ulang WA konfirmasi' : 'Kirim WA konfirmasi'}</a>
         <button type="button" class="btn" data-act="adm.rbPdf" data-kode="${esc(kode)}">${ico('download')} PDF</button></div>`;
     } else kaki = '';
-    const status = tunggu ? badgeStatus('menunggu', 'Ditinjau panitia') : `${I.ok.length ? badgeStatus('terkonfirmasi', `${I.ok.length} terdaftar`) : ''}${I.batal.length ? badgeStatus('ditolak', `${I.batal.length} batal`) : ''}`;
+    const status = (D ? `<span class="badge b-ditolak">${ico('copy')}${D.pasti ? 'Bukti dobel' : 'Bukti mirip'}</span>` : '') + (tunggu ? badgeStatus('menunggu', 'Ditinjau panitia') : `${I.ok.length ? badgeStatus('terkonfirmasi', `${I.ok.length} terdaftar`) : ''}${I.batal.length ? badgeStatus('ditolak', `${I.batal.length} batal`) : ''}`);
     return `<div class="drawer-h">
         <button class="btn btn-icon btn-ghost" data-act="ovl.tutup" aria-label="Tutup">${ico('x')}</button>
         <div class="dt"><b id="dr-judul">${esc(kode)}</b><span>Rombongan · ${rows.length} layangan · 1 transfer · ${esc(fmtWaktu(a.created_at))}</span></div>
@@ -9054,7 +9091,7 @@ const Adm = {
         <div class="sect"><h4>Bukti transfer</h4>
           ${a.bukti_path ? `<div class="rb-bukti"><div class="bukti-box" id="bukti-box"><div class="empty"><span class="spinner" style="margin:0 auto"></span></div></div>
             <div class="rb-bukti-t"><b>${esc(a.nama_rekening)}</b><span>Pengirim${I.b && I.b.rek4 ? ` · rek. ••${esc(I.b.rek4)}` : ''}</span><span>Di bukti: <b>${I.nominal != null ? rupiah(I.nominal) : 'belum terbaca'}</b></span><div class="bukti-tools" id="bukti-tools"></div></div></div>` : ''}
-          ${nom}${wk}
+          ${nom}${wk}${this.vRbDobel(D)}
         </div>
         ${hub}
         <div class="sect"><h4>Layangan (${rows.length})</h4>
@@ -10963,10 +11000,14 @@ ACT['adm.rbHubungi'] = (el) => sibuk(el, async () => {
 });
 /* nominal tidak cocok → tanya dulu; tombol di dialog membuka WA lalu menyimpan */
 ACT['adm.rbTanya'] = (el) => {
-  const kode = el.dataset.kode, rows = Adm.idx.rb.get(kode) || [], I = Adm.rbInfo(rows), kurang = I.sel > 0;
-  Overlay.modal(`<div><h3>Nominal ${kurang ? 'kurang' : 'lebih'} ${rupiah(Math.abs(I.sel))}</h3>
-    <p class="lead">Layangan yang diterima (${I.terima.length}) totalnya <b>${rupiah(I.diterima)}</b>, sedangkan di bukti <b>${rupiah(I.nominal)}</b>.</p>
-    <p class="hint">${kurang ? 'Simpan hanya bila kekurangannya sudah dilunasi atau angka di bukti salah terbaca. Kalau ada yang batal, tekan ✕ pada layangan itu dulu.' : 'Pastikan kelebihan bayar sudah dicatat (dikembalikan / dianggap donasi) atau angka di bukti salah terbaca.'}</p>
+  const kode = el.dataset.kode, rows = Adm.idx.rb.get(kode) || [], I = Adm.rbInfo(rows), D = Adm.rbDobel(kode, rows);
+  const uang = I.sel != null && I.sel !== 0, kurang = I.sel > 0;
+  const judul = D ? `${D.pasti ? 'Bukti dobel' : 'Bukti mirip'}${uang ? ` & nominal ${kurang ? 'kurang' : 'lebih'}` : ''}` : `Nominal ${kurang ? 'kurang' : 'lebih'} ${rupiah(Math.abs(I.sel))}`;
+  Overlay.modal(`<div><h3>${judul}</h3>
+    ${D ? `<p class="lead">Bukti transfer ini juga dipakai oleh <b>${D.list.map((e) => esc(e.rombongan || e.kode)).join(', ')}</b> (${D.alasan.replace(/<[^>]+>/g, '')}).</p>
+      <p class="hint">Konfirmasi hanya bila sudah dipastikan ini transfer berbeda (mis. cek mutasi rekening). Kalau bukti lama dipakai ulang, tekan ✕ pada semua layangan lalu hubungi peserta.</p>` : ''}
+    ${uang ? `<p class="lead">Layangan yang diterima (${I.terima.length}) totalnya <b>${rupiah(I.diterima)}</b>, sedangkan di bukti <b>${rupiah(I.nominal)}</b>.</p>
+      <p class="hint">${kurang ? 'Simpan hanya bila kekurangannya sudah dilunasi atau angka di bukti salah terbaca. Kalau ada yang batal, tekan ✕ pada layangan itu dulu.' : 'Pastikan kelebihan bayar sudah dicatat (dikembalikan / dianggap donasi) atau angka di bukti salah terbaca.'}</p>` : ''}
     <div class="actions end"><button type="button" class="btn" data-act="ovl.tutup">Kembali</button>
     <a class="btn btn-good" href="#" target="_blank" rel="noopener" data-act="adm.rbSimpan" data-kode="${esc(kode)}">${ico('chat')} Tetap simpan &amp; kirim WA</a></div></div>`);
 };
