@@ -6133,7 +6133,7 @@ function konfirmasiDialog({ judul, isi, tombol = 'Ya, lanjutkan', bahaya = false
 SUB['dlg.ok'] = (form) => { const it = Overlay.atas(); if (it && it.ok) it.ok(form); };
 /* idGanti: id pendaftaran pemilik bukti → tombol "Ganti bukti" (panitia mengunggah bukti baru dari peserta) */
 function tombolGantiBukti(id) {
-  return `<label class="btn btn-sm lb-ganti" title="Unggah bukti transfer baru (mis. dikirim peserta lewat WA)">${ico('upload')} Ganti bukti<input type="file" accept="image/jpeg,image/png,image/webp,image/heic,application/pdf" data-ch="adm.gantiBukti" data-id="${esc(id)}" hidden></label>`;
+  return `<button type="button" class="btn btn-sm lb-ganti" data-act="adm.gantiBuktiTanya" data-id="${esc(id)}" title="Unggah bukti transfer baru (mis. dikirim peserta lewat WA)">${ico('upload')} Ganti bukti</button>`;
 }
 function lightbox(url, judul = 'Bukti transfer', idGanti = null) {
   Overlay.buka(`<div class="lightbox" role="dialog" aria-modal="true" aria-label="${esc(judul)}">
@@ -9339,7 +9339,7 @@ const Adm = {
         : `<img src="${esc(url)}" alt="Bukti transfer ${esc(r.kode)}" data-act="adm.zoom" data-url="${esc(url)}">`;
       tools.innerHTML = pdf
         ? `<a class="btn btn-sm" href="${esc(url)}" target="_blank" rel="noopener">${ico('ext')} Buka PDF</a>${tombolGantiBukti(r.id)}`
-        : `<button class="btn btn-sm" data-act="adm.zoom" data-url="${esc(url)}">${ico('eye')} Perbesar</button><a class="btn btn-sm" href="${esc(url)}" target="_blank" rel="noopener">${ico('ext')} Tab baru</a>`;
+        : `<button class="btn btn-sm" data-act="adm.zoom" data-url="${esc(url)}">${ico('eye')} Perbesar</button><a class="btn btn-sm" href="${esc(url)}" target="_blank" rel="noopener">${ico('ext')} Tab baru</a>${tombolGantiBukti(r.id)}`;
     } catch (e) {
       const box = $('#bukti-box');
       if (box && this.s.detail === r.id) box.innerHTML = `<div class="empty">${ico('alert')} ${esc(pesanError(e))}</div>`;
@@ -10907,6 +10907,15 @@ ACT['adm.zoom'] = (el) => {
   const id = el.dataset.id || (fig && fig.dataset.bukti) || (el.closest('#bukti-box, #bukti-tools') ? Adm.s.detail : null);
   lightbox(el.dataset.url, 'Bukti transfer', id && Adm.baris(id) ? id : null);
 };
+ACT['adm.gantiBuktiTanya'] = (el) => {
+  const r = Adm.baris(el.dataset.id); if (!r) return;
+  const n = r.rombongan ? (Adm.idx.rb.get(r.rombongan) || []).filter((x) => x.bukti_path === r.bukti_path).length : 1;
+  Overlay.modal(`<div><h3>Ganti bukti transfer?</h3>
+    <p class="lead">Bukti transfer ${r.rombongan ? `rombongan <b>${esc(r.rombongan)}</b> (<b>${n} layangan</b>)` : `<b>${esc(r.nama_sekha)}</b> (No. ${esc(r.nomor_layangan || '—')})`} akan diganti dengan foto / PDF baru, misalnya bukti yang dikirim peserta lewat WA.</p>
+    <p class="hint">Bukti lama tidak dipakai lagi. Setelah diganti, tekan <b>Periksa bukti</b> di Cek Bukti agar bukti baru ikut dibaca.</p>
+    <div class="actions end"><button type="button" class="btn" data-act="ovl.tutup">Batal</button>
+    <label class="btn btn-primary" style="cursor:pointer">${ico('upload')} Ya, pilih bukti baru<input type="file" accept="image/jpeg,image/png,image/webp,image/heic,application/pdf" data-ch="adm.gantiBukti" data-id="${esc(r.id)}" hidden></label></div></div>`);
+};
 /* Ganti bukti transfer (file lama tidak langsung dihapus); rombongan → semua layangan yang memakai bukti yang sama */
 CH['adm.gantiBukti'] = async (el) => {
   const file = el.files && el.files[0], r = Adm.baris(el.dataset.id);
@@ -10914,12 +10923,9 @@ CH['adm.gantiBukti'] = async (el) => {
   if (!file || !r) return;
   if (!/^image\//.test(file.type) && file.type !== 'application/pdf') { toast('Pilih foto (JPG/PNG) atau PDF bukti transfer.', 'bad'); return; }
   const target = r.rombongan ? (Adm.idx.rb.get(r.rombongan) || []).filter((x) => x.bukti_path === r.bukti_path) : [r];
-  const ok = await konfirmasiDialog({ judul: 'Ganti bukti transfer?',
-    isi: `Bukti baru (<b>${esc(file.name)}</b>) dipakai untuk ${r.rombongan ? `<b>${target.length} layangan</b> di rombongan <b>${esc(r.rombongan)}</b>` : `<b>${esc(r.nama_sekha)}</b> (No. ${esc(r.nomor_layangan || '—')})`}. Bukti lama tidak dipakai lagi.`,
-    tombol: 'Ganti bukti' });
-  if (!ok) return;
-  const tombol = el.closest('label');
-  if (tombol) { tombol.insertAdjacentHTML('afterbegin', '<span class="spinner"></span>'); tombol.style.pointerEvents = 'none'; }
+  Overlay.tutupYangBerisi(el);
+  const lb = (Overlay.stack || []).find((x) => x.el && (x.el.matches('.lightbox') || x.el.querySelector('.lightbox')));
+  toast('Mengunggah bukti baru…', 'info', 3000);
   try {
     const { blob, ext, tipe } = await siapkanBlobBukti(file);
     const hash = await sha256File(file);
@@ -10930,13 +10936,12 @@ CH['adm.gantiBukti'] = async (el) => {
       catch (e) { gagal++; toast(`${x.nama_sekha}: ${pesanError(e)}`, 'bad', 8000); }
     }
     if (!gagal) {
-      if (el.closest('.lightbox')) Overlay.tutupYangBerisi(el);
+      if (lb) Overlay.tutup(lb);
       Adm.indeks(); Adm.segarkanTampilan({ diam: true });
       if (Adm.s.lk) Adm.renderLangkah();
       toast(`Bukti transfer diganti${target.length > 1 ? ` (${target.length} layangan)` : ''}. Tekan "Periksa bukti" di Cek Bukti agar bukti baru ikut dibaca.`, 'good', 7000);
     }
   } catch (e) { toast(pesanError(e), 'bad', 6000); }
-  finally { if (tombol && tombol.isConnected) { const sp = tombol.querySelector('.spinner'); if (sp) sp.remove(); tombol.style.pointerEvents = ''; } }
 };
 ACT['adm.verifikasi'] = () => Adm.mulaiVerifikasi();
 ACT['adm.filterWa'] = () => { Adm.s.f = { ...FILTER_AWAL, status: 'terkonfirmasi', wa: true, urut: 'terlama' }; location.hash = '#admin/pendaftaran'; if (Adm.s.tab === 'pendaftaran') Adm.segarkanTampilan(); };
