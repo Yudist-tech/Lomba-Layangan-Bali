@@ -2486,16 +2486,38 @@ button.lp-tab { border: 0; font: inherit; color: inherit; cursor: pointer; text-
   .lp-cari { border-radius: 12px; }
 }
 @media (max-width: 640px) {
+  /* HP: kartu ringkas supaya kartu berikutnya ikut terlihat */
+  .ev-grid { gap: 10px; }
   .ev-card { min-height: 0; border-radius: 16px; }
-  .ev-sisi { width: 92px; padding: 9px; }
-  .ev-flyer.ada img { max-height: 130px; }
-  .ev-body { padding: 13px 14px; gap: 5px; }
-  .ev-judul { font-size: 16px; }
-  .ev-meta { font-size: 13px; }
-  .ev-meta .ico { width: 15px; height: 15px; }
-  .ev-chip { font-size: 11.5px; padding: 2px 8px; }
-  .ev-cta, .ev-lihat { min-height: 36px; font-size: 13.5px; }
-  .ev-cta { padding: 0 14px; }
+  .ev-sisi { width: 106px; padding: 9px; }
+  .ev-flyer.ada img { max-height: 150px; }
+  .ev-body { padding: 11px 12px 12px; gap: 4px; }
+  .ev-st { font-size: 11.5px; padding: 2px 8px; }
+  .ev-judul { font-size: 15.5px; line-height: 1.22; }
+  .ev-meta { gap: 1px; font-size: 12.5px; }
+  .ev-meta .ico { width: 14px; height: 14px; }
+  .ev-meta li { gap: 5px; }
+  .ev-chips { gap: 5px; margin-top: 1px; }
+  .ev-chip { font-size: 11px; padding: 2px 7px; }
+  .ev-aksi { padding-top: 4px; }
+  .ev-cta, .ev-lihat { min-height: 32px; font-size: 13px; border-radius: 9px; }
+  .ev-cta { padding: 0 12px; }
+}
+
+/* 3 tombol header menumpang di tepi bawah header: header berakhir rata tepat di tengah tinggi tombol
+   (pita warna halaman di dasar header), tanpa tonjolan/sekat di antara tombol */
+.lp-top.lp-langit { --lp-pita: 24px; }
+.lp-top.lp-langit::after { content: ''; position: absolute; left: 0; right: 0; bottom: 0; height: var(--lp-pita); background: var(--page); z-index: 1; pointer-events: none; }
+.lp-tabs { left: 50%; right: auto; transform: translateX(-50%); width: max-content; max-width: calc(100% - 32px); bottom: 6px; gap: 12px; padding: 0; background: none; justify-content: center; }
+.lp-tab, .lp-tab:nth-child(n) { background: none; padding: 0; border-radius: 0; }
+.lp-tab::before, .lp-tab::after { display: none; }
+.lp-tab .lp-stat { box-shadow: 0 4px 14px rgba(10,58,109,.16); }
+@media (max-width: 760px) {
+  .lp-top.lp-langit { --lp-pita: 29px; }
+  .lp-tabs { left: 16px; right: 16px; width: auto; max-width: none; transform: none; gap: 8px; }
+  .lp-tab { flex: 1; padding: 0; }
+  .lp-tab .lp-stat { flex-direction: row; align-items: center; }
+  .lp-tab .lp-stat .lp-bt { align-self: center; height: auto; }
 }
 
 /* Daftar beberapa layangan (rombongan) — peserta */
@@ -11848,7 +11870,7 @@ const Beranda = {
     const cta = e.juara_diumumkan ? ['gold', '🏆 Lihat juara', '/juara'] : e.pendaftaran_buka ? ['primary', 'Daftar sekarang', ''] : st.k === 'live' ? ['', 'Lihat jadwal', '/jadwal'] : ['', 'Lihat info', ''];
     const href = `#e/${encodeURIComponent(e.slug)}${cta[2]}`;
     const chips = e.pendaftaran_buka
-      ? `<span class="ev-chip buka">Pendaftaran dibuka</span>${e.ada_jadwal ? `<span class="ev-chip">Sisa ${angka(e.sisa_slot)} slot</span>` : ''}${e.harga_min != null ? `<span class="ev-chip">Mulai ${rupiah(e.harga_min)}</span>` : ''}`
+      ? `<span class="ev-chip buka">Pendaftaran dibuka</span>${e.ada_jadwal ? `<span class="ev-chip">Sisa ${angka(e.sisa_slot)} slot</span>` : ''}`
       : `<span class="ev-chip">${st.k === 'live' || st.k === 'selesai' ? 'Pendaftaran ditutup' : 'Pendaftaran belum dibuka'}</span>${e.peserta ? `<span class="ev-chip">${angka(e.peserta)} layangan</span>` : ''}`;
     const chipJuara = e.juara_diumumkan ? '<span class="ev-chip juara">🏆 Juara diumumkan</span>' : '';
     return `<article class="ev-card" style="--ev-a:${c0};--ev-b:${c1}">
