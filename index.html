@@ -1227,6 +1227,7 @@ div.sehat { margin: 0 0 16px; }
   .mtop .brand-logo { width: 34px; height: 34px; }
   .topbar h2 { font-size: 20px; }
   .bnav { display: flex; position: fixed; left: 0; right: 0; bottom: 0; z-index: 30; background: var(--surface); border-top: 1px solid var(--line); padding: 6px 6px calc(6px + env(safe-area-inset-bottom)); }
+  .bnav { transform: translateY(var(--vv-geser, 0px)); }
   .bnav a { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 6px 2px; border-radius: 10px; color: var(--muted); text-decoration: none; font-size: 11.5px; font-weight: 700; position: relative; }
   .bnav a .ico { width: 22px; height: 22px; }
   .bnav a.on { color: var(--brand); }
@@ -12624,6 +12625,44 @@ function cobaSegarkanTunda() {
   const f = document.activeElement;
   if (Adm.s.nilaiTunda && !(f && f.closest && f.closest('#adm-main') && /^(INPUT|TEXTAREA)$/.test(f.tagName)) && !document.querySelector('#adm-main details.ae-menu[open]')) Adm.segarkanTampilan();
 }
+/* iOS 26: setelah keyboard ditutup, Safari/PWA kadang tidak mengembalikan ukuran layar, sehingga
+   menu bawah (position:fixed; bottom:0) 'melayang' di tengah layar. Ukur selisih antara bawah layar
+   yang terlihat (visualViewport) dan bawah tata letak, lalu geser menu bawah turun sebesar selisih itu. */
+(function jagaMenuBawah() {
+  const vv = window.visualViewport;
+  if (!vv) return;
+  const akar = document.documentElement;
+  const mandiri = navigator.standalone === true || (window.matchMedia && matchMedia('(display-mode: standalone)').matches);
+  let jadwal = 0;
+  const ukur = () => {
+    jadwal = 0;
+    const f = document.activeElement;
+    const ketik = f && /^(INPUT|TEXTAREA|SELECT)$/.test(f.tagName);
+    let geser = Math.round(vv.offsetTop + vv.height - window.innerHeight);
+    // Aplikasi yang dipasang di layar utama: tinggi layar tidak pernah berubah, jadi bandingkan dengan tinggi layar HP.
+    if (mandiri && /iP(hone|od|ad)/.test(navigator.userAgent) || (mandiri && navigator.maxTouchPoints > 1 && /Mac/.test(navigator.userAgent))) {
+      const tegak = window.innerWidth <= screen.width + 1;
+      const penuh = tegak ? Math.max(screen.width, screen.height) : Math.min(screen.width, screen.height);
+      geser = Math.max(geser, Math.round(penuh - window.innerHeight));
+    }
+    if (ketik) geser = 0;
+    const nilai = geser > 0 && geser < window.innerHeight / 2 ? geser + 'px' : '0px';
+    if (akar.style.getPropertyValue('--vv-geser') !== nilai) akar.style.setProperty('--vv-geser', nilai);
+  };
+  const minta = () => { if (!jadwal) jadwal = requestAnimationFrame(ukur); };
+  vv.addEventListener('resize', minta);
+  vv.addEventListener('scroll', minta);
+  window.addEventListener('scroll', minta, { passive: true });
+  window.addEventListener('resize', minta);
+  window.addEventListener('orientationchange', () => setTimeout(minta, 350));
+  document.addEventListener('focusout', () => {
+    setTimeout(minta, 120);
+    // dorongan kecil: menggulir 1px lalu kembali membuat Safari menghitung ulang posisi menu bawah
+    setTimeout(() => { const y = window.scrollY; window.scrollTo(window.scrollX, y + 1); window.scrollTo(window.scrollX, y); minta(); }, 450);
+  });
+  document.addEventListener('visibilitychange', minta);
+  minta();
+})();
 document.addEventListener('focusout', (e) => {
   // pembaruan yang ditunda di tab Penilaian dijalankan setelah panitia selesai mengetik
   if (Adm.s.nilaiTunda && e.target.closest && e.target.closest('#adm-main')) setTimeout(cobaSegarkanTunda, 300);
