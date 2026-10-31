@@ -2486,16 +2486,24 @@ button.lp-tab { border: 0; font: inherit; color: inherit; cursor: pointer; text-
   .lp-cari { border-radius: 12px; }
 }
 @media (max-width: 640px) {
+  /* HP: kartu ringkas supaya kartu berikutnya ikut terlihat */
+  .ev-grid { gap: 10px; }
   .ev-card { min-height: 0; border-radius: 16px; }
-  .ev-sisi { width: 92px; padding: 9px; }
-  .ev-flyer.ada img { max-height: 130px; }
-  .ev-body { padding: 13px 14px; gap: 5px; }
-  .ev-judul { font-size: 16px; }
-  .ev-meta { font-size: 13px; }
-  .ev-meta .ico { width: 15px; height: 15px; }
-  .ev-chip { font-size: 11.5px; padding: 2px 8px; }
-  .ev-cta, .ev-lihat { min-height: 36px; font-size: 13.5px; }
-  .ev-cta { padding: 0 14px; }
+  .ev-sisi { width: 106px; padding: 9px; }
+  .ev-flyer.ada img { max-height: 150px; }
+  .ev-body { padding: 11px 12px 12px; gap: 4px; }
+  .ev-st { font-size: 11.5px; padding: 2px 8px; }
+  .ev-judul { font-size: 15.5px; line-height: 1.22; }
+  .ev-meta { gap: 1px; font-size: 12.5px; }
+  .ev-meta .ico { width: 14px; height: 14px; }
+  .ev-meta li { gap: 5px; }
+  .ev-chips { gap: 5px; margin-top: 1px; }
+  .ev-chip { font-size: 11px; padding: 2px 7px; }
+  .ev-chip.buka { display: none; }           /* tombol "Daftar sekarang" sudah menandakan pendaftaran dibuka */
+  .ev-aksi { padding-top: 4px; }
+  .ev-cta, .ev-lihat { min-height: 32px; font-size: 13px; border-radius: 9px; }
+  .ev-cta { padding: 0 12px; }
+}
 }
 
 /* Daftar beberapa layangan (rombongan) — peserta */
