@@ -12632,14 +12632,16 @@ function cobaSegarkanTunda() {
   const vv = window.visualViewport;
   if (!vv) return;
   const akar = document.documentElement;
-  let jadwal = 0;
+  let jadwal = 0, dasar = null;
   const ukur = () => {
     jadwal = 0;
     const f = document.activeElement;
     const ketik = f && /^(INPUT|TEXTAREA|SELECT)$/.test(f.tagName);
-    let geser = Math.round(vv.offsetTop + vv.height - window.innerHeight);
+    const mentah = Math.round(vv.offsetTop + vv.height - window.innerHeight);
+    // selisih bawaan (diukur sebelum keyboard pernah muncul) dianggap normal, mis. pada aplikasi layar utama
+    if (dasar === null && !ketik) dasar = mentah;
+    let geser = ketik || dasar === null ? 0 : mentah - dasar;
     if (geser < 4) geser = 0;   // selisih kecil karena pembulatan: abaikan
-    if (ketik) geser = 0;
     const nilai = geser > 0 && geser < window.innerHeight / 2 ? geser + 'px' : '0px';
     if (akar.style.getPropertyValue('--vv-geser') !== nilai) akar.style.setProperty('--vv-geser', nilai);
   };
@@ -12648,7 +12650,7 @@ function cobaSegarkanTunda() {
   vv.addEventListener('scroll', minta);
   window.addEventListener('scroll', minta, { passive: true });
   window.addEventListener('resize', minta);
-  window.addEventListener('orientationchange', () => setTimeout(minta, 350));
+  window.addEventListener('orientationchange', () => { dasar = null; setTimeout(minta, 350); });
   document.addEventListener('focusout', () => {
     setTimeout(minta, 120);
     // dorongan kecil: menggulir 1px lalu kembali membuat Safari menghitung ulang posisi menu bawah
