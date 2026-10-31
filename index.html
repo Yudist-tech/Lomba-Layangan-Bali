@@ -2504,17 +2504,17 @@ button.lp-tab { border: 0; font: inherit; color: inherit; cursor: pointer; text-
   .ev-cta { padding: 0 12px; }
 }
 
-/* 3 tombol header dalam satu "baki": tepi bawah header cukup melengkung di 2 ujung, tanpa sekat sempit di antara tombol */
-.lp-tabs { left: 50%; right: auto; transform: translateX(-50%); width: max-content; max-width: calc(100% - 40px); gap: 12px; padding: 9px 12px 4px; background: var(--page); border-radius: 20px 20px 0 0; justify-content: center; }
-.lp-tabs::before, .lp-tabs::after { content: ''; position: absolute; bottom: 0; width: 20px; height: 20px; }
-.lp-tabs::before { left: -20px; background: radial-gradient(circle at 0 0, transparent 19.5px, var(--page) 20px); }
-.lp-tabs::after { right: -20px; background: radial-gradient(circle at 100% 0, transparent 19.5px, var(--page) 20px); }
+/* 3 tombol header menumpang di tepi bawah header: header berakhir rata tepat di tengah tinggi tombol
+   (pita warna halaman di dasar header), tanpa tonjolan/sekat di antara tombol */
+.lp-top.lp-langit { --lp-pita: 24px; }
+.lp-top.lp-langit::after { content: ''; position: absolute; left: 0; right: 0; bottom: 0; height: var(--lp-pita); background: var(--page); z-index: 1; pointer-events: none; }
+.lp-tabs { left: 50%; right: auto; transform: translateX(-50%); width: max-content; max-width: calc(100% - 32px); bottom: 6px; gap: 12px; padding: 0; background: none; justify-content: center; }
 .lp-tab, .lp-tab:nth-child(n) { background: none; padding: 0; border-radius: 0; }
 .lp-tab::before, .lp-tab::after { display: none; }
+.lp-tab .lp-stat { box-shadow: 0 4px 14px rgba(10,58,109,.16); }
 @media (max-width: 760px) {
-  .lp-tabs { left: 18px; right: 18px; width: auto; max-width: none; transform: none; gap: 8px; padding: 8px 8px 4px; border-radius: 18px 18px 0 0; }
-  .lp-tabs::before { left: -18px; width: 18px; height: 18px; background: radial-gradient(circle at 0 0, transparent 17.5px, var(--page) 18px); }
-  .lp-tabs::after { right: -18px; width: 18px; height: 18px; background: radial-gradient(circle at 100% 0, transparent 17.5px, var(--page) 18px); }
+  .lp-top.lp-langit { --lp-pita: 29px; }
+  .lp-tabs { left: 16px; right: 16px; width: auto; max-width: none; transform: none; gap: 8px; }
   .lp-tab { flex: 1; padding: 0; }
   .lp-tab .lp-stat { flex-direction: row; align-items: center; }
   .lp-tab .lp-stat .lp-bt { align-self: center; height: auto; }
