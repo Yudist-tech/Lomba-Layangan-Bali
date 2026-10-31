@@ -1202,6 +1202,7 @@ div.sehat { margin: 0 0 16px; }
 .lightbox img { max-width: 100%; max-height: 100%; object-fit: contain; cursor: zoom-in; }
 .lightbox.zoom img { max-width: none; max-height: none; cursor: zoom-out; }
 .lightbox .btn { background: rgba(255,255,255,.12); color: #fff; border-color: rgba(255,255,255,.2); }
+label.lb-ganti { cursor: pointer; }
 
 .login-wrap { min-height: 100vh; display: grid; place-items: center; padding: 20px 16px; background: linear-gradient(165deg, #0a3a6d 0%, #0e5aa7 55%, #3b93d6 100%); }
 .login { width: min(400px, 100%); }
@@ -6130,9 +6131,13 @@ function konfirmasiDialog({ judul, isi, tombol = 'Ya, lanjutkan', bahaya = false
   });
 }
 SUB['dlg.ok'] = (form) => { const it = Overlay.atas(); if (it && it.ok) it.ok(form); };
-function lightbox(url, judul = 'Bukti transfer') {
+/* idGanti: id pendaftaran pemilik bukti → tombol "Ganti bukti" (panitia mengunggah bukti baru dari peserta) */
+function tombolGantiBukti(id) {
+  return `<label class="btn btn-sm lb-ganti" title="Unggah bukti transfer baru (mis. dikirim peserta lewat WA)">${ico('upload')} Ganti bukti<input type="file" accept="image/jpeg,image/png,image/webp,image/heic,application/pdf" data-ch="adm.gantiBukti" data-id="${esc(id)}" hidden></label>`;
+}
+function lightbox(url, judul = 'Bukti transfer', idGanti = null) {
   Overlay.buka(`<div class="lightbox" role="dialog" aria-modal="true" aria-label="${esc(judul)}">
-    <div class="lb-bar"><a class="btn btn-sm" href="${esc(url)}" target="_blank" rel="noopener">${ico('ext')} Tab baru</a>
+    <div class="lb-bar">${idGanti ? tombolGantiBukti(idGanti) : ''}<a class="btn btn-sm" href="${esc(url)}" target="_blank" rel="noopener">${ico('ext')} Tab baru</a>
     <button class="btn btn-sm" data-act="ovl.tutup">${ico('x')} Tutup</button></div>
     <div class="lb-img" data-act="lb.zoom"><img src="${esc(url)}" alt="${esc(judul)}"></div></div>`);
 }
@@ -9333,7 +9338,7 @@ const Adm = {
         ? `<div class="empty">${ico('file')}<div style="margin-top:6px">Bukti transfer berupa PDF</div></div>`
         : `<img src="${esc(url)}" alt="Bukti transfer ${esc(r.kode)}" data-act="adm.zoom" data-url="${esc(url)}">`;
       tools.innerHTML = pdf
-        ? `<a class="btn btn-sm" href="${esc(url)}" target="_blank" rel="noopener">${ico('ext')} Buka PDF</a>`
+        ? `<a class="btn btn-sm" href="${esc(url)}" target="_blank" rel="noopener">${ico('ext')} Buka PDF</a>${tombolGantiBukti(r.id)}`
         : `<button class="btn btn-sm" data-act="adm.zoom" data-url="${esc(url)}">${ico('eye')} Perbesar</button><a class="btn btn-sm" href="${esc(url)}" target="_blank" rel="noopener">${ico('ext')} Tab baru</a>`;
     } catch (e) {
       const box = $('#bukti-box');
@@ -10896,7 +10901,43 @@ ACT['adm.buka'] = (el) => {
   Adm.buka(el.dataset.id);
 };
 ACT['adm.nav'] = (el, e) => { if (e) e.preventDefault(); if (el.dataset.id) { Adm.s.detail = el.dataset.id; if (!Adm.s.nav.includes(el.dataset.id)) Adm.s.nav = [el.dataset.id]; Adm.renderDetail(); } };
-ACT['adm.zoom'] = (el) => lightbox(el.dataset.url);
+ACT['adm.zoom'] = (el) => {
+  // pemilik bukti: Cek Bukti (figure data-bukti) atau laci detail (#bukti-box / #bukti-tools)
+  const fig = el.closest('[data-bukti]');
+  const id = el.dataset.id || (fig && fig.dataset.bukti) || (el.closest('#bukti-box, #bukti-tools') ? Adm.s.detail : null);
+  lightbox(el.dataset.url, 'Bukti transfer', id && Adm.baris(id) ? id : null);
+};
+/* Ganti bukti transfer (file lama tidak langsung dihapus); rombongan → semua layangan yang memakai bukti yang sama */
+CH['adm.gantiBukti'] = async (el) => {
+  const file = el.files && el.files[0], r = Adm.baris(el.dataset.id);
+  el.value = '';
+  if (!file || !r) return;
+  if (!/^image\//.test(file.type) && file.type !== 'application/pdf') { toast('Pilih foto (JPG/PNG) atau PDF bukti transfer.', 'bad'); return; }
+  const target = r.rombongan ? (Adm.idx.rb.get(r.rombongan) || []).filter((x) => x.bukti_path === r.bukti_path) : [r];
+  const ok = await konfirmasiDialog({ judul: 'Ganti bukti transfer?',
+    isi: `Bukti baru (<b>${esc(file.name)}</b>) dipakai untuk ${r.rombongan ? `<b>${target.length} layangan</b> di rombongan <b>${esc(r.rombongan)}</b>` : `<b>${esc(r.nama_sekha)}</b> (No. ${esc(r.nomor_layangan || '—')})`}. Bukti lama tidak dipakai lagi.`,
+    tombol: 'Ganti bukti' });
+  if (!ok) return;
+  const tombol = el.closest('label');
+  if (tombol) { tombol.insertAdjacentHTML('afterbegin', '<span class="spinner"></span>'); tombol.style.pointerEvents = 'none'; }
+  try {
+    const { blob, ext, tipe } = await siapkanBlobBukti(file);
+    const hash = await sha256File(file);
+    const path = await api.uploadBukti(`bukti/${uuid()}.${ext}`, blob, tipe);
+    let gagal = 0;
+    for (const x of target) {
+      try { await Adm.ubah(x.id, { bukti_path: path, bukti_hash: hash }, null, false); }
+      catch (e) { gagal++; toast(`${x.nama_sekha}: ${pesanError(e)}`, 'bad', 8000); }
+    }
+    if (!gagal) {
+      if (el.closest('.lightbox')) Overlay.tutupYangBerisi(el);
+      Adm.indeks(); Adm.segarkanTampilan({ diam: true });
+      if (Adm.s.lk) Adm.renderLangkah();
+      toast(`Bukti transfer diganti${target.length > 1 ? ` (${target.length} layangan)` : ''}. Tekan "Periksa bukti" di Cek Bukti agar bukti baru ikut dibaca.`, 'good', 7000);
+    }
+  } catch (e) { toast(pesanError(e), 'bad', 6000); }
+  finally { if (tombol && tombol.isConnected) { const sp = tombol.querySelector('.spinner'); if (sp) sp.remove(); tombol.style.pointerEvents = ''; } }
+};
 ACT['adm.verifikasi'] = () => Adm.mulaiVerifikasi();
 ACT['adm.filterWa'] = () => { Adm.s.f = { ...FILTER_AWAL, status: 'terkonfirmasi', wa: true, urut: 'terlama' }; location.hash = '#admin/pendaftaran'; if (Adm.s.tab === 'pendaftaran') Adm.segarkanTampilan(); };
 ACT['adm.filterBukti'] = () => {
