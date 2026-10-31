@@ -2451,6 +2451,53 @@ button.lp-tab { border: 0; font: inherit; color: inherit; cursor: pointer; text-
   .lp-bt small { font-size: 11px; white-space: normal; line-height: 1.2; }
   .lp-bc { display: none; }
 }
+/* Beranda: ukuran huruf, jarak & tepi kartu diselaraskan dengan header
+   Skala: judul halaman 46/30 · judul bagian 22/19 · judul kartu 17/16 · teks 13.5/13 · label kecil 12 */
+.lp-main { max-width: 1112px; }                          /* tepi kiri kartu = tepi kiri isi header */
+.lp-h { margin: 0 0 14px; }
+.lp-h h2 { font-size: 22px; font-weight: 800; letter-spacing: -.02em; }
+.lp-h span { font-size: 14px; }
+.lp-top p { font-size: 16px; }
+.lp-bt small { font-size: 13px; }
+.lp-tab .lp-stat { border-radius: 12px; }
+.ev-card { border-radius: 18px; min-height: 196px; }
+.ev-sisi { width: 132px; padding: 12px; }
+.ev-body { gap: 6px; padding: 15px 18px; }
+.ev-st { font-size: 12px; padding: 3px 10px; }
+.ev-org { font-size: 11px; }
+.ev-judul { font-size: 17px; font-weight: 800; line-height: 1.25; }
+.ev-meta { font-size: 13.5px; gap: 3px; }
+.ev-meta .ico { width: 16px; height: 16px; }
+.ev-chips { gap: 6px; margin-top: 3px; }
+.ev-chip { font-size: 11.5px; padding: 3px 9px; }
+.ev-aksi { padding-top: 6px; }
+.ev-cta, .ev-lihat { min-height: 38px; font-size: 14px; border-radius: 10px; }
+.ev-cta { padding: 0 16px; }
+@media (max-width: 760px) {
+  .lp-brand { font-size: 15px; white-space: nowrap; }
+  .lp-top h1 { font-size: 30px; }
+  .lp-top p { font-size: 15px; }
+  .lp-h { margin: 0 0 12px; }
+  .lp-h h2 { font-size: 19px; }
+  .lp-h span { font-size: 13px; }
+  .lp-bt b { font-size: 18px; }
+  .lp-bt small { font-size: 12px; }
+  .lp-tab .lp-stat { border-radius: 12px; }
+  .lp-cari { border-radius: 12px; }
+}
+@media (max-width: 640px) {
+  .ev-card { min-height: 0; border-radius: 16px; }
+  .ev-sisi { width: 92px; padding: 9px; }
+  .ev-flyer.ada img { max-height: 130px; }
+  .ev-body { padding: 13px 14px; gap: 5px; }
+  .ev-judul { font-size: 16px; }
+  .ev-meta { font-size: 13px; }
+  .ev-meta .ico { width: 15px; height: 15px; }
+  .ev-chip { font-size: 11.5px; padding: 2px 8px; }
+  .ev-cta, .ev-lihat { min-height: 36px; font-size: 13.5px; }
+  .ev-cta { padding: 0 14px; }
+}
+
 /* Daftar beberapa layangan (rombongan) — peserta */
 .rb-mode { display: grid; gap: 10px; }
 .rb-mode .opt { width: 100%; font: inherit; color: inherit; text-align: left; cursor: pointer; align-items: center; }
