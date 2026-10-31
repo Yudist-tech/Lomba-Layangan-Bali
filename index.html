@@ -2748,6 +2748,15 @@ function parseTanggal(str) {
   return new Date(y, m - 1, d);
 }
 function isoTanggal(d) { return `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())}`; }
+/* tanggal di bawah/samping nama hari: bila nama hari = nama hari pada tanggalnya (mis. "Minggu"), nama hari tidak ditulis dua kali */
+function tglHari(h) {
+  const t = fmtTanggal(h.tanggal), d = parseTanggal(h.tanggal);
+  if (!t || !d) return t;
+  const nm = String(h.nama || '').trim().toLowerCase();
+  const hr = String(HARI[d.getDay()] || '').toLowerCase();
+  // "Minggu", "Hari Minggu", "MINGGU (final)" → sudah menyebut harinya
+  return nm && (new RegExp(`(^|[^a-z])${hr}([^a-z]|$)`).test(nm) || nm === String(HARI3[d.getDay()] || '').toLowerCase()) ? t.replace(/^[^,]+,\s*/, '') : t;
+}
 function fmtTanggal(str, pendek = false) {
   const d = parseTanggal(str);
   if (!d) return '';
@@ -6591,7 +6600,7 @@ const Pub = {
     return `<section class="card">
       <h2 class="h2">Jadwal terbang</h2>
       <p class="lead">Angka di slot adalah nomor layangan yang sudah terkonfirmasi. Slot kuning sudah terisi tetapi masih menunggu konfirmasi panitia.${ev.tampilkan_peserta ? ' Ketuk nomor untuk melihat nama sekha dan alamat.' : ''} </p>
-      ${hari.length ? hari.map((h) => `<div class="jt-hari"><div class="jt-hari-h"><h3>${esc(h.nama)}</h3>${h.tanggal ? `<span class="muted">${esc(fmtTanggal(h.tanggal))}</span>` : ''}</div>
+      ${hari.length ? hari.map((h) => `<div class="jt-hari"><div class="jt-hari-h"><h3>${esc(h.nama)}</h3>${h.tanggal ? `<span class="muted">${esc(tglHari(h))}</span>` : ''}</div>
         ${tabelJadwal({ hari: h, sesi: info.sesi || [], istirahat: info.istirahat || [], grup, jenis: info.jenis, kotakIsi: isi, admin: false })}
         ${legendaJadwal({ hari: h, sesi: info.sesi || [], grup, kotakIsi: isi, admin: false, tampilNomor: !grup.some((g) => (g.isi || []).some((x) => typeof x !== 'object')) })}</div>`).join('')
         : '<div class="empty">Jadwal terbang belum tersedia.</div>'}
@@ -9502,7 +9511,7 @@ const Adm = {
         '<b>+ Istirahat</b>: pilih letaknya (setelah seri mana), jam & warna — tampil sebagai baris berwarna di jadwal, halaman peserta & hasil cetak.',
         'Tombol <b>Cetak</b> di tiap hari mencetak jadwal hari itu.'])}
       ${d.hari.length ? d.hari.map((h) => `<section class="jt-hari"><div class="jt-hari-h"><h3>${esc(h.nama)}</h3>
-          <span class="muted">${h.tanggal ? esc(fmtTanggal(h.tanggal)) : '<span class="jk-warn">tanggal belum diisi</span>'}</span>
+          <span class="muted">${h.tanggal ? esc(tglHari(h)) : '<span class="jk-warn">tanggal belum diisi</span>'}</span>
           <div class="sa-act">
             <button class="btn btn-xs" data-act="adm.sesiBaru" data-hari="${h.id}">${ico('plus')} Seri</button>
             <button class="btn btn-xs" data-act="adm.istBaru" data-hari="${h.id}">${ico('plus')} Istirahat</button>
