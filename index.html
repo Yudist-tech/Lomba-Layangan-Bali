@@ -2900,7 +2900,8 @@ async function sha256File(file) {
    (Kemiripan gambar tidak dipakai: struk berbeda dari aplikasi bank yang sama terlihat
    hampir identik, sehingga tidak bisa membedakan transfer sah dari salinan.) */
 const BATAS_AUTO_HP = 10;   // di HP: sampai 10 bukti dibaca otomatis tanpa bertanya
-const BACA_VERSI = 5;   // 5 = nama penerima (cek ke rekening panitia)
+const BACA_VERSI = 6;   // 6 = nama penerima tidak lagi diambil dari bagian pengirim
+//   // 5 = nama penerima (cek ke rekening panitia)
 //   // 3 = bukti yang dulu "tidak terbaca" dibaca ulang (gambar diperbesar, tahun dicek)   // naik bila pembaca bukti mendapat kolom baru (2 = No. Referensi & 4 angka rekening) → bukti lama dibaca ulang sekali
 const OCR_SUMBER = ['https://cdn.jsdelivr.net/npm/tesseract.js@5.1.1/dist/tesseract.min.js', 'https://unpkg.com/tesseract.js@5.1.1/dist/tesseract.min.js'];
 const BULAN_TEKS = { jan: 1, januari: 1, january: 1, feb: 2, peb: 2, februari: 2, february: 2, mar: 3, maret: 3, march: 3, apr: 4, april: 4, mei: 5, may: 5, jun: 6, juni: 6, june: 6, jul: 7, juli: 7, july: 7, agu: 8, agt: 8, ags: 8, aug: 8, agustus: 8, august: 8, sep: 9, sept: 9, september: 9, okt: 10, oct: 10, oktober: 10, october: 10, nov: 11, nop: 11, november: 11, nopember: 11, des: 12, dec: 12, desember: 12, december: 12 };
@@ -3511,12 +3512,14 @@ function bacaTeksBukti(teks, rekPanitia4 = '', namaPanitia = '') {
   const waktu = tgl && jam ? `${tgl[0]}-${pad(tgl[1])}-${pad(tgl[2])}T${pad(jam[0])}:${pad(jam[1])}:${pad(jam[2])}` : null;
   // --- nama pengirim
   let nama = null;
+  const barisPengirim = new Set();    // baris tempat nama pengirim ditemukan (tidak boleh dianggap penerima)
   const RX_NAMA = /^(?:nama\s+pengirim|pengirim|dari|sumber\s+dana|rekening\s+sumber|from|sender)\b\s*[:\-]?\s*(.*)$/i;
   for (let i = 0; i < baris.length && !nama; i++) {
     const m = baris[i].match(RX_NAMA); if (!m) continue;
-    for (const c of [m[1], baris[i + 1] || '']) {
+    const calon = [[m[1], i], [baris[i + 1] || '', i + 1]];
+    for (const [c, k] of calon) {
       const bersih = c.replace(/[^A-Za-z .']/g, ' ').replace(/\b(rekening|rek|account|acc|no|nomor|dana|tabungan|giro)\b\.?/gi, ' ').replace(/\b[xX]{2,}\b/g, ' ').replace(/\s+/g, ' ').trim();
-      if (bersih.replace(/[^A-Za-z]/g, '').length >= 3) { nama = bersih.slice(0, 60); break; }
+      if (bersih.replace(/[^A-Za-z]/g, '').length >= 3) { nama = bersih.slice(0, 60); barisPengirim.add(k); break; }
     }
   }
   // --- No. Referensi transaksi (unik per transfer)
@@ -3546,14 +3549,23 @@ function bacaTeksBukti(teks, rekPanitia4 = '', namaPanitia = '') {
   const bersihNama = (c) => hurufMirip(c).replace(/^\s*(ke|to)\s*[:\-]?\s+/i, '').replace(/[^A-Za-z .']/g, ' ')
     .replace(/\b(rekening|rek|account|acc|no|nomor|dana|tabungan|giro|bank|bpd|rakyat|negara|indonesia|central|asia|mandiri|syariah|bri|bca|bni|btn|bsi|cimb|niaga|permata|danamon|ocbc|nisp|mega|panin|jago|seabank|ovo|gopay|shopeepay|linkaja|virtual|va|tujuan|penerima|kepada|nama)\b\.?/gi, ' ')
     .replace(/\b[xX]{2,}\b/g, ' ').replace(/\s+/g, ' ').trim();
-  if (namaPanitia) for (const b of baris) { if (cocokPenerima(b, namaPanitia)) { penerima = bersihNama(b).slice(0, 60) || String(namaPanitia).toUpperCase(); break; } }
+  // cari nama rekening panitia di bukti, KECUALI di bagian pengirim (dari / sumber dana) — nama pengirim bisa sama dengan nama panitia
+  if (namaPanitia) {
+    let bg = '';
+    for (let i = 0; i < baris.length; i++) {
+      const b = baris[i];
+      if (RX_DARI.test(b)) bg = 'dari'; else if (RX_KE.test(b)) bg = 'ke';
+      if (bg === 'dari' || barisPengirim.has(i)) continue;
+      if (cocokPenerima(b, namaPanitia)) { penerima = bersihNama(b).slice(0, 60) || String(namaPanitia).toUpperCase(); break; }
+    }
+  }
   if (!penerima) {
     const RX_PEN = /^(?:nama\s+penerima|penerima|kepada|tujuan(?:\s+transfer)?|rekening\s+tujuan|ke|to|recipient|beneficiary(?:\s+name)?)\b\s*[:\-]?\s*(.*)$/i;
     const RX_LABEL = /^(nominal|jumlah|biaya|total|metode|keterangan|berita|catatan|tanggal|waktu|status|no\b|nomor|ref|pengirim|dari|sumber|rekening\s+sumber|from|sender)/i;
     for (let i = 0; i < baris.length && !penerima; i++) {
       const m = baris[i].match(RX_PEN); if (!m) continue;
-      for (const c of [m[1], baris[i + 1] || '']) {
-        if (RX_LABEL.test(c.trim())) break;
+      for (const [c, k] of [[m[1], i], [baris[i + 1] || '', i + 1]]) {
+        if (RX_LABEL.test(c.trim()) || barisPengirim.has(k)) break;
         const b = bersihNama(c);
         if (b.replace(/[^A-Za-z]/g, '').length >= 3 && b.split(' ').some((w) => w.length >= 3)) { penerima = b.slice(0, 60); break; }
       }
@@ -3577,7 +3589,7 @@ function cocokPenerima(teks, panitia) {
 /* hasil cek penerima satu bacaan bukti: null (belum bisa dinilai) / ok / beda / kosong */
 function penerimaDari(b, namaPanitia, path) {
   const nm = String(namaPanitia || '').trim();
-  if (!nm || !b || b.gagal || (b.versi || 1) < 5 || /\.pdf$/i.test(path || '')) return null;
+  if (!nm || !b || b.gagal || (b.versi || 1) < 6 || /\.pdf$/i.test(path || '')) return null;
   if (b.penerima && cocokPenerima(b.penerima, nm)) return { k: 'ok', nama: b.penerima, panitia: nm };
   if (!b.penerima) return { k: 'kosong', panitia: nm };
   // mirip sebagian (kemungkinan salah baca) → kuning, bukan merah
@@ -8683,7 +8695,7 @@ const Adm = {
   /* baca ulang: bacaan versi 1 (belum ada No. Ref & rekening), atau yang nominal/waktunya belum terbaca sebelum versi 3 */
   perluBacaUlang(b) {
     const v = b.versi || 1, nmP = String((this.s.data && this.s.data.pengaturan.bank_atas_nama) || '').trim();
-    return v < 2 || (v < 4 && (!b.nominal || !b.waktu || !b.ref)) || (v < 5 && !!nmP && !api.tanpaPenerima);   // 5: nama penerima belum pernah dibaca
+    return v < 2 || (v < 4 && (!b.nominal || !b.waktu || !b.ref)) || (v < 6 && !!nmP && !api.tanpaPenerima);   // 5: nama penerima belum pernah dibaca
   },
   antreanBaca(sudah) {
     const d = this.s.data; if (!d) return [];
