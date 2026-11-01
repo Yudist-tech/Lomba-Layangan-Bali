@@ -8149,7 +8149,8 @@ const Adm = {
     for (const b of d.baca || []) baca.set(b.pendaftaran_id, { ...b, gagal: !b.nominal });   // waktu kosong ≠ gagal: nominal tetap dipakai
     const perluBaca = (r) => r.bukti_path && r.status !== 'ditolak' && !/\.pdf$/i.test(r.bukti_path);
     const sah = (r) => { const b = baca.get(r.id); return b && b.bukti_path === r.bukti_path ? b : null; };
-    const belumDibaca = d.daftar.filter((r) => perluBaca(r) && !sah(r));
+    // belum dibaca, ATAU dibaca dengan pembaca versi lama yang perlu dibaca ulang (mis. versi 5: nama penerima)
+    const belumDibaca = d.daftar.filter((r) => perluBaca(r) && (!sah(r) || (!api.bacaLama && this.perluBacaUlang(sah(r)))));
     const tidakTerbaca = d.daftar.filter((r) => perluBaca(r) && sah(r) && sah(r).gagal).length;
     return { baca, belumDibaca, tidakTerbaca, sah };
   },
@@ -8768,7 +8769,7 @@ const Adm = {
     const jalan = this.s.pb && this.s.pb.jalan, n = jalan ? this.s.pb.n - this.s.pb.i : this.idx.belumDibaca.length;
     const auto = this.otomatisAktif();
     Overlay.modal(`<h3>Periksa bukti transfer</h3>
-      <p class="lead">${n ? `Membaca nominal, waktu &amp; nama pengirim dari ${n} gambar bukti, lalu mencari yang sama. Pertama kali perlu mengunduh pembaca teks (±5 MB).` : 'Semua bukti sudah diperiksa.'}</p>
+      <p class="lead">${n ? `Membaca nominal, waktu, nama pengirim &amp; nama penerima dari ${n} gambar bukti, lalu mencari yang sama. Pertama kali perlu mengunduh pembaca teks (±5 MB).` : 'Semua bukti sudah diperiksa.'}</p>
       ${n ? `<div class="progres"><span id="pb-bar" style="width:0%"></span></div><p class="hint" id="pb-status" aria-live="polite">Menyiapkan pembaca teks…</p>` : ''}
       <label class="cek-auto"><input type="checkbox" data-ch="adm.autoPeriksa" ${auto ? 'checked' : ''}><span><b>Periksa otomatis di perangkat ini</b><small>Bukti baru dibaca sendiri selama dashboard terbuka. Disarankan di laptop; di HP memakai kuota &amp; baterai.</small></span></label>
       <div class="actions end">${n ? `<button type="button" class="btn" id="pb-tombol" data-act="adm.periksaBatal">${jalan && this.s.pb.mode === 'auto' ? 'Sembunyikan' : 'Hentikan'}</button>` : '<button type="button" class="btn btn-primary" data-act="ovl.tutup">Tutup</button>'}</div>`,
