@@ -2899,6 +2899,7 @@ async function sha256File(file) {
    "bukti mirip" bila nama pengirim sama + nominal sama + waktu selisih ≤ 1 menit.
    (Kemiripan gambar tidak dipakai: struk berbeda dari aplikasi bank yang sama terlihat
    hampir identik, sehingga tidak bisa membedakan transfer sah dari salinan.) */
+const BATAS_AUTO_HP = 10;   // di HP: sampai 10 bukti dibaca otomatis tanpa bertanya
 const BACA_VERSI = 5;   // 5 = nama penerima (cek ke rekening panitia)
 //   // 3 = bukti yang dulu "tidak terbaca" dibaca ulang (gambar diperbesar, tahun dicek)   // naik bila pembaca bukti mendapat kolom baru (2 = No. Referensi & 4 angka rekening) → bukti lama dibaca ulang sekali
 const OCR_SUMBER = ['https://cdn.jsdelivr.net/npm/tesseract.js@5.1.1/dist/tesseract.min.js', 'https://unpkg.com/tesseract.js@5.1.1/dist/tesseract.min.js'];
@@ -8149,7 +8150,8 @@ const Adm = {
     for (const b of d.baca || []) baca.set(b.pendaftaran_id, { ...b, gagal: !b.nominal });   // waktu kosong ≠ gagal: nominal tetap dipakai
     const perluBaca = (r) => r.bukti_path && r.status !== 'ditolak' && !/\.pdf$/i.test(r.bukti_path);
     const sah = (r) => { const b = baca.get(r.id); return b && b.bukti_path === r.bukti_path ? b : null; };
-    const belumDibaca = d.daftar.filter((r) => perluBaca(r) && !sah(r));
+    // belum dibaca, ATAU dibaca dengan pembaca versi lama yang perlu dibaca ulang (mis. versi 5: nama penerima)
+    const belumDibaca = d.daftar.filter((r) => perluBaca(r) && (!sah(r) || (!api.bacaLama && this.perluBacaUlang(sah(r)))));
     const tidakTerbaca = d.daftar.filter((r) => perluBaca(r) && sah(r) && sah(r).gagal).length;
     return { baca, belumDibaca, tidakTerbaca, sah };
   },
@@ -8651,16 +8653,30 @@ const Adm = {
   },
   /* ---- Periksa bukti: satu mesin untuk tombol manual & mode otomatis ----
      Otomatis berjalan di latar belakang selama dashboard terbuka (saat dibuka & tiap ada
-     pendaftaran baru). Pengaturan per perangkat; bawaan: aktif di laptop, mati di HP. */
+     pendaftaran baru). Pengaturan per perangkat; bawaan: aktif di laptop & HP.
+     Di HP, bila bukti yang perlu dibaca banyak sekaligus (> BATAS_AUTO_HP), panitia ditanya dulu (sekali per sesi). */
   otomatisAktif() {
     const v = bacaLokal('lomba_periksa_otomatis');
-    if (v === true || v === false) return v;
-    return !(window.matchMedia && matchMedia('(pointer: coarse)').matches);
+    return v === false ? false : true;
   },
+  diHP() { return !!(window.matchMedia && matchMedia('(pointer: coarse)').matches); },
   autoPeriksa() {
     const d = this.s.data;
     if (!d || d.baca == null || !this.otomatisAktif() || this.s.ocrGagalAuto) return;
     if ((this.s.pb && this.s.pb.jalan) || !this.idx.belumDibaca.length) return;
+    const n = this.idx.belumDibaca.length;
+    if (this.diHP() && n > BATAS_AUTO_HP) {
+      if (this.s.tanyaBanyak) return;          // sudah ditanya di sesi ini
+      this.s.tanyaBanyak = true;
+      setTimeout(async () => {
+        if (Overlay.atas() || (this.s.pb && this.s.pb.jalan)) { this.s.tanyaBanyak = false; return; }   // jangan menimpa jendela lain; tanya lagi nanti
+        const ok = await konfirmasiDialog({ judul: `Ada ${n} bukti perlu dibaca`,
+          isi: `Bukti transfer ini belum dibaca (atau perlu dibaca ulang karena ada pemeriksaan baru). Membaca ${n} gambar di HP memakan kuota &amp; baterai beberapa menit. Lanjutkan di HP ini, atau nanti di laptop?`,
+          tombol: 'Baca sekarang' });
+        if (ok) this.periksaBukti();
+      }, 1200);
+      return;
+    }
     this.jalankanPeriksa('auto');
   },
   /* bukti yang belum dibaca, langsung dari data terbaru (ikut menangkap pendaftaran yang baru masuk) */
@@ -8768,9 +8784,9 @@ const Adm = {
     const jalan = this.s.pb && this.s.pb.jalan, n = jalan ? this.s.pb.n - this.s.pb.i : this.idx.belumDibaca.length;
     const auto = this.otomatisAktif();
     Overlay.modal(`<h3>Periksa bukti transfer</h3>
-      <p class="lead">${n ? `Membaca nominal, waktu &amp; nama pengirim dari ${n} gambar bukti, lalu mencari yang sama. Pertama kali perlu mengunduh pembaca teks (±5 MB).` : 'Semua bukti sudah diperiksa.'}</p>
+      <p class="lead">${n ? `Membaca nominal, waktu, nama pengirim &amp; nama penerima dari ${n} gambar bukti, lalu mencari yang sama. Pertama kali perlu mengunduh pembaca teks (±5 MB).` : 'Semua bukti sudah diperiksa.'}</p>
       ${n ? `<div class="progres"><span id="pb-bar" style="width:0%"></span></div><p class="hint" id="pb-status" aria-live="polite">Menyiapkan pembaca teks…</p>` : ''}
-      <label class="cek-auto"><input type="checkbox" data-ch="adm.autoPeriksa" ${auto ? 'checked' : ''}><span><b>Periksa otomatis di perangkat ini</b><small>Bukti baru dibaca sendiri selama dashboard terbuka. Disarankan di laptop; di HP memakai kuota &amp; baterai.</small></span></label>
+      <label class="cek-auto"><input type="checkbox" data-ch="adm.autoPeriksa" ${auto ? 'checked' : ''}><span><b>Periksa otomatis di perangkat ini</b><small>Bukti baru dibaca sendiri selama dashboard terbuka. Di HP, bila lebih dari ${BATAS_AUTO_HP} bukti sekaligus, Anda ditanya dulu.</small></span></label>
       <div class="actions end">${n ? `<button type="button" class="btn" id="pb-tombol" data-act="adm.periksaBatal">${jalan && this.s.pb.mode === 'auto' ? 'Sembunyikan' : 'Hentikan'}</button>` : '<button type="button" class="btn btn-primary" data-act="ovl.tutup">Tutup</button>'}</div>`,
       { onClose: () => { const pb = this.s.pb; if (pb && pb.jalan && pb.mode === 'manual' && !this.otomatisAktif()) pb.batal = true; } });
     if (!n) return;
