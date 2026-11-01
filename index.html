@@ -5821,8 +5821,8 @@ class DemoAPI {
   async kosongkanDemo() { this.db = this._benih(false, this.db.pengaturan); this._simpan(); }
 }
 
-const TEMPLATE_WA = {
-  konfirmasi: `Om Swastyastu 🙏
+/* template konfirmasi bawaan versi lama: bila tersimpan persis begini (belum diubah panitia), format ringkas yang baru dipakai */
+const TEMPLATE_WA_KONF_LAMA = `Om Swastyastu 🙏
 
 *KONFIRMASI PENDAFTARAN*
 *{nama_event}*
@@ -5840,6 +5840,22 @@ Kode pendaftaran: {kode}
 Unduh PDF konfirmasi: {link_konfirmasi}
 
 Mohon nomor layangan dipasang pada layangan dan hadir tepat waktu sesuai jadwal seri.
+
+Suksma 🙏
+{penyelenggara}`;
+const TEMPLATE_WA = {
+  konfirmasi: `Om Swastyastu 🙏
+
+*KONFIRMASI PENDAFTARAN*
+*{nama_event}*
+
+Pembayaran {harga} sudah kami terima. Layangan Anda resmi *TERDAFTAR*:
+
+{layangan}
+
+Kode pendaftaran: {kode}
+Unduh PDF konfirmasi:
+{link_konfirmasi}
 
 Suksma 🙏
 {penyelenggara}`,
@@ -6163,6 +6179,10 @@ function vIsianRentang(pre, j, namaJenis) {
     <span class="hint" id="${pre}-rentang-hint">Berlaku untuk semua grup ${namaJenis ? `<b>${esc(namaJenis)}</b>` : 'jenis ini'}. Nomor 1–9 otomatis ditulis 2 angka (01, 02 …). Kosongkan bila nomor bebas.</span></fieldset>`;
 }
 /* Isi template pesan WA */
+function tplKonfirmasi(ev) {
+  const t = (ev && ev.template_wa_konfirmasi) || '';
+  return !t.trim() || t.trim() === TEMPLATE_WA_KONF_LAMA.trim() ? TEMPLATE_WA.konfirmasi : t;
+}
 function dataTemplate(r, seri, jenis, ev) {
   return {
     nama_event: ev.nama_event || '', penyelenggara: ev.penyelenggara || '', lokasi: ev.lokasi || '',
@@ -9214,11 +9234,8 @@ const Adm = {
   },
   pesanWARombongan(kode, rows) {
     const ev = this.s.data.pengaturan, total = rows.reduce((t, r) => t + (r.harga || 0), 0);
-    const baris = rows.map((r) => {
-      const x = this.idx.seri.get(r.seri_id), sesi = x && x.sesi_id && this.idx.sesi.get(x.sesi_id);
-      return `• *No. ${r.nomor_layangan || '-'}* · ${this.namaJenis(r.jenis)}\n   ${r.nama_sekha} (${r.alamat})\n   ${sesi ? `Seri ${sesi.nama} · Grup ${x.huruf}` : ((x && x.nama) || '-')} · ${jadwalText(x, true)}`;
-    }).join('\n\n');
-    return `Om Swastyastu 🙏\n\n*KONFIRMASI PENDAFTARAN*\n*${ev.nama_event || 'Lomba Layangan'}*\n\nPembayaran ${rupiah(total)} sudah kami terima. *${rows.length} layangan* Anda resmi *TERDAFTAR*:\n\n${baris}\n\nKode rombongan: ${kode}\nUnduh PDF konfirmasi: ${linkTiket(kode)}\n\nMohon nomor dipasang pada layangan dan hadir tepat waktu sesuai jadwal seri.\n\nSuksma 🙏\n${ev.penyelenggara || ''}`.trim();
+    const baris = rows.map((r) => this.barisWA(r)).join('\n\n');
+    return `Om Swastyastu 🙏\n\n*KONFIRMASI PENDAFTARAN*\n*${ev.nama_event || 'Lomba Layangan'}*\n\nPembayaran ${rupiah(total)} sudah kami terima. *${rows.length} layangan* Anda resmi *TERDAFTAR*:\n\n${baris}\n\nKode rombongan: ${kode}\nUnduh PDF konfirmasi:\n${linkTiket(kode)}\n\n${this.penutupWA(rows[0], kode)}`.trim();
   },
   async simpanRombongan(kode) {
     const rows = (this.idx.rb.get(kode) || []).filter((r) => r.status === 'menunggu'), now = new Date().toISOString();
@@ -9324,10 +9341,21 @@ const Adm = {
   namaPdf(r) { return `Konfirmasi-${String(r.nomor_layangan || r.kode).replace(/[^\w-]+/g, '')}-${String(r.nama_sekha).replace(/[^\w]+/g, '-').replace(/^-|-$/g, '').slice(0, 40)}.pdf`; },
   pesanWA(r, tpl) {
     const ev = this.s.data.pengaturan;
-    let t = tpl != null ? tpl : r.status === 'ditolak' ? (ev.template_wa_tolak || TEMPLATE_WA.tolak) : (ev.template_wa_konfirmasi || TEMPLATE_WA.konfirmasi);
+    let t = tpl != null ? tpl : r.status === 'ditolak' ? (ev.template_wa_tolak || TEMPLATE_WA.tolak) : tplKonfirmasi(ev);
     // template lama tanpa {link_konfirmasi}: link tetap ditambahkan di akhir pesan konfirmasi
     if (tpl == null && r.status === 'terkonfirmasi' && !t.includes('{link_konfirmasi}')) t += '\n\nUnduh PDF konfirmasi:\n{link_konfirmasi}';
-    return isiTemplate(t, dataTemplate(r, this.idx.seri.get(r.seri_id), this.idx.jenis.get(r.jenis), ev));
+    return isiTemplate(t, { ...dataTemplate(r, this.idx.seri.get(r.seri_id), this.idx.jenis.get(r.jenis), ev), layangan: this.barisWA(r) });
+  },
+  /* 1 layangan dalam format ringkas WA (dipakai daftar 1 layangan & rombongan) */
+  barisWA(r) {
+    const x = this.idx.seri.get(r.seri_id), sesi = x && x.sesi_id && this.idx.sesi.get(x.sesi_id);
+    return `• *No. ${r.nomor_layangan || '-'}* · ${this.namaJenis(r.jenis)}\n   ${r.nama_sekha} (${r.alamat})\n   ${sesi ? `Seri ${sesi.nama} · Grup ${x.huruf}` : ((x && x.nama) || '-')} · ${jadwalText(x, true)}`;
+  },
+  /* penutup pesan = teks template konfirmasi setelah baris {link_konfirmasi} (sama untuk daftar 1 layangan & rombongan) */
+  penutupWA(r, kode) {
+    const ev = this.s.data.pengaturan, baris = tplKonfirmasi(ev).split('\n'), i = baris.findIndex((b) => b.includes('{link_konfirmasi}'));
+    const tutup = (i >= 0 ? baris.slice(i + 1).join('\n') : 'Suksma 🙏\n{penyelenggara}').replace(/^\s+/, '');
+    return isiTemplate(tutup, { ...dataTemplate(r, this.idx.seri.get(r.seri_id), this.idx.jenis.get(r.jenis), ev), kode, link_konfirmasi: linkTiket(kode), layangan: '' });
   },
   async urlBukti(path) {
     const c = this.s.url[path];
@@ -9689,7 +9717,7 @@ ${rows.map((r, i) => `<tr><td class="n">${i + 1}</td><td class="no">${esc(r.nomo
     const ev = this.s.data.pengaturan, d = this.s.data;
     const linkPublik = location.href.split('#')[0] + hrefEv();
     const batas = lokalDariIso(ev.batas_daftar);
-    const phKonf = ['nama_event', 'jenis', 'nama_sekha', 'alamat', 'no_wa', 'nomor_layangan', 'seri', 'kotak', 'link_konfirmasi', 'jadwal', 'tanggal', 'jam', 'kode', 'harga', 'penyelenggara', 'lokasi'];
+    const phKonf = ['nama_event', 'layangan', 'jenis', 'nama_sekha', 'alamat', 'no_wa', 'nomor_layangan', 'seri', 'kotak', 'link_konfirmasi', 'jadwal', 'tanggal', 'jam', 'kode', 'harga', 'penyelenggara', 'lokasi'];
     const phTolak = ['nama_event', 'jenis', 'nama_sekha', 'kode', 'alasan', 'seri', 'harga', 'penyelenggara', 'wa_panitia'];
     const kunci = this.s.super ? '' : ' <span class="st-lock" title="Diatur super admin">' + ico('lock') + ' super admin</span>';
     const fi = (o) => fieldInput(o).replace(/(<label class="label"[^>]*>[^<]*)/, `$1${o.readonly && o.kunci ? kunci : ''}`);
@@ -9723,7 +9751,7 @@ ${rows.map((r, i) => `<tr><td class="n">${i + 1}</td><td class="no">${esc(r.nomo
       </div>
       <div class="st-full">${this.vPanelTampilan()}</div>
       <div class="st-full">${kartu('st-wa', 'chat', 'Pesan WhatsApp', `<button type="button" class="btn btn-sm" data-act="adm.tplDefault">${ico('undo')} Bawaan</button>${simpan}`, `
-        ${pesan('ok', 'Pesan konfirmasi', 'dikirim setelah pembayaran diterima', 't-konf', 'template_wa_konfirmasi', ev.template_wa_konfirmasi || TEMPLATE_WA.konfirmasi, 9, phKonf)}
+        ${pesan('ok', 'Pesan konfirmasi', 'dikirim setelah pembayaran diterima', 't-konf', 'template_wa_konfirmasi', tplKonfirmasi(ev), 9, phKonf)}
         ${pesan('no', 'Pesan penolakan', 'dikirim bila pendaftaran ditolak', 't-tolak', 'template_wa_tolak', ev.template_wa_tolak || TEMPLATE_WA.tolak, 6, phTolak)}`, 'data-submit="adm.setTemplate"')}</div>
       <div class="st-full">${this.vSehat()}</div>
       <div class="st-full st-bahaya"><span class="st-bh">${ico('alert')} Zona berbahaya</span><div class="sa-act">
@@ -9803,6 +9831,7 @@ ${rows.map((r, i) => `<tr><td class="n">${i + 1}</td><td class="no">${esc(r.nomo
   segarkanPratinjau() {
     const r = this.contohTemplate(), ev = this.s.data.pengaturan;
     const data = dataTemplate({ ...r, nomor_layangan: r.nomor_layangan || 'BB-001', alasan_tolak: r.alasan_tolak || 'Nominal transfer kurang' }, this.idx.seri.get(r.seri_id), this.idx.jenis.get(r.jenis), ev);
+    data.layangan = this.barisWA({ ...r, nomor_layangan: r.nomor_layangan || 'BB-001' });
     const k = $('#t-konf'), t = $('#t-tolak');
     if (k) $('#prev-konf').textContent = isiTemplate(k.value, data);
     if (t) $('#prev-tolak').textContent = isiTemplate(t.value, data);
