@@ -340,6 +340,15 @@ textarea.input { min-height: 88px; resize: vertical; line-height: 1.45; }
 .chip { display: inline-flex; align-items: center; gap: 7px; padding: 6px 12px; border-radius: 99px; font-size: 13px; font-weight: 700; background: rgba(255,255,255,.14); border: 1px solid rgba(255,255,255,.25); }
 .chip .dot { width: 8px; height: 8px; border-radius: 50%; background: #7ee29a; box-shadow: 0 0 0 3px rgba(126,226,154,.25); }
 .chip.off .dot { background: #ffb3a8; box-shadow: 0 0 0 3px rgba(255,179,168,.25); }
+.hero-kerangka { background: linear-gradient(170deg, #1c2430 0%, #141a22 100%); color: #fff; }
+.hero-kerangka .hk { background: rgba(255, 255, 255, .13); border-radius: 8px; animation: hk-denyut 1.4s ease-in-out infinite; }
+.hk-org { width: 45%; height: 12px; margin: 14px 0 12px; }
+.hk-h1 { width: 85%; height: 30px; margin-bottom: 8px; } .hk-h1.b { width: 50%; margin-bottom: 12px; }
+.hk-meta { width: 40%; height: 14px; margin-bottom: 10px; } .hk-meta.b { width: 62%; }
+.hk-chip { width: 160px; height: 30px; border-radius: 99px !important; margin-top: 6px; }
+@keyframes hk-denyut { 50% { opacity: .55; } }
+.hero-masuk { animation: hero-masuk .45s ease-out; } @keyframes hero-masuk { from { opacity: .35; } }
+@media (prefers-reduced-motion: reduce) { .hero-kerangka .hk, .hero-masuk { animation: none; } }
 .hero.has-bg { background-color: #0a3a6d; background-size: cover; background-position: center; }
 .hero.has-bg h1, .hero.has-bg .org, .hero.has-bg .meta { text-shadow: 0 1px 12px rgba(0,0,0,.35); }
 .hero-logo { display: block; width: auto; height: 64px; max-width: 200px; object-fit: contain; margin: 0 0 12px; border-radius: 10px; }
@@ -3911,6 +3920,27 @@ const KITE_TERBANG = `<svg class="muat-art" viewBox="0 0 240 260" aria-hidden="t
 /* penyelenggara hanya ditampilkan bila diisi panitia (teks bawaan "Panitia Lomba Layangan" dianggap belum diisi) */
 const orgTampil = (t) => { t = String(t || '').trim(); return !!t && t !== 'Panitia Lomba Layangan'; };
 const HERO_WAVES = '<svg class="hero-waves" viewBox="0 0 1440 46" preserveAspectRatio="none" aria-hidden="true"><path fill="currentColor" d="M0 30c120-14 240-22 360-14s240 26 360 22 240-24 360-26 240 10 360 18V46H0z"/></svg>';
+/* kerangka bagian atas halaman event selama data event belum datang (tanpa judul/gambar bawaan) */
+const HERO_KERANGKA = `<header class="hero hero-kerangka" aria-busy="true"><div class="hero-in"><a class="hero-back" href="#">${ico('arrow-l')} Semua event</a>
+  <div class="hk hk-org"></div><div class="hk hk-h1"></div><div class="hk hk-h1 b"></div><div class="hk hk-meta"></div><div class="hk hk-meta b"></div><div class="hk hk-chip"></div>
+  <span class="sr-only">Memuat event…</span></div>${HERO_WAVES}</header>`;
+/* tampilan atas event yang diingat di HP ini (nama, logo, foto latar…) → langsung tampil saat dibuka lagi.
+   Hanya tampilan umum event; data pendaftaran tidak disimpan. Juga dari kartu halaman depan. */
+const kunciTampil = (slug) => 'lomba-tampil:' + slug;
+function tampilTersimpan(slug) {
+  if (!slug) return null;
+  try { const t = JSON.parse(localStorage.getItem(kunciTampil(slug)) || 'null'); if (t && t.nama_event) return t; } catch (e) { /* penyimpanan diblokir */ }
+  const l = ((typeof Beranda !== 'undefined' && Beranda.s.list) || []).find((e) => e.slug === slug);
+  if (!l) return null;
+  const tg = (x) => fmtTanggal(x).replace(/^[^,]+,\s*/, ''), a = l.tanggal_mulai, z = l.tanggal_selesai;
+  return { nama_event: l.nama_event, penyelenggara: l.penyelenggara, lokasi: l.lokasi, logo_url: l.logo_url, bg_url: l.bg_url, flyer_url: l.flyer_url, tema: '',
+    rentang: a ? (z && z !== a ? `${tg(a)} – ${tg(z)}` : tg(a)) : '', buka: !!l.pendaftaran_buka, batas_daftar: null };
+}
+let _tampilTerakhir = '';
+function simpanTampil(slug, v) {
+  if (!slug) return;
+  try { const t = JSON.stringify(v); if (_tampilTerakhir !== slug + t) { localStorage.setItem(kunciTampil(slug), t); _tampilTerakhir = slug + t; } } catch (e) { /* penyimpanan penuh / diblokir */ }
+}
 
 /* ---------- Toast & pesan error ---------- */
 function toast(pesan, jenis = 'info', ms = 3200) {
@@ -6417,14 +6447,23 @@ const Pub = {
     return `${demoBar()}${this.vHero()}<main class="pub-main" id="main">${this.vTabs()}${isi}${this.vFooter()}</main>`;
   },
   vHero() {
-    const info = this.s.info, ev = (info && info.event) || {};
-    const aktif = ((info && info.seri) || []).filter((x) => x.aktif);
-    const rentang = rentangTanggal(aktif.length ? aktif : info && info.seri);
-    const buka = !!ev.pendaftaran_buka;
-    const chip = info ? `<span class="chip ${buka ? '' : 'off'}"><i class="dot"></i>${buka ? 'Pendaftaran dibuka' : 'Pendaftaran ditutup'}${buka && ev.batas_daftar ? ` · s/d ${esc(fmtWaktu(ev.batas_daftar))} ${CONFIG.ZONA_WAKTU}` : ''}</span>` : '';
+    const info = this.s.info;
+    let ev;
+    if (info) {
+      const e = info.event || {}, aktif = (info.seri || []).filter((x) => x.aktif);
+      ev = { nama_event: e.nama_event, penyelenggara: e.penyelenggara, lokasi: e.lokasi, logo_url: e.logo_url, bg_url: e.bg_url, flyer_url: e.flyer_url, tema: e.tema,
+        rentang: rentangTanggal(aktif.length ? aktif : info.seri) || '', buka: !!e.pendaftaran_buka, batas_daftar: e.batas_daftar || null };
+      simpanTampil(Ev.slug, ev);
+    } else ev = tampilTersimpan(Ev.slug);
+    // data event belum datang & belum pernah dilihat di HP ini → kerangka netral (bukan judul/gambar bawaan)
+    if (!ev && this.s.loading) { this.s.heroKerangka = true; return HERO_KERANGKA; }
+    ev = ev || {};
+    const masuk = !!(info && this.s.heroKerangka); if (info) this.s.heroKerangka = false;
+    const rentang = ev.rentang, buka = !!ev.buka;
+    const chip = info || ev.nama_event ? `<span class="chip ${buka ? '' : 'off'}"><i class="dot"></i>${buka ? 'Pendaftaran dibuka' : 'Pendaftaran ditutup'}${buka && ev.batas_daftar ? ` · s/d ${esc(fmtWaktu(ev.batas_daftar))} ${CONFIG.ZONA_WAKTU}` : ''}</span>` : '';
     const logo = urlGambarAman(ev.logo_url), bg = urlGambarAman(ev.bg_url);
     const gayaBg = bg ? ` style="background-image:linear-gradient(170deg,rgba(6,28,56,.72) 0%,rgba(6,28,56,.45) 55%,rgba(6,28,56,.62) 100%),url('${esc(bg)}')"` : '';
-    return `<header class="hero${bg ? ' has-bg' : ''}"${gayaBg}><div class="hero-in">
+    return `<header class="hero${bg ? ' has-bg' : ''}${masuk ? ' hero-masuk' : ''}"${gayaBg}><div class="hero-in">
       <a class="hero-back" href="#">${ico('arrow-l')} Semua event</a>
       ${logo ? `<img class="hero-logo" src="${esc(logo)}" alt="Logo ${esc(ev.nama_event || 'event')}">` : ''}
       ${orgTampil(ev.penyelenggara) ? `<div class="org">${esc(ev.penyelenggara)}</div>` : ''}
@@ -12845,6 +12884,13 @@ async function rute() {
   if (p[0] === 'e' && p[1]) {
     const slug = p[1].toLowerCase();
     p = p.slice(2);
+    // halaman peserta event lain: langsung tampilkan kerangka / tampilan yang diingat, tanpa menunggu jaringan
+    if (p[0] !== 'admin' && !(slug === Ev.slug && Ev.ada)) {
+      Ev.slug = slug; Ev.ada = false;
+      Object.assign(Pub.s, { info: null, loading: true, tab: ['daftar', 'jadwal', 'cek', 'tiket', 'juara'].includes(p[0]) ? p[0] : 'daftar' });
+      document.body.classList.remove('is-admin');
+      Router.aktif = 'pub'; Pub.render();
+    }
     if (!(await gantiEvent(slug))) { Router.aktif = 'beranda'; Beranda.vTidakAda(slug); return; }
   } else if (p[0] === 'panitia') { Router.aktif = 'pusat'; Pusat.mount(p[1]); return; }
   else if (!p[0] || p[0] === 'semua') { Router.aktif = 'beranda'; Beranda.mount(); return; }
