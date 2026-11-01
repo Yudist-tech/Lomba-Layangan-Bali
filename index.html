@@ -805,6 +805,9 @@ details.tbl-toggle summary { cursor: pointer; font-size: 13px; color: var(--bran
 .lk-imgs.geser { display: flex; overflow-x: auto; scroll-snap-type: x mandatory; padding-bottom: 8px; scrollbar-width: thin; }
 .lk-imgs.geser .lk-im { flex: 0 0 calc((100% - 24px) / 4); min-width: 130px; scroll-snap-align: start; }
 .lk-geser { display: flex; align-items: center; gap: 5px; justify-content: flex-end; font-size: 12.5px; color: var(--muted); padding: 2px 14px 0; } .lk-geser .ico { width: 14px; height: 14px; }
+.ck-pen { margin: 8px 14px 0; border: 1px solid var(--line); border-radius: 10px; font-size: 13px; overflow: hidden; }
+.ck-pen div { display: flex; justify-content: space-between; gap: 8px; padding: 7px 10px; } .ck-pen div + div { border-top: 1px solid var(--line); }
+.ck-pen span { color: var(--muted); } .ck-pen.bad div:first-child b { color: var(--bad-ink); } .ck-pen.w div:first-child b { color: var(--ck-y); }
 .lk-im.on { outline: 2px solid var(--brand); outline-offset: -1px; }
 .lk-im figcaption[data-act] { cursor: pointer; }
 .lk-pil { padding: 10px 14px 4px; }
@@ -2887,7 +2890,8 @@ async function sha256File(file) {
    "bukti mirip" bila nama pengirim sama + nominal sama + waktu selisih ≤ 1 menit.
    (Kemiripan gambar tidak dipakai: struk berbeda dari aplikasi bank yang sama terlihat
    hampir identik, sehingga tidak bisa membedakan transfer sah dari salinan.) */
-const BACA_VERSI = 4;   // 3 = bukti yang dulu "tidak terbaca" dibaca ulang (gambar diperbesar, tahun dicek)   // naik bila pembaca bukti mendapat kolom baru (2 = No. Referensi & 4 angka rekening) → bukti lama dibaca ulang sekali
+const BACA_VERSI = 5;   // 5 = nama penerima (cek ke rekening panitia)
+//   // 3 = bukti yang dulu "tidak terbaca" dibaca ulang (gambar diperbesar, tahun dicek)   // naik bila pembaca bukti mendapat kolom baru (2 = No. Referensi & 4 angka rekening) → bukti lama dibaca ulang sekali
 const OCR_SUMBER = ['https://cdn.jsdelivr.net/npm/tesseract.js@5.1.1/dist/tesseract.min.js', 'https://unpkg.com/tesseract.js@5.1.1/dist/tesseract.min.js'];
 const BULAN_TEKS = { jan: 1, januari: 1, january: 1, feb: 2, peb: 2, februari: 2, february: 2, mar: 3, maret: 3, march: 3, apr: 4, april: 4, mei: 5, may: 5, jun: 6, juni: 6, june: 6, jul: 7, juli: 7, july: 7, agu: 8, agt: 8, ags: 8, aug: 8, agustus: 8, august: 8, sep: 9, sept: 9, september: 9, okt: 10, oct: 10, oktober: 10, october: 10, nov: 11, nop: 11, november: 11, nopember: 11, des: 12, dec: 12, desember: 12, december: 12 };
 function angkaRupiah(s) {
@@ -3457,7 +3461,7 @@ function bedaSedikit(a, b, maks) {
   }
   return prev[b.length] <= maks;
 }
-function bacaTeksBukti(teks, rekPanitia4 = '') {
+function bacaTeksBukti(teks, rekPanitia4 = '', namaPanitia = '') {
   const baris = String(teks || '').replace(/\r/g, '').split('\n').map((x) => x.replace(/\s+/g, ' ').replace(/(?<=\d)[Oo]|[Oo](?=\d)/g, '0').replace(/(?<=\d)[lI|](?=\d)/g, '1').trim()).filter(Boolean);
   const pad = (n) => String(n).padStart(2, '0');
   // --- nominal
@@ -3527,7 +3531,49 @@ function bacaTeksBukti(teks, rekPanitia4 = '') {
     if (bagian !== 'ke' && !cadangan) cadangan = n4;
   }
   if (!rek4) rek4 = cadangan;
-  return { nominal, waktu, nama, ref, rek4 };
+  // --- nama PENERIMA (dibandingkan dengan "Atas nama" rekening panitia di Pengaturan)
+  let penerima = null;
+  const bersihNama = (c) => hurufMirip(c).replace(/^\s*(ke|to)\s*[:\-]?\s+/i, '').replace(/[^A-Za-z .']/g, ' ')
+    .replace(/\b(rekening|rek|account|acc|no|nomor|dana|tabungan|giro|bank|bpd|rakyat|negara|indonesia|central|asia|mandiri|syariah|bri|bca|bni|btn|bsi|cimb|niaga|permata|danamon|ocbc|nisp|mega|panin|jago|seabank|ovo|gopay|shopeepay|linkaja|virtual|va|tujuan|penerima|kepada|nama)\b\.?/gi, ' ')
+    .replace(/\b[xX]{2,}\b/g, ' ').replace(/\s+/g, ' ').trim();
+  if (namaPanitia) for (const b of baris) { if (cocokPenerima(b, namaPanitia)) { penerima = bersihNama(b).slice(0, 60) || String(namaPanitia).toUpperCase(); break; } }
+  if (!penerima) {
+    const RX_PEN = /^(?:nama\s+penerima|penerima|kepada|tujuan(?:\s+transfer)?|rekening\s+tujuan|ke|to|recipient|beneficiary(?:\s+name)?)\b\s*[:\-]?\s*(.*)$/i;
+    const RX_LABEL = /^(nominal|jumlah|biaya|total|metode|keterangan|berita|catatan|tanggal|waktu|status|no\b|nomor|ref|pengirim|dari|sumber|rekening\s+sumber|from|sender)/i;
+    for (let i = 0; i < baris.length && !penerima; i++) {
+      const m = baris[i].match(RX_PEN); if (!m) continue;
+      for (const c of [m[1], baris[i + 1] || '']) {
+        if (RX_LABEL.test(c.trim())) break;
+        const b = bersihNama(c);
+        if (b.replace(/[^A-Za-z]/g, '').length >= 3 && b.split(' ').some((w) => w.length >= 3)) { penerima = b.slice(0, 60); break; }
+      }
+    }
+  }
+  return { nominal, waktu, nama, ref, rek4, penerima };
+}
+/* nama penerima di bukti cocok dengan nama rekening panitia? (longgar: salah baca 1 huruf, kata terpotong, urutan beda) */
+/* angka yang sering tertukar dengan huruf saat OCR (1 KOMANG → I KOMANG, SUYAS4 → SUYASA) */
+const hurufMirip = (t) => String(t || '').replace(/\S+/g, (w) => (/[A-Za-z]/.test(w) && /\d/.test(w) ? w.replace(/[0-8]/g, (c) => 'OIZEASGTB'[+c]) : /^[1l|]$/.test(w) ? 'I' : w));   // hanya kata campuran huruf+angka; nomor rekening tidak diubah
+function cocokPenerima(teks, panitia) {
+  const p = normNama(panitia), q = normNama(hurufMirip(teks));
+  if (!p || !q) return false;
+  if (cocokNama(q, p)) return true;
+  const kp = p.split(' ').filter((w) => w.length >= 3), kq = q.split(' ');
+  if (!kp.length) return false;
+  const ada = (w) => kq.some((x) => x === w || (w.length >= 4 && x.length >= 4 && bedaSedikit(x, w, 1)));
+  const n = kp.filter(ada).length;
+  return kp.length === 1 ? n === 1 && kp[0].length >= 4 : n >= Math.max(2, Math.ceil(kp.length * 0.67));
+}
+/* hasil cek penerima satu bacaan bukti: null (belum bisa dinilai) / ok / beda / kosong */
+function penerimaDari(b, namaPanitia, path) {
+  const nm = String(namaPanitia || '').trim();
+  if (!nm || !b || b.gagal || (b.versi || 1) < 5 || /\.pdf$/i.test(path || '')) return null;
+  if (b.penerima && cocokPenerima(b.penerima, nm)) return { k: 'ok', nama: b.penerima, panitia: nm };
+  if (!b.penerima) return { k: 'kosong', panitia: nm };
+  // mirip sebagian (kemungkinan salah baca) → kuning, bukan merah
+  const kp = normNama(nm).split(' ').filter((w) => w.length >= 4), kq = normNama(hurufMirip(b.penerima)).split(' ');
+  if (kp.some((w) => kq.some((x) => x.length >= 3 && bedaSedikit(x, w, 2)))) return { k: 'kosong', nama: b.penerima, panitia: nm, mirip: true };
+  return { k: 'beda', nama: b.penerima, panitia: nm };
 }
 const normNama = (s) => String(s || '').toUpperCase().replace(/[^A-Z ]/g, ' ').replace(/\b(BPK|BAPAK|IBU|SDR|SDRI|SAUDARA|SAUDARI|MR|MRS|MS|TN|NY)\b/g, ' ').replace(/\s+/g, ' ').trim();
 function cocokNama(a, b) {
@@ -4319,7 +4365,9 @@ class SupabaseAPI {
   async simpanBacaan(row) {
     const isi = { ...row, event_id: this._ev(), dibaca_at: new Date().toISOString() };
     if (this.bacaLama) { delete isi.ref; delete isi.rek4; delete isi.versi; }
+    if (this.tanpaPenerima || this.bacaLama) { delete isi.penerima; if (isi.versi > 4) isi.versi = 4; }
     const r = await this.sb.from('lomba_bukti_baca').upsert(isi).select().single();
+    if (r.error && !this.tanpaPenerima && /penerima/i.test(r.error.message || '')) { this.tanpaPenerima = true; return this.simpanBacaan(row); }   // cek-penerima.sql belum dipasang
     if (r.error && !this.bacaLama && /ref|rek4|versi|column/i.test(r.error.message || '')) { this.bacaLama = true; return this.simpanBacaan(row); }   // bukti-cek.sql belum dipasang
     return this._ok(r);
   }
@@ -5565,7 +5613,7 @@ class DemoAPI {
     const w = bagianWaktu(r.bukti_waktu || r.created_at), p = (n) => String(n).padStart(2, '0');
     return { gambar: this._gambarContoh(path), nominal: r.bukti_nominal || r.harga, nama: String(r.nama_rekening || '').toUpperCase(),
       waktu: `${w.y}-${p(w.m)}-${p(w.d)}T${p(w.h)}:${p(w.mi)}:00`,
-      ref: this._refContoh(r), rek4: this._rekContoh(r) };
+      ref: this._refContoh(r), rek4: this._rekContoh(r), penerima: r.bukti_penerima !== undefined ? r.bukti_penerima : (String(this.db.pengaturan.bank_atas_nama || '').toUpperCase() || null) };
   }
   /* contoh No. Referensi & 4 angka rekening pengirim (data demo) */
   _refContoh(r) { if (r.bukti_ref !== undefined) return r.bukti_ref || null; const h = String(r.id).replace(/\D/g, '').padEnd(12, '7'); return '2027' + h.slice(0, 12); }
@@ -7574,7 +7622,7 @@ const Adm = {
     const perlu = grup.filter((g) => !g.selesai);
     const kat = (k) => perlu.filter((g) => this.katCek(g).k === k).length, perluIds = new Set(perlu.flatMap((g) => g.rows.map((r) => r.id)));
     st.cek = {
-      dobel: kat('dobel'), nominal: kat('nominal'), waktu: kat('waktu'), merah: perlu.filter((g) => this.katCek(g).w === 'r').length,
+      dobel: kat('dobel'), nominal: kat('nominal'), waktu: kat('waktu'), penerima: kat('penerima'), merah: perlu.filter((g) => this.katCek(g).w === 'r').length,
       gabungan: perlu.filter((g) => g.lv === 0).length, perlu: perlu.length, selesai: grup.filter((g) => g.selesai).length,
       kembali: perlu.filter((g) => g.baru.length).length,
       masalah: d.daftar.filter((r) => r.status !== 'ditolak' && (tanda.get(r.id) || {}).hasil === 'bermasalah').length,
@@ -8143,6 +8191,26 @@ const Adm = {
       peta.set(r.id, { rows: [r], n: 1, total: r.harga || 0, nominal, kurang: nominal != null ? (r.harga || 0) - nominal : null, lv: 1, tingkat: 1, why: salahNom ? 'nominal' : 'waktu', wk,
         ref: b.ref || null, rek4: b.rek4 || null, nama: b.nama || r.nama_rekening, waktu: b.waktu, beda: false, status: new Map([[r.id, salahNom ? (nominal < (r.harga || 0) ? 'belum' : 'tertutup') : 'waktu']]) });
     });
+    // nama penerima di bukti ≠ rekening panitia (merah) / tidak terbaca (kuning): per pendaftaran, rombongan = 1 kartu
+    const nmP = String((d.pengaturan && d.pengaturan.bank_atas_nama) || '').trim();
+    if (nmP) {
+      const unit = new Map();
+      rows.forEach((r) => { if (r.status === 'ditolak') return; const k = r.rombongan || r.id; if (!unit.has(k)) unit.set(k, []); unit.get(k).push(r); });
+      unit.forEach((rr) => {
+        const rep = rr[0], b = sah(rep) || null, pen = penerimaDari(b, nmP, rep.bukti_path);
+        if (!pen || pen.k === 'ok') return;
+        const ada = rr.map((r) => peta.get(r.id)).find(Boolean);
+        if (ada) {
+          if (!ada.pen || pen.k === 'beda') ada.pen = pen;
+          if (pen.k === 'beda' && (ada.why === 'waktu' || ada.why === 'nominal') && ada.n === rr.length) { ada.why = 'penerima'; ada.lv = ada.tingkat = 3; }
+          return;
+        }
+        const total = rr.reduce((t, r) => t + (r.harga || 0), 0), nominal = (b && b.nominal) || null;
+        const g = { rows: rr, n: rr.length, total, nominal, kurang: nominal != null ? total - nominal : null, lv: pen.k === 'beda' ? 3 : 1, tingkat: pen.k === 'beda' ? 3 : 1, why: 'penerima', pen,
+          ref: (b && b.ref) || null, rek4: (b && b.rek4) || null, nama: (b && b.nama) || rep.nama_rekening, waktu: (b && b.waktu) || null, beda: false, status: new Map(rr.map((r) => [r.id, 'cek'])) };
+        rr.forEach((r) => peta.set(r.id, g));
+      });
+    }
     return peta;
   },
   // Filter "Bukti dobel": tiap kelompok bukti yang sama jadi satu kotak terpisah dengan judul & warna sendiri
@@ -8154,6 +8222,14 @@ const Adm = {
       tanya: `Apakah ${g.n} layangan ini memang dibayar dengan 1 transfer?`,
       saran: `Nominal di bukti <b>pas sama</b> dengan total tagihan ${rupiah(g.total)}${g.why === 'ref' ? ' dan No. Ref-nya sama' : g.why === 'hash' ? ' dan file buktinya sama' : ''}. Bila pendaftarnya memang satu rombongan → tandai benar.` };
     const rp = (x) => rupiah(Math.abs(x));
+    if (g.why === 'penerima') {
+      const beda = g.pen.k === 'beda';
+      return { k: 'penerima', w: beda ? 'r' : 'y', tag: beda ? 'HAMPIR PASTI' : 'CEK SEBENTAR', ikon: beda ? 'alert' : 'info', label: beda ? 'Penerima beda' : 'Penerima?',
+        judul: beda ? 'Transfer bukan ke rekening panitia' : 'Nama penerima tidak terbaca',
+        tanya: beda ? 'Apakah uang ini benar-benar masuk ke rekening panitia?' : 'Apakah transfer ini ke rekening panitia?',
+        saran: beda ? `Di bukti, penerimanya <b>${esc(g.pen.nama)}</b>, bukan <b>${esc(g.pen.panitia)}</b>. Biasanya bukti lama / transfer untuk keperluan lain. Hubungi peserta, minta bukti yang benar lalu <b>Ganti bukti</b>.`
+          : `Foto buram atau struk tidak mencantumkan nama penerima. Lihat foto bukti: bila penerimanya <b>${esc(g.pen.panitia)}</b> → tandai benar.` };
+    }
     if (g.why === 'waktu') {
       const d = durasiTeks(g.wk.sel), k = g.wk.k;
       return { k: 'waktu', w: k === 'lama' ? 'y' : 'r', tag: 'WAKTU', ikon: 'clock', label: WK_LABEL[k][1],
@@ -8187,6 +8263,7 @@ const Adm = {
       <div class="ck-gw-e"><div>${a[0]}<b>${esc(a[1])}</b></div><div>${z[0]}<b>${esc(z[1])}</b></div></div></div>`;
   },
   alasanCek(g) {
+    if (g.why === 'penerima') return g.pen.k === 'beda' ? `Penerima di bukti <b>${esc(g.pen.nama)}</b> — bukan rekening panitia (${esc(g.pen.panitia)})` : `Nama penerima tidak terbaca — cocokkan dengan rekening panitia (${esc(g.pen.panitia)})`;
     if (g.why === 'waktu') {
       const d = durasiTeks(g.wk.sel);
       if (g.wk.k === 'wajar') return `Waktu transfer <b>${d} setelah</b> pendaftaran dibuat — bukti mungkin diedit atau salah terbaca`;
@@ -8441,6 +8518,7 @@ const Adm = {
         <div class="lk-h"><div class="lk-k">${ico(c.ikon)} ${esc(c.label)} · ${c.tag}</div><details class="lk-tip"><summary><h4>${esc(c.judul)}</h4><span class="lk-i" aria-label="Penjelasan">i</span></summary><div class="lk-tip-isi"><b>${esc(c.tanya)}</b> ${c.saran}</div></details></div>
         <div class="lk-imgs n${Math.min(us.length, 4)}${us.length > 4 ? ' geser' : ''}">${gambar}</div>${us.length > 4 ? `<div class="lk-geser">${ico('arrow-r')} Geser untuk melihat semua <b>${us.length} foto</b> bukti</div>` : adaRb ? '<div class="lk-geser">1 foto bukti per rombongan</div>' : ''}
         ${c.k === 'waktu' ? this.vGarisWaktu(g.wk) : ''}
+        ${g.pen ? `<div class="ck-pen ${g.pen.k === 'beda' ? 'bad' : 'w'}"><div><span>Penerima di bukti</span><b>${g.pen.k === 'beda' ? esc(g.pen.nama) : 'tidak terbaca'}</b></div><div><span>Rekening panitia</span><b>${esc(g.pen.panitia)}</b></div></div>` : ''}
         ${wkLain ? `<div class="ck-fl ${wkLain.k === 'lama' ? 'w' : 'bad'}">${ico('clock')}<span><b>${WK_LABEL[wkLain.k][1]}:</b> transfer ${durasiTeks(wkLain.sel)} ${wkLain.k === 'wajar' ? 'setelah' : 'sebelum'} daftar.</span></div>` : ''}${ulang}
         ${pil}${us.length > 1 ? `<div class="lk-uh"><span><b>${esc(u.rb || u.rows[0].nama_sekha)}</b>${u.rb ? ` · ${esc(u.rows[0].nama_sekha)}${u.rows.length > 1 ? ' dkk' : ''}` : ''}</span><span>${nTandai} dari ${u.rows.length} ditandai</span></div>` : ''}
         <div class="lk-rows">${baris}</div>${uang}
@@ -8475,6 +8553,12 @@ const Adm = {
     const b = this.bacaSah(r), g = this.idx.cekGrup.get(r.id), gab = g && g.why !== 'waktu' && g.n > 1;
     const tagihan = gab ? g.total : (r.harga || 0), bukti = gab ? g.nominal : (b && b.nominal ? b.nominal : null);
     return { tagihan, bukti, sel: bukti == null ? null : tagihan - bukti, gab, n: gab ? g.rows.filter((o) => o.status !== 'ditolak').length : 1, terbaca: !!b, gagal: !!(b && b.gagal) };
+  },
+  vCekPenerima(r) {
+    const p = r.bukti_path ? penerimaDari(this.bacaSah(r), this.s.data.pengaturan.bank_atas_nama, r.bukti_path) : null; if (!p) return '';
+    if (p.k === 'ok') return `<div class="cn ok">${ico('check')}<b>Ke rekening panitia</b><span class="cn-v">${esc(p.panitia)}</span><small>Nama penerima di bukti cocok</small></div>`;
+    if (p.k === 'beda') return `<div class="cn kr">${ico('alert')}<b>Penerima beda</b><span class="cn-v">${esc(p.nama)}</span><small>Bukan rekening panitia (${esc(p.panitia)}) — minta bukti yang benar</small></div>`;
+    return `<div class="cn na">${ico('info')}<b>Nama penerima tidak terbaca</b><span class="cn-v"></span><small>Cocokkan manual: rekening panitia a.n. ${esc(p.panitia)}</small></div>`;
   },
   vCekNominal(r) {
     const c = this.nominalCek(r); if (!c) return '';
@@ -8542,7 +8626,10 @@ const Adm = {
   },
   /* bukti yang belum dibaca, langsung dari data terbaru (ikut menangkap pendaftaran yang baru masuk) */
   /* baca ulang: bacaan versi 1 (belum ada No. Ref & rekening), atau yang nominal/waktunya belum terbaca sebelum versi 3 */
-  perluBacaUlang(b) { const v = b.versi || 1; return v < 2 || (v < 4 && (!b.nominal || !b.waktu || !b.ref)); },
+  perluBacaUlang(b) {
+    const v = b.versi || 1, nmP = String((this.s.data && this.s.data.pengaturan.bank_atas_nama) || '').trim();
+    return v < 2 || (v < 4 && (!b.nominal || !b.waktu || !b.ref)) || (v < 5 && !!nmP && !api.tanpaPenerima);   // 5: nama penerima belum pernah dibaca
+  },
   antreanBaca(sudah) {
     const d = this.s.data; if (!d) return [];
     const baca = new Map((d.baca || []).map((b) => [b.pendaftaran_id, b]));
@@ -8564,11 +8651,12 @@ const Adm = {
       this.tampilPeriksa();
       try {
         const contoh = api.bacaContoh ? api.bacaContoh(r.bukti_path) : null;
-        let hasil = { nominal: null, waktu: null, nama: null, ref: null, rek4: null };
+        let hasil = { nominal: null, waktu: null, nama: null, ref: null, rek4: null, penerima: null };
+        const nmP = String((this.s.data && this.s.data.pengaturan.bank_atas_nama) || '').trim();
         // file yang sama sudah dibaca untuk layangan lain (daftar rombongan) → pakai hasilnya, tidak perlu OCR ulang
-        const kembar = r.rombongan ? ((this.s.data && this.s.data.baca) || []).find((b) => b.bukti_path === r.bukti_path && b.pendaftaran_id !== r.id) : null;
-        if (kembar) hasil = { nominal: kembar.nominal, waktu: kembar.waktu, nama: kembar.nama, ref: kembar.ref || null, rek4: kembar.rek4 || null };
-        else if (contoh) hasil = { nominal: contoh.nominal, waktu: contoh.waktu, nama: contoh.nama, ref: contoh.ref || null, rek4: contoh.rek4 || null };
+        const kembar = r.rombongan ? ((this.s.data && this.s.data.baca) || []).find((b) => b.bukti_path === r.bukti_path && b.pendaftaran_id !== r.id && (b.versi || 1) >= BACA_VERSI) : null;
+        if (kembar) hasil = { nominal: kembar.nominal, waktu: kembar.waktu, nama: kembar.nama, ref: kembar.ref || null, rek4: kembar.rek4 || null, penerima: kembar.penerima || null };
+        else if (contoh) hasil = { nominal: contoh.nominal, waktu: contoh.waktu, nama: contoh.nama, ref: contoh.ref || null, rek4: contoh.rek4 || null, penerima: contoh.penerima || null };
         else {
           const res = await fetch(await this.urlBukti(r.bukti_path));      // gangguan jaringan → dicoba lagi lain kali
           if (!ocr) { try { ocr = await siapkanOCR(); } catch (e) { pb.ocrError = e; throw e; } }
@@ -8577,10 +8665,13 @@ const Adm = {
           if (bmp) {
             const rekP = String((this.s.data && this.s.data.pengaturan.bank_no_rek) || '').replace(/\D/g, '').slice(-4);
             const teks1 = (await ocr.recognize(kanvasOCR(bmp))).data.text;
-            hasil = bacaTeksBukti(teks1, rekP);
-            if (!hasil.waktu || !hasil.ref || !hasil.nominal) {          // baca ulang bagian atas yang diperbesar
-              const teks2 = (await ocr.recognize(kanvasOCRAtas(bmp))).data.text, h2 = bacaTeksBukti(teks2, rekP), hg = bacaTeksBukti(teks2 + '\n' + teks1, rekP);
+            hasil = bacaTeksBukti(teks1, rekP, nmP);
+            if (!hasil.waktu || !hasil.ref || !hasil.nominal || (nmP && !cocokPenerima(hasil.penerima, nmP))) {          // baca ulang bagian atas yang diperbesar
+              const teks2 = (await ocr.recognize(kanvasOCRAtas(bmp))).data.text, h2 = bacaTeksBukti(teks2, rekP, nmP), hg = bacaTeksBukti(teks2 + '\n' + teks1, rekP, nmP);
               for (const k of ['waktu', 'ref', 'nominal', 'nama', 'rek4']) if (!hasil[k]) hasil[k] = h2[k] || hg[k] || null;
+              // penerima: utamakan yang cocok dengan rekening panitia
+              const pc = [hasil.penerima, h2.penerima, hg.penerima].filter(Boolean);
+              hasil.penerima = pc.find((x) => nmP && cocokPenerima(x, nmP)) || pc[0] || null;
             }
             if (bmp.close) bmp.close();
             const thD = (bagianWaktu(r.created_at) || {}).y, thT = hasil.waktu ? +String(hasil.waktu).slice(0, 4) : null;
@@ -8588,6 +8679,7 @@ const Adm = {
           }
         }
         const simpan = await api.simpanBacaan({ pendaftaran_id: r.id, bukti_path: r.bukti_path, ...hasil, versi: BACA_VERSI, gagal: !hasil.nominal });
+        if (api.tanpaPenerima && simpan) simpan.versi = Math.min(simpan.versi || 4, 4);
         const dd = this.s.data;
         if (dd) dd.baca = (dd.baca || []).filter((b) => b.pendaftaran_id !== r.id).concat([simpan]);
         pb.ok++;
@@ -9086,7 +9178,7 @@ const Adm = {
         ${r.status === 'ditolak' ? `<div class="note bad">${ico('x')}<span><b>Ditolak:</b> ${esc(r.alasan_tolak || '-')}</span></div>` : ''}
         <div class="sect"><h4>Pembayaran</h4>
           <div class="total" style="margin:0 0 10px"><div><div class="t-l">Tagihan ${esc((j && j.nama) || '')}</div><div class="t-s">Pengirim: <b>${esc(r.nama_rekening)}</b></div></div><div class="amt">${rupiah(r.harga)}</div></div>
-          ${this.vCekNominal(r)}${this.vStatusCek(r)}
+          ${this.vCekNominal(r)}${this.vCekPenerima(r)}${this.vStatusCek(r)}
           ${this.vKotakCek(r)}
           ${r.bukti_path ? `<div class="bukti-box" id="bukti-box"><div class="empty"><span class="spinner" style="margin:0 auto"></span></div></div><div class="bukti-tools" id="bukti-tools"></div>` : `<div class="empty-sm">${ico('file')} Tanpa bukti transfer — pendaftaran manual oleh panitia.</div>`}
         </div>
@@ -9220,7 +9312,7 @@ const Adm = {
         <div class="sect"><h4>Bukti transfer</h4>
           ${a.bukti_path ? `<div class="rb-bukti"><div class="bukti-box" id="bukti-box"><div class="empty"><span class="spinner" style="margin:0 auto"></span></div></div>
             <div class="rb-bukti-t"><b>${esc(a.nama_rekening)}</b><span>Pengirim${I.b && I.b.rek4 ? ` · rek. ••${esc(I.b.rek4)}` : ''}</span><span>Di bukti: <b>${I.nominal != null ? rupiah(I.nominal) : 'belum terbaca'}</b></span><div class="bukti-tools" id="bukti-tools"></div></div></div>` : ''}
-          ${nom}${wk}${this.vRbDobel(D)}
+          ${nom}${a.bukti_path ? this.vCekPenerima(a) : ''}${wk}${this.vRbDobel(D)}
         </div>
         ${hub}
         <div class="sect"><h4>Layangan (${rows.length})</h4>
