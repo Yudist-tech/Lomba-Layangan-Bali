@@ -8392,13 +8392,9 @@ const Adm = {
     const pil = us.length > 1 ? `<div class="lk-pil"><div class="lk-pil-l">Pilih ${adaRb ? (us.every((x) => x.rb) ? 'rombongan' : 'rombongan / pendaftaran') : 'pendaftaran'}</div><div class="lk-pil-c">${us.map((x) => { const tt = this.lkTuntas(g, x);
       return `<button type="button" class="lk-chip${x.k === u.k ? ' on' : ''}${tt ? ' ok' : ''}" data-act="adm.lkPilih" data-k="${esc(x.k)}" aria-pressed="${x.k === u.k}"><b>${tt ? ico('check') : '<i class="lk-dot"></i>'}${esc(x.rb || x.rows[0].nama_sekha)}</b><small>${x.rb ? `${x.rows.length} layangan` : `No. ${esc(x.rows[0].nomor_layangan || '—')}`} · WA …${esc(wa4(x.rows[0]))}</small></button>`; }).join('')}</div></div>` : '';
     const buka = lk.buka || (lk.buka = new Set());
-    // rombongan: lunas / belum dihitung dari bukti milik rombongan itu sendiri (bukan dibagi dengan pendaftaran lain yang memakai bukti sama)
-    let stU = null;
-    if (adaRb) {
-      const bc0 = this.bacaSah(u.rep), nom0 = bc0 && bc0.nominal ? Number(bc0.nominal) : null;
-      if (nom0 != null) { let jml = 0; stU = new Map(u.rows.map((r) => { if (r.status === 'ditolak') return [r.id, 'ditolak']; jml += r.harga || 0; return [r.id, jml <= nom0 ? 'tertutup' : 'belum']; })); }
-    }
-    const baris = u.rows.map((r, i) => { const st = ST[adaRb ? (stU ? stU.get(r.id) : null) : g.status.get(r.id)], hs = g.hasilRow.get(r.id), id = esc(r.id), on = buka.has(r.id);
+    // 1 bukti dibagi ke semua pendaftaran yang terlibat; yang sudah ditandai Benar oleh panitia dianggap Lunas
+    const hs0 = (r) => g.hasilRow.get(r.id);
+    const baris = u.rows.map((r, i) => { const st = ST[r.status !== 'ditolak' && hs0(r) === 'sah' ? 'tertutup' : g.status.get(r.id)], hs = g.hasilRow.get(r.id), id = esc(r.id), on = buka.has(r.id);
       const baruTag = g.baru.includes(r.id) ? '<span class="cr-baru">BARU</span>' : '';
       const tanda = baruTag + (r.status === 'ditolak' ? '<span class="cr-tolak">DITOLAK</span>' : '');   // tanda Benar/Bermasalah terlihat dari tombol yang menyala
       return `<div class="lk-row open${hs ? ' done' : ''}" data-row="${id}"><span class="gm-n">${i + 1}</span><span class="gm-t"><b>${esc(r.nama_sekha)}</b>${tanda}<small>${jdot(r.jenis, dj)}${esc(this.namaJenis(r.jenis))} · ${esc((STATUS[r.status] || {}).label || r.status)}</small></span><span class="gm-r"><b>No. ${esc(r.nomor_layangan || '—')}</b><small>${rupiah(r.harga)}${st && (g.n > 1) ? ` · <em class="lk-st ${st[0]}">${st[1]}</em>` : ''}</small></span>
