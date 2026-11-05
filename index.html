@@ -17,9 +17,7 @@
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%230e5aa7'/%3E%3Cpath d='M16 4 25 14 16 27 7 14z' fill='%23fff'/%3E%3Cpath d='M16 4 25 14H16z' fill='%23f2a900'/%3E%3Cpath d='M7 14h9v13z' fill='%23d03b3b'/%3E%3Cpath d='M16 14h9l-9 13z' fill='%231d1f24'/%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<!-- font tidak menahan tampilan pertama (huruf bawaan dulu, lalu berganti saat font siap) -->
-<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
-<noscript><link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet"></noscript>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <!-- unduh pustaka Supabase & buka koneksi ke server data sejak awal, bersamaan dengan halaman -->
 <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
 <link rel="preload" as="script" href="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.116.0/dist/umd/supabase.js" integrity="sha384-iLddHTLokph6Omwoyid4XKxHaWa6w41BnoEj0q5oOrzmYPpHIKt1wyjReA7s//pP" crossorigin="anonymous">
@@ -2382,7 +2380,7 @@ form .kp-foto { margin-bottom: 12px; height: 80px; }
 .lp-angin.g1 { left: 6%; top: 30%; width: 130px; } .lp-angin.g2 { left: 30%; top: 60%; width: 90px; animation-delay: 1.1s; }
 .lp-angin.g3 { left: 52%; top: 22%; width: 150px; animation-delay: 2s; } .lp-angin.g4 { left: 74%; top: 74%; width: 110px; animation-delay: 2.7s; }
 @keyframes lp-hembus { 0% { transform: translateX(-160px); opacity: 0; } 20% { opacity: 1; } 100% { transform: translateX(260px); opacity: 0; } }
-.lp-jg { position: absolute; z-index: 0; pointer-events: none; filter: drop-shadow(0 10px 14px rgba(0,30,70,.25)); }
+.lp-jg { position: absolute; z-index: 0; pointer-events: none; will-change: transform; }   /* tanpa filter bayangan: digambar ulang tiap bingkai, berat di HP */
 .lp-jg svg { display: block; width: 100%; height: auto; }
 .lp-jg.j1 { right: max(170px, calc(50% - 420px)); top: 40px; width: 140px; }
 .lp-jg.j2 { right: max(30px, calc(50% - 570px)); top: 96px; width: 90px; opacity: .92; }
@@ -2905,6 +2903,12 @@ async function sha256File(file) {
    "bukti mirip" bila nama pengirim sama + nominal sama + waktu selisih ≤ 1 menit.
    (Kemiripan gambar tidak dipakai: struk berbeda dari aplikasi bank yang sama terlihat
    hampir identik, sehingga tidak bisa membedakan transfer sah dari salinan.) */
+/* supaya layar tidak "patah-patah": pekerjaan berat (baca bukti) menunggu saat panitia sedang menggulir / menyentuh / mengetik */
+let _terakhirSentuh = 0;
+['wheel', 'touchstart', 'touchmove', 'touchend', 'pointerdown', 'keydown'].forEach((ev) => addEventListener(ev, () => { _terakhirSentuh = performance.now(); }, { passive: true, capture: true }));
+const sedangDisentuh = () => performance.now() - _terakhirSentuh < 1200;
+async function tungguTenang(maks = 20000) { const t0 = performance.now(); while (sedangDisentuh() && performance.now() - t0 < maks) await new Promise((r) => setTimeout(r, 300)); }
+const jedaSebentar = () => new Promise((r) => (window.requestIdleCallback ? requestIdleCallback(() => r(), { timeout: 400 }) : setTimeout(r, 30)));
 const BATAS_AUTO_HP = 10;   // di HP: sampai 10 bukti dibaca otomatis tanpa bertanya
 const BACA_VERSI = 7;   // 7 = nominal "Rp 300.000,00" terbaca benar (dulu 30.000.000) → semua bukti dibaca ulang
 //   // 6 = nama penerima tidak lagi diambil dari bagian pengirim
@@ -8724,6 +8728,7 @@ const Adm = {
       const r = antre[0]; sudah.add(r.id);
       pb.n = pb.i + antre.length; pb.kini = `${r.nama_sekha} (${r.kode})`;
       this.tampilPeriksa();
+      if (pb.mode === 'auto') await tungguTenang();   // latar belakang: berhenti sejenak selama panitia menggulir / mengetik
       try {
         const contoh = api.bacaContoh ? api.bacaContoh(r.bukti_path) : null;
         let hasil = { nominal: null, waktu: null, nama: null, ref: null, rek4: null, penerima: null };
@@ -8739,6 +8744,7 @@ const Adm = {
           try { bmp = res.ok ? await createImageBitmap(await res.blob()) : null; } catch (e) { bmp = null; }   // file rusak/hilang → "tidak terbaca"
           if (bmp) {
             const rekP = String((this.s.data && this.s.data.pengaturan.bank_no_rek) || '').replace(/\D/g, '').slice(-4);
+            await jedaSebentar();                                         // beri waktu layar bergerak sebelum olah gambar
             const teks1 = (await ocr.recognize(kanvasOCR(bmp))).data.text;
             hasil = bacaTeksBukti(teks1, rekP, nmP);
             if (!hasil.waktu || !hasil.ref || !hasil.nominal || (nmP && !cocokPenerima(hasil.penerima, nmP))) {          // baca ulang bagian atas yang diperbesar
@@ -8759,7 +8765,7 @@ const Adm = {
         pb.ok++;
       } catch (e) { pb.gagal++; if (pb.ocrError) break; }
       pb.i++;
-      if (pb.i % 10 === 0) { this.indeks(); this.segarkanSetelahPeriksa(); }
+      if (pb.i % 10 === 0 && !sedangDisentuh()) { this.indeks(); this.segarkanSetelahPeriksa(); }   // daftar tidak digambar ulang di tengah guliran
     }
     try { const segar = await api.muatBacaan(); if (segar && this.s.data) this.s.data.baca = segar; } catch (e) { /* pakai data lokal */ }
     pb.jalan = false;
@@ -8772,6 +8778,7 @@ const Adm = {
   },
   /* segarkan daftar tanpa mengganggu: tidak dirender ulang saat panitia sedang mengetik */
   segarkanSetelahPeriksa() {
+    if (sedangDisentuh()) { clearTimeout(this._tSegar); this._tSegar = setTimeout(() => this.segarkanSetelahPeriksa(), 1200); return; }
     const a = document.activeElement;
     if (a && /^(INPUT|TEXTAREA|SELECT)$/.test(a.tagName) && !Overlay.atas()) { const t = $('#pb-chip'); if (t) t.outerHTML = this.vTombolPeriksa(); return; }
     this.segarkanTampilan({ diam: true });
@@ -12050,7 +12057,8 @@ function buatJanggan(el, opt) {
   el.appendChild(svg);
   const gEkor = svg.querySelector('.jg-ekor'), badan = svg.querySelector('.jg-badan');
   const paths = garis.map(([c]) => { const q = document.createElementNS(S, 'path'); q.setAttribute('fill', c); q.setAttribute('stroke', c); q.setAttribute('stroke-width', '.9'); q.setAttribute('stroke-linejoin', 'round'); gEkor.appendChild(q); return q; });
-  const N = 220, y0 = 244, diam = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+  // N = jumlah titik ekor per bingkai. 220 → 90: bentuk tetap halus, kerja per bingkai ~2,5× lebih ringan (HP jadi tidak patah-patah)
+  const N = 90, y0 = 244, diam = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
   let gx = 0;
   const gambar = (t) => {
     gx += (JG.mx - gx) * 0.04;
@@ -12071,7 +12079,15 @@ function buatJanggan(el, opt) {
     el.style.transform = `translate(${(Math.sin(t * .9) * 8 + gx * 14).toFixed(1)}px, ${(Math.sin(t * 1.4) * 10).toFixed(1)}px)`;
   };
   if (diam) { gambar(0); return; }
-  const loop = (t) => { if (!el.isConnected) return; if (!document.hidden) gambar(t / 1000); requestAnimationFrame(loop); };
+  // Hemat tenaga: berhenti saat layangan tidak terlihat (sudah digulir ke bawah), saat tab tersembunyi,
+  // dan selama panitia/peserta sedang menggulir — supaya guliran halaman tetap mulus.
+  let terlihat = true, bingkaiLalu = 0;
+  if ('IntersectionObserver' in window) new IntersectionObserver((e) => { terlihat = e[0].isIntersecting; }).observe(el);
+  const loop = (t) => {
+    if (!el.isConnected) return;
+    if (!document.hidden && terlihat && !sedangDisentuh() && t - bingkaiLalu >= 30) { bingkaiLalu = t; gambar(t / 1000); }   // ±30 bingkai/detik cukup untuk kain berkibar
+    requestAnimationFrame(loop);
+  };
   requestAnimationFrame(loop);
 }
 
