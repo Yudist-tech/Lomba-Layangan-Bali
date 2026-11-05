@@ -5,7 +5,7 @@
    v2: halaman dibaca utuh dulu lalu dikirim sebagai Response baru (tanpa clone/stream bersama),
        karena Safari iPhone kadang gagal membuka halaman ("WebKitBlobResource error 1")
        saat respons yang sama dibagi ke cache sambil ditampilkan, terutama sesaat setelah situs diperbarui. */
-const VERSI = 'lomba-pwa-v2';
+const VERSI = 'lomba-pwa-v3';
 const INTI = ['/manifest.webmanifest', '/ikon/ikon-192.png', '/ikon/ikon-512.png'];
 
 self.addEventListener('install', (e) => {
@@ -20,7 +20,9 @@ self.addEventListener('activate', (e) => {
 
 async function halamanTerbaru(req) {
   try {
-    const res = await fetch(req, { cache: 'no-store' });
+    // v3: 'no-cache' = tetap selalu cek versi terbaru ke server, tapi bila halaman tidak berubah server cukup
+    //     menjawab "304 tidak berubah" (beberapa byte) dan salinan di HP dipakai, bukan mengunduh ulang ±300 KB.
+    const res = await fetch(req, { cache: 'no-cache' });
     if (!res.ok || res.redirected || res.type !== 'basic') return res;   // biarkan apa adanya (pengalihan, error)
     const isi = await res.arrayBuffer();
     const init = { status: res.status, statusText: res.statusText, headers: res.headers };

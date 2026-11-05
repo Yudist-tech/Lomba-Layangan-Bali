@@ -17,7 +17,13 @@
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%230e5aa7'/%3E%3Cpath d='M16 4 25 14 16 27 7 14z' fill='%23fff'/%3E%3Cpath d='M16 4 25 14H16z' fill='%23f2a900'/%3E%3Cpath d='M7 14h9v13z' fill='%23d03b3b'/%3E%3Cpath d='M16 14h9l-9 13z' fill='%231d1f24'/%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<!-- font tidak menahan tampilan pertama (huruf bawaan dulu, lalu berganti saat font siap) -->
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
+<noscript><link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet"></noscript>
+<!-- unduh pustaka Supabase & buka koneksi ke server data sejak awal, bersamaan dengan halaman -->
+<link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+<link rel="preload" as="script" href="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.116.0/dist/umd/supabase.js" integrity="sha384-iLddHTLokph6Omwoyid4XKxHaWa6w41BnoEj0q5oOrzmYPpHIKt1wyjReA7s//pP" crossorigin="anonymous">
+<link rel="preconnect" href="https://igxbxbfbakytxktybdck.supabase.co" crossorigin>
 <!--
   =====================================================================
    SISTEM PENDAFTARAN LOMBA LAYANGAN  ·  v1.0
