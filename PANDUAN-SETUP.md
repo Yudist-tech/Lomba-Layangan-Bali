@@ -281,6 +281,25 @@ Kode situs sebelum fitur ini disimpan di GitHub sebagai branch **`cadangan-sebel
 
 ---
 
+## Daftar lengkap file SQL & urutannya
+
+Untuk **pemasangan baru**, jalankan dari atas ke bawah di Supabase → SQL Editor (paste seluruh isi → Run).
+Semua file aman dijalankan ulang, **kecuali `login-nama.sql`: cukup sekali**.
+File `cadangan-sebelum-*.sql` hanya membuat salinan data. Pada pemasangan baru boleh dilewati, tetapi **wajib dijalankan dulu** bila database sudah berisi data.
+
+| # | File | Isi | Jalankan setelah |
+|---|---|---|---|
+| 1 | `setup.sql` | tabel & fungsi dasar | — |
+| 2 | `cadangan-sebelum-multi-event.sql` → `multi-event.sql` | banyak event dalam 1 situs | 1 |
+| 3 | `login-id.sql` → `login-nama.sql` → `id-awalan.sql` → `id-pola.sql` | login panitia dengan ID | 2 |
+| 4 | `super-admin-id.sql`, `hapus-akun.sql` | ID super admin, hapus akun | 3 |
+| 5 | `riwayat.sql` | riwayat & kinerja panitia | 2 (dan 3 bila dipakai) |
+| 6 | `nomor-2-digit.sql`, `tema-event.sql`, `istirahat.sql`, `pengirim-terbanyak.sql` | nomor 2 digit, tema, istirahat di jadwal, pengirim terbanyak | 2 |
+| 7 | `bukti-mirip.sql` → `bukti-selesai.sql` → `bukti-cek.sql` | Cek Bukti | 2 |
+| 8 | `cadangan-sebelum-penilaian.sql` → `juara.sql` → `juri-pantau.sql` → `upload-form.sql` → `keterangan-juri.sql`, `reset-seri.sql` | penilaian & juara | 2 |
+| 9 | `cadangan-sebelum-rombongan.sql` → `rombongan.sql` | daftar beberapa layangan (rombongan) | 2 |
+| 10 | `cadangan-sebelum-cek-penerima.sql` → `cek-penerima.sql` | cek nama penerima di bukti | 7 |
+
 ## Lampiran A — kalau Bucket / Policy Storage ❌
 
 **Storage → New bucket**

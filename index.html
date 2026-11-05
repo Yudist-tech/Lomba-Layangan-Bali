@@ -2900,12 +2900,15 @@ async function sha256File(file) {
    (Kemiripan gambar tidak dipakai: struk berbeda dari aplikasi bank yang sama terlihat
    hampir identik, sehingga tidak bisa membedakan transfer sah dari salinan.) */
 const BATAS_AUTO_HP = 10;   // di HP: sampai 10 bukti dibaca otomatis tanpa bertanya
-const BACA_VERSI = 6;   // 6 = nama penerima tidak lagi diambil dari bagian pengirim
+const BACA_VERSI = 7;   // 7 = nominal "Rp 300.000,00" terbaca benar (dulu 30.000.000) → semua bukti dibaca ulang
+//   // 6 = nama penerima tidak lagi diambil dari bagian pengirim
 //   // 5 = nama penerima (cek ke rekening panitia)
 //   // 3 = bukti yang dulu "tidak terbaca" dibaca ulang (gambar diperbesar, tahun dicek)   // naik bila pembaca bukti mendapat kolom baru (2 = No. Referensi & 4 angka rekening) → bukti lama dibaca ulang sekali
 const OCR_SUMBER = ['https://cdn.jsdelivr.net/npm/tesseract.js@5.1.1/dist/tesseract.min.js', 'https://unpkg.com/tesseract.js@5.1.1/dist/tesseract.min.js'];
 const BULAN_TEKS = { jan: 1, januari: 1, january: 1, feb: 2, peb: 2, februari: 2, february: 2, mar: 3, maret: 3, march: 3, apr: 4, april: 4, mei: 5, may: 5, jun: 6, juni: 6, june: 6, jul: 7, juli: 7, july: 7, agu: 8, agt: 8, ags: 8, aug: 8, agustus: 8, august: 8, sep: 9, sept: 9, september: 9, okt: 10, oct: 10, oktober: 10, october: 10, nov: 11, nop: 11, november: 11, nopember: 11, des: 12, dec: 12, desember: 12, december: 12 };
-function angkaRupiah(s) {
+/* angka rupiah dari teks bukti (OCR): "300.000,00" → 300000. Namanya beda dari angkaRupiah() milik form
+   harga; dulu keduanya bernama sama sehingga versi form menimpa versi ini dan "Rp 300.000,00" terbaca 30.000.000. */
+function angkaRupiahBukti(s) {
   let x = String(s).replace(/\s/g, '').replace(/[.,]\d{2}$/, '').replace(/[.,]/g, '');
   const n = parseInt(x, 10);
   return Number.isFinite(n) && n >= 1000 && n < 1e11 ? n : null;
@@ -3478,7 +3481,7 @@ function bacaTeksBukti(teks, rekPanitia4 = '', namaPanitia = '') {
   // --- nominal
   const RX_RP = /(?:\bRp|\bIDR)\s*\.?\s*:?\s*(\d{1,3}(?:[.,\s]\d{3})+(?:[.,]\d{2})?|\d{4,}(?:[.,]\d{2})?)(?!\d)/gi;
   const RX_ANGKA = /(?<![\d.,])(\d{1,3}(?:[.,]\d{3})+(?:[.,]\d{2})?)(?![\d])/g;
-  const ambil = (str, rx) => [...str.matchAll(rx)].map((m) => angkaRupiah(m[1])).filter(Boolean);
+  const ambil = (str, rx) => [...str.matchAll(rx)].map((m) => angkaRupiahBukti(m[1])).filter(Boolean);
   let nominal = null, prioritas = 9, pertama = null;
   baris.forEach((b, i) => {
     const rp = ambil(b, RX_RP);
@@ -3589,7 +3592,7 @@ function cocokPenerima(teks, panitia) {
 /* hasil cek penerima satu bacaan bukti: null (belum bisa dinilai) / ok / beda / kosong */
 function penerimaDari(b, namaPanitia, path) {
   const nm = String(namaPanitia || '').trim();
-  if (!nm || !b || b.gagal || (b.versi || 1) < 6 || /\.pdf$/i.test(path || '')) return null;
+  if (!nm || !b || b.gagal || b.penerima === undefined || (b.versi || 1) < 6 || /\.pdf$/i.test(path || '')) return null;
   if (b.penerima && cocokPenerima(b.penerima, nm)) return { k: 'ok', nama: b.penerima, panitia: nm };
   if (!b.penerima) return { k: 'kosong', panitia: nm };
   // mirip sebagian (kemungkinan salah baca) → kuning, bukan merah
@@ -4038,7 +4041,6 @@ const PESAN_ERROR = {
   BUKTI_TIDAK_VALID: 'Bukti transfer tidak valid, silakan unggah ulang.',
   TERLALU_BANYAK: 'Terlalu banyak pendaftaran dari nomor ini dalam 1 jam. Coba lagi nanti atau hubungi panitia.',
   SERI_ADA_PESERTA: 'Jenis seri tidak bisa diubah karena seri ini sudah punya pendaftar.',
-  BUKAN_ADMIN: 'Akun ini tidak terdaftar sebagai admin.',
   DEMO_PENUH: 'Penyimpanan mode demo penuh. Hapus data demo di menu Pengaturan.',
   GAMBAR_GAGAL: 'Foto tidak bisa dibaca. Gunakan format JPG/PNG atau screenshot.',
   KODE_EVENT_TIDAK_VALID: 'Kode alamat event hanya boleh huruf kecil, angka, dan tanda strip (3–40 karakter).',
@@ -4408,7 +4410,7 @@ class SupabaseAPI {
   async simpanBacaan(row) {
     const isi = { ...row, event_id: this._ev(), dibaca_at: new Date().toISOString() };
     if (this.bacaLama) { delete isi.ref; delete isi.rek4; delete isi.versi; }
-    if (this.tanpaPenerima || this.bacaLama) { delete isi.penerima; if (isi.versi > 4) isi.versi = 4; }
+    if (this.tanpaPenerima || this.bacaLama) delete isi.penerima;   // kolom penerima belum ada: versi tetap, cek penerima dilewati (penerima undefined)
     const r = await this.sb.from('lomba_bukti_baca').upsert(isi).select().single();
     if (r.error && !this.tanpaPenerima && /penerima/i.test(r.error.message || '')) { this.tanpaPenerima = true; return this.simpanBacaan(row); }   // cek-penerima.sql belum dipasang
     if (r.error && !this.bacaLama && /ref|rek4|versi|column/i.test(r.error.message || '')) { this.bacaLama = true; return this.simpanBacaan(row); }   // bukti-cek.sql belum dipasang
@@ -8695,7 +8697,7 @@ const Adm = {
   /* baca ulang: bacaan versi 1 (belum ada No. Ref & rekening), atau yang nominal/waktunya belum terbaca sebelum versi 3 */
   perluBacaUlang(b) {
     const v = b.versi || 1, nmP = String((this.s.data && this.s.data.pengaturan.bank_atas_nama) || '').trim();
-    return v < 2 || (v < 4 && (!b.nominal || !b.waktu || !b.ref)) || (v < 6 && !!nmP && !api.tanpaPenerima);   // 5: nama penerima belum pernah dibaca
+    return v < 2 || (v < 4 && (!b.nominal || !b.waktu || !b.ref)) || (v < 6 && !!nmP && !api.tanpaPenerima) || v < 7;   // 7: perbaikan pembacaan nominal   // 5: nama penerima belum pernah dibaca
   },
   antreanBaca(sudah) {
     const d = this.s.data; if (!d) return [];
@@ -8746,7 +8748,6 @@ const Adm = {
           }
         }
         const simpan = await api.simpanBacaan({ pendaftaran_id: r.id, bukti_path: r.bukti_path, ...hasil, versi: BACA_VERSI, gagal: !hasil.nominal });
-        if (api.tanpaPenerima && simpan) simpan.versi = Math.min(simpan.versi || 4, 4);
         const dd = this.s.data;
         if (dd) dd.baca = (dd.baca || []).filter((b) => b.pendaftaran_id !== r.id).concat([simpan]);
         pb.ok++;
